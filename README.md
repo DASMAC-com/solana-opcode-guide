@@ -13,7 +13,7 @@ The Solana Opcode Guide is made with GitHub pages and can be viewed at
 1. Run:
 
    ```sh
-   cd docs
+   cd doc
    bundle install
    bundle exec jekyll serve --baseurl=""
    ```
