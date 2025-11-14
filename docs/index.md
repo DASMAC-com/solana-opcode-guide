@@ -1,5 +1,6 @@
 ---
 title: Welcome
+nav_order: 1
 ---
 
 # Solana Opcode Guide
@@ -60,6 +61,10 @@ jlt dst, src, off
 Inside an ELF file, this `jlt` operation is represented using the number `173`
 (or `0xad` in [hexadecimal]), and is encoded in a single byte, corresponding to
 the constant [`JLT_REG`] from the [SBPF opcodes].
+
+## Continue your journey
+
+Head over to the [Quickstart]({% link quickstart.md %})!
 
 [`jlt_reg`]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/constant.JLT_REG.html
 [anchor]: https://www.anchor-lang.com/docs
