@@ -18,10 +18,9 @@ nav_order: 2
    cd solana-opcode-guide/examples
    ```
 
-1. Build and run the examples using `sbpf`.
+1. Run the example tests using `sbpf`.
 
    ```sh
-   sbpf build
    sbpf test
    ```
 
