@@ -15,7 +15,7 @@ The Solana Opcode Guide is made with GitHub pages and can be viewed at
    ```sh
    cd docs
    bundle install
-   bundle exec jekyll serve --baseurl=""
+   bundle exec jekyll serve --baseurl="" --livereload
    ```
 
 1. Open <http://localhost:4000>.
