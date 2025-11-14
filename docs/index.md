@@ -9,18 +9,19 @@ title: Welcome
 ## Background
 
 [Solana programs] are typically written in [Rust], then compiled via [LLVM] into
-an Executable and Linkable Format ([ELF]) that can be deployed to a cluster like
-mainnet. In practice, most developers do not concern themselves with the
+an Executable and Linkable Format ([ELF]) file that can be deployed to a cluster
+like mainnet. In practice, most developers do not concern themselves with the
 compilation process or the contents of the executable, even though the resultant
 [bytecode] is what actually runs their program logic.
 
 This is because Solana programs, in particular [native Rust] implementations,
 are already considered "low-level" due to the manual memory management
-operations they perform (which may include byte- or even bit-specific logic),
-and because they incorporate various other paradigms typically not encountered
-outside of embedded systems or other hardware-adjacent engineering contexts.
-Hence the proliferation of development frameworks like [Anchor], which simplify
-some of the development process at the cost of execution overhead.
+operations they perform (which may include byte- or even bit-specific logic).
+Moreover, native Rust programs tend to incorporate various other paradigms
+typically not encountered outside of embedded systems or other hardware-adjacent
+engineering contexts. Hence the proliferation of development frameworks like
+[Anchor], which simplify some of the development process at the cost of
+execution overhead.
 
 Nevertheless, Solana at its core is a [virtual machine] that simply runs opcodes
 to manipulate bytes, and a full mastery of the system's execution mechanics
@@ -32,7 +33,7 @@ which are based on [eBPF] and include [syscall] support for utilities like
 In particular for high-performance applications, opcode-aware programming
 methods are an effective tool for optimizing transaction costs and for designing
 robust program architectures, and it is the goal of this guide that through an
-in-depth exploration of Solana opcodes that developers may improve their command
+in-depth exploration of Solana opcodes, developers may improve their command
 of the enduring Solana Virtual Machine.
 
 ## Example
@@ -43,9 +44,9 @@ A Rust operation that checks if `a` is less than `b` looks like:
 if a < b
 ```
 
-This corresponds to the [assembler mnemonic]:
+In bytecode this corresponds to the [assembler mnemonic]:
 
-```asm
+```text
 jlt dst, src, off
 ```
 
@@ -56,9 +57,9 @@ jlt dst, src, off
 | `src` | The source register (`b` in Rust) |
 | `off` | How much to increment the program counter by (the "offset") if `dst` is less than `src` |
 
-Inside a Solana ELF, the `jlt` operation is represented using the number `173`
-(or `0xad` in [hexadecimal]), and is encoded in a single byte: hence "bytecode".
-This corresponds to the constant [`JLT_REG`] from the [SBPF opcodes].
+Inside an ELF file, this `jlt` operation is represented using the number `173`
+(or `0xad` in [hexadecimal]), and is encoded in a single byte, corresponding to
+the constant [`JLT_REG`] from the [SBPF opcodes].
 
 [`jlt_reg`]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/constant.JLT_REG.html
 [anchor]: https://www.anchor-lang.com/docs
