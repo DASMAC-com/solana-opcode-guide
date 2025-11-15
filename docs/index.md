@@ -1,8 +1,3 @@
----
-title: Welcome
-nav_order: 1
----
-
 # Solana Opcode Guide
 
 *Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)*
@@ -64,7 +59,7 @@ the constant [`JLT_REG`] from the [SBPF opcodes].
 
 ## Continue your journey
 
-Head over to the [Quickstart]({% link quickstart.md %})!
+Head over to the [Quickstart](quickstart)!
 
 [`jlt_reg`]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/constant.JLT_REG.html
 [anchor]: https://www.anchor-lang.com/docs
