@@ -52,11 +52,11 @@
     ...
     ```
 
-## Review the bytecode
+## Review the assembly file
 
-Review the `hello-dasmac.s` file:
+1. Open the `hello-dasmac.s` file:
 
-<<< ../../examples/src/hello-dasmac/hello-dasmac.s{asm}
+   <<< ../../examples/src/hello-dasmac/hello-dasmac.s{asm}
 
 
 [VS Code sBPF Assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
