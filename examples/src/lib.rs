@@ -5,7 +5,7 @@ mod tests {
     use solana_sdk::pubkey::{Pubkey, PUBKEY_BYTES};
 
     #[test]
-    fn test_hello_dasmac() {
+    fn hello_dasmac() {
         let program_id_keypair_bytes = std::fs::read("deploy/examples-keypair.json").unwrap()
             [..PUBKEY_BYTES]
             .try_into()
