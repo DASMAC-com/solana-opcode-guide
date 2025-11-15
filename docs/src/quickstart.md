@@ -46,11 +46,11 @@
 
 1. Inspect the output:
 
-    ```sh
-    ...
-    [... DEBUG ... stable_log] Program log: Hello, DASMAC!
-    ...
-    ```
+   ```sh
+   ...
+   [... DEBUG ... stable_log] Program log: Hello, DASMAC!
+   ...
+   ```
 
 ## Review the assembly file
 
@@ -58,6 +58,11 @@
 
    <<< ../../examples/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
 
+1. Disassemble the program to view the bytecode:
+
+   ```sh
+   sbpf disassemble deploy/hello-dasmac.so
+   ```
 
 [VS Code sBPF Assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
 [known issue]: https://stackoverflow.com/a/78398587
