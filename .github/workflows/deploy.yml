@@ -4,7 +4,6 @@ on:
   push:
     branches:
     - 'main'
-    - 'eng-78'
 permissions:
   contents: read
   pages: write
