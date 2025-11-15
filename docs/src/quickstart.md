@@ -56,7 +56,7 @@
 
 1. Open the `hello-dasmac.s` file:
 
-   <<< ../../examples/src/hello-dasmac/hello-dasmac.s{asm}
+   <<< ../../examples/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
 
 
 [VS Code sBPF Assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
