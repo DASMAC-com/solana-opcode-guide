@@ -2,23 +2,23 @@
 
 *Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)*
 
-The Solana Opcode Guide is made with GitHub pages and can be viewed at
-[opcodes.dasmac.com].
+The Solana Opcode Guide can be viewed at [opcodes.dasmac.com].
 
 [opcodes.dasmac.com]: https://opcodes.dasmac.com
 
 ## Local Deployment
 
-1. Ensure you have [`bundle`] and [`jekyll`].
-1. Run:
+1. Navigate to the docs directory:
 
    ```sh
    cd docs
-   bundle install
-   bundle exec jekyll serve --baseurl="" --livereload
    ```
 
-1. Open <http://localhost:4000>.
+1. Install dependencies and run dev server:
 
-[`bundle`]: https://bundler.io/
-[`jekyll`]: https://jekyllrb.com/docs/installation/
+   ```sh
+   npm install
+   npm run dev
+   ```
+
+1. Open <localhost:5173>.
