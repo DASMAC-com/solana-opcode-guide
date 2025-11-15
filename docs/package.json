@@ -1,7 +1,8 @@
 {
   "name": "solana-opcode-guide",
   "scripts": {
-    "dev": "vitepress dev"
+    "dev": "vitepress dev",
+    "build": "vitepress build"
   },
   "devDependencies": {
     "vitepress": "^1.6.4"
