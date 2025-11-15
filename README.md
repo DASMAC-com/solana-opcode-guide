@@ -22,6 +22,7 @@ The Solana Opcode Guide is built with [VitePress] and can be viewed at
    npm run dev
    ```
 
-1. Open <localhost:5173>.
+1. Open [localhost:5173].
 
+[localhost:5173]: http://localhost:5173
 [vitepress]: https://vitepress.dev/
