@@ -49,10 +49,13 @@
 
 1. Inspect the output:
 
-   ```sh
-   ...
-   [... DEBUG ... stable_log] Program log: Hello, DASMAC!
-   ...
+   ```sh{3}
+   running 1 test
+   [... DEBUG ...] Program asm... invoke [1]
+   [... DEBUG ...] Program log: Hello, DASMAC!
+   [... DEBUG ...] Program asm... consumed 104 of 1400000 compute units
+   [... DEBUG ...] Program asm... success
+   test tests::hello_dasmac ... ok
    ```
 
 ## Review the assembly file

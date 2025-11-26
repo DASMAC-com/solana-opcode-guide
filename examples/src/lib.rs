@@ -2,15 +2,15 @@
 mod tests {
     use mollusk_svm::{result::Check, Mollusk};
     use solana_sdk::instruction::Instruction;
-    use solana_sdk::pubkey::{Pubkey, PUBKEY_BYTES};
+    use solana_sdk::signature::read_keypair_file;
+    use solana_sdk::signer::Signer;
 
     #[test]
     fn hello_dasmac() {
-        let program_id_keypair_bytes = std::fs::read("deploy/examples-keypair.json").unwrap()
-            [..PUBKEY_BYTES]
-            .try_into()
-            .expect("slice with incorrect length");
-        let program_id = Pubkey::new_from_array(program_id_keypair_bytes);
+        let keypair =
+            read_keypair_file("deploy/examples-keypair.json").expect("Failed to read keypair file");
+        let program_id = keypair.pubkey();
+
         let instruction = Instruction::new_with_bytes(program_id, &[], vec![]);
         let mollusk = Mollusk::new(&program_id, "deploy/hello_dasmac");
         let result =
