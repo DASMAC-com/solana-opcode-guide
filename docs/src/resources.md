@@ -4,6 +4,10 @@
 
 1. [Scale or Die at Accelerate 2025: Writing Optimized Solana Programs (Dean Little | Blueshift)] ([transcript][Writing Optimized Solana Programs transcript])
 
+## Examples
+
+1. [`sbpf` examples]
+
 ## Guides
 
 1. [How to Write Solana Programs with SBPF Assembly]
@@ -30,6 +34,7 @@
 [Scale or Die at Accelerate 2025: Writing Optimized Solana Programs (Dean Little | Blueshift)]: https://youtu.be/Fk_UtbEny0c
 [sBPF Assembly 101]: https://learn.blueshift.gg/en/courses/introduction-to-assembly/assembly-101
 [SBPF opcode test suite]: https://github.com/anza-xyz/sbpf/blob/main/tests/execution.rs
+[`sbpf` examples]: https://github.com/blueshift-gg/sbpf/tree/master/examples
 [`sbpf` syscall registry]: https://github.com/blueshift-gg/sbpf/blob/master/crates/common/src/syscalls.rs
 [LiteSVM]: https://www.litesvm.com/
 [sbpf.xyz]: https://sbpf.xyz/
