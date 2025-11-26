@@ -7,6 +7,7 @@
 ## Examples
 
 1. [`sbpf` examples]
+1. [SBPF opcode test suite]
 
 ## Guides
 
@@ -18,7 +19,6 @@
 
 1. [SBPF bytecode instruction set architecture]
 1. [SBPF opcodes]
-1. [SBPF opcode test suite]
 1. [`sbpf` syscall registry]
 
 ## Tools
