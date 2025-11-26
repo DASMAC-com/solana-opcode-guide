@@ -1,6 +1,6 @@
 # Quickstart
 
-## Environment setup
+## Set up your environment
 
 1. Install the latest version of [`solana`].
 1. Install [`sbpf`].
@@ -22,6 +22,9 @@
    ```sh
    cd solana-opcode-guide/examples
    ```
+
+   > [!tip]
+   > All future examples are contained in this directory.
 
 1. Build the examples.
 
@@ -54,15 +57,22 @@
 
 ## Review the assembly file
 
-1. Open the `hello_dasmac.s` file:
+1. Open the `hello_dasmac.s` assembly file:
 
    <<< ../../examples/src/hello_dasmac/hello_dasmac.s{asm:line-numbers}
 
-1. Disassemble the program to view the bytecode:
+1. Disassemble the program:
 
    ```sh
    sbpf disassemble deploy/hello_dasmac.so
    ```
+
+## :tada: Congratulations!
+
+You have successfully assembled and disassembled your first SBPF program!
+
+> [!note]
+> This example was adapted from the [`sbpf`] `init` command.
 
 [VS Code sBPF Assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
 [known issue]: https://stackoverflow.com/a/78398587
