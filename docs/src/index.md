@@ -62,7 +62,7 @@ the constant [`JLT_REG`] from the [SBPF opcodes].
 Start by heading over to the [quickstart](quickstart), which will help you set
 up your environment and run a simple example.
 
-See also the [References](references) page for a curated list of resources to
+See also the [resources](resources) page for a curated list of resources to
 explore on your journey.
 
 [`jlt_reg`]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/constant.JLT_REG.html

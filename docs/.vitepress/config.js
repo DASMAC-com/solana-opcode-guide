@@ -5,7 +5,7 @@ export default {
     sidebar: [
       { text: 'Welcome', link: '/' },
       { text: 'Quickstart', link: '/quickstart' },
-      { text: 'References', link: '/references' }
+      { text: 'Resources', link: '/resources' }
     ]
   }
 }

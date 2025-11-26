@@ -1,4 +1,4 @@
-# References
+# Resources
 
 ## Content
 
@@ -10,7 +10,7 @@
 1. [sBPF Assembly 101]
 1. [Optimizing Solana Programs]
 
-## Technical
+## References
 
 1. [SBPF bytecode instruction set architecture]
 1. [SBPF opcodes]
