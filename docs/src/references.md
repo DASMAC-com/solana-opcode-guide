@@ -22,7 +22,9 @@
 1. [`sbpf`]
 1. [LiteSVM]
 1. [sbpf.xyz]
+1. [VS Code `sbpf-asm` extension]
 
+[VS Code `sbpf-asm` extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
 [Writing Optimized Solana Programs transcript]: https://github.com/Laugharne/solana_optimized_programs
 [How to Write Solana Programs with SBPF Assembly]: https://www.helius.dev/blog/sbpf-assembly
 [Scale or Die at Accelerate 2025: Writing Optimized Solana Programs (Dean Little | Blueshift)]: https://youtu.be/Fk_UtbEny0c
