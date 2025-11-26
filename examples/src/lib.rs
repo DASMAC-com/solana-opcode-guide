@@ -12,7 +12,7 @@ mod tests {
             .expect("slice with incorrect length");
         let program_id = Pubkey::new_from_array(program_id_keypair_bytes);
         let instruction = Instruction::new_with_bytes(program_id, &[], vec![]);
-        let mollusk = Mollusk::new(&program_id, "deploy/hello-dasmac");
+        let mollusk = Mollusk::new(&program_id, "deploy/hello_dasmac");
         let result =
             mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
         assert!(!result.program_result.is_err());

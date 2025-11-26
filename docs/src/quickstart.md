@@ -10,7 +10,7 @@
    ```
 1. (Optional) Install the [VS Code SBPF Assembly extension].
 
-## Run the `hello-dasmac` example
+## Run the `hello_dasmac` example
 
 1. Clone the [Solana Opcode Guide] repository.
 
@@ -29,7 +29,7 @@
    sbpf build
    ```
 
-1. Run the `hello-dasmac` test.
+1. Run the `hello_dasmac` test.
 
    ```sh
    cargo test -- --test hello_dasmac
@@ -54,14 +54,14 @@
 
 ## Review the assembly file
 
-1. Open the `hello-dasmac.s` file:
+1. Open the `hello_dasmac.s` file:
 
-   <<< ../../examples/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
+   <<< ../../examples/src/hello_dasmac/hello_dasmac.s{asm:line-numbers}
 
 1. Disassemble the program to view the bytecode:
 
    ```sh
-   sbpf disassemble deploy/hello-dasmac.so
+   sbpf disassemble deploy/hello_dasmac.so
    ```
 
 [VS Code sBPF Assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
