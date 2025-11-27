@@ -1,2 +1,3 @@
-deploy
+deploy/*
+!deploy/examples-keypair.json
 target

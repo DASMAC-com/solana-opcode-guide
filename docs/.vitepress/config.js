@@ -4,7 +4,8 @@ export default {
   themeConfig: {
     sidebar: [
       { text: 'Welcome', link: '/' },
-      { text: 'Quickstart', link: '/quickstart' }
+      { text: 'Quickstart', link: '/quickstart' },
+      { text: 'Resources', link: '/resources' }
     ]
   }
 }

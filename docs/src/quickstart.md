@@ -1,6 +1,6 @@
 # Quickstart
 
-## Environment setup
+## Set up your environment
 
 1. Install the latest version of [`solana`].
 1. Install [`sbpf`].
@@ -10,7 +10,7 @@
    ```
 1. (Optional) Install the [VS Code SBPF Assembly extension].
 
-## Run the `hello-dasmac` example
+## Run the `hello_dasmac` example
 
 1. Clone the [Solana Opcode Guide] repository.
 
@@ -23,13 +23,16 @@
    cd solana-opcode-guide/examples
    ```
 
+   > [!tip]
+   > All future examples are contained in this directory.
+
 1. Build the examples.
 
    ```sh
    sbpf build
    ```
 
-1. Run the `hello-dasmac` test.
+1. Run the `hello_dasmac` test.
 
    ```sh
    cargo test -- --test hello_dasmac
@@ -46,23 +49,33 @@
 
 1. Inspect the output:
 
-   ```sh
-   ...
-   [... DEBUG ... stable_log] Program log: Hello, DASMAC!
-   ...
+   ```sh{3}
+   running 1 test
+   [... DEBUG ...] Program asm... invoke [1]
+   [... DEBUG ...] Program log: Hello, DASMAC!
+   [... DEBUG ...] Program asm... consumed 104 of 1400000 compute units
+   [... DEBUG ...] Program asm... success
+   test tests::hello_dasmac ... ok
    ```
 
 ## Review the assembly file
 
-1. Open the `hello-dasmac.s` file:
+1. Open the `hello_dasmac.s` assembly file:
 
-   <<< ../../examples/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
+   <<< ../../examples/src/hello_dasmac/hello_dasmac.s{asm:line-numbers}
 
-1. Disassemble the program to view the bytecode:
+1. Disassemble the program:
 
    ```sh
-   sbpf disassemble deploy/hello-dasmac.so
+   sbpf disassemble deploy/hello_dasmac.so
    ```
+
+## :tada: Congratulations!
+
+You have successfully assembled and disassembled your first SBPF program!
+
+> [!note]
+> This example was adapted from the [`sbpf`] `init` command.
 
 [VS Code sBPF Assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
 [known issue]: https://stackoverflow.com/a/78398587
