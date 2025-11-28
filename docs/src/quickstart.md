@@ -3,6 +3,29 @@
 ## Set up your environment
 
 1. Install the latest version of [`solana`].
+1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
+   install, in particular the [`dump.sh`] script and the [LLVM] binaries it
+   requires. This will look something like:
+
+
+   ```sh
+   # Solana tools.
+   export SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
+   export SOLANA_SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
+   export PATH="$SOLANA_RELEASE:$PATH"
+   export PATH="$SOLANA_SBPF_TOOLS/scripts:$PATH"
+   export PATH="$SOLANA_SBPF_TOOLS/dependencies/platform-tools/llvm/bin:$PATH"
+   ```
+
+   > [!tip]
+   > This example is from `~/.zshrc` on a Mac with [Oh My Zsh].
+
+1. Install [`rustfilt`], which is required by [`dump.sh`]:
+
+   ```sh
+   cargo install rustfilt
+   ```
+
 1. Install [`sbpf`].
 
    ```sh
@@ -82,3 +105,9 @@ You have successfully assembled and disassembled your first SBPF program!
 [Solana Opcode Guide]: https://github.com/dasmac-com/solana-opcode-guide
 [`sbpf`]: https://github.com/blueshift-gg/sbpf
 [`solana`]: https://docs.anza.xyz/cli/install
+[`PATH`]: https://en.wikipedia.org/wiki/PATH_(variable)
+[Oh My Zsh]: https://ohmyz.sh/
+[`dump.sh`]: https://github.com/anza-xyz/agave/blob/master/platform-tools-sdk/sbf/scripts/dump.sh
+[LLVM]: https://llvm.org/
+[SBPF]: https://solana.com/docs/core/programs
+[`rustfilt`]: https://github.com/luser/rustfilt
