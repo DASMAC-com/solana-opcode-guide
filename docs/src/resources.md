@@ -22,6 +22,7 @@
 1. [SBPF bytecode instruction set architecture]
 1. [SBPF opcodes]
 1. [`sbpf` syscall registry]
+1. [`solana-sdk` syscall registry]
 
 ## Tools
 
@@ -46,3 +47,4 @@
 [SBPF bytecode instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/main/doc/bytecode.md
 [SBPF opcodes]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
 [Optimizing Solana Programs]: https://www.helius.dev/blog/optimizing-solana-programs
+[`solana-sdk` syscall registry]: https://github.com/anza-xyz/solana-sdk/blob/master/define-syscall/src/definitions.rs
