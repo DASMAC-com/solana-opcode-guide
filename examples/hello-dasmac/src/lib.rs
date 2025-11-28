@@ -6,13 +6,13 @@ mod tests {
     use solana_sdk::signer::Signer;
 
     #[test]
-    fn hello_dasmac() {
-        let keypair =
-            read_keypair_file("deploy/examples-keypair.json").expect("Failed to read keypair file");
+    fn asm() {
+        let keypair = read_keypair_file("deploy/hello-dasmac-keypair.json")
+            .expect("Failed to read keypair file");
         let program_id = keypair.pubkey();
 
         let instruction = Instruction::new_with_bytes(program_id, &[], vec![]);
-        let mollusk = Mollusk::new(&program_id, "deploy/hello_dasmac");
+        let mollusk = Mollusk::new(&program_id, "deploy/hello-dasmac");
         let result =
             mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
         assert!(!result.program_result.is_err());

@@ -1,13 +1,7 @@
-[package]
-name = "solana-opcode-guide-examples"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+resolver = "2"
+members = ["hello-dasmac"]
 
-[dependencies]
-
-[dev-dependencies]
+[workspace.dependencies]
 mollusk-svm = "0.4.1"
 solana-sdk = "2.2.1"
-
-[features]
-test-sbf = []

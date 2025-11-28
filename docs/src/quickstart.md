@@ -31,34 +31,35 @@
    ```sh
    cargo install --git https://github.com/blueshift-gg/sbpf.git
    ```
+
 1. (Optional) Install the [VS Code SBPF Assembly extension].
 
-## Run the `hello_dasmac` example
+## Run the `hello-dasmac` example
 
 1. Clone the [Solana Opcode Guide] repository.
 
    ```sh
    git clone https://github.com/dasmac-com/solana-opcode-guide.git
    ```
-1. Navigate to the examples directory.
+1. Navigate to the `hello-dasmac` directory.
 
    ```sh
-   cd solana-opcode-guide/examples
+   cd solana-opcode-guide/examples/hello-dasmac
    ```
 
    > [!tip]
-   > All future examples are contained in this directory.
+   > All future examples are contained in the `examples` directory.
 
-1. Build the examples.
+1. Build the assembly implementation.
 
    ```sh
    sbpf build
    ```
 
-1. Run the `hello_dasmac` test.
+1. Run the `asm` test.
 
    ```sh
-   cargo test -- --test hello_dasmac
+   cargo test -- --test asm
    ```
 
    > [!tip]
@@ -83,14 +84,14 @@
 
 ## Review the assembly file
 
-1. Open the `hello_dasmac.s` assembly file:
+1. Open the `hello-dasmac.s` assembly file:
 
-   <<< ../../examples/src/hello_dasmac/hello_dasmac.s{asm:line-numbers}
+   <<< ../../examples/hello-dasmac/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
 
 1. Disassemble the program:
 
    ```sh
-   sbpf disassemble deploy/hello_dasmac.so
+   sbpf disassemble deploy/hello-dasmac.so
    ```
 
 ## :tada: Congratulations!
