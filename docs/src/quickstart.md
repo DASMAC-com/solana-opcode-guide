@@ -1,11 +1,11 @@
 # Quickstart
 
-## Set up your environment
+## Set up your environment {#env-setup}
 
 1. Install the latest version of [`solana`].
 1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
-   install, in particular the [`dump.sh`] script that `cargo build-sbf --dump`
-   [calls internally] and the [LLVM] binaries it requires. This will look
+   install, in particular the [`dump.sh`] script [called internally] by
+   `cargo build-sbf --dump`, and the [LLVM] binaries it requires. This will look
    something like:
 
 
@@ -21,7 +21,7 @@
    > [!tip]
    > This example is from `~/.zshrc` on a Mac with [Oh My Zsh].
 
-1. Install [`rustfilt`], which is required by [`dump.sh`]:
+1. Install [`rustfilt`], which is also required by [`dump.sh`]:
 
    ```sh
    cargo install rustfilt
@@ -42,13 +42,13 @@
    ```sh
    git clone https://github.com/dasmac-com/solana-opcode-guide.git
    ```
-1. Navigate to the `hello-dasmac` directory.
+1. Navigate to the `examples/hello-dasmac` directory.
 
    ```sh
    cd solana-opcode-guide/examples/hello-dasmac
    ```
 
-1. Compare the assembly and Rust program implementations:
+1. Compare the [assembly] and [Rust] program implementations:
 
    | Implementation | Location |
    | -------------- | -------- |
@@ -56,9 +56,8 @@
    | Rust           | `src/program.rs` |
 
    > [!tip]
-   > All future examples are in the `examples` directory and use a similar
-   > layout, since the [`sbpf`] `build` command expects
-   > `src/<program-name>/<program-name>.s`.
+   > Other examples in the `examples` directory use a similar layout, since the
+   > [`sbpf`] `build` command expects `src/<program-name>/<program-name>.s`.
 
    ::: code-group
 
@@ -74,21 +73,24 @@
    sbpf build
    ```
 
-1. Run [`dump.sh`] on the assembly build:
+1. Run [`dump.sh`](#env-setup) on the assembly build [ELF][SBPF] output at
+   `deploy/hello-dasmac.so`:
 
    ```sh
    dump.sh deploy/hello-dasmac.so deploy/asm-dump.txt
    ```
 
-1. Build the Rust implementation, and dump the [ELF][SBPF] output. By default
-   this will create the following files in `../target/deploy`
+1. Build the Rust implementation and dump the build. This operation should
+   create the following files in `../target/deploy`
    (`solana-opcode-guide/examples/target/deploy`):
 
-    1. `hello_dasmac.so`
-    1. `hello_dasmac-dump.txt`
+   | File | Description |
+   | ---- | ----------- |
+   | `hello_dasmac.so` | Rust build [ELF][SBPF] output |
+   | `hello_dasmac-dump.txt` | Dump of the output |
 
    ```sh
-   cargo build-sbf --arch v4 --dump
+   cargo build-sbf --dump
    ```
 
 1. Compare the two dumps, in particular the below highlighted sections. Note the
@@ -99,17 +101,26 @@
    | Assembly       | `deploy/asm-dump.txt` |
    | Rust           | `../target/deploy/hello_dasmac-dump.txt` |
 
-   ::: details Example dumps
+   ::: details Output
 
    ::: code-group
 
-   <<< ../../examples/hello-dasmac/dump-examples/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [asm-dump.txt]
+   <<< ../../examples/hello-dasmac/dump-examples/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [Assembly]
 
-   <<< ../../examples/hello-dasmac/dump-examples/rs.txt{10,14,18,20-21,28,137-171,173-182 text:line-numbers} [hello_dasmac-dump.txt]
+   <<< ../../examples/hello-dasmac/dump-examples/rs.txt{10,14,18,20-21,28,137-171,173-182 text:line-numbers} [Rust]
 
    :::
 
-1. Run the `asm` test.
+   > [!tip]
+   > You can generate a similar output using the [`sbpf`] `disassemble` command:
+   > ```sh
+   > sbpf disassemble deploy/hello-dasmac.so > deploy/asm-disassembly.txt
+   > ```
+   > ::: details Output
+   > <<< ../../examples/hello-dasmac/dump-examples/asm-disassembly.txt{json:line-numbers} [asm-disassembly.txt]
+   > :::
+
+1. Run the assembly implementation test.
 
    ```sh
    cargo test -- --test asm
@@ -124,32 +135,41 @@
    > rm -rf ~/.cache/solana
    > ```
 
-1. Inspect the output:
+1. Run the Rust implementation test.
 
-   ```sh{3}
+   ```sh
+   cargo test -- --test rs
+   ```
+
+1. Compare the two outputs, noting in particular the [compute unit] overhead
+   introduced by the Rust implementation (despite its use of the [`pinocchio`]
+   optimization framework):
+
+   ::: code-group
+
+   ```sh{4} [Assembly]
    running 1 test
    [... DEBUG ...] Program DASMAC... invoke [1]
    [... DEBUG ...] Program log: Hello, DASMAC!
    [... DEBUG ...] Program DASMAC... consumed 104 of 1400000 compute units
    [... DEBUG ...] Program DASMAC... success
-   test tests::hello_dasmac ... ok
+   test tests::asm ... ok
    ```
 
-## Review the assembly file
-
-1. Open the `hello-dasmac.s` assembly file:
-
-
-
-1. Disassemble the program:
-
-   ```sh
-   sbpf disassemble deploy/hello-dasmac.so
+   ```sh{4} [Rust]
+   running 1 test
+   [... DEBUG ...] Program DASMAC... invoke [1]
+   [... DEBUG ...] Program log: Hello, DASMAC!
+   [... DEBUG ...] Program DASMAC... consumed 107 of 1400000 compute units
+   [... DEBUG ...] Program DASMAC... success
+   test tests::rs ... ok
    ```
+   :::
 
 ## :tada: Congratulations!
 
-You have successfully assembled and disassembled your first SBPF program!
+You have successfully assembled, disassembled, and tested your first SBPF
+program!
 
 > [!note]
 > This example was adapted from the [`sbpf`] `init` command.
@@ -165,4 +185,8 @@ You have successfully assembled and disassembled your first SBPF program!
 [LLVM]: https://llvm.org/
 [SBPF]: https://solana.com/docs/core/programs
 [`rustfilt`]: https://github.com/luser/rustfilt
-[internally]: https://github.com/anza-xyz/agave/blob/bf768b7c1da9d34c0a6aeb2d1e7b1c1ffbc84909/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
+[called internally]: https://github.com/anza-xyz/agave/blob/bf768b7c1da9d34c0a6aeb2d1e7b1c1ffbc84909/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
+[compute unit]: https://solana.com/docs/references/terminology#compute-units
+[`pinocchio`]: https://github.com/anza-xyz/pinocchio
+[assembly]: https://en.wikipedia.org/wiki/Assembly_language
+[Rust]: https://solana.com/docs/programs/rust
