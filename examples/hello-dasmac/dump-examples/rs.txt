@@ -1,0 +1,182 @@
+-rwxr-xr-x@ 1 DASMAC  staff  4344 Nov 28 1255 /Users/DASMAC/repos/solana-opcode-guide/examples/target/sbpf-solana-solana/release/hello_dasmac.so
+ELF Header
+  Magic   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+  Class                             ELF64
+  Data                              2's complement, little endian
+  Version                           1 (current)
+  OS/ABI                            UNIX - System V
+  ABI Version                       0
+  Type                              DYN (Shared object file)
+  Machine                           Solana Bytecode Format
+  Version                           0x1
+  Entry point address               0x120
+  Start of program headers          64 (bytes into file)
+  Start of section headers          3640 (bytes into file)
+  Flags                             0x0
+  Size of this header               64 (bytes)
+  Size of program headers           56 (bytes)
+  Number of program headers         4
+  Size of section headers           64 (bytes)
+  Number of section headers         11
+  Section header string table index 9
+There are 11 section headers, starting at offset 0xe38
+
+Section Headers
+  [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
+  [ 1] .text             PROGBITS        0000000000000120 000120 000168 00  AX  0   0  8
+  [ 2] .rodata           PROGBITS        0000000000000288 000288 00001c 00   A  0   0  1
+  [ 3] .dynamic          DYNAMIC         00000000000002a8 0002a8 0000b0 10  WA  5   0  8
+  [ 4] .dynsym           DYNSYM          0000000000000358 000358 000060 18   A  5   1  8
+  [ 5] .dynstr           STRTAB          00000000000003b8 0003b8 000022 00   A  0   0  1
+  [ 6] .rel.dyn          REL             00000000000003e0 0003e0 000050 10   A  4   0  8
+  [ 7] .comment          PROGBITS        0000000000000000 000430 00006b 01  MS  0   0  1
+  [ 8] .symtab           SYMTAB          0000000000000000 0004a0 0003a8 18     10  36  8
+  [ 9] .shstrtab         STRTAB          0000000000000000 000848 000054 00      0   0  1
+  [10] .strtab           STRTAB          0000000000000000 00089c 00059a 00      0   0  1
+Key to Flags
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  R (retain), p (processor specific)
+
+Elf file type is DYN (Shared object file)
+Entry point 0x120
+There are 4 program headers, starting at offset 64
+
+Program Headers
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x000120 0x0000000000000120 0x0000000000000120 0x000168 0x000168 R E 0x1000
+  LOAD           0x000288 0x0000000000000288 0x0000000000000288 0x00001c 0x00001c R   0x1000
+  LOAD           0x000358 0x0000000000000358 0x0000000000000358 0x0000d8 0x0000d8 R   0x1000
+  DYNAMIC        0x0002a8 0x00000000000002a8 0x00000000000002a8 0x0000b0 0x0000b0 RW  0x8
+
+ Section to Segment mapping
+  Segment Sections...
+   00     .text
+   01     .rodata
+   02     .dynsym .dynstr .rel.dyn
+   03     .dynamic
+   None   .comment .symtab .shstrtab .strtab
+Dynamic section at offset 0x2a8 contains 11 entries
+  Tag                Type       Name/Value
+  0x000000000000001e (FLAGS)    TEXTREL
+  0x0000000000000011 (REL)      0x3e0
+  0x0000000000000012 (RELSZ)    80 (bytes)
+  0x0000000000000013 (RELENT)   16 (bytes)
+  0x000000006ffffffa (RELCOUNT) 2
+  0x0000000000000006 (SYMTAB)   0x358
+  0x000000000000000b (SYMENT)   24 (bytes)
+  0x0000000000000005 (STRTAB)   0x3b8
+  0x000000000000000a (STRSZ)    34 (bytes)
+  0x0000000000000016 (TEXTREL)  0x0
+  0x0000000000000000 (NULL)     0x0
+
+Relocation section '.rel.dyn' at offset 0x3e0 contains 5 entries
+    Offset             Info             Type               Symbol's Value  Symbol's Name
+0000000000000208  0000000000000008 R_SBF_64_RELATIVE
+0000000000000260  0000000000000008 R_SBF_64_RELATIVE
+0000000000000220  000000030000000a R_SBF_64_32            0000000000000000 sol_log_
+0000000000000258  000000030000000a R_SBF_64_32            0000000000000000 sol_log_
+0000000000000278  000000030000000a R_SBF_64_32            0000000000000000 sol_log_
+
+Symbol table '.dynsym' contains 4 entries
+   Num    Value          Size Type    Bind   Vis       Ndx Name
+     0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1 0000000000000238    80 FUNC    GLOBAL DEFAULT     1 custom_panic
+     2 0000000000000120   280 FUNC    GLOBAL DEFAULT     1 entrypoint
+     3 0000000000000000     0 NOTYPE  GLOBAL DEFAULT   UND sol_log_
+
+Symbol table '.symtab' contains 39 entries
+   Num    Value          Size Type    Bind   Vis       Ndx Name
+     0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS hello_dasmac.1b20cdf0ff1cb20b-cgu.0
+     2 0000000000000288    14 OBJECT  LOCAL  DEFAULT     2 .Lanon.dda3d2e0e59d7ba1f7dd227829003d09.0
+     3 0000000000000296    14 OBJECT  LOCAL  DEFAULT     2 .Lanon.dda3d2e0e59d7ba1f7dd227829003d09.1
+     4 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS 4qixfxjox7270f82skbklz7pu
+     5 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS std.b73c36a1d769bfdd-cgu.0
+     6 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS alloc.aa8befc91436b0b6-cgu.0
+     7 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS core.e65e0c7e339ea620-cgu.0
+     8 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.114
+     9 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.153
+    10 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.016
+    11 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.177
+    12 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.012
+    13 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.190
+    14 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.200
+    15 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.004
+    16 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.211
+    17 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.213
+    18 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.225
+    19 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.240
+    20 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.251
+    21 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.254
+    22 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.261
+    23 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.270
+    24 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.289
+    25 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.292
+    26 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.295
+    27 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.000
+    28 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.310
+    29 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.323
+    30 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.331
+    31 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.334
+    32 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.342
+    33 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.343
+    34 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.346
+    35 00000000000002a8     0 NOTYPE  LOCAL  HIDDEN      3 _DYNAMIC
+    36 0000000000000238    80 FUNC    GLOBAL DEFAULT     1 custom_panic
+    37 0000000000000120   280 FUNC    GLOBAL DEFAULT     1 entrypoint
+    38 0000000000000000     0 NOTYPE  GLOBAL DEFAULT   UND sol_log_
+There are no section groups in this file.
+
+/Users/DASMAC/repos/solana-opcode-guide/examples/target/sbpf-solana-solana/release/hello_dasmac.so	file format elf64-sbf
+
+Disassembly of section .text
+
+0000000000000120 <entrypoint>
+     120 79 12 00 00 00 00 00 00      	ldxdw r2, [r1 + 0x0]
+     128 15 02 1b 00 00 00 00 00      	jeq r2, 0x0, +0x1b <entrypoint+0xe8>
+     130 a5 02 01 00 80 00 00 00      	jlt r2, 0x80, +0x1 <entrypoint+0x20>
+     138 b7 02 00 00 80 00 00 00      	mov64 r2, 0x80
+     140 b7 03 00 00 00 00 00 00      	mov64 r3, 0x0
+     148 b7 04 00 00 08 00 00 00      	mov64 r4, 0x8
+     150 bf a5 00 00 00 00 00 00      	mov64 r5, r10
+     158 07 05 00 00 00 fc ff ff      	add64 r5, -0x400
+     160 05 00 0a 00 00 00 00 00      	ja +0xa <entrypoint+0x98>
+     168 67 06 00 00 03 00 00 00      	lsh64 r6, 0x3
+     170 bf a0 00 00 00 00 00 00      	mov64 r0, r10
+     178 07 00 00 00 00 fc ff ff      	add64 r0, -0x400
+     180 0f 60 00 00 00 00 00 00      	add64 r0, r6
+     188 79 00 00 00 00 00 00 00      	ldxdw r0, [r0 + 0x0]
+     190 07 03 00 00 01 00 00 00      	add64 r3, 0x1
+     198 7b 05 00 00 00 00 00 00      	stxdw [r5 + 0x0], r0
+     1a0 07 05 00 00 08 00 00 00      	add64 r5, 0x8
+     1a8 07 04 00 00 08 00 00 00      	add64 r4, 0x8
+     1b0 3d 23 0a 00 00 00 00 00      	jge r3, r2, +0xa <entrypoint+0xe8>
+     1b8 bf 10 00 00 00 00 00 00      	mov64 r0, r1
+     1c0 0f 40 00 00 00 00 00 00      	add64 r0, r4
+     1c8 71 06 00 00 00 00 00 00      	ldxb r6, [r0 + 0x0]
+     1d0 55 06 f2 ff ff 00 00 00      	jne r6, 0xff, -0xe <entrypoint+0x48>
+     1d8 79 06 50 00 00 00 00 00      	ldxdw r6, [r0 + 0x50]
+     1e0 0f 64 00 00 00 00 00 00      	add64 r4, r6
+     1e8 72 00 00 00 00 00 00 00      	stb [r0 + 0x0], 0x0
+     1f0 07 04 00 00 5f 28 00 00      	add64 r4, 0x285f
+     1f8 57 04 00 00 f8 ff ff ff      	and64 r4, -0x8
+     200 05 00 f1 ff 00 00 00 00      	ja -0xf <entrypoint+0x70>
+     208 18 01 00 00 88 02 00 00 00 00 00 00 00 00 00 00      	lddw r1, 0x288
+     218 b7 02 00 00 0e 00 00 00      	mov64 r2, 0xe
+     220 85 10 00 00 ff ff ff ff      	call -0x1
+     228 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
+     230 95 00 00 00 00 00 00 00      	exit
+
+0000000000000238 <custom_panic>
+     238 79 12 08 00 00 00 00 00      	ldxdw r2, [r1 + 0x8]
+     240 79 21 00 00 00 00 00 00      	ldxdw r1, [r2 + 0x0]
+     248 79 22 08 00 00 00 00 00      	ldxdw r2, [r2 + 0x8]
+     250 07 02 00 00 ff ff ff ff      	add64 r2, -0x1
+     258 85 10 00 00 ff ff ff ff      	call -0x1
+     260 18 01 00 00 96 02 00 00 00 00 00 00 00 00 00 00      	lddw r1, 0x296
+     270 b7 02 00 00 0e 00 00 00      	mov64 r2, 0xe
+     278 85 10 00 00 ff ff ff ff      	call -0x1
+     280 95 00 00 00 00 00 00 00      	exit

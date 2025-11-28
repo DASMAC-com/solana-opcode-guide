@@ -4,8 +4,9 @@
 
 1. Install the latest version of [`solana`].
 1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
-   install, in particular the [`dump.sh`] script and the [LLVM] binaries it
-   requires. This will look something like:
+   install, in particular the [`dump.sh`] script that `cargo build-sbf --dump`
+   [calls internally] and the [LLVM] binaries it requires. This will look
+   something like:
 
 
    ```sh
@@ -67,35 +68,46 @@
 
    :::
 
-1. Build the Rust implementation, and dump the [ELF][SBPF] output. By default
-   this will create the following files in `../target/deploy`
-   (`solana-opcode-guide/examples/target/deploy`):
-
-    1. `hello_dasmac.so` - The compiled SBPF program in ELF format.
-    1. `hello_dasmac.so.dmp` - A text dump of the compiled SBPF program.
-
-   ```sh
-   cargo build-sbf --dump
-   ```
-
 1. Build the assembly implementation.
 
    ```sh
    sbpf build
    ```
 
-1. Run [`dump.sh`] on the assembly build.
+1. Run [`dump.sh`] on the assembly build:
 
    ```sh
    dump.sh deploy/hello-dasmac.so deploy/asm-dump.txt
    ```
 
-1. Compare the outputs of the two builds.
+1. Build the Rust implementation, and dump the [ELF][SBPF] output. By default
+   this will create the following files in `../target/deploy`
+   (`solana-opcode-guide/examples/target/deploy`):
+
+    1. `hello_dasmac.so`
+    1. `hello_dasmac-dump.txt`
+
+   ```sh
+   cargo build-sbf --arch v4 --dump
+   ```
+
+1. Compare the two dumps, in particular the below highlighted sections. Note the
+   overhead introduced by the Rust implementation:
 
    | Implementation | Dump |
    | -------------- | -------- |
-   | Assembly       | `deploy/hello-dasmac.so` |
-   | Rust           | `../target/deploy/hello_dasmac.so` |
+   | Assembly       | `deploy/asm-dump.txt` |
+   | Rust           | `../target/deploy/hello_dasmac-dump.txt` |
+
+   ::: details Example dumps
+
+   ::: code-group
+
+   <<< ../../examples/hello-dasmac/dump-examples/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [asm-dump.txt]
+
+   <<< ../../examples/hello-dasmac/dump-examples/rs.txt{10,14,18,20-21,28,137-171,173-182 text:line-numbers} [hello_dasmac-dump.txt]
+
+   :::
 
 1. Run the `asm` test.
 
@@ -153,3 +165,4 @@ You have successfully assembled and disassembled your first SBPF program!
 [LLVM]: https://llvm.org/
 [SBPF]: https://solana.com/docs/core/programs
 [`rustfilt`]: https://github.com/luser/rustfilt
+[internally]: https://github.com/anza-xyz/agave/blob/bf768b7c1da9d34c0a6aeb2d1e7b1c1ffbc84909/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
