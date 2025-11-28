@@ -7,11 +7,13 @@
 ## Examples
 
 1. [`sbpf` examples]
+1. [`hello-solana-asm`]
 1. [SBPF opcode test suite]
 
 ## Guides
 
 1. [How to Write Solana Programs with SBPF Assembly]
+1. [`Learn-Solana-BPF-Assembly`]
 1. [sBPF Assembly 101]
 1. [Optimizing Solana Programs]
 
@@ -28,6 +30,8 @@
 1. [sbpf.xyz]
 1. [VS Code `sbpf-asm` extension]
 
+[`Learn-Solana-BPF-Assembly`]: https://github.com/7etsuo/Learn-Solana-BPF-Assembly
+[`hello-solana-asm`]: https://github.com/deanmlittle/hello-solana-asm
 [VS Code `sbpf-asm` extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
 [Writing Optimized Solana Programs transcript]: https://github.com/Laugharne/solana_optimized_programs
 [How to Write Solana Programs with SBPF Assembly]: https://www.helius.dev/blog/sbpf-assembly
