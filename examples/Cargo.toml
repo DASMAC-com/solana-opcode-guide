@@ -6,6 +6,6 @@ members = ["hello-dasmac"]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
 
 [workspace.dependencies]
-mollusk-svm = "0.4.1"
+mollusk-svm = "0.7.2"
 pinocchio = "0.9.2"
-solana-sdk = "2.2.1"
+solana-sdk = "3.0.0"
