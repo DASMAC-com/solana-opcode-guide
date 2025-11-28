@@ -51,10 +51,10 @@
 
    ```sh{3}
    running 1 test
-   [... DEBUG ...] Program asm... invoke [1]
+   [... DEBUG ...] Program DASMAC... invoke [1]
    [... DEBUG ...] Program log: Hello, DASMAC!
-   [... DEBUG ...] Program asm... consumed 104 of 1400000 compute units
-   [... DEBUG ...] Program asm... success
+   [... DEBUG ...] Program DASMAC... consumed 104 of 1400000 compute units
+   [... DEBUG ...] Program DASMAC... success
    test tests::hello_dasmac ... ok
    ```
 
