@@ -3,6 +3,15 @@ name = "hello-dasmac"
 version = "0.1.0"
 edition = "2021"
 
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+pinocchio.workspace = true
+
 [dev-dependencies]
 mollusk-svm.workspace = true
 solana-sdk.workspace = true

@@ -47,14 +47,55 @@
    cd solana-opcode-guide/examples/hello-dasmac
    ```
 
+1. Compare the assembly and Rust program implementations:
+
+   | Implementation | Location |
+   | -------------- | -------- |
+   | Assembly       | `src/hello-dasmac/hello-dasmac.s` |
+   | Rust           | `src/program.rs` |
+
    > [!tip]
-   > All future examples are contained in the `examples` directory.
+   > All future examples are in the `examples` directory and use a similar
+   > layout, since the [`sbpf`] `build` command expects
+   > `src/<program-name>/<program-name>.s`.
+
+   ::: code-group
+
+   <<< ../../examples/hello-dasmac/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
+
+   <<< ../../examples/hello-dasmac/src/program.rs{rs:line-numbers}
+
+   :::
+
+1. Build the Rust implementation, and dump the [ELF][SBPF] output. By default
+   this will create the following files in `../target/deploy`
+   (`solana-opcode-guide/examples/target/deploy`):
+
+    1. `hello_dasmac.so` - The compiled SBPF program in ELF format.
+    1. `hello_dasmac.so.dmp` - A text dump of the compiled SBPF program.
+
+   ```sh
+   cargo build-sbf --dump
+   ```
 
 1. Build the assembly implementation.
 
    ```sh
    sbpf build
    ```
+
+1. Run [`dump.sh`] on the assembly build.
+
+   ```sh
+   dump.sh deploy/hello-dasmac.so deploy/asm-dump.txt
+   ```
+
+1. Compare the outputs of the two builds.
+
+   | Implementation | Dump |
+   | -------------- | -------- |
+   | Assembly       | `deploy/hello-dasmac.so` |
+   | Rust           | `../target/deploy/hello_dasmac.so` |
 
 1. Run the `asm` test.
 
@@ -86,7 +127,7 @@
 
 1. Open the `hello-dasmac.s` assembly file:
 
-   <<< ../../examples/hello-dasmac/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
+
 
 1. Disassemble the program:
 
