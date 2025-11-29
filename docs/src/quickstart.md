@@ -5,9 +5,8 @@
 1. Install the latest version of [`solana`].
 1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
    install, in particular the [`dump.sh`] script [called internally] by
-   `cargo build-sbf --dump`, and the [LLVM] binaries it requires. This will look
-   something like:
-
+   [`cargo build-sbf`] `--dump`, and the [LLVM] binaries it requires. This will
+   look something like:
 
    ```sh
    # Solana tools.
@@ -20,6 +19,17 @@
 
    > [!tip]
    > This example is from `~/.zshrc` on a Mac with [Oh My Zsh].
+
+1. Note the pinned [`tools-version`] in `examples/Cargo.toml`, which is required
+   (as of the time of this writing) for `cargo build-sbf --arch v4` to access
+   the `sbpfv4-solana-solana` target that was [removed in v1.52] of the
+   [`platform-tools`].
+
+   ::: details Cargo.toml
+
+   <<< ../../examples/Cargo.toml
+
+   :::
 
 1. Install [`rustfilt`], which is also required by [`dump.sh`]:
 
@@ -80,8 +90,8 @@
    dump.sh deploy/hello-dasmac.so deploy/asm-dump.txt
    ```
 
-1. Build the Rust implementation and dump the build. This operation should
-   create the following files in `../target/deploy`
+1. Build the Rust implementation with [SBPF v4] and dump the build. This
+   operation should create the following files in `../target/deploy`
    (`solana-opcode-guide/examples/target/deploy`):
 
    | File | Description |
@@ -90,11 +100,11 @@
    | `hello_dasmac-dump.txt` | Dump of the output |
 
    ```sh
-   cargo build-sbf --dump
+   cargo build-sbf --arch v4 --dump
    ```
 
 1. Compare the two dumps, in particular the below highlighted sections. Note the
-   overhead introduced by the Rust implementation:
+   considerable overhead introduced by the Rust implementation:
 
    | Implementation | Dump |
    | -------------- | -------- |
@@ -107,7 +117,7 @@
 
    <<< ../../examples/hello-dasmac/dump-examples/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [Assembly]
 
-   <<< ../../examples/hello-dasmac/dump-examples/rs.txt{10,14,18,20-21,28,137-171,173-182 text:line-numbers} [Rust]
+   <<< ../../examples/hello-dasmac/dump-examples/rs.txt{10,14,18,20-21,28,117-365,367-377 text:line-numbers} [Rust]
 
    :::
 
@@ -135,11 +145,15 @@
    > rm -rf ~/.cache/solana
    > ```
 
-1. Run the Rust implementation test.
+1. Rebuild the Rust implementation and run its test.
 
    ```sh
-   cargo test -- --test rs
+   cargo build-sbf --arch v3 && cargo test -- --test rs
    ```
+
+   > [!note]
+   > As of the time of this writing, although [SBPF v4] compilation is
+   > supported, the runtime only supports [loading up to SBPF v3].
 
 1. Compare the two outputs, noting in particular the [compute unit] overhead
    introduced by the Rust implementation (despite its use of the [`pinocchio`]
@@ -160,7 +174,7 @@
    running 1 test
    [... DEBUG ...] Program DASMAC... invoke [1]
    [... DEBUG ...] Program log: Hello, DASMAC!
-   [... DEBUG ...] Program DASMAC... consumed 107 of 1400000 compute units
+   [... DEBUG ...] Program DASMAC... consumed 108 of 1400000 compute units
    [... DEBUG ...] Program DASMAC... success
    test tests::rs ... ok
    ```
@@ -185,8 +199,14 @@ program!
 [LLVM]: https://llvm.org/
 [SBPF]: https://solana.com/docs/core/programs
 [`rustfilt`]: https://github.com/luser/rustfilt
-[called internally]: https://github.com/anza-xyz/agave/blob/bf768b7c1da9d34c0a6aeb2d1e7b1c1ffbc84909/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
+[called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
 [assembly]: https://en.wikipedia.org/wiki/Assembly_language
 [Rust]: https://solana.com/docs/programs/rust
+[`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487
+[`cargo build-sbf`]:https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf
+[removed in v1.52]: https://github.com/anza-xyz/platform-tools/commit/9dcb73be29b1140467243867f38a388520c85251#diff-4d2a8eefdf2a9783512a35da4dc7676a66404b6f3826a8af9aad038722da6823L100
+[`platform-tools`]: https://github.com/anza-xyz/platform-tools
+[SBPF v4]: https://github.com/anza-xyz/sbpf
+[loading up to SBPF v3]: https://github.com/anza-xyz/agave/blob/v3.1.2/feature-set/src/lib.rs#L140-L141

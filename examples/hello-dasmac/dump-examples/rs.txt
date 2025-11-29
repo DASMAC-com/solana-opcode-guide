@@ -1,4 +1,4 @@
--rwxr-xr-x@ 1 DASMAC  staff  4344 Nov 28 1255 /Users/DASMAC/repos/solana-opcode-guide/examples/target/sbpf-solana-solana/release/hello_dasmac.so
+-rwxr-xr-x@ 1 DASMAC  staff  5464 Nov 28 1622 /Users/DASMAC/repos/solana-opcode-guide/examples/target/sbpfv4-solana-solana/release/hello_dasmac.so
 ELF Header
   Magic   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
   Class                             ELF64
@@ -9,31 +9,28 @@ ELF Header
   Type                              DYN (Shared object file)
   Machine                           Solana Bytecode Format
   Version                           0x1
-  Entry point address               0x120
+  Entry point address               0x18
   Start of program headers          64 (bytes into file)
-  Start of section headers          3640 (bytes into file)
-  Flags                             0x0
+  Start of section headers          4952 (bytes into file)
+  Flags                             0x4
   Size of this header               64 (bytes)
   Size of program headers           56 (bytes)
   Number of program headers         4
   Size of section headers           64 (bytes)
-  Number of section headers         11
-  Section header string table index 9
-There are 11 section headers, starting at offset 0xe38
+  Number of section headers         8
+  Section header string table index 6
+There are 8 section headers, starting at offset 0x1358
 
 Section Headers
   [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
-  [ 1] .text             PROGBITS        0000000000000120 000120 000168 00  AX  0   0  8
-  [ 2] .rodata           PROGBITS        0000000000000288 000288 00001c 00   A  0   0  1
-  [ 3] .dynamic          DYNAMIC         00000000000002a8 0002a8 0000b0 10  WA  5   0  8
-  [ 4] .dynsym           DYNSYM          0000000000000358 000358 000060 18   A  5   1  8
-  [ 5] .dynstr           STRTAB          00000000000003b8 0003b8 000022 00   A  0   0  1
-  [ 6] .rel.dyn          REL             00000000000003e0 0003e0 000050 10   A  4   0  8
-  [ 7] .comment          PROGBITS        0000000000000000 000430 00006b 01  MS  0   0  1
-  [ 8] .symtab           SYMTAB          0000000000000000 0004a0 0003a8 18     10  36  8
-  [ 9] .shstrtab         STRTAB          0000000000000000 000848 000054 00      0   0  1
-  [10] .strtab           STRTAB          0000000000000000 00089c 00059a 00      0   0  1
+  [ 1] .text             PROGBITS        0000000000000000 000120 000828 00  AX  0   0  8
+  [ 2] .rodata           PROGBITS        0000000100000000 000948 000020 00   A  0   0  1
+  [ 3] .bss.stack        NOBITS          0000000200000000 000968 001000 00   A  0   0  1
+  [ 4] .bss.heap         NOBITS          0000000300000000 000968 001000 00   A  0   0  1
+  [ 5] .symtab           SYMTAB          0000000000000000 000968 000408 18      7  40  8
+  [ 6] .shstrtab         STRTAB          0000000000000000 000d70 00003e 00      0   0  1
+  [ 7] .strtab           STRTAB          0000000000000000 000dae 0005a7 00      0   0  1
 Key to Flags
   W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
   L (link order), O (extra OS processing required), G (group), T (TLS),
@@ -41,142 +38,340 @@ Key to Flags
   R (retain), p (processor specific)
 
 Elf file type is DYN (Shared object file)
-Entry point 0x120
+Entry point 0x18
 There are 4 program headers, starting at offset 64
 
 Program Headers
   Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
-  LOAD           0x000120 0x0000000000000120 0x0000000000000120 0x000168 0x000168 R E 0x1000
-  LOAD           0x000288 0x0000000000000288 0x0000000000000288 0x00001c 0x00001c R   0x1000
-  LOAD           0x000358 0x0000000000000358 0x0000000000000358 0x0000d8 0x0000d8 R   0x1000
-  DYNAMIC        0x0002a8 0x00000000000002a8 0x00000000000002a8 0x0000b0 0x0000b0 RW  0x8
+  LOAD           0x000120 0x0000000000000000 0x0000000000000000 0x000828 0x000828   E 0x8
+  LOAD           0x000948 0x0000000100000000 0x0000000100000000 0x000020 0x000020 R   0x8
+  LOAD           0x000968 0x0000000200000000 0x0000000200000000 0x000000 0x001000 RW  0x8
+  LOAD           0x000968 0x0000000300000000 0x0000000300000000 0x000000 0x001000 RW  0x8
 
  Section to Segment mapping
   Segment Sections...
    00     .text
    01     .rodata
-   02     .dynsym .dynstr .rel.dyn
-   03     .dynamic
-   None   .comment .symtab .shstrtab .strtab
-Dynamic section at offset 0x2a8 contains 11 entries
-  Tag                Type       Name/Value
-  0x000000000000001e (FLAGS)    TEXTREL
-  0x0000000000000011 (REL)      0x3e0
-  0x0000000000000012 (RELSZ)    80 (bytes)
-  0x0000000000000013 (RELENT)   16 (bytes)
-  0x000000006ffffffa (RELCOUNT) 2
-  0x0000000000000006 (SYMTAB)   0x358
-  0x000000000000000b (SYMENT)   24 (bytes)
-  0x0000000000000005 (STRTAB)   0x3b8
-  0x000000000000000a (STRSZ)    34 (bytes)
-  0x0000000000000016 (TEXTREL)  0x0
-  0x0000000000000000 (NULL)     0x0
+   02     .bss.stack
+   03     .bss.heap
+   None   .symtab .shstrtab .strtab
 
-Relocation section '.rel.dyn' at offset 0x3e0 contains 5 entries
-    Offset             Info             Type               Symbol's Value  Symbol's Name
-0000000000000208  0000000000000008 R_SBF_64_RELATIVE
-0000000000000260  0000000000000008 R_SBF_64_RELATIVE
-0000000000000220  000000030000000a R_SBF_64_32            0000000000000000 sol_log_
-0000000000000258  000000030000000a R_SBF_64_32            0000000000000000 sol_log_
-0000000000000278  000000030000000a R_SBF_64_32            0000000000000000 sol_log_
+There are no relocations in this file.
 
-Symbol table '.dynsym' contains 4 entries
+Symbol table '.symtab' contains 43 entries
    Num    Value          Size Type    Bind   Vis       Ndx Name
      0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
-     1 0000000000000238    80 FUNC    GLOBAL DEFAULT     1 custom_panic
-     2 0000000000000120   280 FUNC    GLOBAL DEFAULT     1 entrypoint
-     3 0000000000000000     0 NOTYPE  GLOBAL DEFAULT   UND sol_log_
-
-Symbol table '.symtab' contains 39 entries
-   Num    Value          Size Type    Bind   Vis       Ndx Name
-     0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
-     1 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS hello_dasmac.1b20cdf0ff1cb20b-cgu.0
-     2 0000000000000288    14 OBJECT  LOCAL  DEFAULT     2 .Lanon.dda3d2e0e59d7ba1f7dd227829003d09.0
-     3 0000000000000296    14 OBJECT  LOCAL  DEFAULT     2 .Lanon.dda3d2e0e59d7ba1f7dd227829003d09.1
-     4 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS 4qixfxjox7270f82skbklz7pu
-     5 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS std.b73c36a1d769bfdd-cgu.0
-     6 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS alloc.aa8befc91436b0b6-cgu.0
-     7 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS core.e65e0c7e339ea620-cgu.0
-     8 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.114
-     9 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.153
-    10 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.016
-    11 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.177
-    12 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.012
-    13 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.190
-    14 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.200
-    15 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.004
-    16 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.211
-    17 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.213
-    18 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.225
-    19 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.240
-    20 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.251
-    21 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.254
-    22 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.261
-    23 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.270
-    24 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.289
-    25 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.292
-    26 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.295
-    27 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.000
-    28 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.310
-    29 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.323
-    30 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.331
-    31 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.334
-    32 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.342
-    33 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.343
-    34 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.5686df41a1237f38-cgu.346
-    35 00000000000002a8     0 NOTYPE  LOCAL  HIDDEN      3 _DYNAMIC
-    36 0000000000000238    80 FUNC    GLOBAL DEFAULT     1 custom_panic
-    37 0000000000000120   280 FUNC    GLOBAL DEFAULT     1 entrypoint
-    38 0000000000000000     0 NOTYPE  GLOBAL DEFAULT   UND sol_log_
+     1 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS hello_dasmac.8125ef642f86079a-cgu.0
+     2 0000000100000000    14 OBJECT  LOCAL  DEFAULT     2 .L__unnamed_1
+     3 000000010000000e    14 OBJECT  LOCAL  DEFAULT     2 .L__unnamed_2
+     4 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS 3rkop1sv4pggn15fe45te8a2u
+     5 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS std.7568b6690e93a51f-cgu.0
+     6 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS panic_abort.90abb13b511d24c8-cgu.0
+     7 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS alloc.63143c6bdd2830dc-cgu.0
+     8 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS core.e0b4368be1399d19-cgu.0
+     9 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.078
+    10 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.115
+    11 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.000
+    12 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.015
+    13 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.121
+    14 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.012
+    15 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.132
+    16 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.009
+    17 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.138
+    18 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.142
+    19 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.005
+    20 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.146
+    21 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.148
+    22 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.151
+    23 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.163
+    24 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.176
+    25 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.182
+    26 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.021
+    27 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.189
+    28 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.219
+    29 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.248
+    30 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.013
+    31 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.256
+    32 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.263
+    33 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.276
+    34 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.282
+    35 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS compiler_builtins.23e48371ed54d56c-cgu.291
+    36 0000000200000000     0 NOTYPE  LOCAL  DEFAULT     3 _stack_start
+    37 0000000200001000     0 NOTYPE  LOCAL  DEFAULT     3 _stack_end
+    38 0000000300000000     0 NOTYPE  LOCAL  DEFAULT     4 _heap_start
+    39 0000000300001000     0 NOTYPE  LOCAL  DEFAULT     4 _heap_end
+    40 00000000000007d8    80 FUNC    GLOBAL DEFAULT     1 custom_panic
+    41 0000000000000018  1984 FUNC    GLOBAL DEFAULT     1 entrypoint
+    42 0000000000000000    24 FUNC    GLOBAL DEFAULT     1 abort
 There are no section groups in this file.
 
-/Users/DASMAC/repos/solana-opcode-guide/examples/target/sbpf-solana-solana/release/hello_dasmac.so	file format elf64-sbf
+/Users/DASMAC/repos/solana-opcode-guide/examples/target/sbpfv4-solana-solana/release/hello_dasmac.so	file format elf64-sbf
 
 Disassembly of section .text
 
-0000000000000120 <entrypoint>
-     120 79 12 00 00 00 00 00 00      	ldxdw r2, [r1 + 0x0]
-     128 15 02 1b 00 00 00 00 00      	jeq r2, 0x0, +0x1b <entrypoint+0xe8>
-     130 a5 02 01 00 80 00 00 00      	jlt r2, 0x80, +0x1 <entrypoint+0x20>
-     138 b7 02 00 00 80 00 00 00      	mov64 r2, 0x80
-     140 b7 03 00 00 00 00 00 00      	mov64 r3, 0x0
-     148 b7 04 00 00 08 00 00 00      	mov64 r4, 0x8
-     150 bf a5 00 00 00 00 00 00      	mov64 r5, r10
-     158 07 05 00 00 00 fc ff ff      	add64 r5, -0x400
-     160 05 00 0a 00 00 00 00 00      	ja +0xa <entrypoint+0x98>
-     168 67 06 00 00 03 00 00 00      	lsh64 r6, 0x3
-     170 bf a0 00 00 00 00 00 00      	mov64 r0, r10
-     178 07 00 00 00 00 fc ff ff      	add64 r0, -0x400
-     180 0f 60 00 00 00 00 00 00      	add64 r0, r6
-     188 79 00 00 00 00 00 00 00      	ldxdw r0, [r0 + 0x0]
-     190 07 03 00 00 01 00 00 00      	add64 r3, 0x1
-     198 7b 05 00 00 00 00 00 00      	stxdw [r5 + 0x0], r0
-     1a0 07 05 00 00 08 00 00 00      	add64 r5, 0x8
-     1a8 07 04 00 00 08 00 00 00      	add64 r4, 0x8
-     1b0 3d 23 0a 00 00 00 00 00      	jge r3, r2, +0xa <entrypoint+0xe8>
-     1b8 bf 10 00 00 00 00 00 00      	mov64 r0, r1
-     1c0 0f 40 00 00 00 00 00 00      	add64 r0, r4
-     1c8 71 06 00 00 00 00 00 00      	ldxb r6, [r0 + 0x0]
-     1d0 55 06 f2 ff ff 00 00 00      	jne r6, 0xff, -0xe <entrypoint+0x48>
-     1d8 79 06 50 00 00 00 00 00      	ldxdw r6, [r0 + 0x50]
-     1e0 0f 64 00 00 00 00 00 00      	add64 r4, r6
-     1e8 72 00 00 00 00 00 00 00      	stb [r0 + 0x0], 0x0
-     1f0 07 04 00 00 5f 28 00 00      	add64 r4, 0x285f
-     1f8 57 04 00 00 f8 ff ff ff      	and64 r4, -0x8
-     200 05 00 f1 ff 00 00 00 00      	ja -0xf <entrypoint+0x70>
-     208 18 01 00 00 88 02 00 00 00 00 00 00 00 00 00 00      	lddw r1, 0x288
-     218 b7 02 00 00 0e 00 00 00      	mov64 r2, 0xe
-     220 85 10 00 00 ff ff ff ff      	call -0x1
-     228 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
-     230 95 00 00 00 00 00 00 00      	exit
+0000000000000000 <abort>
+       0 07 0a 00 00 00 00 00 00      	add64 r10, 0x0
+       8 95 00 00 00 11 1a fc b6      	syscall -0x4903e5ef
+      10 9d 00 00 00 00 00 00 00      	return
 
-0000000000000238 <custom_panic>
-     238 79 12 08 00 00 00 00 00      	ldxdw r2, [r1 + 0x8]
-     240 79 21 00 00 00 00 00 00      	ldxdw r1, [r2 + 0x0]
-     248 79 22 08 00 00 00 00 00      	ldxdw r2, [r2 + 0x8]
-     250 07 02 00 00 ff ff ff ff      	add64 r2, -0x1
-     258 85 10 00 00 ff ff ff ff      	call -0x1
-     260 18 01 00 00 96 02 00 00 00 00 00 00 00 00 00 00      	lddw r1, 0x296
-     270 b7 02 00 00 0e 00 00 00      	mov64 r2, 0xe
-     278 85 10 00 00 ff ff ff ff      	call -0x1
-     280 95 00 00 00 00 00 00 00      	exit
+0000000000000018 <entrypoint>
+      18 07 0a 00 00 00 f8 ff ff      	add64 r10, -0x800
+      20 9c 13 00 00 00 00 00 00      	ldxdw r3, [r1 + 0x0]
+      28 15 03 04 00 00 00 00 00      	jeq r3, 0x0, +0x4 <entrypoint+0x38>
+      30 bf 12 00 00 00 00 00 00      	mov64 r2, r1
+      38 07 02 00 00 08 00 00 00      	add64 r2, 0x8
+      40 9f 2a 10 00 00 00 00 00      	stxdw [r10 + 0x10], r2
+      48 35 03 06 00 03 00 00 00      	jge r3, 0x3, +0x6 <entrypoint+0x68>
+      50 b4 01 00 00 00 00 00 00      	mov32 w1, 0x0
+      58 f7 01 00 00 01 00 00 00      	hor64 r1, 0x1
+      60 b7 02 00 00 0e 00 00 00      	mov64 r2, 0xe
+      68 95 00 00 00 bd 59 75 20      	syscall 0x207559bd
+      70 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
+      78 9d 00 00 00 00 00 00 00      	return
+      80 9c 12 58 00 00 00 00 00      	ldxdw r2, [r1 + 0x58]
+      88 0f 21 00 00 00 00 00 00      	add64 r1, r2
+      90 bf a2 00 00 00 00 00 00      	mov64 r2, r10
+      98 07 02 00 00 10 00 00 00      	add64 r2, 0x10
+      a0 07 01 00 00 6f 28 00 00      	add64 r1, 0x286f
+      a8 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+      b0 a5 03 57 00 06 00 00 00      	jlt r3, 0x6, +0x57 <entrypoint+0x358>
+      b8 bf a2 00 00 00 00 00 00      	mov64 r2, r10
+      c0 07 02 00 00 10 00 00 00      	add64 r2, 0x10
+      c8 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+      d0 55 04 25 00 ff 00 00 00      	jne r4, 0xff, +0x25 <entrypoint+0x1e8>
+      d8 9f 12 08 00 00 00 00 00      	stxdw [r2 + 0x8], r1
+      e0 9c 14 50 00 00 00 00 00      	ldxdw r4, [r1 + 0x50]
+      e8 0f 41 00 00 00 00 00 00      	add64 r1, r4
+      f0 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+      f8 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     100 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+     108 55 04 27 00 ff 00 00 00      	jne r4, 0xff, +0x27 <entrypoint+0x230>
+     110 9f 12 10 00 00 00 00 00      	stxdw [r2 + 0x10], r1
+     118 9c 14 50 00 00 00 00 00      	ldxdw r4, [r1 + 0x50]
+     120 0f 41 00 00 00 00 00 00      	add64 r1, r4
+     128 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     130 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     138 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+     140 55 04 29 00 ff 00 00 00      	jne r4, 0xff, +0x29 <entrypoint+0x278>
+     148 9f 12 18 00 00 00 00 00      	stxdw [r2 + 0x18], r1
+     150 9c 14 50 00 00 00 00 00      	ldxdw r4, [r1 + 0x50]
+     158 0f 41 00 00 00 00 00 00      	add64 r1, r4
+     160 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     168 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     170 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+     178 55 04 2b 00 ff 00 00 00      	jne r4, 0xff, +0x2b <entrypoint+0x2c0>
+     180 9f 12 20 00 00 00 00 00      	stxdw [r2 + 0x20], r1
+     188 9c 14 50 00 00 00 00 00      	ldxdw r4, [r1 + 0x50]
+     190 0f 41 00 00 00 00 00 00      	add64 r1, r4
+     198 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     1a0 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     1a8 07 02 00 00 28 00 00 00      	add64 r2, 0x28
+     1b0 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+     1b8 55 04 2d 00 ff 00 00 00      	jne r4, 0xff, +0x2d <entrypoint+0x310>
+     1c0 9f 12 00 00 00 00 00 00      	stxdw [r2 + 0x0], r1
+     1c8 9c 14 50 00 00 00 00 00      	ldxdw r4, [r1 + 0x50]
+     1d0 0f 41 00 00 00 00 00 00      	add64 r1, r4
+     1d8 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     1e0 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     1e8 07 03 00 00 fb ff ff ff      	add64 r3, -0x5
+     1f0 25 03 da ff 05 00 00 00      	jgt r3, 0x5, -0x26 <entrypoint+0xb0>
+     1f8 05 00 2e 00 00 00 00 00      	ja +0x2e <entrypoint+0x358>
+     200 67 04 00 00 03 00 00 00      	lsh64 r4, 0x3
+     208 bf a5 00 00 00 00 00 00      	mov64 r5, r10
+     210 07 05 00 00 10 00 00 00      	add64 r5, 0x10
+     218 0f 45 00 00 00 00 00 00      	add64 r5, r4
+     220 9c 54 00 00 00 00 00 00      	ldxdw r4, [r5 + 0x0]
+     228 9f 42 08 00 00 00 00 00      	stxdw [r2 + 0x8], r4
+     230 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     238 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+     240 15 04 d9 ff ff 00 00 00      	jeq r4, 0xff, -0x27 <entrypoint+0xf8>
+     248 67 04 00 00 03 00 00 00      	lsh64 r4, 0x3
+     250 bf a5 00 00 00 00 00 00      	mov64 r5, r10
+     258 07 05 00 00 10 00 00 00      	add64 r5, 0x10
+     260 0f 45 00 00 00 00 00 00      	add64 r5, r4
+     268 9c 54 00 00 00 00 00 00      	ldxdw r4, [r5 + 0x0]
+     270 9f 42 10 00 00 00 00 00      	stxdw [r2 + 0x10], r4
+     278 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     280 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+     288 15 04 d7 ff ff 00 00 00      	jeq r4, 0xff, -0x29 <entrypoint+0x130>
+     290 67 04 00 00 03 00 00 00      	lsh64 r4, 0x3
+     298 bf a5 00 00 00 00 00 00      	mov64 r5, r10
+     2a0 07 05 00 00 10 00 00 00      	add64 r5, 0x10
+     2a8 0f 45 00 00 00 00 00 00      	add64 r5, r4
+     2b0 9c 54 00 00 00 00 00 00      	ldxdw r4, [r5 + 0x0]
+     2b8 9f 42 18 00 00 00 00 00      	stxdw [r2 + 0x18], r4
+     2c0 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     2c8 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+     2d0 15 04 d5 ff ff 00 00 00      	jeq r4, 0xff, -0x2b <entrypoint+0x168>
+     2d8 67 04 00 00 03 00 00 00      	lsh64 r4, 0x3
+     2e0 bf a5 00 00 00 00 00 00      	mov64 r5, r10
+     2e8 07 05 00 00 10 00 00 00      	add64 r5, 0x10
+     2f0 0f 45 00 00 00 00 00 00      	add64 r5, r4
+     2f8 9c 54 00 00 00 00 00 00      	ldxdw r4, [r5 + 0x0]
+     300 9f 42 20 00 00 00 00 00      	stxdw [r2 + 0x20], r4
+     308 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     310 07 02 00 00 28 00 00 00      	add64 r2, 0x28
+     318 2c 14 00 00 00 00 00 00      	ldxb w4, [r1 + 0x0]
+     320 15 04 d3 ff ff 00 00 00      	jeq r4, 0xff, -0x2d <entrypoint+0x1a8>
+     328 67 04 00 00 03 00 00 00      	lsh64 r4, 0x3
+     330 bf a5 00 00 00 00 00 00      	mov64 r5, r10
+     338 07 05 00 00 10 00 00 00      	add64 r5, 0x10
+     340 0f 45 00 00 00 00 00 00      	add64 r5, r4
+     348 9c 54 00 00 00 00 00 00      	ldxdw r4, [r5 + 0x0]
+     350 9f 42 00 00 00 00 00 00      	stxdw [r2 + 0x0], r4
+     358 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     360 07 03 00 00 fb ff ff ff      	add64 r3, -0x5
+     368 25 03 ab ff 05 00 00 00      	jgt r3, 0x5, -0x55 <entrypoint+0xb0>
+     370 d5 03 14 00 02 00 00 00      	jsle r3, 0x2, +0x14 <entrypoint+0x400>
+     378 15 03 18 00 03 00 00 00      	jeq r3, 0x3, +0x18 <entrypoint+0x428>
+     380 55 03 22 00 04 00 00 00      	jne r3, 0x4, +0x22 <entrypoint+0x480>
+     388 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     390 55 03 48 00 ff 00 00 00      	jne r3, 0xff, +0x48 <entrypoint+0x5c0>
+     398 9f 12 08 00 00 00 00 00      	stxdw [r2 + 0x8], r1
+     3a0 9c 13 50 00 00 00 00 00      	ldxdw r3, [r1 + 0x50]
+     3a8 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     3b0 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     3b8 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     3c0 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     3c8 55 03 4a 00 ff 00 00 00      	jne r3, 0xff, +0x4a <entrypoint+0x608>
+     3d0 9f 12 10 00 00 00 00 00      	stxdw [r2 + 0x10], r1
+     3d8 9c 13 50 00 00 00 00 00      	ldxdw r3, [r1 + 0x50]
+     3e0 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     3e8 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     3f0 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     3f8 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     400 55 03 4c 00 ff 00 00 00      	jne r3, 0xff, +0x4c <entrypoint+0x650>
+     408 9f 12 18 00 00 00 00 00      	stxdw [r2 + 0x18], r1
+     410 05 00 87 ff 00 00 00 00      	ja -0x79 <entrypoint+0x38>
+     418 15 03 86 ff 01 00 00 00      	jeq r3, 0x1, -0x7a <entrypoint+0x38>
+     420 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     428 55 03 6f 00 ff 00 00 00      	jne r3, 0xff, +0x6f <entrypoint+0x790>
+     430 9f 12 08 00 00 00 00 00      	stxdw [r2 + 0x8], r1
+     438 05 00 82 ff 00 00 00 00      	ja -0x7e <entrypoint+0x38>
+     440 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     448 55 03 22 00 ff 00 00 00      	jne r3, 0xff, +0x22 <entrypoint+0x548>
+     450 9f 12 08 00 00 00 00 00      	stxdw [r2 + 0x8], r1
+     458 9c 13 50 00 00 00 00 00      	ldxdw r3, [r1 + 0x50]
+     460 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     468 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     470 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     478 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     480 55 03 24 00 ff 00 00 00      	jne r3, 0xff, +0x24 <entrypoint+0x590>
+     488 9f 12 10 00 00 00 00 00      	stxdw [r2 + 0x10], r1
+     490 05 00 77 ff 00 00 00 00      	ja -0x89 <entrypoint+0x38>
+     498 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     4a0 55 03 3f 00 ff 00 00 00      	jne r3, 0xff, +0x3f <entrypoint+0x688>
+     4a8 9f 12 08 00 00 00 00 00      	stxdw [r2 + 0x8], r1
+     4b0 9c 13 50 00 00 00 00 00      	ldxdw r3, [r1 + 0x50]
+     4b8 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     4c0 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     4c8 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     4d0 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     4d8 55 03 41 00 ff 00 00 00      	jne r3, 0xff, +0x41 <entrypoint+0x6d0>
+     4e0 9f 12 10 00 00 00 00 00      	stxdw [r2 + 0x10], r1
+     4e8 9c 13 50 00 00 00 00 00      	ldxdw r3, [r1 + 0x50]
+     4f0 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     4f8 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     500 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     508 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     510 55 03 43 00 ff 00 00 00      	jne r3, 0xff, +0x43 <entrypoint+0x718>
+     518 9f 12 18 00 00 00 00 00      	stxdw [r2 + 0x18], r1
+     520 9c 13 50 00 00 00 00 00      	ldxdw r3, [r1 + 0x50]
+     528 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     530 07 01 00 00 67 28 00 00      	add64 r1, 0x2867
+     538 57 01 00 00 f8 ff ff ff      	and64 r1, -0x8
+     540 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     548 55 03 45 00 ff 00 00 00      	jne r3, 0xff, +0x45 <entrypoint+0x760>
+     550 9f 12 20 00 00 00 00 00      	stxdw [r2 + 0x20], r1
+     558 05 00 5e ff 00 00 00 00      	ja -0xa2 <entrypoint+0x38>
+     560 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     568 bf a4 00 00 00 00 00 00      	mov64 r4, r10
+     570 07 04 00 00 10 00 00 00      	add64 r4, 0x10
+     578 0f 34 00 00 00 00 00 00      	add64 r4, r3
+     580 9c 43 00 00 00 00 00 00      	ldxdw r3, [r4 + 0x0]
+     588 9f 32 08 00 00 00 00 00      	stxdw [r2 + 0x8], r3
+     590 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     598 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     5a0 15 03 dc ff ff 00 00 00      	jeq r3, 0xff, -0x24 <entrypoint+0x470>
+     5a8 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     5b0 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     5b8 07 01 00 00 10 00 00 00      	add64 r1, 0x10
+     5c0 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     5c8 9c 11 00 00 00 00 00 00      	ldxdw r1, [r1 + 0x0]
+     5d0 05 00 d6 ff 00 00 00 00      	ja -0x2a <entrypoint+0x470>
+     5d8 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     5e0 bf a4 00 00 00 00 00 00      	mov64 r4, r10
+     5e8 07 04 00 00 10 00 00 00      	add64 r4, 0x10
+     5f0 0f 34 00 00 00 00 00 00      	add64 r4, r3
+     5f8 9c 43 00 00 00 00 00 00      	ldxdw r3, [r4 + 0x0]
+     600 9f 32 08 00 00 00 00 00      	stxdw [r2 + 0x8], r3
+     608 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     610 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     618 15 03 b6 ff ff 00 00 00      	jeq r3, 0xff, -0x4a <entrypoint+0x3b8>
+     620 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     628 bf a4 00 00 00 00 00 00      	mov64 r4, r10
+     630 07 04 00 00 10 00 00 00      	add64 r4, 0x10
+     638 0f 34 00 00 00 00 00 00      	add64 r4, r3
+     640 9c 43 00 00 00 00 00 00      	ldxdw r3, [r4 + 0x0]
+     648 9f 32 10 00 00 00 00 00      	stxdw [r2 + 0x10], r3
+     650 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     658 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     660 15 03 b4 ff ff 00 00 00      	jeq r3, 0xff, -0x4c <entrypoint+0x3f0>
+     668 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     670 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     678 07 01 00 00 10 00 00 00      	add64 r1, 0x10
+     680 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     688 9c 11 00 00 00 00 00 00      	ldxdw r1, [r1 + 0x0]
+     690 9f 12 18 00 00 00 00 00      	stxdw [r2 + 0x18], r1
+     698 05 00 36 ff 00 00 00 00      	ja -0xca <entrypoint+0x38>
+     6a0 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     6a8 bf a4 00 00 00 00 00 00      	mov64 r4, r10
+     6b0 07 04 00 00 10 00 00 00      	add64 r4, 0x10
+     6b8 0f 34 00 00 00 00 00 00      	add64 r4, r3
+     6c0 9c 43 00 00 00 00 00 00      	ldxdw r3, [r4 + 0x0]
+     6c8 9f 32 08 00 00 00 00 00      	stxdw [r2 + 0x8], r3
+     6d0 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     6d8 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     6e0 15 03 bf ff ff 00 00 00      	jeq r3, 0xff, -0x41 <entrypoint+0x4c8>
+     6e8 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     6f0 bf a4 00 00 00 00 00 00      	mov64 r4, r10
+     6f8 07 04 00 00 10 00 00 00      	add64 r4, 0x10
+     700 0f 34 00 00 00 00 00 00      	add64 r4, r3
+     708 9c 43 00 00 00 00 00 00      	ldxdw r3, [r4 + 0x0]
+     710 9f 32 10 00 00 00 00 00      	stxdw [r2 + 0x10], r3
+     718 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     720 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     728 15 03 bd ff ff 00 00 00      	jeq r3, 0xff, -0x43 <entrypoint+0x500>
+     730 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     738 bf a4 00 00 00 00 00 00      	mov64 r4, r10
+     740 07 04 00 00 10 00 00 00      	add64 r4, 0x10
+     748 0f 34 00 00 00 00 00 00      	add64 r4, r3
+     750 9c 43 00 00 00 00 00 00      	ldxdw r3, [r4 + 0x0]
+     758 9f 32 18 00 00 00 00 00      	stxdw [r2 + 0x18], r3
+     760 07 01 00 00 08 00 00 00      	add64 r1, 0x8
+     768 2c 13 00 00 00 00 00 00      	ldxb w3, [r1 + 0x0]
+     770 15 03 bb ff ff 00 00 00      	jeq r3, 0xff, -0x45 <entrypoint+0x538>
+     778 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     780 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     788 07 01 00 00 10 00 00 00      	add64 r1, 0x10
+     790 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     798 9c 11 00 00 00 00 00 00      	ldxdw r1, [r1 + 0x0]
+     7a0 05 00 b5 ff 00 00 00 00      	ja -0x4b <entrypoint+0x538>
+     7a8 67 03 00 00 03 00 00 00      	lsh64 r3, 0x3
+     7b0 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     7b8 07 01 00 00 10 00 00 00      	add64 r1, 0x10
+     7c0 0f 31 00 00 00 00 00 00      	add64 r1, r3
+     7c8 9c 11 00 00 00 00 00 00      	ldxdw r1, [r1 + 0x0]
+     7d0 05 00 8b ff 00 00 00 00      	ja -0x75 <entrypoint+0x418>
+
+00000000000007d8 <custom_panic>
+     7d8 07 0a 00 00 00 00 00 00      	add64 r10, 0x0
+     7e0 9c 11 08 00 00 00 00 00      	ldxdw r1, [r1 + 0x8]
+     7e8 9c 12 08 00 00 00 00 00      	ldxdw r2, [r1 + 0x8]
+     7f0 9c 11 00 00 00 00 00 00      	ldxdw r1, [r1 + 0x0]
+     7f8 95 00 00 00 bd 59 75 20      	syscall 0x207559bd
+     800 b4 01 00 00 0e 00 00 00      	mov32 w1, 0xe
+     808 f7 01 00 00 01 00 00 00      	hor64 r1, 0x1
+     810 b7 02 00 00 0e 00 00 00      	mov64 r2, 0xe
+     818 95 00 00 00 bd 59 75 20      	syscall 0x207559bd
+     820 9d 00 00 00 00 00 00 00      	return
