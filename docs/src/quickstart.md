@@ -174,7 +174,7 @@
    running 1 test
    [... DEBUG ...] Program DASMAC... invoke [1]
    [... DEBUG ...] Program log: Hello, DASMAC!
-   [... DEBUG ...] Program DASMAC... consumed 108 of 1400000 compute units
+   [... DEBUG ...] Program DASMAC... consumed 109 of 1400000 compute units
    [... DEBUG ...] Program DASMAC... success
    test tests::rs ... ok
    ```
