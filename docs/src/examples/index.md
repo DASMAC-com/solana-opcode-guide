@@ -13,4 +13,3 @@ set up your environment to run common commands.
 > If you try to interactively run the examples but you haven't first done the
 > [quickstart](../quickstart) then you'll probably get confused by tools like
 > [the dump script](../quickstart#env-setup).
-

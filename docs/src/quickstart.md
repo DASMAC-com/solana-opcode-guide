@@ -213,6 +213,7 @@ program!
 > The assembly file and testing framework in this example were adapted from the
 > [`sbpf`] `init` command.
 
+["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [assembly]: https://en.wikipedia.org/wiki/Assembly_language
 [called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
@@ -235,4 +236,3 @@ program!
 [`sbpf`]: https://github.com/blueshift-gg/sbpf
 [`solana`]: https://docs.anza.xyz/cli/install
 [`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487
-["Hello, World!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
