@@ -68,11 +68,13 @@ the constant [`JLT_REG`] from the [SBPF opcodes].
 ## Continue your journey
 
 Start by heading over to the [quickstart](quickstart), which will help you set
-up your environment and run a simple example!
+up your environment and run a simple example. After that, simply follow the
+[examples](examples) in order to gradually build your familiarity with
+[SBPF][solana programs] program development and analysis.
 
 > [!tip]
-> See also the [resources](resources) page for a curated list of resources to
-> explore on your journey.
+> Along the way see also the [resources](resources) page for a curated list of
+> resources to explore on your journey.
 
 [anchor]: https://www.anchor-lang.com/docs
 [assembler mnemonic]: https://en.wikipedia.org/wiki/Assembly_language#Opcode_mnemonics_and_extended_mnemonics
