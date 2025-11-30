@@ -26,18 +26,20 @@ repos:
     - 'mdformat-gfm'
     - 'mdformat-frontmatter'
     - 'mdformat-myst'
+    exclude: 'docs/src/'
     files: '.(md|mdc)'
     id: 'mdformat'
     types:
     - 'file'
   repo: 'https://github.com/hukkin/mdformat'
   rev: '0.7.22'
+# Runs after the main mdformat so mdformat dependencies are installed.
 - hooks:
-  - entry: 'cfg/pre-commit/local-hooks/restore-vitepress.sh'
+  - entry: 'cfg/pre-commit/local-hooks/format-vitepress-markdown.sh'
     files: 'docs/src/.*\.md$'
-    id: 'restore-vitepress'
+    id: 'format-vitepress-markdown'
     language: 'script'
-    name: 'Restore VitePress syntax'
+    name: 'Format VitePress markdown'
   repo: 'local'
 - hooks:
   - args:
