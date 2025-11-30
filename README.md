@@ -1,6 +1,10 @@
 # Solana Opcode Guide
 
+<!-- markdownlint-disable MD036 -->
+
 *Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)*
+
+<!-- markdownlint-enable MD036 -->
 
 The Solana Opcode Guide is built with [VitePress] and can be viewed at
 [opcodes.dasmac.com].

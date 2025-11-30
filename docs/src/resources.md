@@ -2,7 +2,12 @@
 
 ## Content
 
-1. [Scale or Die at Accelerate 2025: Writing Optimized Solana Programs (Dean Little | Blueshift)] ([transcript][writing optimized solana programs transcript])
+<!-- markdownlint-disable MD013 -->
+
+1. [Scale or Die at Accelerate 2025: Writing Optimized Solana Programs (Dean Little | Blueshift)]
+   ([transcript][writing optimized solana programs transcript])
+
+<!-- markdownlint-enable MD013 -->
 
 ## Examples
 
