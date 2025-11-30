@@ -1,0 +1,32 @@
+---
+env:
+  PRE_COMMIT_VERSION: '4.5.0'
+  PYTHON_VERSION: '3.13'
+jobs:
+  quick-lint:
+    env:
+      CONFIG_PATH: 'cfg/pre-commit/quick-lint.yml'
+    name: 'Quick lint'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v4'
+    - uses: 'actions/setup-python@v6'
+      with:
+        cache: 'pip'
+        cache-dependency-path: '.github/workflows/quick-lint/requirements.txt'
+        python-version: '${{ env.PYTHON_VERSION }}'
+    - run: 'pip install -r .github/workflows/quick-lint/requirements.txt'
+    - uses: 'actions/cache@v3'
+      with:
+        key: 'pre-commit-quick-lint-${{ runner.os }}-${{
+              runner.arch }}-python-${{ env.PYTHON_VERSION }}-pre-commit-${{
+              env.PRE_COMMIT_VERSION }}-${{ hashFiles(env.CONFIG_PATH) }}'
+        path: '~/.cache/pre-commit'
+    - run: 'pre-commit install-hooks -c ${{ env.CONFIG_PATH }}'
+    - run: >-
+        pre-commit run --all-files --color=always --show-diff-on-failure
+        --config ${{ env.CONFIG_PATH }}
+name: 'quick-lint'
+'on':
+  push: null
+...

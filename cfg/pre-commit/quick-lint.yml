@@ -1,0 +1,90 @@
+# cspell:word frontmatter
+# cspell:word mdformat
+# cspell:word shfmt
+---
+repos:
+- hooks:
+  - args:
+    - '--config-file'
+    - 'cfg/yamllint.yml'
+    - '--strict'
+    id: 'yamllint'
+  repo: 'https://github.com/adrienverge/yamllint'
+  rev: 'v1.37.1'
+- hooks:
+  - args:
+    - '--config'
+    - 'cfg/markdownlint.yml'
+    files: '.(md|mdc)'
+    id: 'markdownlint-fix'
+    types:
+    - 'file'
+  repo: 'https://github.com/igorshubovych/markdownlint-cli'
+  rev: 'v0.46.0'
+- hooks:
+  - additional_dependencies:
+    - 'mdformat-gfm'
+    - 'mdformat-frontmatter'
+    - 'mdformat-myst'
+    exclude: 'docs/src/'
+    files: '.(md|mdc)'
+    id: 'mdformat'
+    types:
+    - 'file'
+  repo: 'https://github.com/hukkin/mdformat'
+  rev: '0.7.22'
+- hooks:
+  - additional_dependencies:
+    - 'mdformat==0.7.22'
+    - 'mdformat-gfm'
+    - 'mdformat-frontmatter'
+    - 'mdformat-myst'
+    entry: 'cfg/pre-commit/local-hooks/format-vitepress-markdown.sh'
+    files: 'docs/src/.*\.md$'
+    id: 'format-vitepress-markdown'
+    language: 'python'
+    name: 'Format VitePress markdown'
+  repo: 'local'
+- hooks:
+  - args:
+    - '--autofix'
+    exclude: 'Cargo.lock'
+    id: 'pretty-format-toml'
+  repo: 'https://github.com/macisamuele/language-formatters-pre-commit-hooks'
+  rev: 'v2.15.0'
+- hooks:
+  - args:
+    - '--config'
+    - 'cfg/cspell.yml'
+    id: 'cspell'
+  repo: 'https://github.com/streetsidesoftware/cspell-cli'
+  rev: 'v9.3.3'
+- hooks:
+  - id: 'check-added-large-files'
+  - id: 'check-case-conflict'
+  - id: 'detect-private-key'
+  - exclude: 'CNAME'
+    id: 'end-of-file-fixer'
+  - files: 'cfg/dictionary.txt'
+    id: 'file-contents-sorter'
+  - id: 'mixed-line-ending'
+  - args:
+    - '--autofix'
+    exclude: 'package-lock.json'
+    id: 'pretty-format-json'
+  - id: 'trailing-whitespace'
+  repo: 'https://github.com/pre-commit/pre-commit-hooks'
+  rev: 'v6.0.0'
+- hooks:
+  - entry: 'cfg/pre-commit/local-hooks/ensure-shebang.sh'
+    id: 'ensure-shebang'
+    language: 'script'
+    name: 'Ensure shebang in shell scripts'
+    types:
+    - 'shell'
+  repo: 'local'
+- hooks:
+  - id: 'shfmt'
+  repo: 'https://github.com/scop/pre-commit-shfmt'
+  rev: 'v3.12.0-2'
+...
