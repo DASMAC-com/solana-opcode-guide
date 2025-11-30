@@ -73,7 +73,11 @@
 
    ::: code-group
 
+   <!-- markdownlint-disable MD013 -->
+
    <<< ../../examples/hello-dasmac/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
+
+   <!-- markdownlint-enable MD013 -->
 
    <<< ../../examples/hello-dasmac/src/program.rs{rs:line-numbers}
 
@@ -117,13 +121,18 @@
 
    ::: code-group
 
+   <!-- markdownlint-disable MD013 -->
+
    <<< ../../examples/hello-dasmac/dump-examples/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [Assembly]
 
    <<< ../../examples/hello-dasmac/dump-examples/rs.txt{10,14,18,20-21,28,117-365,367-377 text:line-numbers} [Rust]
 
+   <!-- markdownlint-enable MD013 -->
+
    :::
 
    > [!tip]
+   >
    > You can generate a similar output using the [`sbpf`] `disassemble` command:
    >
    > ```sh
@@ -131,7 +140,13 @@
    > ```
    >
    > ::: details Output
+   >
+   > <!-- markdownlint-disable MD013 -->
+   >
    > <<< ../../examples/hello-dasmac/dump-examples/asm-disassembly.txt{json:line-numbers} [asm-disassembly.txt]
+   >
+   > <!-- markdownlint-enable MD013 -->
+   >
    > :::
 
 1. Run the assembly implementation test.
