@@ -6,7 +6,8 @@
 
 <!-- markdownlint-enable MD036 -->
 
-The Solana Opcode Guide is built with [VitePress] and can be viewed at [opcodes.dasmac.com].
+The Solana Opcode Guide is built with [VitePress] and can be viewed at
+[opcodes.dasmac.com].
 
 ## Local Deployment
 
