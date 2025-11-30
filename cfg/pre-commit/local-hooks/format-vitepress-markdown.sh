@@ -1,4 +1,5 @@
 #!/bin/sh
+# cspell:word mdformat
 # Format markdown with mdformat, then restore VitePress syntax.
 # Only fails if there are changes after both operations complete.
 set -e
