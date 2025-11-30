@@ -28,7 +28,7 @@
 
    ::: details Cargo.toml
 
-   \<<< ../../examples/Cargo.toml
+   <<< ../../examples/Cargo.toml
 
    :::
 
@@ -62,7 +62,7 @@
 
 1. Compare the [assembly] and [Rust] program implementations:
 
-   | Implementation | Location                         |
+   | Implementation | Location                          |
    | -------------- | --------------------------------- |
    | Assembly       | `src/hello-dasmac/hello-dasmac.s` |
    | Rust           | `src/program.rs`                  |
