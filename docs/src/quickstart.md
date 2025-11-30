@@ -3,6 +3,7 @@
 ## Set up your environment {#env-setup}
 
 1. Install the latest version of [`solana`].
+
 1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
    install, in particular the [`dump.sh`] script [called internally] by
    [`cargo build-sbf`] `--dump`, and the [LLVM] binaries it requires. This will
@@ -52,6 +53,7 @@
    ```sh
    git clone https://github.com/dasmac-com/solana-opcode-guide.git
    ```
+
 1. Navigate to the `examples/hello-dasmac` directory.
 
    ```sh
@@ -60,10 +62,10 @@
 
 1. Compare the [assembly] and [Rust] program implementations:
 
-   | Implementation | Location |
-   | -------------- | -------- |
+   | Implementation | Location                          |
+   | -------------- | --------------------------------- |
    | Assembly       | `src/hello-dasmac/hello-dasmac.s` |
-   | Rust           | `src/program.rs` |
+   | Rust           | `src/program.rs`                  |
 
    > [!tip]
    > Other examples in the `examples` directory use a similar layout, since the
@@ -83,7 +85,7 @@
    sbpf build
    ```
 
-1. Run [`dump.sh`](#env-setup) on the assembly build [ELF][SBPF] output at
+1. Run [`dump.sh`](#env-setup) on the assembly build [ELF][sbpf] output at
    `deploy/hello-dasmac.so`:
 
    ```sh
@@ -94,10 +96,10 @@
    operation should create the following files in `../target/deploy`
    (`solana-opcode-guide/examples/target/deploy`):
 
-   | File | Description |
-   | ---- | ----------- |
-   | `hello_dasmac.so` | Rust build [ELF][SBPF] output |
-   | `hello_dasmac-dump.txt` | Dump of the output |
+   | File                    | Description                   |
+   | ----------------------- | ----------------------------- |
+   | `hello_dasmac.so`       | Rust build [ELF][sbpf] output |
+   | `hello_dasmac-dump.txt` | Dump of the output            |
 
    ```sh
    cargo build-sbf --arch v4 --dump
@@ -106,9 +108,9 @@
 1. Compare the two dumps, in particular the below highlighted sections. Note the
    considerable overhead introduced by the Rust implementation:
 
-   | Implementation | Dump |
-   | -------------- | -------- |
-   | Assembly       | `deploy/asm-dump.txt` |
+   | Implementation | Dump                                     |
+   | -------------- | ---------------------------------------- |
+   | Assembly       | `deploy/asm-dump.txt`                    |
    | Rust           | `../target/deploy/hello_dasmac-dump.txt` |
 
    ::: details Output
@@ -123,9 +125,11 @@
 
    > [!tip]
    > You can generate a similar output using the [`sbpf`] `disassemble` command:
+   >
    > ```sh
    > sbpf disassemble deploy/hello-dasmac.so > deploy/asm-disassembly.txt
    > ```
+   >
    > ::: details Output
    > <<< ../../examples/hello-dasmac/dump-examples/asm-disassembly.txt{json:line-numbers} [asm-disassembly.txt]
    > :::
@@ -178,6 +182,7 @@
    [... DEBUG ...] Program DASMAC... success
    test tests::rs ... ok
    ```
+
    :::
 
 ## :tada: Congratulations!
@@ -188,25 +193,25 @@ program!
 > [!note]
 > This example was adapted from the [`sbpf`] `init` command.
 
-[VS Code sBPF Assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
-[known issue]: https://stackoverflow.com/a/78398587
-[Solana Opcode Guide]: https://github.com/dasmac-com/solana-opcode-guide
-[`sbpf`]: https://github.com/blueshift-gg/sbpf
-[`solana`]: https://docs.anza.xyz/cli/install
-[`PATH`]: https://en.wikipedia.org/wiki/PATH_(variable)
-[Oh My Zsh]: https://ohmyz.sh/
-[`dump.sh`]: https://github.com/anza-xyz/agave/blob/master/platform-tools-sdk/sbf/scripts/dump.sh
-[LLVM]: https://llvm.org/
-[SBPF]: https://solana.com/docs/core/programs
-[`rustfilt`]: https://github.com/luser/rustfilt
+[assembly]: https://en.wikipedia.org/wiki/Assembly_language
 [called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
-[`pinocchio`]: https://github.com/anza-xyz/pinocchio
-[assembly]: https://en.wikipedia.org/wiki/Assembly_language
-[Rust]: https://solana.com/docs/programs/rust
-[`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487
-[`cargo build-sbf`]:https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf
+[known issue]: https://stackoverflow.com/a/78398587
+[llvm]: https://llvm.org/
+[loading up to sbpf v3]: https://github.com/anza-xyz/agave/blob/v3.1.2/feature-set/src/lib.rs#L140-L141
+[oh my zsh]: https://ohmyz.sh/
 [removed in v1.52]: https://github.com/anza-xyz/platform-tools/commit/9dcb73be29b1140467243867f38a388520c85251#diff-4d2a8eefdf2a9783512a35da4dc7676a66404b6f3826a8af9aad038722da6823L100
+[rust]: https://solana.com/docs/programs/rust
+[sbpf]: https://solana.com/docs/core/programs
+[sbpf v4]: https://github.com/anza-xyz/sbpf
+[solana opcode guide]: https://github.com/dasmac-com/solana-opcode-guide
+[vs code sbpf assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
+[`cargo build-sbf`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf
+[`dump.sh`]: https://github.com/anza-xyz/agave/blob/master/platform-tools-sdk/sbf/scripts/dump.sh
+[`path`]: https://en.wikipedia.org/wiki/PATH_(variable)
+[`pinocchio`]: https://github.com/anza-xyz/pinocchio
 [`platform-tools`]: https://github.com/anza-xyz/platform-tools
-[SBPF v4]: https://github.com/anza-xyz/sbpf
-[loading up to SBPF v3]: https://github.com/anza-xyz/agave/blob/v3.1.2/feature-set/src/lib.rs#L140-L141
+[`rustfilt`]: https://github.com/luser/rustfilt
+[`sbpf`]: https://github.com/blueshift-gg/sbpf
+[`solana`]: https://docs.anza.xyz/cli/install
+[`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487
