@@ -1,6 +1,10 @@
 # Solana Opcode Guide
 
-*Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)*
+<!-- markdownlint-disable MD013 -->
+
+> [!important] Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)
+
+<!-- markdownlint-enable MD013 -->
 
 ## Background
 
@@ -46,12 +50,16 @@ In bytecode this corresponds to the [assembler mnemonic]:
 jlt dst, src, off
 ```
 
-| Term | Meaning |
-|-|-|
-| `jlt` | The "jump if less than" operation |
-| `dst` | The destination register (`a` in Rust) |
-| `src` | The source register (`b` in Rust) |
+<!-- markdownlint-disable MD013 -->
+
+| Term  | Meaning                                                                                 |
+| ----- | --------------------------------------------------------------------------------------- |
+| `jlt` | The "jump if less than" operation                                                       |
+| `dst` | The destination register (`a` in Rust)                                                  |
+| `src` | The source register (`b` in Rust)                                                       |
 | `off` | How much to increment the program counter by (the "offset") if `dst` is less than `src` |
+
+<!-- markdownlint-enable MD013 -->
 
 Inside an ELF file, this `jlt` operation is represented using the number `173`
 (or `0xad` in [hexadecimal]), and is encoded in a single byte, corresponding to
@@ -66,7 +74,6 @@ up your environment and run a simple example!
 > See also the [resources](resources) page for a curated list of resources to
 > explore on your journey.
 
-[`jlt_reg`]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/constant.JLT_REG.html
 [anchor]: https://www.anchor-lang.com/docs
 [assembler mnemonic]: https://en.wikipedia.org/wiki/Assembly_language#Opcode_mnemonics_and_extended_mnemonics
 [bytecode]: https://en.wikipedia.org/wiki/Bytecode
@@ -82,3 +89,4 @@ up your environment and run a simple example!
 [solana programs]: https://solana.com/docs/core/programs
 [syscall]: https://en.wikipedia.org/wiki/System_call
 [virtual machine]: https://en.wikipedia.org/wiki/Virtual_machine
+[`jlt_reg`]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/constant.JLT_REG.html
