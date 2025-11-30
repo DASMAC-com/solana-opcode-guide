@@ -185,7 +185,7 @@
 
    :::
 
-## :tada: Congratulations!
+## :tada: Congratulations
 
 You have successfully assembled, disassembled, and tested your first SBPF
 program!
