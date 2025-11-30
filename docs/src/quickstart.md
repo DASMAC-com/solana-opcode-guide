@@ -1,6 +1,10 @@
 # Quickstart
 
-## Set up your environment {#env-setup}
+This quickstart guide will help you set up your environment to build and test
+a ["Hello, World!" program] implemented in both SBPF assembly and Rust, allowing
+you to compare the two implementations side-by-side.
+
+## :wrench: Set up your environment {#env-setup}
 
 1. Install the latest version of [`solana`].
 
@@ -46,7 +50,7 @@
 
 1. (Optional) Install the [VS Code SBPF Assembly extension].
 
-## Run the `hello-dasmac` example
+## :zap: Run the `hello-dasmac` example
 
 1. Clone the [Solana Opcode Guide] repository.
 
@@ -200,13 +204,14 @@
 
    :::
 
-## :tada: Congratulations
+## :tada: Congratulations :tada:
 
 You have successfully assembled, disassembled, and tested your first SBPF
 program!
 
 > [!note]
-> This example was adapted from the [`sbpf`] `init` command.
+> The assembly file and testing framework in this example were adapted from the
+> [`sbpf`] `init` command.
 
 [assembly]: https://en.wikipedia.org/wiki/Assembly_language
 [called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
@@ -230,3 +235,4 @@ program!
 [`sbpf`]: https://github.com/blueshift-gg/sbpf
 [`solana`]: https://docs.anza.xyz/cli/install
 [`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487
+["Hello, World!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program

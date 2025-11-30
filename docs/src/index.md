@@ -6,7 +6,7 @@
 
 <!-- markdownlint-enable MD013 -->
 
-## Background
+## :books: Background
 
 [Solana programs] are typically written in [Rust], then compiled via [LLVM] into
 an Executable and Linkable Format ([ELF]) file that can be deployed to a cluster
@@ -36,7 +36,7 @@ robust program architectures, and it is the goal of this guide that through an
 in-depth exploration of Solana opcodes, developers may improve their command
 of the enduring Solana Virtual Machine.
 
-## Example
+## :bulb: Example
 
 A Rust operation that checks if `a` is less than `b` looks like:
 
@@ -65,7 +65,7 @@ Inside an ELF file, this `jlt` operation is represented using the number `173`
 (or `0xad` in [hexadecimal]), and is encoded in a single byte, corresponding to
 the constant [`JLT_REG`] from the [SBPF opcodes].
 
-## Continue your journey
+## :rocket: Continue your journey
 
 Start by heading over to the [quickstart](quickstart), which will help you set
 up your environment and run a simple example. After that, simply follow the
