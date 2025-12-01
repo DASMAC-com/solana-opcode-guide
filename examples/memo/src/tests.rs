@@ -7,20 +7,7 @@ use solana_sdk::signature::read_keypair_file;
 use solana_sdk::signer::Signer;
 
 #[test]
-fn asm_happy_path() {
-    let keypair =
-        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
-    let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, "deploy/memo");
-
-    let instruction = Instruction::new_with_bytes(program_id, b"Hello again, DASMAC!", vec![]);
-
-    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
-    assert!(!result.program_result.is_err());
-}
-
-#[test]
-fn asm_expected_failure() {
+fn asm_fail() {
     let keypair =
         read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
@@ -38,4 +25,29 @@ fn asm_expected_failure() {
         &[Check::err(ProgramError::Custom(n_accounts))],
     );
     assert!(result.program_result.is_err());
+}
+
+#[test]
+fn asm_pass() {
+    let keypair =
+        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
+    let program_id = keypair.pubkey();
+    let mollusk = Mollusk::new(&program_id, "deploy/memo");
+
+    let instruction = Instruction::new_with_bytes(program_id, b"Hello again, DASMAC!", vec![]);
+
+    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
+    assert!(!result.program_result.is_err());
+}
+
+#[test]
+fn rs() {
+    let keypair = read_keypair_file("../rs-keypair.json").expect("Failed to read keypair file");
+    let program_id = keypair.pubkey();
+    let mollusk = Mollusk::new(&program_id, "../target/deploy/memo");
+
+    let instruction = Instruction::new_with_bytes(program_id, b"Hello again, DASMAC!", vec![]);
+
+    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
+    assert!(!result.program_result.is_err());
 }
