@@ -127,9 +127,9 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/dump-examples/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [Assembly]
+   <<< ../../examples/hello-dasmac/dumps/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [Assembly]
 
-   <<< ../../examples/hello-dasmac/dump-examples/rs.txt{10,14,18,20-21,28,117-365,367-377 text:line-numbers} [Rust]
+   <<< ../../examples/hello-dasmac/dumps/rs.txt{10,14,18,20-21,28,117-365,367-377 text:line-numbers} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
@@ -147,7 +147,7 @@ you to compare the two implementations side-by-side.
    >
    > <!-- markdownlint-disable MD013 -->
    >
-   > <<< ../../examples/hello-dasmac/dump-examples/asm-disassembly.txt{json:line-numbers} [asm-disassembly.txt]
+   > <<< ../../examples/hello-dasmac/dumps/asm-disassembly.txt{json:line-numbers} [asm-disassembly.txt]
    >
    > <!-- markdownlint-enable MD013 -->
    >
