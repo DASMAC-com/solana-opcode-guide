@@ -82,7 +82,7 @@ up your environment and run a simple example. After that, simply follow the
 [ebpf]: https://www.rfc-editor.org/rfc/rfc9669
 [elf]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 [hexadecimal]: https://en.wikipedia.org/wiki/Hexadecimal
-[instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/main/doc/bytecode.md
+[instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
 [llvm]: https://llvm.org/
 [logging]: https://docs.rs/solana-msg/3.0.0/src/solana_msg/lib.rs.html#45
 [native rust]: https://solana.com/docs/programs/rust
