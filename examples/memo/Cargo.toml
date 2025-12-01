@@ -1,0 +1,17 @@
+[dependencies]
+pinocchio.workspace = true
+
+[dev-dependencies]
+mollusk-svm.workspace = true
+solana-sdk.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[lints]
+workspace = true
+
+[package]
+edition = "2021"
+name = "memo"
+version = "0.1.0"
