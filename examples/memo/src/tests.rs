@@ -8,10 +8,10 @@ use solana_sdk::signer::Signer;
 
 #[test]
 fn asm_fail() {
-    let keypair =
-        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
+    let keypair = read_keypair_file(&format!("deploy/{}-keypair.json", env!("CARGO_PKG_NAME")))
+        .expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, "deploy/memo");
+    let mollusk = Mollusk::new(&program_id, &format!("deploy/{}", env!("CARGO_PKG_NAME")));
 
     let mock_account_pubkey = Pubkey::new_unique();
     let mock_account_data = AccountSharedData::default();
