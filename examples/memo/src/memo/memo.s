@@ -17,5 +17,6 @@ entrypoint:
     exit
 
 // Without mock .rodata the dump script fails.
+// https://github.com/blueshift-gg/sbpf/issues/82
 .rodata
     null: .byte 0
