@@ -228,7 +228,7 @@ program!
 [solana opcode guide]: https://github.com/dasmac-com/solana-opcode-guide
 [vs code sbpf assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
 [`cargo build-sbf`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf
-[`dump.sh`]: https://github.com/anza-xyz/agave/blob/master/platform-tools-sdk/sbf/scripts/dump.sh
+[`dump.sh`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/sbf/scripts/dump.sh
 [`path`]: https://en.wikipedia.org/wiki/PATH_(variable)
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
 [`platform-tools`]: https://github.com/anza-xyz/platform-tools
