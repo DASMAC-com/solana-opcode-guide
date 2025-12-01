@@ -1,13 +1,20 @@
+.equ NUM_ACCOUNTS_OFFSET, 0
 .equ INSTRUCTION_DATA_LENGTH_OFFSET, 8
 .equ INSTRUCTION_DATA_OFFSET, 16
 
 .globl entrypoint
+
 entrypoint:
-    // Exit with error if any accounts are passed.
-    mov64 r0, r1
-    // Load into r2 a pointer to the instruction data length.
+    // Indexed load the number of accounts into the return code.
+    ldxdw r0, [r1 + NUM_ACCOUNTS_OFFSET]
+    // If nonzero number of accounts, exit early.
+    jne r0, r4, exit_early
+    // Indexed load the message data length.
     ldxdw r2, [r1 + INSTRUCTION_DATA_LENGTH_OFFSET]
-    // Increment pointer in r1 by the instruction data offset.
+    // Increment pointer in r1 the instruction data offset.
     add64 r1, INSTRUCTION_DATA_OFFSET
     call sol_log_
+    exit
+
+exit_early:
     exit

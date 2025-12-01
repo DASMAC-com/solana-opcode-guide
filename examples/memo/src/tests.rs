@@ -7,34 +7,35 @@ use solana_sdk::signature::read_keypair_file;
 use solana_sdk::signer::Signer;
 
 #[test]
-fn asm_happy() {
+fn asm_happy_path() {
     let keypair =
         read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
     let mollusk = Mollusk::new(&program_id, "deploy/memo");
 
-    let instruction = Instruction::new_with_bytes(program_id, b"Hello, again DASMAC!", vec![]);
+    let instruction = Instruction::new_with_bytes(program_id, b"Hello again, DASMAC!", vec![]);
 
     let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
     assert!(!result.program_result.is_err());
 }
 
 #[test]
-fn asm_with_account_fails() {
+fn asm_expected_failure() {
     let keypair =
         read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
     let mollusk = Mollusk::new(&program_id, "deploy/memo");
 
-    let dummy_account_key = Pubkey::new_unique();
-    let dummy_account_data = AccountSharedData::default();
-    let accounts = vec![AccountMeta::new(dummy_account_key, false)];
-    let instruction = Instruction::new_with_bytes(program_id, b"This should fail", accounts);
+    let mock_account_pubkey = Pubkey::new_unique();
+    let mock_account_data = AccountSharedData::default();
+    let accounts = vec![AccountMeta::new(mock_account_pubkey, false)];
+    let n_accounts = accounts.len() as u32;
+    let instruction = Instruction::new_with_bytes(program_id, b"Whoopsy", accounts);
 
     let result = mollusk.process_and_validate_instruction(
         &instruction,
-        &[(dummy_account_key, dummy_account_data.into())],
-        &[Check::err(ProgramError::Custom(1))],
+        &[(mock_account_pubkey, mock_account_data.into())],
+        &[Check::err(ProgramError::Custom(n_accounts))],
     );
     assert!(result.program_result.is_err());
 }
