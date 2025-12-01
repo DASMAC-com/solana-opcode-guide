@@ -6,6 +6,7 @@
 
 1. [Scale or Die at Accelerate 2025: Writing Optimized Solana Programs (Dean Little | Blueshift)]
    ([transcript][writing optimized solana programs transcript])
+1. [What is the Solana Virtual Machine (SVM)?]
 
 <!-- markdownlint-enable MD013 -->
 
@@ -28,6 +29,7 @@
 1. [SBPF opcodes]
 1. [`sbpf` syscall registry]
 1. [`solana-sdk` syscall registry]
+1. [SBPF memory region layout]
 
 ## Tools
 
@@ -36,6 +38,8 @@
 1. [sbpf.xyz]
 1. [VS Code `sbpf-asm` extension]
 
+[SBPF memory region layout]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/ebpf.rs#L37-L51
+[What is the Solana Virtual Machine (SVM)?]: https://www.helius.dev/blog/solana-virtual-machine
 [how to write solana programs with sbpf assembly]: https://www.helius.dev/blog/sbpf-assembly
 [litesvm]: https://www.litesvm.com/
 [optimizing solana programs]: https://www.helius.dev/blog/optimizing-solana-programs
