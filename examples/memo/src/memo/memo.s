@@ -7,8 +7,8 @@
 entrypoint:
     // Indexed load the number of accounts into the return code.
     ldxdw r0, [r1 + NUM_ACCOUNTS_OFFSET]
-    // If nonzero number of accounts, exit early.
-    jne r0, r4, exit_early
+    // If nonzero number of accounts, jump to exit instruction.
+    jne r0, r4, 3
     // Indexed load the message data length.
     ldxdw r2, [r1 + INSTRUCTION_DATA_LENGTH_OFFSET]
     // Increment pointer in r1 the instruction data offset.
@@ -16,5 +16,6 @@ entrypoint:
     call sol_log_
     exit
 
-exit_early:
-    exit
+// Without mock .rodata the dump script fails.
+.rodata
+    null: .byte 0
