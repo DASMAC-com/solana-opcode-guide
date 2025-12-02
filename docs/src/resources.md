@@ -47,7 +47,7 @@
 [sbpf assembly 101]: https://learn.blueshift.gg/en/courses/introduction-to-assembly/assembly-101
 [sbpf instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
 [sbpf opcode test suite]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/tests/execution.rs
-[`solana_sbpf::ebpf` documentation]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
+[`solana_sbpf::ebpf` documentation]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/
 [sbpf.xyz]: https://sbpf.xyz/
 [scale or die at accelerate 2025: writing optimized solana programs (dean little | blueshift)]: https://youtu.be/Fk_UtbEny0c
 [vs code `sbpf-asm` extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
