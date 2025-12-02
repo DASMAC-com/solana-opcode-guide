@@ -6,5 +6,5 @@ dictionaryDefinitions:
   name: 'repo-words'
   path: './dictionary.txt'
 ignorePaths:
-- 'examples/*/dumps/*'
+- '**/examples/**/dumps/**'
 ...

@@ -1,4 +1,5 @@
 blueshift
+cdylib
 dasmac
 ebpf
 globl
@@ -8,6 +9,7 @@ ldxdw
 rodata
 rustfilt
 sbpf
+sbpfv
 solana
 syscall
 syscalls
