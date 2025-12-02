@@ -69,7 +69,7 @@ the constant [`JLT_REG`] from the [SBPF opcodes].
 
 Start by heading over to the [quickstart](quickstart), which will help you set
 up your environment and run a simple example. After that, simply follow the
-[examples](examples) in order to gradually build your familiarity with
+[examples](examples/index) in order to gradually build your familiarity with
 [SBPF][solana programs] program development and analysis.
 
 > [!tip]
