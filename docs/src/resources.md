@@ -23,14 +23,18 @@
 1. [sBPF Assembly 101]
 1. [Optimizing Solana Programs]
 
-## References
+## SBPF references
 
-1. [`agave` syscall library]
 1. [`solana_sbpf::ebpf` documentation]
-1. [`sbpf` syscall registry]
-1. [`solana-sdk` syscall registry]
 1. [SBPF instruction set architecture]
 1. [SBPF memory map layout]
+
+## Syscall references
+
+1. [`agave` syscall library]
+1. [`sbpf` syscall registry]
+1. [`pinocchio` syscall registry]
+1. [`solana-sdk` syscall registry]
 
 ## Tools
 
@@ -39,6 +43,7 @@
 1. [sbpf.xyz]
 1. [VS Code `sbpf-asm` extension]
 
+[`pinocchio` syscall registry]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/syscalls.rs
 [SBPF memory map layout]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/ebpf.rs#L37-L51
 [What is the Solana Virtual Machine (SVM)?]: https://www.helius.dev/blog/solana-virtual-machine
 [how to write solana programs with sbpf assembly]: https://www.helius.dev/blog/sbpf-assembly
