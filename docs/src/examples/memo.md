@@ -4,7 +4,7 @@
 
 <!--@include: ./disclaimer.md-->
 
-## Memory layout background
+## :world_map: Memory map background
 
 The [SBPF instruction set architecture] defines 12 registers, including
 10 general-purpose registers `r0` through `r9`. At the start of program
@@ -32,7 +32,7 @@ throughout the remainder of the program:
 
 <<< ../../../examples/memo/src/memo/memo.s{1-3 asm:line-numbers}
 
-## Error checking
+## :warning: Error checking
 
 The value in `r0` at the conclusion of an SBPF program
 [is considered the return value], where [a return value of 0] indicates
@@ -68,7 +68,7 @@ Note the minimal [compute unit] consumption for a failure:
 
 :::
 
-## Logging
+## :speech_balloon: Logging
 
 Assuming no accounts are passed, the length of the message is similarly loaded
 via [`ldxdw` (load indexed double word) `LD_DW_REG`] into `r2` via an offset
@@ -92,7 +92,7 @@ Note the [compute unit] consumption for a successful log:
 
 <<< ../../../examples/memo/test-runs/asm_pass.txt{3 sh:line-numbers}
 
-## Rust implementation
+## :crab: Rust implementation
 
 The rust implementation similarly calls [the `pinocchio` version of `sol_log_`]
 with the passed instruction data.
@@ -103,7 +103,7 @@ Notably, however, it introduces [compute unit] overhead:
 
 <<< ../../../examples/memo/test-runs/rs.txt{3 sh:line-numbers}
 
-## Tests
+## :white_check_mark: Tests
 
 ::: details Tests
 
