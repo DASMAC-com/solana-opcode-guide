@@ -1,6 +1,10 @@
 # Quickstart
 
-## Set up your environment {#env-setup}
+This quickstart guide will help you set up your environment to build and test
+a ["Hello, World!" program] implemented in both SBPF assembly and Rust, allowing
+you to compare the two implementations side-by-side.
+
+## :wrench: Set up your environment {#env-setup}
 
 1. Install the latest version of [`solana`].
 
@@ -46,7 +50,7 @@
 
 1. (Optional) Install the [VS Code SBPF Assembly extension].
 
-## Run the `hello-dasmac` example
+## :zap: Run the `hello-dasmac` example
 
 1. Clone the [Solana Opcode Guide] repository.
 
@@ -123,9 +127,9 @@
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/dump-examples/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [Assembly]
+   <<< ../../examples/hello-dasmac/dumps/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [Assembly]
 
-   <<< ../../examples/hello-dasmac/dump-examples/rs.txt{10,14,18,20-21,28,117-365,367-377 text:line-numbers} [Rust]
+   <<< ../../examples/hello-dasmac/dumps/rs.txt{10,14,18,20-21,28,117-365,367-377 text:line-numbers} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
@@ -143,7 +147,7 @@
    >
    > <!-- markdownlint-disable MD013 -->
    >
-   > <<< ../../examples/hello-dasmac/dump-examples/asm-disassembly.txt{json:line-numbers} [asm-disassembly.txt]
+   > <<< ../../examples/hello-dasmac/dumps/asm-disassembly.txt{json:line-numbers} [asm-disassembly.txt]
    >
    > <!-- markdownlint-enable MD013 -->
    >
@@ -200,14 +204,16 @@
 
    :::
 
-## :tada: Congratulations
+## :tada: Congratulations :tada:
 
 You have successfully assembled, disassembled, and tested your first SBPF
 program!
 
 > [!note]
-> This example was adapted from the [`sbpf`] `init` command.
+> The assembly file and testing framework in this example were adapted from the
+> [`sbpf`] `init` command.
 
+["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [assembly]: https://en.wikipedia.org/wiki/Assembly_language
 [called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
@@ -222,7 +228,7 @@ program!
 [solana opcode guide]: https://github.com/dasmac-com/solana-opcode-guide
 [vs code sbpf assembly extension]: https://marketplace.visualstudio.com/items?itemName=deanmlittle.vscode-sbpf-asm
 [`cargo build-sbf`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf
-[`dump.sh`]: https://github.com/anza-xyz/agave/blob/master/platform-tools-sdk/sbf/scripts/dump.sh
+[`dump.sh`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/sbf/scripts/dump.sh
 [`path`]: https://en.wikipedia.org/wiki/PATH_(variable)
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
 [`platform-tools`]: https://github.com/anza-xyz/platform-tools

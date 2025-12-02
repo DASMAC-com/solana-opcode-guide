@@ -5,6 +5,14 @@ export default {
     sidebar: [
       { text: 'Welcome', link: '/' },
       { text: 'Quickstart', link: '/quickstart' },
+      {
+        collapsed: false,
+        text: 'Examples',
+        link: '/examples/',
+        items: [
+          { text: 'Memo', link: '/examples/memo' }
+        ]
+      },
       { text: 'Resources', link: '/resources' }
     ]
   }

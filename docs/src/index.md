@@ -6,7 +6,7 @@
 
 <!-- markdownlint-enable MD013 -->
 
-## Background
+## :books: Background
 
 [Solana programs] are typically written in [Rust], then compiled via [LLVM] into
 an Executable and Linkable Format ([ELF]) file that can be deployed to a cluster
@@ -36,7 +36,7 @@ robust program architectures, and it is the goal of this guide that through an
 in-depth exploration of Solana opcodes, developers may improve their command
 of the enduring Solana Virtual Machine.
 
-## Example
+## :bulb: Example
 
 A Rust operation that checks if `a` is less than `b` looks like:
 
@@ -65,14 +65,16 @@ Inside an ELF file, this `jlt` operation is represented using the number `173`
 (or `0xad` in [hexadecimal]), and is encoded in a single byte, corresponding to
 the constant [`JLT_REG`] from the [SBPF opcodes].
 
-## Continue your journey
+## :rocket: Continue your journey
 
 Start by heading over to the [quickstart](quickstart), which will help you set
-up your environment and run a simple example!
+up your environment and run a simple example. After that, simply follow the
+[examples](examples) in order to gradually build your familiarity with
+[SBPF][solana programs] program development and analysis.
 
 > [!tip]
-> See also the [resources](resources) page for a curated list of resources to
-> explore on your journey.
+> Along the way see also the [resources](resources) page for a curated list of
+> resources to explore on your journey.
 
 [anchor]: https://www.anchor-lang.com/docs
 [assembler mnemonic]: https://en.wikipedia.org/wiki/Assembly_language#Opcode_mnemonics_and_extended_mnemonics
@@ -80,7 +82,7 @@ up your environment and run a simple example!
 [ebpf]: https://www.rfc-editor.org/rfc/rfc9669
 [elf]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 [hexadecimal]: https://en.wikipedia.org/wiki/Hexadecimal
-[instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/main/doc/bytecode.md
+[instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
 [llvm]: https://llvm.org/
 [logging]: https://docs.rs/solana-msg/3.0.0/src/solana_msg/lib.rs.html#45
 [native rust]: https://solana.com/docs/programs/rust
