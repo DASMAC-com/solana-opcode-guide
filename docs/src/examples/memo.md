@@ -62,7 +62,11 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 
 Note the minimal [compute unit] consumption for a failure:
 
+::: details `test_asm_fail` {open}
+
 <<< ../../../examples/memo/test-runs/asm_fail.txt{2 sh:line-numbers}
+
+:::
 
 ## Logging
 
@@ -98,6 +102,14 @@ with the passed instruction data.
 Notably, however, it introduces [compute unit] overhead:
 
 <<< ../../../examples/memo/test-runs/rs.txt{3 sh:line-numbers}
+
+## Tests
+
+::: details Tests
+
+<<< ../../../examples/memo/src/tests.rs{rs:line-numbers}
+
+:::
 
 > [!note]
 > The assembly file in this example was adapted from [a Helius Blog post]

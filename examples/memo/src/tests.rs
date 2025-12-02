@@ -7,11 +7,11 @@ use solana_sdk::signature::read_keypair_file;
 use solana_sdk::signer::Signer;
 
 #[test]
-fn asm_fail() {
-    let keypair = read_keypair_file(&format!("deploy/{}-keypair.json", env!("CARGO_PKG_NAME")))
-        .expect("Failed to read keypair file");
+fn test_asm_fail() {
+    let keypair =
+        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, &format!("deploy/{}", env!("CARGO_PKG_NAME")));
+    let mollusk = Mollusk::new(&program_id, "deploy/memo");
 
     let mock_account_pubkey = Pubkey::new_unique();
     let mock_account_data = AccountSharedData::default();
@@ -28,7 +28,7 @@ fn asm_fail() {
 }
 
 #[test]
-fn asm_pass() {
+fn test_asm_pass() {
     let keypair =
         read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
@@ -41,7 +41,7 @@ fn asm_pass() {
 }
 
 #[test]
-fn rs() {
+fn test_rs() {
     let keypair = read_keypair_file("../rs-keypair.json").expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
     let mollusk = Mollusk::new(&program_id, "../target/deploy/memo");

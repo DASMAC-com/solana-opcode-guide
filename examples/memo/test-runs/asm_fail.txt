@@ -1,3 +1,4 @@
 [ ... ] Program DASMAC... invoke [1]
 [ ... ] Program DASMAC... consumed 3 of 1400000 compute units
 [ ... ] Program DASMAC... failed: custom program error: 0x1
+test tests::test_asm_fail ... ok
