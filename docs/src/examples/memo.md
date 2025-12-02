@@ -79,10 +79,10 @@ instruction data offset, a value known to fit in 32 bits.
 These operations preposition a [`call` via `CALL_IMM`] to [`sol_log_`], which
 [takes the following arguments]:
 
-| Register | Value |
-| - | - |
-| `r1` | The address of the message to log |
-| `r2` | The number of bytes to log |
+| Register | Value                             |
+| -------- | --------------------------------- |
+| `r1`     | The address of the message to log |
+| `r2`     | The number of bytes to log        |
 
 After the logging operation, the program concludes.
 
@@ -114,32 +114,32 @@ Notably, however, it introduces [compute unit] overhead:
 > [!note]
 > The assembly file in this example was adapted from [a Helius Blog post]
 
-[the `pinocchio` version of `sol_log_`]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/syscalls.rs#L42
-[compute unit]: https://solana.com/docs/references/terminology#compute-units
-[takes the following arguments]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/logging.rs#L7-L16
-[`sol_log_`]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/lib.rs#L345
-[`call` via `CALL_IMM`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.CALL_IMM.html
-[`add64` (add to 64-bit register an immediate value) `ADD64_IMM`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ADD64_IMM.html
-[`exit`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.EXIT.html
-[all 64 register bits]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#registers
-[immediate value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#instruction-layout
-[`JNE_IMM`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_IMM.html
-[pre-execution modifications to `r1` and optionally `r2`]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1523-L1528
-[immediate modification]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/src/vm.rs#L318
-[frame pointer register (`r10`)]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.FRAME_PTR_REG.html
-[all registers are initialized to zero in a new virtual machine instance]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/src/vm.rs#L317
-[`jne` (jump if not equal) `JNE_REG`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_REG.html
-[`ldxdw` (load indexed double word) `LD_DW_REG`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_DW_REG.html
-[a return value of 0]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1557-L1560
-[success]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.SUCCESS.html
-[Within the input buffer]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L524
-[The number of accounts as a `u64`]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L531
-[A sequence of serialized accounts]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L532-L566
-[The length of instruction data as a `u64`]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L567
-[The instruction data itself]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L568
-[several runtime memory map regions]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/ebpf.rs#L37-L51
-[input buffer address `MM_INPUT_START`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MM_INPUT_START.html
-[is initialized to]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1523
-[sbpf instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
 [a helius blog post]: https://www.helius.dev/blog/sbpf-assembly
+[a return value of 0]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1557-L1560
+[a sequence of serialized accounts]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L532-L566
+[all 64 register bits]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#registers
+[all registers are initialized to zero in a new virtual machine instance]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/src/vm.rs#L317
+[compute unit]: https://solana.com/docs/references/terminology#compute-units
+[frame pointer register (`r10`)]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.FRAME_PTR_REG.html
+[immediate modification]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/src/vm.rs#L318
+[immediate value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#instruction-layout
+[input buffer address `mm_input_start`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MM_INPUT_START.html
 [is considered the return value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/interpreter.rs#L574
+[is initialized to]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1523
+[pre-execution modifications to `r1` and optionally `r2`]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1523-L1528
+[sbpf instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
+[several runtime memory map regions]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/ebpf.rs#L37-L51
+[success]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.SUCCESS.html
+[takes the following arguments]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/logging.rs#L7-L16
+[the instruction data itself]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L568
+[the length of instruction data as a `u64`]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L567
+[the number of accounts as a `u64`]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L531
+[the `pinocchio` version of `sol_log_`]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/syscalls.rs#L42
+[within the input buffer]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L524
+[`add64` (add to 64-bit register an immediate value) `add64_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ADD64_IMM.html
+[`call` via `call_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.CALL_IMM.html
+[`exit`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.EXIT.html
+[`jne_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_IMM.html
+[`jne` (jump if not equal) `jne_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_REG.html
+[`ldxdw` (load indexed double word) `ld_dw_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_DW_REG.html
+[`sol_log_`]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/lib.rs#L345

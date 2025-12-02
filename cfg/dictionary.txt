@@ -6,6 +6,7 @@ cfgs
 dasmac
 dynstr
 dynsym
+ebpf
 ehsize
 entsize
 filesz
@@ -45,6 +46,7 @@ stxdw
 syment
 symtab
 syscall
+syscalls
 textrel
 vaddr
 virt

@@ -17,7 +17,7 @@ fn test_asm_fail() {
     let mock_account_data = AccountSharedData::default();
     let accounts = vec![AccountMeta::new(mock_account_pubkey, false)];
     let n_accounts = accounts.len() as u32;
-    let instruction = Instruction::new_with_bytes(program_id, b"Whoopsy", accounts);
+    let instruction = Instruction::new_with_bytes(program_id, b"Whoops", accounts);
 
     let result = mollusk.process_and_validate_instruction(
         &instruction,
