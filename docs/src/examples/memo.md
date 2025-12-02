@@ -30,9 +30,9 @@ print, the input buffer layout is as follows:
 Related constants are defined at the top of the assembly implementation and used
 throughout the remainder of the program:
 
-<<< ../../../examples/memo/src/memo/memo.s{asm:line-numbers}
+<<< ../../../examples/memo/src/memo/memo.s{1-3 asm:line-numbers}
 
-## Register operations
+## Error checking
 
 The value in `r0` at the conclusion of an SBPF program
 [is considered the return value], where [a return value of 0] indicates
@@ -56,9 +56,35 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 [32 bits from an immediate][immediate value] as opposed to
 [all 64 register bits] from `r4`.
 
+<<< ../../../examples/memo/src/memo/memo.s{5-11 asm:line-numbers}
+
+## Logging
+
+Assuming no accounts are passed, the length of the message is similarly loaded
+via [`ldxdw` (load indexed double word) `LD_DW_REG`] into `r2` via an offset
+reference to `r1`. Then `r1` is itself incremented via
+[`add64` (add to 64-bit register an immediate value) `ADD64_IMM`] by the
+instruction data offset, a value known to fit in 32 bits.
+
+These operations preposition a [`call` via `CALL_IMM`] to [`sol_log_`], which
+[takes the following arguments]:
+
+| Register | Value |
+| - | - |
+| `r1` | The address of the message to log |
+| `r2` | The number of bytes to log |
+
+After the logging operation, the program concludes.
+
+<<< ../../../examples/memo/src/memo/memo.s{12-17 asm:line-numbers}
+
 > [!note]
 > The assembly file in this example was adapted from [a Helius Blog post]
 
+[takes the following arguments]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/logging.rs#L7-L16
+[`sol_log_`]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/lib.rs#L345
+[`call` via `CALL_IMM`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.CALL_IMM.html
+[`add64` (add to 64-bit register an immediate value) `ADD64_IMM`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ADD64_IMM.html
 [`exit`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.EXIT.html
 [all 64 register bits]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#registers
 [immediate value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#instruction-layout

@@ -11,7 +11,7 @@ entrypoint:
     jne r0, r4, 3
     # Indexed load the message data length.
     ldxdw r2, [r1 + INSTRUCTION_DATA_LENGTH_OFFSET]
-    # Increment pointer in r1 the instruction data offset.
+    # Increment pointer in r1 by the instruction data offset.
     add64 r1, INSTRUCTION_DATA_OFFSET
     call sol_log_
     exit
