@@ -1,0 +1,4 @@
+[ ... ] Program DASMAC... invoke [1]
+[ ... ] Program log: Hello again, DASMAC!
+[ ... ] Program DASMAC... consumed 111 of 1400000 compute units
+[ ... ] Program DASMAC... success

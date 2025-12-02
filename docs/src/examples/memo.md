@@ -43,12 +43,14 @@ triggers an error code if a nonzero number of accounts are passed, by loading
 into `r0` the value pointed to by `r1 + NUM_ACCOUNTS_OFFSET`: the number of
 accounts passed.
 
-Once the return code is set, the [`jne` (jump if not equal) `JNE_REG`] opcode then
-compares it against the value in `r4`, which is initialized to zero: by default
+Once the return code is set, the [`jne` (jump if not equal) `JNE_REG`] opcode
+then compares it against the value in `r4`, which is initialized to zero: by
+default
 [all registers are initialized to zero in a new virtual machine instance] except
 for an [immediate modification] to the [frame pointer register (`r10`)], and
 [pre-execution modifications to `r1` and optionally `r2`]. If `r0` and `r4` are
-unequal, the program jumps immediately to the [`exit`] opcode.
+unequal (if the number of accounts is nonzero), the program jumps immediately to
+the [`exit`] opcode.
 
 Notably this comparison is performed using registers instead of using an
 [immediate value] of zero, for example `jne r0, 0, 3`, since this approach would
@@ -57,6 +59,10 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 [all 64 register bits] from `r4`.
 
 <<< ../../../examples/memo/src/memo/memo.s{5-11 asm:line-numbers}
+
+Note the minimal [compute unit] consumption for a failure:
+
+<<< ../../../examples/memo/test-runs/asm_fail.txt{2 sh:line-numbers}
 
 ## Logging
 
@@ -78,9 +84,26 @@ After the logging operation, the program concludes.
 
 <<< ../../../examples/memo/src/memo/memo.s{12-17 asm:line-numbers}
 
+Note the [compute unit] consumption for a successful log:
+
+<<< ../../../examples/memo/test-runs/asm_pass.txt{3 sh:line-numbers}
+
+## Rust implementation
+
+The rust implementation similarly calls [the `pinocchio` version of `sol_log_`]
+with the passed instruction data.
+
+<<< ../../../examples/memo/src/program.rs{12,16 rs:line-numbers}
+
+Notably, however, it introduces [compute unit] overhead:
+
+<<< ../../../examples/memo/test-runs/rs.txt{3 sh:line-numbers}
+
 > [!note]
 > The assembly file in this example was adapted from [a Helius Blog post]
 
+[the `pinocchio` version of `sol_log_`]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/syscalls.rs#L42
+[compute unit]: https://solana.com/docs/references/terminology#compute-units
 [takes the following arguments]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/logging.rs#L7-L16
 [`sol_log_`]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/lib.rs#L345
 [`call` via `CALL_IMM`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.CALL_IMM.html
