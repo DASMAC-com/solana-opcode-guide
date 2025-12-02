@@ -15,6 +15,7 @@
 1. [`sbpf` examples]
 1. [`hello-solana-asm`]
 1. [SBPF opcode test suite]
+1. [`sbpf-asm-noop`]
 
 ## Guides
 
@@ -43,6 +44,7 @@
 1. [sbpf.xyz]
 1. [VS Code `sbpf-asm` extension]
 
+[`sbpf-asm-noop`]: https://github.com/deanmlittle/sbpf-asm-noop
 [`pinocchio` syscall registry]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/syscalls.rs
 [SBPF memory map layout]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/ebpf.rs#L37-L51
 [What is the Solana Virtual Machine (SVM)?]: https://www.helius.dev/blog/solana-virtual-machine
