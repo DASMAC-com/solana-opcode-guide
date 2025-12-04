@@ -8,9 +8,24 @@ jobs:
     name: 'Install toolchain'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'dtolnay/rust-toolchain@master'
+    - uses: 'awalsh128/cache-apt-pkgs-action@latest'
+      with:
+        packages: 'llvm'
+        version: '1.0'
+    - id: 'cache-rust'
+      uses: 'actions/cache@v4'
+      with:
+        key: 'rust-${{ env.RUST_VERSION }}-${{ runner.os }}'
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          ~/.rustup
+    - if: steps.cache-rust.outputs.cache-hit != 'true'
+      uses: 'dtolnay/rust-toolchain@master'
       with:
         toolchain: '${{ env.RUST_VERSION }}'
+    - if: steps.cache-rust.outputs.cache-hit == 'true'
+      run: 'echo "$HOME/.cargo/bin" >> $GITHUB_PATH'
     - id: 'cache-solana'
       uses: 'actions/cache@v4'
       with:
@@ -21,17 +36,11 @@ jobs:
       run: >-
         sh -c "$(curl -sSfL
         https://release.anza.xyz/${{ env.SOLANA_VERSION }}/install)"
-    - run: 'ls -la ~/.local/share/solana/install/active_release/bin/'
-    - run: 'ls -la ~/.local/share/solana/install/active_release/bin/platform-tools-sdk/ || true'
-    - run: 'find ~/.local/share/solana/install/active_release/bin/platform-tools-sdk -type d 2>/dev/null || true'
-    - run: 'find ~/.local/share/solana -type d -name "llvm" 2>/dev/null || true'
-    - run: 'find ~/.local/share/solana -name "llvm-*" -type f 2>/dev/null || true'
     - run: |
         SOLANA_BIN="$HOME/.local/share/solana/install/active_release/bin"
-        SBF_DIR="$SOLANA_BIN/platform-tools-sdk/sbf"
-        echo "$SOLANA_BIN" >> $GITHUB_PATH
-        echo "$SBF_DIR/scripts" >> $GITHUB_PATH
-        echo "$SBF_DIR/dependencies/platform-tools/llvm/bin" >> $GITHUB_PATH
+        SCRIPTS_DIR="$SOLANA_BIN/platform-tools-sdk/sbf/scripts"
+        echo "$SCRIPTS_DIR" >> $GITHUB_PATH
+    - run: 'which dump.sh'
     - run: 'solana --version'
     - run: 'llvm-objdump --version'
     - run: 'llvm-readelf --version'
