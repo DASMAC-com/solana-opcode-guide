@@ -6,7 +6,7 @@
 # cspell:word rustup
 ---
 env:
-  LLVM_TOOLS: 'llvm-18-tools'
+  LLVM_PACKAGE: 'llvm-18'
   RUST_VERSION: '1.91.0'
   SBPF_VERSION: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
   SOLANA_VERSION: 'v3.1.2'
@@ -17,22 +17,13 @@ jobs:
     steps:
     - name: 'Set platform identifier'
       run: echo "PLATFORM=${{ runner.os }}-${{ runner.arch }}" >> $GITHUB_ENV
-    - name: 'Debug LLVM package info'
-      run: |
-        echo "=== Checking llvm-18-tools package info ==="
-        apt-cache show llvm-18-tools | grep -E "^Package:|^Version:|^Depends:"
-        echo ""
-        echo "=== Files that would be installed by llvm-18-tools ==="
-        apt-file list llvm-18-tools 2>/dev/null || echo "apt-file not available, installing..."
-        sudo apt-get update -qq
-        sudo apt-get install -y apt-file
-        sudo apt-file update
-        apt-file list llvm-18-tools | grep -E "llvm-objdump|llvm-readelf"
-    - name: 'Cache llvm tools'
+    - name: 'Cache LLVM package'
       uses: 'awalsh128/cache-apt-pkgs-action@latest'
       with:
-        packages: '${{ env.LLVM_TOOLS }}'
-        version: '${{ env.LLVM_TOOLS }}-${{ env.PLATFORM }}'
+        packages: '${{ env.LLVM_PACKAGE }}'
+        version: '${{ env.LLVM_PACKAGE }}-${{ env.PLATFORM }}'
+    - name: 'Add LLVM to PATH'
+      run: echo "/usr/lib/${{ env.LLVM_PACKAGE }}/bin" >> $GITHUB_PATH
     - name: 'Cache Rust toolchain'
       id: 'cache-rust'
       uses: 'actions/cache@v4'
@@ -82,10 +73,10 @@ jobs:
       run: 'solana --version'
     - name: 'Verify sbpf is installed'
       run: 'sbpf --version'
-    # - name: 'Verify llvm-objdump is installed'
-    #   run: 'llvm-objdump --version'
-    # - name: 'Verify llvm-readelf is installed'
-    #   run: 'llvm-readelf --version'
+    - name: 'Verify llvm-objdump is installed'
+      run: 'llvm-objdump --version'
+    - name: 'Verify llvm-readelf is installed'
+      run: 'llvm-readelf --version'
     - name: 'Verify dump.sh is installed'
       run: 'which dump.sh'
 name: 'Install toolchain'
