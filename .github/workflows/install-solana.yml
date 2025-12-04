@@ -8,7 +8,7 @@ jobs:
     name: 'Install Solana'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'dtolnay/rust-toolchain@{{ env.RUST_VERSION }}'
+    - uses: 'dtolnay/rust-toolchain@master'
       with:
         toolchain: '${{ env.RUST_VERSION }}'
     - id: 'cache-solana'
