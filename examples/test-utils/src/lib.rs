@@ -14,7 +14,8 @@ pub struct TestSetup {
     pub mollusk: Mollusk,
 }
 
-pub fn setup_test(package_name: &str, implementation: ProgramLanguage) -> TestSetup {
+#[doc(hidden)]
+pub fn setup_test_impl(package_name: &str, implementation: ProgramLanguage) -> TestSetup {
     let keypair = read_keypair_file(format!("deploy/{}-keypair.json", package_name))
         .expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
@@ -34,4 +35,11 @@ pub fn setup_test(package_name: &str, implementation: ProgramLanguage) -> TestSe
         program_id,
         mollusk,
     }
+}
+
+#[macro_export]
+macro_rules! setup_test {
+    ($language:expr) => {
+        $crate::setup_test_impl(env!("CARGO_PKG_NAME"), $language)
+    };
 }
