@@ -1,10 +1,13 @@
 {
   "devDependencies": {
+    "prettier": "^3.7.4",
     "vitepress": "^1.6.4"
   },
   "name": "solana-opcode-guide",
   "scripts": {
     "build": "vitepress build",
-    "dev": "vitepress dev"
+    "dev": "vitepress dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   }
 }

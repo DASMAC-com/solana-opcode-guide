@@ -17,6 +17,8 @@ The Solana Opcode Guide is built with [VitePress] and can be viewed at
    cd docs
    ```
 
+1. Ensure you have [`npm`].
+
 1. Install dependencies and run dev server:
 
    ```sh
@@ -28,7 +30,7 @@ The Solana Opcode Guide is built with [VitePress] and can be viewed at
 
 ## Linting
 
-1. Ensure you have [pre-commit].
+1. Ensure you have [`pre-commit`].
 
 1. Run `quick-lint`:
 
@@ -38,5 +40,6 @@ The Solana Opcode Guide is built with [VitePress] and can be viewed at
 
 [localhost:5173]: http://localhost:5173
 [opcodes.dasmac.com]: https://opcodes.dasmac.com
-[pre-commit]: https://pre-commit.com/
 [vitepress]: https://vitepress.dev/
+[`npm`]: https://nodejs.org/en/download
+[`pre-commit`]: https://pre-commit.com/
