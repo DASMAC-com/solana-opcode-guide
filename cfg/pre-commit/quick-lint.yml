@@ -64,7 +64,7 @@ repos:
   - id: 'check-added-large-files'
   - id: 'check-case-conflict'
   - id: 'detect-private-key'
-  - exclude: 'CNAME|examples/.*/snippets/.*'
+  - exclude: 'CNAME|examples/.*/(snippets|test-runs)/.*'
     id: 'end-of-file-fixer'
   - files: 'cfg/dictionary.txt'
     id: 'file-contents-sorter'
