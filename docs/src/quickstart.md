@@ -184,23 +184,13 @@ you to compare the two implementations side-by-side.
 
    ::: code-group
 
-   ```sh{4} [Assembly]
-   running 1 test
-   [... DEBUG ...] Program DASMAC... invoke [1]
-   [... DEBUG ...] Program log: Hello, DASMAC!
-   [... DEBUG ...] Program DASMAC... consumed 104 of 1400000 compute units
-   [... DEBUG ...] Program DASMAC... success
-   test tests::asm ... ok
-   ```
+   <!-- markdownlint-disable MD013 -->
 
-   ```sh{4} [Rust]
-   running 1 test
-   [... DEBUG ...] Program DASMAC... invoke [1]
-   [... DEBUG ...] Program log: Hello, DASMAC!
-   [... DEBUG ...] Program DASMAC... consumed 109 of 1400000 compute units
-   [... DEBUG ...] Program DASMAC... success
-   test tests::rs ... ok
-   ```
+   <<< ../../examples/hello-dasmac/test-runs/asm.txt{3 sh:line-numbers} [Assembly]
+
+   <<< ../../examples/hello-dasmac/test-runs/rs.txt{3 sh:line-numbers} [Rust]
+
+   <!-- markdownlint-enable MD013 -->
 
    :::
 
