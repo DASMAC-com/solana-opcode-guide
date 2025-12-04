@@ -1,3 +1,9 @@
+# cspell:word awalsh
+# cspell:word dtolnay
+# cspell:word objdump
+# cspell:word pkgs
+# cspell:word readelf
+# cspell:word rustup
 ---
 env:
   RUST_VERSION: '1.91.0'
