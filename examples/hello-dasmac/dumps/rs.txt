@@ -1,4 +1,3 @@
--rwxr-xr-x@ 1 DASMAC  staff  5464 Nov 28 1622 /Users/DASMAC/repos/solana-opcode-guide/examples/target/sbpfv4-solana-solana/release/hello_dasmac.so
 ELF Header
   Magic   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
   Class                             ELF64
@@ -104,8 +103,6 @@ Symbol table '.symtab' contains 43 entries
     41 0000000000000018  1984 FUNC    GLOBAL DEFAULT     1 entrypoint
     42 0000000000000000    24 FUNC    GLOBAL DEFAULT     1 abort
 There are no section groups in this file.
-
-/Users/DASMAC/repos/solana-opcode-guide/examples/target/sbpfv4-solana-solana/release/hello_dasmac.so	file format elf64-sbf
 
 Disassembly of section .text
 

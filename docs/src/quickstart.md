@@ -127,9 +127,9 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/dumps/asm.txt{10,14,18,20-21,28,86-90} [Assembly]
+   <<< ../../examples/hello-dasmac/dumps/asm.txt{9,13,16,19-20,27,83-89} [Assembly]
 
-   <<< ../../examples/hello-dasmac/dumps/rs.txt{10,14,18,20-21,28,117-365,367-377} [Rust]
+   <<< ../../examples/hello-dasmac/dumps/rs.txt{9,13,16,19-20,27,107-374} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
@@ -140,7 +140,7 @@ you to compare the two implementations side-by-side.
    > You can generate a similar output using the [`sbpf`] `disassemble` command:
    >
    > ```sh:no-line-numbers
-   > sbpf disassemble deploy/hello-dasmac.so > asm-disassembly.json
+   > sbpf disassemble deploy/hello-dasmac.so > deploy/asm-disassembly.json
    > ```
    >
    > ::: details Output

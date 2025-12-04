@@ -1,4 +1,3 @@
--rw-r--r--@ 1 DASMAC  staff  1128 Dec  1 1354 deploy/memo.so
 ELF Header
   Magic   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
   Class                             ELF64
