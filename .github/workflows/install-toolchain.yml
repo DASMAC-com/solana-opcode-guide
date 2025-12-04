@@ -14,11 +14,13 @@ jobs:
     name: 'Install toolchain'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'awalsh128/cache-apt-pkgs-action@latest'
+    - name: 'Cache llvm install'
+      uses: 'awalsh128/cache-apt-pkgs-action@latest'
       with:
         packages: 'llvm'
         version: '1.0'
-    - id: 'cache-rust'
+    - name: 'Restore Rust toolchain from cache'
+      id: 'cache-rust'
       uses: 'actions/cache@v4'
       with:
         key: 'rust-${{ env.RUST_VERSION }}-${{ runner.os }}'
@@ -26,41 +28,53 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           ~/.rustup
-    - if: 'steps.cache-rust.outputs.cache-hit != ''true'''
+    - name: 'Install Rust toolchain'
+      if: 'steps.cache-rust.outputs.cache-hit != ''true'''
       uses: 'dtolnay/rust-toolchain@master'
       with:
         toolchain: '${{ env.RUST_VERSION }}'
-    - if: 'steps.cache-rust.outputs.cache-hit == ''true'''
+    - name: 'Add Rust to PATH'
+      if: 'steps.cache-rust.outputs.cache-hit == ''true'''
       run: 'echo "$HOME/.cargo/bin" >> $GITHUB_PATH'
-    - id: 'cache-solana'
+    - name: 'Restore Solana toolchain from cache'
+      id: 'cache-solana'
       uses: 'actions/cache@v4'
       with:
         key: 'solana-${{ env.SOLANA_VERSION }}-${{ runner.os }}-${{
               runner.arch }}'
         path: '~/.local/share/solana'
-    - if: 'steps.cache-solana.outputs.cache-hit != ''true'''
+    - name: 'Install Solana toolchain'
+      if: 'steps.cache-solana.outputs.cache-hit != ''true'''
       run: >-
         sh -c "$(curl -sSfL
         https://release.anza.xyz/${{ env.SOLANA_VERSION }}/install)"
-    - run: |
+    - name: 'Add Solana and dump.sh to PATH'
+      run: |
         SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
         SCRIPTS_DIR="$SOLANA_RELEASE/platform-tools-sdk/sbf/scripts"
         echo "$SOLANA_RELEASE" >> $GITHUB_PATH
         echo "$SCRIPTS_DIR" >> $GITHUB_PATH
-    - id: 'cache-sbpf'
+    - name: 'Install sbpf from cache'
+      id: 'cache-sbpf'
       uses: 'actions/cache@v4'
       with:
         key: 'sbpf-${{ env.SBPF_VERSION }}-${{ runner.os }}'
         path: '~/.cargo/bin/sbpf'
-    - if: 'steps.cache-sbpf.outputs.cache-hit != ''true'''
+    - name: 'Install sbpf CLI'
+      if: 'steps.cache-sbpf.outputs.cache-hit != ''true'''
       run: >-
         cargo install --git https://github.com/blueshift-gg/sbpf.git
         --rev ${{ env.SBPF_VERSION }}
-    - run: 'solana --version'
-    - run: 'sbpf --version'
-    - run: 'llvm-objdump --version'
-    - run: 'llvm-readelf --version'
-    - run: 'which dump.sh'
+    - name: 'Verify solana is installed'
+      run: 'solana --version'
+    - name: 'Verify sbpf is installed'
+      run: 'sbpf --version'
+    - name: 'Verify llvm-objdump is installed'
+      run: 'llvm-objdump --version'
+    - name: 'Verify llvm-readelf is installed'
+      run: 'llvm-readelf --version'
+    - name: 'Verify dump.sh is installed'
+      run: 'which dump.sh'
 name: 'Install toolchain'
 'on':
   pull_request: null
