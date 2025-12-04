@@ -22,7 +22,7 @@ jobs:
       with:
         packages: '${{ env.LLVM_PACKAGE }}'
         version: '${{ env.LLVM_PACKAGE }}-${{ env.PLATFORM }}'
-    - name: 'Restore Rust toolchain from cache'
+    - name: 'Cache Rust toolchain'
       id: 'cache-rust'
       uses: 'actions/cache@v4'
       with:
@@ -39,7 +39,7 @@ jobs:
     - name: 'Add Rust to PATH'
       if: 'steps.cache-rust.outputs.cache-hit == ''true'''
       run: 'echo "$HOME/.cargo/bin" >> $GITHUB_PATH'
-    - name: 'Restore Solana toolchain from cache'
+    - name: 'Cache Solana toolchain'
       id: 'cache-solana'
       uses: 'actions/cache@v4'
       with:
@@ -56,7 +56,7 @@ jobs:
         SCRIPTS_DIR="$SOLANA_RELEASE/platform-tools-sdk/sbf/scripts"
         echo "$SOLANA_RELEASE" >> $GITHUB_PATH
         echo "$SCRIPTS_DIR" >> $GITHUB_PATH
-    - name: 'Install sbpf from cache'
+    - name: 'Cache sbpf'
       id: 'cache-sbpf'
       uses: 'actions/cache@v4'
       with:
