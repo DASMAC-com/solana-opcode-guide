@@ -21,10 +21,15 @@ jobs:
       run: >-
         sh -c "$(curl -sSfL
         https://release.anza.xyz/${{ env.SOLANA_VERSION }}/install)"
-    - run: >-
-        echo "$HOME/.local/share/solana/install/active_release/bin"
-        >> $GITHUB_PATH
+    - run: |
+        SOLANA_BIN="$HOME/.local/share/solana/install/active_release/bin"
+        SBF_DIR="$SOLANA_BIN/platform-tools-sdk/sbf"
+        echo "$SOLANA_BIN" >> $GITHUB_PATH
+        echo "$SBF_DIR/scripts" >> $GITHUB_PATH
+        echo "$SBF_DIR/dependencies/platform-tools/llvm/bin" >> $GITHUB_PATH
     - run: 'solana --version'
+    - run: 'llvm-objdump --version'
+    - run: 'llvm-readelf --version'
     - id: 'cache-sbpf'
       uses: 'actions/cache@v4'
       with:
@@ -35,8 +40,6 @@ jobs:
         cargo install --git https://github.com/blueshift-gg/sbpf.git
         --rev ${{ env.SBPF_VERSION }}
     - run: 'sbpf --version'
-    - run: 'llvm-objdump --version'
-    - run: 'llvm-readelf --version'
 name: 'Install toolchain'
 'on':
   pull_request: null
