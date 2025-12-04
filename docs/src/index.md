@@ -40,13 +40,13 @@ of the enduring Solana Virtual Machine.
 
 A Rust operation that checks if `a` is less than `b` looks like:
 
-```rust
+```rust:no-line-numbers
 if a < b
 ```
 
 In bytecode this corresponds to the [assembler mnemonic]:
 
-```text
+```asm:no-line-numbers
 jlt dst, src, off
 ```
 
