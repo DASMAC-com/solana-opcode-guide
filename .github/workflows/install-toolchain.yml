@@ -22,6 +22,8 @@ jobs:
         sh -c "$(curl -sSfL
         https://release.anza.xyz/${{ env.SOLANA_VERSION }}/install)"
     - run: 'ls -la ~/.local/share/solana/install/active_release/bin/'
+    - run: 'ls -la ~/.local/share/solana/install/active_release/bin/platform-tools-sdk/ || true'
+    - run: 'find ~/.local/share/solana/install/active_release/bin/platform-tools-sdk -type d 2>/dev/null || true'
     - run: 'find ~/.local/share/solana -type d -name "llvm" 2>/dev/null || true'
     - run: 'find ~/.local/share/solana -name "llvm-*" -type f 2>/dev/null || true'
     - run: |
