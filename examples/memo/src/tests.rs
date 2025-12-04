@@ -42,7 +42,8 @@ fn test_asm_pass() {
 
 #[test]
 fn test_rs() {
-    let keypair = read_keypair_file("../rs-keypair.json").expect("Failed to read keypair file");
+    let keypair =
+        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
     let mollusk = Mollusk::new(&program_id, "../target/deploy/memo");
 

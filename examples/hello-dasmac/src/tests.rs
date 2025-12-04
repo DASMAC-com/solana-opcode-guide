@@ -17,7 +17,8 @@ fn asm() {
 
 #[test]
 fn rs() {
-    let keypair = read_keypair_file("../rs-keypair.json").expect("Failed to read keypair file");
+    let keypair =
+        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
 
     let instruction = Instruction::new_with_bytes(program_id, &[], vec![]);
