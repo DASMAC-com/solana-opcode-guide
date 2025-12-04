@@ -26,7 +26,7 @@ jobs:
     - run: >-
         pre-commit run --all-files --color=always --show-diff-on-failure
         --config ${{ env.CONFIG_PATH }}
-name: 'quick-lint'
+name: 'Quick lint'
 'on':
   push: null
 ...
