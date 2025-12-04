@@ -17,6 +17,17 @@ jobs:
     steps:
     - name: 'Set platform identifier'
       run: echo "PLATFORM=${{ runner.os }}-${{ runner.arch }}" >> $GITHUB_ENV
+    - name: 'Debug LLVM package info'
+      run: |
+        echo "=== Checking llvm-18-tools package info ==="
+        apt-cache show llvm-18-tools | grep -E "^Package:|^Version:|^Depends:"
+        echo ""
+        echo "=== Files that would be installed by llvm-18-tools ==="
+        apt-file list llvm-18-tools 2>/dev/null || echo "apt-file not available, installing..."
+        sudo apt-get update -qq
+        sudo apt-get install -y apt-file
+        sudo apt-file update
+        apt-file list llvm-18-tools | grep -E "llvm-objdump|llvm-readelf"
     - name: 'Cache llvm tools'
       uses: 'awalsh128/cache-apt-pkgs-action@latest'
       with:
