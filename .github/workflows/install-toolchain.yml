@@ -4,8 +4,8 @@ env:
   SOLANA_VERSION: 'v3.1.2'
   SBPF_VERSION: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
 jobs:
-  install-solana:
-    name: 'Install Solana'
+  install-toolchain:
+    name: 'Install toolchain'
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'dtolnay/rust-toolchain@master'
@@ -35,7 +35,9 @@ jobs:
         cargo install --git https://github.com/blueshift-gg/sbpf.git
         --rev ${{ env.SBPF_VERSION }}
     - run: 'sbpf --version'
-name: 'Install Solana'
+    - run: 'llvm-objdump --version'
+    - run: 'llvm-readelf --version'
+name: 'Install toolchain'
 'on':
   pull_request: null
 ...
