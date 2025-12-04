@@ -1,8 +1,8 @@
 ---
 env:
   RUST_VERSION: '1.91.0'
-  SOLANA_VERSION: 'v3.1.2'
   SBPF_VERSION: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
+  SOLANA_VERSION: 'v3.1.2'
 jobs:
   install-toolchain:
     name: 'Install toolchain'
@@ -20,11 +20,11 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           ~/.rustup
-    - if: steps.cache-rust.outputs.cache-hit != 'true'
+    - if: 'steps.cache-rust.outputs.cache-hit != ''true'''
       uses: 'dtolnay/rust-toolchain@master'
       with:
         toolchain: '${{ env.RUST_VERSION }}'
-    - if: steps.cache-rust.outputs.cache-hit == 'true'
+    - if: 'steps.cache-rust.outputs.cache-hit == ''true'''
       run: 'echo "$HOME/.cargo/bin" >> $GITHUB_PATH'
     - id: 'cache-solana'
       uses: 'actions/cache@v4'
@@ -32,7 +32,7 @@ jobs:
         key: 'solana-${{ env.SOLANA_VERSION }}-${{ runner.os }}-${{
               runner.arch }}'
         path: '~/.local/share/solana'
-    - if: steps.cache-solana.outputs.cache-hit != 'true'
+    - if: 'steps.cache-solana.outputs.cache-hit != ''true'''
       run: >-
         sh -c "$(curl -sSfL
         https://release.anza.xyz/${{ env.SOLANA_VERSION }}/install)"
@@ -46,15 +46,15 @@ jobs:
       with:
         key: 'sbpf-${{ env.SBPF_VERSION }}-${{ runner.os }}'
         path: '~/.cargo/bin/sbpf'
-    - if: steps.cache-sbpf.outputs.cache-hit != 'true'
+    - if: 'steps.cache-sbpf.outputs.cache-hit != ''true'''
       run: >-
         cargo install --git https://github.com/blueshift-gg/sbpf.git
         --rev ${{ env.SBPF_VERSION }}
-    - run: 'which dump.sh'
     - run: 'solana --version'
+    - run: 'sbpf --version'
     - run: 'llvm-objdump --version'
     - run: 'llvm-readelf --version'
-    - run: 'sbpf --version'
+    - run: 'which dump.sh'
 name: 'Install toolchain'
 'on':
   pull_request: null
