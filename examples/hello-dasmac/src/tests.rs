@@ -4,22 +4,22 @@ use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
 fn asm() {
-    let setup = setup_test(env!("CARGO_PKG_NAME"), ProgramLanguage::Assembly);
-    let program_id = setup.program_id;
-    let mollusk = setup.mollusk;
-
-    let instruction = Instruction::new_with_bytes(program_id, &[], vec![]);
-    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
-    assert!(!result.program_result.is_err());
+    happy_path(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn rs() {
-    let setup = setup_test(env!("CARGO_PKG_NAME"), ProgramLanguage::Rust);
-    let program_id = setup.program_id;
-    let mollusk = setup.mollusk;
+    happy_path(ProgramLanguage::Rust);
+}
 
-    let instruction = Instruction::new_with_bytes(program_id, &[], vec![]);
-    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
+fn happy_path(program_language: test_utils::ProgramLanguage) {
+    let setup = setup_test(env!("CARGO_PKG_NAME"), program_language);
+
+    // Invoke the program with an empty instruction and verify success.
+    let result = setup.mollusk.process_and_validate_instruction(
+        &Instruction::new_with_bytes(setup.program_id, &[], vec![]),
+        &[],
+        &[Check::success()],
+    );
     assert!(!result.program_result.is_err());
 }
