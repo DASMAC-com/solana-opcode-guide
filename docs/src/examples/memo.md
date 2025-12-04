@@ -62,11 +62,7 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 
 Note the minimal [compute unit] consumption for a failure:
 
-::: details `test_asm_fail` {open}
-
 <<< ../../../examples/memo/test-runs/asm_fail.txt{2 sh:line-numbers}
-
-:::
 
 ## :speech_balloon: Logging
 

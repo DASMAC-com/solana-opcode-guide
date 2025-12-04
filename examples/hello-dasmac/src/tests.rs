@@ -1,27 +1,25 @@
-use mollusk_svm::{result::Check, Mollusk};
+use mollusk_svm::result::Check;
 use solana_sdk::instruction::Instruction;
-use solana_sdk::signature::read_keypair_file;
-use solana_sdk::signer::Signer;
+use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
-fn asm() {
-    let keypair =
-        read_keypair_file("deploy/hello-dasmac-keypair.json").expect("Failed to read keypair file");
-    let program_id = keypair.pubkey();
-
-    let instruction = Instruction::new_with_bytes(program_id, &[], vec![]);
-    let mollusk = Mollusk::new(&program_id, "deploy/hello-dasmac");
-    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
-    assert!(!result.program_result.is_err());
+fn test_asm() {
+    happy_path(ProgramLanguage::Assembly);
 }
 
 #[test]
-fn rs() {
-    let keypair = read_keypair_file("../rs-keypair.json").expect("Failed to read keypair file");
-    let program_id = keypair.pubkey();
+fn test_rs() {
+    happy_path(ProgramLanguage::Rust);
+}
 
-    let instruction = Instruction::new_with_bytes(program_id, &[], vec![]);
-    let mollusk = Mollusk::new(&program_id, "../target/deploy/hello_dasmac");
-    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
+fn happy_path(program_language: test_utils::ProgramLanguage) {
+    let setup = setup_test!(program_language);
+
+    // Invoke the program with an empty instruction and verify success.
+    let result = setup.mollusk.process_and_validate_instruction(
+        &Instruction::new_with_bytes(setup.program_id, &[], vec![]),
+        &[],
+        &[Check::success()],
+    );
     assert!(!result.program_result.is_err());
 }

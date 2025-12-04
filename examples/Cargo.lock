@@ -869,6 +869,7 @@ dependencies = [
  "mollusk-svm",
  "pinocchio",
  "solana-sdk",
+ "test-utils",
 ]
 
 [[package]]
@@ -1059,6 +1060,7 @@ dependencies = [
  "mollusk-svm",
  "pinocchio",
  "solana-sdk",
+ "test-utils",
 ]
 
 [[package]]
@@ -3016,6 +3018,14 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "test-utils"
+version = "0.1.0"
+dependencies = [
+ "mollusk-svm",
+ "solana-sdk",
 ]
 
 [[package]]

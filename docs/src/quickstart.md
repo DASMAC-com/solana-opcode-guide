@@ -156,7 +156,7 @@ you to compare the two implementations side-by-side.
 1. Run the assembly implementation test.
 
    ```sh
-   cargo test -- --test asm
+   cargo test -- --test test_asm
    ```
 
    > [!tip]
@@ -171,7 +171,7 @@ you to compare the two implementations side-by-side.
 1. Rebuild the Rust implementation and run its test.
 
    ```sh
-   cargo build-sbf --arch v3 && cargo test -- --test rs
+   cargo build-sbf --arch v3 && cargo test -- --test test_rs
    ```
 
    > [!note]

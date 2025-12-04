@@ -1,7 +1,7 @@
 # cspell:word cfgs
 
 [workspace]
-members = ["hello-dasmac", "memo"]
+members = ["hello-dasmac", "memo", "test-utils"]
 resolver = "2"
 
 [workspace.dependencies]

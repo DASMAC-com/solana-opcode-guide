@@ -1,25 +1,23 @@
-use mollusk_svm::{result::Check, Mollusk};
+use mollusk_svm::result::Check;
 use solana_sdk::account::AccountSharedData;
 use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::read_keypair_file;
-use solana_sdk::signer::Signer;
+use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
 fn test_asm_fail() {
-    let keypair =
-        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
-    let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, "deploy/memo");
+    let setup = setup_test!(ProgramLanguage::Assembly);
 
+    // Create a mock account will trigger an error when passed.
     let mock_account_pubkey = Pubkey::new_unique();
     let mock_account_data = AccountSharedData::default();
     let accounts = vec![AccountMeta::new(mock_account_pubkey, false)];
     let n_accounts = accounts.len() as u32;
-    let instruction = Instruction::new_with_bytes(program_id, b"Whoops", accounts);
+    let instruction = Instruction::new_with_bytes(setup.program_id, b"Whoops", accounts);
 
-    let result = mollusk.process_and_validate_instruction(
+    // Verify that the instruction fails with the expected error code.
+    let result = setup.mollusk.process_and_validate_instruction(
         &instruction,
         &[(mock_account_pubkey, mock_account_data.into())],
         &[Check::err(ProgramError::Custom(n_accounts))],
@@ -29,25 +27,25 @@ fn test_asm_fail() {
 
 #[test]
 fn test_asm_pass() {
-    let keypair =
-        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
-    let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, "deploy/memo");
-
-    let instruction = Instruction::new_with_bytes(program_id, b"Hello again, DASMAC!", vec![]);
-
-    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
-    assert!(!result.program_result.is_err());
+    happy_path(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs() {
-    let keypair = read_keypair_file("../rs-keypair.json").expect("Failed to read keypair file");
-    let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, "../target/deploy/memo");
+    happy_path(ProgramLanguage::Rust);
+}
 
-    let instruction = Instruction::new_with_bytes(program_id, b"Hello again, DASMAC!", vec![]);
+fn happy_path(program_language: test_utils::ProgramLanguage) {
+    let setup = setup_test!(program_language);
 
-    let result = mollusk.process_and_validate_instruction(&instruction, &[], &[Check::success()]);
-    assert!(!result.program_result.is_err());
+    // Create an instruction with a simple memo message.
+    let instruction =
+        Instruction::new_with_bytes(setup.program_id, b"Hello again, DASMAC!", vec![]);
+
+    // Verify the instruction completes successfully.
+    assert!(!setup
+        .mollusk
+        .process_and_validate_instruction(&instruction, &[], &[Check::success()])
+        .program_result
+        .is_err());
 }

@@ -1,0 +1,12 @@
+[dependencies]
+mollusk-svm = {workspace = true}
+solana-sdk = {workspace = true}
+
+[lints]
+workspace = true
+
+[package]
+edition = "2021"
+name = "test-utils"
+publish = false
+version = "0.1.0"
