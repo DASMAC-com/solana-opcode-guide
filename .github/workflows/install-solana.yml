@@ -6,16 +6,19 @@ jobs:
     name: 'Install Solana'
     runs-on: 'ubuntu-latest'
     steps:
-    - name: 'Cache Solana installation'
-      id: 'cache-solana'
+    - id: 'cache-solana'
       uses: 'actions/cache@v3'
       with:
         key: 'solana-${{ env.SOLANA_VERSION }}-${{ runner.os }}-${{
               runner.arch }}'
         path: '~/.local/share/solana'
     - if: steps.cache-solana.outputs.cache-hit != 'true'
-      run: 'sh -c "$(curl -sSfL https://release.anza.xyz/${{ env.SOLANA_VERSION }}/install)"'
-    - run: 'echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH'
+      run: >-
+        sh -c "$(curl -sSfL
+        https://release.anza.xyz/${{ env.SOLANA_VERSION }}/install)"
+    - run: >-
+        echo "$HOME/.local/share/solana/install/active_release/bin"
+        >> $GITHUB_PATH
     - run: 'solana --version'
 name: 'Install Solana'
 'on':
