@@ -1,13 +1,18 @@
 ---
 env:
+  RUST_VERSION: '1.91.0'
   SOLANA_VERSION: 'v3.1.2'
+  SBPF_VERSION: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
 jobs:
   install-solana:
     name: 'Install Solana'
     runs-on: 'ubuntu-latest'
     steps:
+    - uses: 'dtolnay/rust-toolchain@{{ env.RUST_VERSION }}'
+      with:
+        toolchain: '${{ env.RUST_VERSION }}'
     - id: 'cache-solana'
-      uses: 'actions/cache@v3'
+      uses: 'actions/cache@v4'
       with:
         key: 'solana-${{ env.SOLANA_VERSION }}-${{ runner.os }}-${{
               runner.arch }}'
@@ -20,6 +25,16 @@ jobs:
         echo "$HOME/.local/share/solana/install/active_release/bin"
         >> $GITHUB_PATH
     - run: 'solana --version'
+    - id: 'cache-sbpf'
+      uses: 'actions/cache@v4'
+      with:
+        key: 'sbpf-${{ env.SBPF_VERSION }}-${{ runner.os }}'
+        path: '~/.cargo/bin/sbpf'
+    - if: steps.cache-sbpf.outputs.cache-hit != 'true'
+      run: >-
+        cargo install --git https://github.com/blueshift-gg/sbpf.git
+        --rev ${{ env.SBPF_VERSION }}
+    - run: 'sbpf --version'
 name: 'Install Solana'
 'on':
   pull_request: null
