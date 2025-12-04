@@ -2,6 +2,7 @@
 ---
 jobs:
   semantic-pr:
+    name: 'Semantic PR'
     runs-on: 'ubuntu-latest'
     steps:
     - env:
