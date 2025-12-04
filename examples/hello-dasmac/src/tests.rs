@@ -3,12 +3,12 @@ use solana_sdk::instruction::Instruction;
 use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
-fn asm() {
+fn test_asm() {
     happy_path(ProgramLanguage::Assembly);
 }
 
 #[test]
-fn rs() {
+fn test_rs() {
     happy_path(ProgramLanguage::Rust);
 }
 
