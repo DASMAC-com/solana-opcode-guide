@@ -6,6 +6,7 @@
 # cspell:word rustup
 ---
 env:
+  LLVM_PACKAGE: 'llvm-18'
   RUST_VERSION: '1.91.0'
   SBPF_VERSION: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
   SOLANA_VERSION: 'v3.1.2'
@@ -14,16 +15,18 @@ jobs:
     name: 'Install toolchain'
     runs-on: 'ubuntu-latest'
     steps:
+    - name: 'Set platform identifier'
+      run: echo "PLATFORM=${{ runner.os }}-${{ runner.arch }}" >> $GITHUB_ENV
     - name: 'Cache llvm install'
       uses: 'awalsh128/cache-apt-pkgs-action@latest'
       with:
-        packages: 'llvm'
-        version: '1.0'
+        packages: '${{ env.LLVM_PACKAGE }}'
+        version: '${{ env.LLVM_PACKAGE }}-${{ env.PLATFORM }}'
     - name: 'Restore Rust toolchain from cache'
       id: 'cache-rust'
       uses: 'actions/cache@v4'
       with:
-        key: 'rust-${{ env.RUST_VERSION }}-${{ runner.os }}'
+        key: 'rust-${{ env.RUST_VERSION }}-${{ env.PLATFORM }}'
         path: |
           ~/.cargo/registry
           ~/.cargo/git
@@ -40,8 +43,7 @@ jobs:
       id: 'cache-solana'
       uses: 'actions/cache@v4'
       with:
-        key: 'solana-${{ env.SOLANA_VERSION }}-${{ runner.os }}-${{
-              runner.arch }}'
+        key: 'solana-${{ env.SOLANA_VERSION }}-${{ env.PLATFORM }}'
         path: '~/.local/share/solana'
     - name: 'Install Solana toolchain'
       if: 'steps.cache-solana.outputs.cache-hit != ''true'''
@@ -58,7 +60,7 @@ jobs:
       id: 'cache-sbpf'
       uses: 'actions/cache@v4'
       with:
-        key: 'sbpf-${{ env.SBPF_VERSION }}-${{ runner.os }}'
+        key: 'sbpf-${{ env.SBPF_VERSION }}-${{ env.PLATFORM }}'
         path: '~/.cargo/bin/sbpf'
     - name: 'Install sbpf CLI'
       if: 'steps.cache-sbpf.outputs.cache-hit != ''true'''
