@@ -64,7 +64,7 @@ repos:
   - id: 'check-added-large-files'
   - id: 'check-case-conflict'
   - id: 'detect-private-key'
-  - exclude: 'CNAME'
+  - exclude: 'CNAME|examples/.*/(snippets|test-runs)/.*'
     id: 'end-of-file-fixer'
   - files: 'cfg/dictionary.txt'
     id: 'file-contents-sorter'
@@ -73,9 +73,8 @@ repos:
   - id: 'mixed-line-ending'
   - args:
     - '--autofix'
-    exclude: 'package-lock.json'
+    exclude: 'package-lock.json|asm-disassembly\.json'
     id: 'pretty-format-json'
-  - id: 'trailing-whitespace'
   repo: 'https://github.com/pre-commit/pre-commit-hooks'
   rev: 'v6.0.0'
 - hooks:

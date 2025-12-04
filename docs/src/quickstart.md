@@ -38,13 +38,13 @@ you to compare the two implementations side-by-side.
 
 1. Install [`rustfilt`], which is also required by [`dump.sh`]:
 
-   ```sh
+   ```sh:no-line-numbers
    cargo install rustfilt
    ```
 
 1. Install [`sbpf`].
 
-   ```sh
+   ```sh:no-line-numbers
    cargo install --git https://github.com/blueshift-gg/sbpf.git
    ```
 
@@ -54,13 +54,13 @@ you to compare the two implementations side-by-side.
 
 1. Clone the [Solana Opcode Guide] repository.
 
-   ```sh
+   ```sh:no-line-numbers
    git clone https://github.com/dasmac-com/solana-opcode-guide.git
    ```
 
 1. Navigate to the `examples/hello-dasmac` directory.
 
-   ```sh
+   ```sh:no-line-numbers
    cd solana-opcode-guide/examples/hello-dasmac
    ```
 
@@ -79,24 +79,24 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/src/hello-dasmac/hello-dasmac.s{asm:line-numbers}
+   <<< ../../examples/hello-dasmac/src/hello-dasmac/hello-dasmac.s{asm}
 
    <!-- markdownlint-enable MD013 -->
 
-   <<< ../../examples/hello-dasmac/src/program.rs{rs:line-numbers}
+   <<< ../../examples/hello-dasmac/src/program.rs
 
    :::
 
 1. Build the assembly implementation.
 
-   ```sh
+   ```sh:no-line-numbers
    sbpf build
    ```
 
 1. Run [`dump.sh`](#env-setup) on the assembly build [ELF][sbpf] output at
    `deploy/hello-dasmac.so`:
 
-   ```sh
+   ```sh:no-line-numbers
    dump.sh deploy/hello-dasmac.so deploy/asm-dump.txt
    ```
 
@@ -109,7 +109,7 @@ you to compare the two implementations side-by-side.
    | `hello_dasmac.so`       | Rust build [ELF][sbpf] output |
    | `hello_dasmac-dump.txt` | Dump of the output            |
 
-   ```sh
+   ```sh:no-line-numbers
    cargo build-sbf --arch v4 --dump
    ```
 
@@ -127,9 +127,9 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/dumps/asm.txt{10,14,18,20-21,28,86-90 text:line-numbers} [Assembly]
+   <<< ../../examples/hello-dasmac/dumps/asm.txt{9,13,16,19-20,27,83-89} [Assembly]
 
-   <<< ../../examples/hello-dasmac/dumps/rs.txt{10,14,18,20-21,28,117-365,367-377 text:line-numbers} [Rust]
+   <<< ../../examples/hello-dasmac/dumps/rs.txt{9,13,16,19-20,27,107-374} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
@@ -139,15 +139,15 @@ you to compare the two implementations side-by-side.
    >
    > You can generate a similar output using the [`sbpf`] `disassemble` command:
    >
-   > ```sh
-   > sbpf disassemble deploy/hello-dasmac.so > deploy/asm-disassembly.txt
+   > ```sh:no-line-numbers
+   > sbpf disassemble deploy/hello-dasmac.so > deploy/asm-disassembly.json
    > ```
    >
    > ::: details Output
    >
    > <!-- markdownlint-disable MD013 -->
    >
-   > <<< ../../examples/hello-dasmac/dumps/asm-disassembly.txt{json:line-numbers} [asm-disassembly.txt]
+   > <<< ../../examples/hello-dasmac/dumps/asm-disassembly.json
    >
    > <!-- markdownlint-enable MD013 -->
    >
@@ -155,7 +155,7 @@ you to compare the two implementations side-by-side.
 
 1. Run the assembly implementation test.
 
-   ```sh
+   ```sh:no-line-numbers
    cargo test -- --test test_asm
    ```
 
@@ -164,13 +164,13 @@ you to compare the two implementations side-by-side.
    > cache and re-install `solana` (this is a [known issue] with the Solana
    > toolchain).
    >
-   > ```sh
+   > ```sh:no-line-numbers
    > rm -rf ~/.cache/solana
    > ```
 
 1. Rebuild the Rust implementation and run its test.
 
-   ```sh
+   ```sh:no-line-numbers
    cargo build-sbf --arch v3 && cargo test -- --test test_rs
    ```
 
@@ -184,23 +184,13 @@ you to compare the two implementations side-by-side.
 
    ::: code-group
 
-   ```sh{4} [Assembly]
-   running 1 test
-   [... DEBUG ...] Program DASMAC... invoke [1]
-   [... DEBUG ...] Program log: Hello, DASMAC!
-   [... DEBUG ...] Program DASMAC... consumed 104 of 1400000 compute units
-   [... DEBUG ...] Program DASMAC... success
-   test tests::asm ... ok
-   ```
+   <!-- markdownlint-disable MD013 -->
 
-   ```sh{4} [Rust]
-   running 1 test
-   [... DEBUG ...] Program DASMAC... invoke [1]
-   [... DEBUG ...] Program log: Hello, DASMAC!
-   [... DEBUG ...] Program DASMAC... consumed 109 of 1400000 compute units
-   [... DEBUG ...] Program DASMAC... success
-   test tests::rs ... ok
-   ```
+   <<< ../../examples/hello-dasmac/test-runs/asm.txt{3 sh:line-numbers} [Assembly]
+
+   <<< ../../examples/hello-dasmac/test-runs/rs.txt{3 sh:line-numbers} [Rust]
+
+   <!-- markdownlint-enable MD013 -->
 
    :::
 

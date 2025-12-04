@@ -30,7 +30,13 @@ print, the input buffer layout is as follows:
 Related constants are defined at the top of the assembly implementation and used
 throughout the remainder of the program:
 
-<<< ../../../examples/memo/src/memo/memo.s{1-3 asm:line-numbers}
+<<< ../../../examples/memo/snippets/asm-constants.txt{1-3 asm}
+
+::: details Full program
+
+<<< ../../../examples/memo/src/memo/memo.s{asm}
+
+:::
 
 ## :warning: Error checking
 
@@ -56,9 +62,15 @@ Notably this comparison is performed using registers instead of using an
 [immediate value] of zero, for example `jne r0, 0, 3`, since this approach would
 use [`JNE_IMM`] and therefore only compare `r0` against
 [32 bits from an immediate][immediate value] as opposed to
-[all 64 register bits] from `r4`.
+[all 64 register bits] from `r4`:
 
-<<< ../../../examples/memo/src/memo/memo.s{5-11 asm:line-numbers}
+<<< ../../../examples/memo/snippets/asm-error-checking.txt{4-7 asm}
+
+::: details Full program
+
+<<< ../../../examples/memo/src/memo/memo.s{asm}
+
+:::
 
 Note the minimal [compute unit] consumption for a failure:
 
@@ -80,9 +92,15 @@ These operations preposition a [`call` via `CALL_IMM`] to [`sol_log_`], which
 | `r1`     | The address of the message to log |
 | `r2`     | The number of bytes to log        |
 
-After the logging operation, the program concludes.
+After the logging operation, the program concludes:
 
-<<< ../../../examples/memo/src/memo/memo.s{12-17 asm:line-numbers}
+<<< ../../../examples/memo/snippets/asm-logging.txt{6-11 asm}
+
+::: details Full program
+
+<<< ../../../examples/memo/src/memo/memo.s{asm}
+
+:::
 
 Note the [compute unit] consumption for a successful log:
 

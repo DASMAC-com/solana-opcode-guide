@@ -1,0 +1,7 @@
+.equ NUM_ACCOUNTS_OFFSET, 0
+.equ INSTRUCTION_DATA_LENGTH_OFFSET, 8
+.equ INSTRUCTION_DATA_OFFSET, 16
+
+.globl entrypoint
+
+entrypoint:
