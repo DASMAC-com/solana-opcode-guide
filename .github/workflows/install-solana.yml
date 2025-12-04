@@ -15,6 +15,7 @@ jobs:
         path: '~/.local/share/solana'
     - if: steps.cache-solana.outputs.cache-hit != 'true'
       run: 'sh -c "$(curl -sSfL https://release.anza.xyz/${{ env.SOLANA_VERSION }}/install)"'
+    - run: 'echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH'
     - run: 'solana --version'
 name: 'Install Solana'
 'on':
