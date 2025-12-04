@@ -1,2 +1,2 @@
-deploy/*
 !deploy/hello-dasmac-keypair.json
+deploy/*
