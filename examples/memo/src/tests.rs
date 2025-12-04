@@ -8,10 +8,10 @@ use solana_sdk::signer::Signer;
 
 #[test]
 fn test_asm_fail() {
-    let keypair =
-        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
+    let keypair = read_keypair_file(format!("deploy/{}-keypair.json", env!("CARGO_PKG_NAME")))
+        .expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, "deploy/memo");
+    let mollusk = Mollusk::new(&program_id, &format!("deploy/{}", env!("CARGO_PKG_NAME")));
 
     let mock_account_pubkey = Pubkey::new_unique();
     let mock_account_data = AccountSharedData::default();
@@ -29,10 +29,10 @@ fn test_asm_fail() {
 
 #[test]
 fn test_asm_pass() {
-    let keypair =
-        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
+    let keypair = read_keypair_file(format!("deploy/{}-keypair.json", env!("CARGO_PKG_NAME")))
+        .expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, "deploy/memo");
+    let mollusk = Mollusk::new(&program_id, &format!("deploy/{}", env!("CARGO_PKG_NAME")));
 
     let instruction = Instruction::new_with_bytes(program_id, b"Hello again, DASMAC!", vec![]);
 
@@ -42,10 +42,10 @@ fn test_asm_pass() {
 
 #[test]
 fn test_rs() {
-    let keypair =
-        read_keypair_file("deploy/memo-keypair.json").expect("Failed to read keypair file");
+    let keypair = read_keypair_file(format!("deploy/{}-keypair.json", env!("CARGO_PKG_NAME")))
+        .expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
-    let mollusk = Mollusk::new(&program_id, "../target/deploy/memo");
+    let mollusk = Mollusk::new(&program_id, &format!("../target/deploy/{}", env!("CARGO_PKG_NAME")));
 
     let instruction = Instruction::new_with_bytes(program_id, b"Hello again, DASMAC!", vec![]);
 
