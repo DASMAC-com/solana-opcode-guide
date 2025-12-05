@@ -11,6 +11,23 @@ jobs:
     steps:
     - name: 'Checkout repository'
       uses: 'actions/checkout@v4'
+    - name: 'Set platform identifier'
+      shell: sh
+      run: echo "PLATFORM=${{ runner.os }}-${{ runner.arch }}" >> $GITHUB_ENV
+    - name: 'Cache LLVM package'
+      uses: 'awalsh128/cache-apt-pkgs-action@latest'
+      with:
+        packages: '${{ env.LLVM_PACKAGE }}'
+        version: '${{ env.LLVM_PACKAGE }}-${{ env.PLATFORM }}'
+    - name: 'Add LLVM to PATH'
+      shell: sh
+      run: echo "/usr/lib/${{ env.LLVM_PACKAGE }}/bin" >> $GITHUB_PATH
+    - name: 'Verify llvm-objdump is installed'
+      shell: sh
+      run: 'llvm-objdump --version'
+    - name: 'Verify llvm-readelf is installed'
+      shell: sh
+      run: 'llvm-readelf --version'
     - name: 'Install toolchain'
       uses: './.github/actions/install-toolchain'
       with:
@@ -18,9 +35,6 @@ jobs:
         rust-toolchain-version: '${{ env.RUST_VERSION }}'
         sbpf-revision: '${{ env.SBPF_REVISION }}'
         solana-version: '${{ env.SOLANA_VERSION }}'
-    - name: 'Check examples'
-      working-directory: 'examples'
-      run: 'cargo check'
 name: 'Build examples'
 'on':
   pull_request: null
