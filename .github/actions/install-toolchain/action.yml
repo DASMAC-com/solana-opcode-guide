@@ -93,20 +93,8 @@ runs:
       cargo install --git https://github.com/blueshift-gg/sbpf.git
       --rev ${{ inputs.sbpf-revision }}
     shell: 'sh'
-  - name: 'Verify dump.sh is installed'
-    run: 'which dump.sh'
-    shell: 'sh'
-  - name: 'Verify llvm-objdump is installed'
-    run: 'llvm-objdump --version'
-    shell: 'sh'
-  - name: 'Verify llvm-readelf is installed'
-    run: 'llvm-readelf --version'
-    shell: 'sh'
-  - name: 'Verify solana is installed'
-    run: 'solana --version'
-    shell: 'sh'
-  - name: 'Verify sbpf is installed'
-    run: 'sbpf --version'
+  - name: 'Verify all tools are installed'
+    run: '${{ github.action_path }}/scripts/verify-tools.sh'
     shell: 'sh'
   using: 'composite'
 ...
