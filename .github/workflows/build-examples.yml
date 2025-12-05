@@ -19,9 +19,9 @@ jobs:
     #   with:
     #     packages: '${{ env.LLVM_PACKAGE }}'
     #     version: '${{ env.LLVM_PACKAGE }}-${{ env.PLATFORM }}'
-    - name: 'Add LLVM to PATH'
-      shell: sh
-      run: echo "/usr/lib/${{ env.LLVM_PACKAGE }}/bin" >> $GITHUB_PATH
+    # - name: 'Add LLVM to PATH'
+    #   shell: sh
+    #   run: echo "/usr/lib/${{ env.LLVM_PACKAGE }}/bin" >> $GITHUB_PATH
     - name: 'Verify llvm-objdump is installed'
       shell: sh
       run: 'llvm-objdump --version'
