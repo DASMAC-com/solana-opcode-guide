@@ -34,51 +34,40 @@ runs:
   - name: 'Add Solana tools to PATH'
     run: '${{ github.action_path }}/scripts/add-solana-tools-to-path.sh'
     shell: 'sh'
-  - id: 'cache-solana'
-    name: 'Cache Solana toolchain'
+  - id: 'cache-toolchain'
+    name: 'Cache all toolchain components'
     uses: 'actions/cache@v4'
     with:
-      key: 'solana-${{ inputs.solana-version }}-${{ env.PLATFORM }}'
-      path: '~/.local/share/solana'
-  - if: 'steps.cache-solana.outputs.cache-hit != ''true'''
+      key: 'solana-opcode-guide-toolchain-${{
+            inputs.solana-version }}-${{
+            inputs.platform-tools-version-sbpf-v3-arch }}-${{
+            inputs.platform-tools-version-sbpf-v4-arch }}-${{
+            inputs.sbpf-revision }}-${{
+            env.PLATFORM }}'
+      path: |
+        ~/.local/share/solana
+        ~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v3-arch }}
+        ~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v4-arch }}
+        ~/.cargo/bin/sbpf
+  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Install Solana toolchain'
     run: >-
       ${{ github.action_path }}/scripts/install-solana.sh
       "${{ inputs.solana-version }}"
     shell: 'sh'
-  - id: 'cache-platform-tools-sbpf-v3'
-    name: 'Cache platform-tools (SBPF v3)'
-    uses: 'actions/cache@v4'
-    with:
-      key: 'platform-tools-${{ inputs.platform-tools-version-sbpf-v3-arch
-            }}-${{ env.PLATFORM }}'
-      path: '~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v3-arch }}'
-  - if: 'steps.cache-platform-tools-sbpf-v3.outputs.cache-hit != ''true'''
+  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Install platform-tools (SBPF v3)'
     run: >-
       ${{ github.action_path }}/scripts/install-platform-tools.sh
       ${{ inputs.platform-tools-version-sbpf-v3-arch }}
     shell: 'sh'
-  - id: 'cache-platform-tools-sbpf-v4'
-    name: 'Cache platform-tools (SBPF v4)'
-    uses: 'actions/cache@v4'
-    with:
-      key: 'platform-tools-${{ inputs.platform-tools-version-sbpf-v4-arch
-            }}-${{ env.PLATFORM }}'
-      path: '~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v4-arch }}'
-  - if: 'steps.cache-platform-tools-sbpf-v4.outputs.cache-hit != ''true'''
+  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Install platform-tools (SBPF v4)'
     run: >-
       ${{ github.action_path }}/scripts/install-platform-tools.sh
       ${{ inputs.platform-tools-version-sbpf-v4-arch }}
     shell: 'sh'
-  - id: 'cache-sbpf'
-    name: 'Cache sbpf'
-    uses: 'actions/cache@v4'
-    with:
-      key: 'sbpf-${{ inputs.sbpf-revision }}-${{ env.PLATFORM }}'
-      path: '~/.cargo/bin/sbpf'
-  - if: 'steps.cache-sbpf.outputs.cache-hit != ''true'''
+  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Install sbpf CLI'
     run: >-
       cargo install --git https://github.com/blueshift-gg/sbpf.git
