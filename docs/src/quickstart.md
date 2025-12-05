@@ -10,13 +10,13 @@ you to compare the two implementations side-by-side.
 
 1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
    install, in particular the [`dump.sh`] script [called internally] by
-   [`cargo build-sbf`] `--dump`, and the [LLVM] binaries it requires. This will
-   look something like:
+   [`cargo build-sbf`] `--dump`, and the [patched LLVM binaries] it requires.
+   This will look something like:
 
    ```sh
    # Solana tools.
-   export SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
-   export SOLANA_SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
+   SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
+   SOLANA_SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
    export PATH="$SOLANA_RELEASE:$PATH"
    export PATH="$SOLANA_SBPF_TOOLS/scripts:$PATH"
    export PATH="$SOLANA_SBPF_TOOLS/dependencies/platform-tools/llvm/bin:$PATH"
@@ -208,7 +208,7 @@ program!
 [called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
 [known issue]: https://stackoverflow.com/a/78398587
-[llvm]: https://llvm.org/
+[patched llvm binaries]: https://github.com/anza-xyz/platform-tools
 [loading up to sbpf v3]: https://github.com/anza-xyz/agave/blob/v3.1.2/feature-set/src/lib.rs#L140-L141
 [oh my zsh]: https://ohmyz.sh/
 [removed in v1.52]: https://github.com/anza-xyz/platform-tools/commit/9dcb73be29b1140467243867f38a388520c85251#diff-4d2a8eefdf2a9783512a35da4dc7676a66404b6f3826a8af9aad038722da6823L100
