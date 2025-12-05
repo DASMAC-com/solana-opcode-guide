@@ -45,9 +45,10 @@ runs:
             inputs.sbpf-revision }}-${{
             env.PLATFORM }}'
       path: |
-        ~/.local/share/solana
         ~/.cache/solana
         ~/.cargo/bin/sbpf
+        ~/.local/share/solana
+        ~/.rustup/toolchains
   - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Install Solana toolchain'
     run: >-
