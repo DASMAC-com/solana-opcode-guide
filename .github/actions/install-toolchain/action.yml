@@ -1,10 +1,7 @@
-# cspell:word awalsh
-# cspell:word dtolnay
 # cspell:word objdump
 # cspell:word readelf
-# cspell:word rustup
 ---
-description: 'Install quickstart toolchain (Rust, Solana, sbpf)'
+description: 'Install quickstart toolchain (Solana, sbpf)'
 inputs:
   platform-tools-version-sbpf-v3-arch:
     default: 'v1.52'
@@ -13,10 +10,6 @@ inputs:
   platform-tools-version-sbpf-v4-arch:
     default: 'v1.51'
     description: 'Solana platform-tools version for SBPF v4 architecture'
-    required: false
-  rust-toolchain-version:
-    default: '1.91.0'
-    description: 'Rust toolchain version to install'
     required: false
   sbpf-revision:
     default: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
@@ -39,24 +32,6 @@ runs:
       PLATFORM="${{ runner.os }}-${{ runner.arch }}"
       echo "PLATFORM=${PLATFORM}" >> $GITHUB_ENV
       echo "platform=${PLATFORM}" >> $GITHUB_OUTPUT
-    shell: 'sh'
-  - id: 'cache-rust'
-    name: 'Cache Rust toolchain'
-    uses: 'actions/cache@v4'
-    with:
-      key: 'rust-${{ inputs.rust-toolchain-version }}-${{ env.PLATFORM }}'
-      path: |
-        ~/.cargo/registry
-        ~/.cargo/git
-        ~/.rustup
-  - if: 'steps.cache-rust.outputs.cache-hit != ''true'''
-    name: 'Install Rust toolchain'
-    uses: 'dtolnay/rust-toolchain@master'
-    with:
-      toolchain: '${{ inputs.rust-toolchain-version }}'
-  - if: 'steps.cache-rust.outputs.cache-hit == ''true'''
-    name: 'Add Rust to PATH'
-    run: 'echo "$HOME/.cargo/bin" >> $GITHUB_PATH'
     shell: 'sh'
   - id: 'cache-solana'
     name: 'Cache Solana toolchain'
@@ -103,6 +78,11 @@ runs:
       cargo-build-sbf
       --tools-version ${{ inputs.platform-tools-version-sbpf-v4-arch }}
       --install-only
+    shell: 'sh'
+  - name: 'Add platform-tools Rust to PATH'
+    run: |
+      PLATFORM_TOOLS_RUST="$HOME/.local/share/solana/install/active_release/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin"
+      echo "$PLATFORM_TOOLS_RUST" >> $GITHUB_PATH
     shell: 'sh'
   - id: 'cache-sbpf'
     name: 'Cache sbpf'
