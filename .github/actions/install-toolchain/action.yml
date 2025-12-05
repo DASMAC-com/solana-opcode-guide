@@ -46,12 +46,7 @@ runs:
       "${{ inputs.solana-version }}"
     shell: 'sh'
   - name: 'Add Solana tools to PATH'
-    run: |
-      SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
-      SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
-      echo "$SOLANA_RELEASE" >> $GITHUB_PATH
-      echo "$SBPF_TOOLS/scripts" >> $GITHUB_PATH
-      echo "$SBPF_TOOLS/dependencies/platform-tools/llvm/bin" >> $GITHUB_PATH
+    run: '${{ github.action_path }}/scripts/add-solana-tools-to-path.sh'
     shell: 'sh'
   - id: 'cache-platform-tools-sbpf-v3'
     name: 'Cache platform-tools (SBPF v3)'
