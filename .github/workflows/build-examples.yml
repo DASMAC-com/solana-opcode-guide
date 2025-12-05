@@ -48,7 +48,7 @@ jobs:
     - name: 'Run tests'
       run: 'cargo test'
       shell: 'sh'
-    working-directory: 'examples'
+      working-directory: 'examples'
 name: 'Build examples'
 'on':
   pull_request: null
