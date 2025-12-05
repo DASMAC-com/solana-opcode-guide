@@ -1,0 +1,100 @@
+# cspell:word awalsh
+# cspell:word dtolnay
+# cspell:word objdump
+# cspell:word readelf
+# cspell:word rustup
+---
+name: 'Install toolchain'
+description: 'Install quickstart toolchain (LLVM, Rust, Solana, sbpf)'
+inputs:
+  llvm-package:
+    description: 'LLVM package name to install'
+    required: true
+  rust-toolchain-version:
+    description: 'Rust toolchain version to install'
+    required: true
+  sbpf-revision:
+    description: 'SBPF revision (git commit hash, tag, or branch) to install'
+    required: true
+  solana-version:
+    description: 'Solana version to install'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+  - name: 'Set platform identifier'
+    shell: sh
+    run: echo "PLATFORM=${{ runner.os }}-${{ runner.arch }}" >> $GITHUB_ENV
+  - name: 'Cache LLVM package'
+    uses: 'awalsh128/cache-apt-pkgs-action@latest'
+    with:
+      packages: '${{ inputs.llvm-package }}'
+      version: '${{ inputs.llvm-package }}-${{ env.PLATFORM }}'
+  - name: 'Add LLVM to PATH'
+    shell: sh
+    run: echo "/usr/lib/${{ inputs.llvm-package }}/bin" >> $GITHUB_PATH
+  - name: 'Cache Rust toolchain'
+    id: 'cache-rust'
+    uses: 'actions/cache@v4'
+    with:
+      key: 'rust-${{ inputs.rust-toolchain-version }}-${{ env.PLATFORM }}'
+      path: |
+        ~/.cargo/registry
+        ~/.cargo/git
+        ~/.rustup
+  - name: 'Install Rust toolchain'
+    if: 'steps.cache-rust.outputs.cache-hit != ''true'''
+    uses: 'dtolnay/rust-toolchain@master'
+    with:
+      toolchain: '${{ inputs.rust-toolchain-version }}'
+  - name: 'Add Rust to PATH'
+    if: 'steps.cache-rust.outputs.cache-hit == ''true'''
+    shell: sh
+    run: 'echo "$HOME/.cargo/bin" >> $GITHUB_PATH'
+  - name: 'Cache Solana toolchain'
+    id: 'cache-solana'
+    uses: 'actions/cache@v4'
+    with:
+      key: 'solana-${{ inputs.solana-version }}-${{ env.PLATFORM }}'
+      path: '~/.local/share/solana'
+  - name: 'Install Solana toolchain'
+    if: 'steps.cache-solana.outputs.cache-hit != ''true'''
+    shell: sh
+    run: >-
+      sh -c "$(curl -sSfL
+      https://release.anza.xyz/${{ inputs.solana-version }}/install)"
+  - name: 'Add Solana and dump.sh to PATH'
+    shell: sh
+    run: |
+      SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
+      SCRIPTS_DIR="$SOLANA_RELEASE/platform-tools-sdk/sbf/scripts"
+      echo "$SOLANA_RELEASE" >> $GITHUB_PATH
+      echo "$SCRIPTS_DIR" >> $GITHUB_PATH
+  - name: 'Cache sbpf'
+    id: 'cache-sbpf'
+    uses: 'actions/cache@v4'
+    with:
+      key: 'sbpf-${{ inputs.sbpf-revision }}-${{ env.PLATFORM }}'
+      path: '~/.cargo/bin/sbpf'
+  - name: 'Install sbpf CLI'
+    if: 'steps.cache-sbpf.outputs.cache-hit != ''true'''
+    shell: sh
+    run: >-
+      cargo install --git https://github.com/blueshift-gg/sbpf.git
+      --rev ${{ inputs.sbpf-revision }}
+  - name: 'Verify solana is installed'
+    shell: sh
+    run: 'solana --version'
+  - name: 'Verify sbpf is installed'
+    shell: sh
+    run: 'sbpf --version'
+  - name: 'Verify llvm-objdump is installed'
+    shell: sh
+    run: 'llvm-objdump --version'
+  - name: 'Verify llvm-readelf is installed'
+    shell: sh
+    run: 'llvm-readelf --version'
+  - name: 'Verify dump.sh is installed'
+    shell: sh
+    run: 'which dump.sh'
+...

@@ -1,0 +1,24 @@
+---
+env:
+  LLVM_PACKAGE: 'llvm-18'
+  RUST_VERSION: '1.91.0'
+  SBPF_REVISION: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
+  SOLANA_VERSION: 'v3.1.2'
+jobs:
+  build-examples:
+    name: 'Install toolchain'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - name: 'Checkout repository'
+      uses: 'actions/checkout@v4'
+    - name: 'Install toolchain'
+      uses: './.github/actions/install-toolchain'
+      with:
+        llvm-package: '${{ env.LLVM_PACKAGE }}'
+        rust-toolchain-version: '${{ env.RUST_VERSION }}'
+        sbpf-revision: '${{ env.SBPF_REVISION }}'
+        solana-version: '${{ env.SOLANA_VERSION }}'
+name: 'Build examples'
+'on':
+  pull_request: null
+...
