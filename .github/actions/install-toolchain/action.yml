@@ -1,8 +1,7 @@
 # cspell:word objdump
 # cspell:word readelf
-# cspell:word rustup
 ---
-description: 'Install quickstart toolchain (rustup, Solana, sbpf)'
+description: 'Install quickstart toolchain'
 inputs:
   platform-tools-version-sbpf-v3-arch:
     default: 'v1.52'
@@ -33,29 +32,6 @@ runs:
       PLATFORM="${{ runner.os }}-${{ runner.arch }}"
       echo "PLATFORM=${PLATFORM}" >> $GITHUB_ENV
       echo "platform=${PLATFORM}" >> $GITHUB_OUTPUT
-    shell: 'sh'
-  - id: 'cache-rustup'
-    name: 'Cache rustup'
-    uses: 'actions/cache@v4'
-    with:
-      key: 'rustup-only-${{ env.PLATFORM }}'
-      path: |
-        ~/.cargo/bin/rustup
-        ~/.cargo/bin/rustup-init
-        ~/.rustup/settings.toml
-        ~/.rustup/toolchains
-  - if: 'steps.cache-rustup.outputs.cache-hit != ''true'''
-    name: 'Install rustup (no default toolchain)'
-    run: |
-      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
-      echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-    shell: 'sh'
-  - if: 'steps.cache-rustup.outputs.cache-hit == ''true'''
-    name: 'Add rustup to PATH'
-    run: 'echo "$HOME/.cargo/bin" >> $GITHUB_PATH'
-    shell: 'sh'
-  - name: 'Verify rustup is installed'
-    run: 'rustup --version'
     shell: 'sh'
   - id: 'cache-solana'
     name: 'Cache Solana toolchain'
@@ -105,17 +81,6 @@ runs:
       --tools-version ${{ inputs.platform-tools-version-sbpf-v4-arch }}
       --install-only
     shell: 'sh'
-  - name: 'Add platform-tools Rust to PATH'
-    run: |
-      PLATFORM_TOOLS_RUST="$HOME/.local/share/solana/install/active_release/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin"
-      echo "$PLATFORM_TOOLS_RUST" >> $GITHUB_PATH
-    shell: 'sh'
-  - name: 'Verify rustc is installed'
-    run: 'rustc --version'
-    shell: 'sh'
-  - name: 'Verify cargo is installed'
-    run: 'cargo --version'
-    shell: 'sh'
   - id: 'cache-sbpf'
     name: 'Cache sbpf'
     uses: 'actions/cache@v4'
@@ -128,6 +93,9 @@ runs:
       cargo install --git https://github.com/blueshift-gg/sbpf.git
       --rev ${{ inputs.sbpf-revision }}
     shell: 'sh'
+  - name: 'Verify dump.sh is installed'
+    run: 'which dump.sh'
+    shell: 'sh'
   - name: 'Verify llvm-objdump is installed'
     run: 'llvm-objdump --version'
     shell: 'sh'
@@ -139,9 +107,6 @@ runs:
     shell: 'sh'
   - name: 'Verify sbpf is installed'
     run: 'sbpf --version'
-    shell: 'sh'
-  - name: 'Verify dump.sh is installed'
-    run: 'which dump.sh'
     shell: 'sh'
   using: 'composite'
 ...
