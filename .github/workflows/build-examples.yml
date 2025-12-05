@@ -1,6 +1,6 @@
 ---
 env:
-  LLVM_PACKAGE: 'llvm-18'
+  LLVM_PACKAGE: 'llvm-20'
   RUST_VERSION: '1.91.0'
   SBPF_REVISION: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
   SOLANA_VERSION: 'v3.1.2'
@@ -14,14 +14,18 @@ jobs:
     - name: 'Set platform identifier'
       shell: sh
       run: echo "PLATFORM=${{ runner.os }}-${{ runner.arch }}" >> $GITHUB_ENV
-    # - name: 'Cache LLVM package'
-    #   uses: 'awalsh128/cache-apt-pkgs-action@latest'
-    #   with:
-    #     packages: '${{ env.LLVM_PACKAGE }}'
-    #     version: '${{ env.LLVM_PACKAGE }}-${{ env.PLATFORM }}'
-    # - name: 'Add LLVM to PATH'
-    #   shell: sh
-    #   run: echo "/usr/lib/${{ env.LLVM_PACKAGE }}/bin" >> $GITHUB_PATH
+    - name: 'Verify LLVM installation'
+      shell: sh
+      run: |
+        if [ -d "/usr/lib/${{ env.LLVM_PACKAGE }}" ]; then
+          echo "LLVM installation found at /usr/lib/${{ env.LLVM_PACKAGE }}"
+        else
+          echo "Error: /usr/lib/${{ env.LLVM_PACKAGE }} not found"
+          exit 1
+        fi
+    - name: 'Add LLVM to PATH'
+      shell: sh
+      run: echo "/usr/lib/${{ env.LLVM_PACKAGE }}/bin" >> $GITHUB_PATH
     - name: 'Verify llvm-objdump is installed'
       shell: sh
       run: 'llvm-objdump --version'
