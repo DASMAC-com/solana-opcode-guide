@@ -23,10 +23,18 @@ inputs:
     description: 'Solana version to install'
     required: false
 name: 'Install toolchain'
+outputs:
+  platform:
+    description: 'Platform identifier (OS-ARCH)'
+    value: '${{ steps.set-platform.outputs.platform }}'
 runs:
   steps:
-  - name: 'Set platform identifier'
-    run: 'echo "PLATFORM=${{ runner.os }}-${{ runner.arch }}" >> $GITHUB_ENV'
+  - id: 'set-platform'
+    name: 'Set platform identifier'
+    run: |
+      PLATFORM="${{ runner.os }}-${{ runner.arch }}"
+      echo "PLATFORM=${PLATFORM}" >> $GITHUB_ENV
+      echo "platform=${PLATFORM}" >> $GITHUB_OUTPUT
     shell: 'sh'
   - id: 'cache-rust'
     name: 'Cache Rust toolchain'

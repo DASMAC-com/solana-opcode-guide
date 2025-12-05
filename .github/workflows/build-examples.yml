@@ -6,8 +6,41 @@ jobs:
     steps:
     - name: 'Checkout repository'
       uses: 'actions/checkout@v4'
-    - name: 'Install toolchain'
+    - id: 'install-toolchain'
+      name: 'Install toolchain'
       uses: './.github/actions/install-toolchain'
+    - name: 'Cache cargo build'
+      uses: 'actions/cache@v4'
+      with:
+        key: >-
+          cargo-examples-${{
+          steps.install-toolchain.outputs.platform }}-${{
+          hashFiles(''examples/Cargo.lock'') }}
+        path: 'examples/target'
+    - name: 'Build examples'
+      run: 'cargo build --workspace --release'
+      shell: 'sh'
+      working-directory: 'examples'
+    - name: 'Build memo with sbpf'
+      run: 'sbpf build'
+      shell: 'sh'
+      working-directory: 'examples/memo'
+    - name: 'Build memo with cargo-build-sbf'
+      run: 'cargo build-sbf --arch v3'
+      shell: 'sh'
+      working-directory: 'examples/memo'
+    - name: 'Build hello-dasmac with sbpf'
+      run: 'sbpf build'
+      shell: 'sh'
+      working-directory: 'examples/hello-dasmac'
+    - name: 'Build hello-dasmac with cargo-build-sbf'
+      run: 'cargo build-sbf --arch v3'
+      shell: 'sh'
+      working-directory: 'examples/hello-dasmac'
+    - name: 'Run tests'
+      run: 'cargo test'
+      shell: 'sh'
+      working-directory: 'examples'
 name: 'Build examples'
 'on':
   pull_request: null
