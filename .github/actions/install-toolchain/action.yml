@@ -45,11 +45,6 @@ runs:
       ${{ github.action_path }}/scripts/install-solana.sh
       "${{ inputs.solana-version }}"
     shell: 'sh'
-  - name: 'Add platform-tools Rust to PATH'
-    run: |
-      PLATFORM_TOOLS_RUST="$HOME/.local/share/solana/install/active_release/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin"
-      echo "$PLATFORM_TOOLS_RUST" >> $GITHUB_PATH
-    shell: 'sh'
   - name: 'Add Solana tools to PATH'
     run: |
       SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
@@ -83,6 +78,11 @@ runs:
       cargo-build-sbf
       --tools-version ${{ inputs.platform-tools-version-sbpf-v4-arch }}
       --install-only
+    shell: 'sh'
+  - name: 'Add platform-tools Rust to PATH'
+    run: |
+      PLATFORM_TOOLS_RUST="$HOME/.local/share/solana/install/active_release/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin"
+      echo "$PLATFORM_TOOLS_RUST" >> $GITHUB_PATH
     shell: 'sh'
   - name: 'Verify rustc is installed'
     run: 'rustc --version'
