@@ -63,9 +63,8 @@ runs:
   - if: 'steps.cache-platform-tools-sbpf-v3.outputs.cache-hit != ''true'''
     name: 'Install platform-tools (SBPF v3)'
     run: >-
-      cargo-build-sbf
-      --tools-version ${{ inputs.platform-tools-version-sbpf-v3-arch }}
-      --install-only
+      ${{ github.action_path }}/scripts/install-platform-tools.sh
+      ${{ inputs.platform-tools-version-sbpf-v3-arch }}
     shell: 'sh'
   - id: 'cache-platform-tools-sbpf-v4'
     name: 'Cache platform-tools (SBPF v4)'
@@ -77,9 +76,8 @@ runs:
   - if: 'steps.cache-platform-tools-sbpf-v4.outputs.cache-hit != ''true'''
     name: 'Install platform-tools (SBPF v4)'
     run: >-
-      cargo-build-sbf
-      --tools-version ${{ inputs.platform-tools-version-sbpf-v4-arch }}
-      --install-only
+      ${{ github.action_path }}/scripts/install-platform-tools.sh
+      ${{ inputs.platform-tools-version-sbpf-v4-arch }}
     shell: 'sh'
   - id: 'cache-sbpf'
     name: 'Cache sbpf'
