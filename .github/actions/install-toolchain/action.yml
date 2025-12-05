@@ -47,6 +47,8 @@ runs:
       path: |
         ~/.local/share/solana
         ~/.cache/solana
+        ~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v3-arch }}
+        ~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v4-arch }}
         ~/.cargo/bin/sbpf
   - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Install Solana toolchain'
