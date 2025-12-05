@@ -6,9 +6,13 @@
 ---
 description: 'Install quickstart toolchain (Rust, Solana, sbpf)'
 inputs:
-  platform-tools-version:
+  platform-tools-version-sbpf-v3-arch:
+    default: 'v1.52'
+    description: 'Solana platform-tools version for SBPF v3 architecture'
+    required: false
+  platform-tools-version-sbpf-v4-arch:
     default: 'v1.51'
-    description: 'Solana platform-tools version to install'
+    description: 'Solana platform-tools version for SBPF v4 architecture'
     required: false
   rust-toolchain-version:
     default: '1.91.0'
@@ -74,17 +78,30 @@ runs:
       echo "$SBPF_TOOLS/scripts" >> $GITHUB_PATH
       echo "$SBPF_TOOLS/dependencies/platform-tools/llvm/bin" >> $GITHUB_PATH
     shell: 'sh'
-  - id: 'cache-platform-tools'
-    name: 'Cache Solana platform tools'
+  - id: 'cache-platform-tools-sbpf-v3'
+    name: 'Cache platform-tools (SBPF v3)'
     uses: 'actions/cache@v4'
     with:
-      key: >-
-        platform-tools-${{ inputs.platform-tools-version }}-${{ env.PLATFORM }}
-      path: '~/.cache/solana'
-  - name: 'Install Solana platform tools'
+      key: 'platform-tools-${{ inputs.platform-tools-version-sbpf-v3-arch
+            }}-${{ env.PLATFORM }}'
+      path: '~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v3-arch }}'
+  - name: 'Install platform-tools (SBPF v3)'
     run: >-
       cargo-build-sbf
-      --tools-version ${{ inputs.platform-tools-version }}
+      --tools-version ${{ inputs.platform-tools-version-sbpf-v3-arch }}
+      --install-only
+    shell: 'sh'
+  - id: 'cache-platform-tools-sbpf-v4'
+    name: 'Cache platform-tools (SBPF v4)'
+    uses: 'actions/cache@v4'
+    with:
+      key: 'platform-tools-${{ inputs.platform-tools-version-sbpf-v4-arch
+            }}-${{ env.PLATFORM }}'
+      path: '~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v4-arch }}'
+  - name: 'Install platform-tools (SBPF v4)'
+    run: >-
+      cargo-build-sbf
+      --tools-version ${{ inputs.platform-tools-version-sbpf-v4-arch }}
       --install-only
     shell: 'sh'
   - id: 'cache-sbpf'
