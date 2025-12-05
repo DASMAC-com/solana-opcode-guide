@@ -58,6 +58,14 @@ runs:
       ${{ github.action_path }}/scripts/install-solana.sh
       "${{ inputs.solana-version }}"
     shell: 'sh'
+  - name: 'Add Solana tools to PATH'
+    run: |
+      SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
+      SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
+      echo "$SOLANA_RELEASE" >> $GITHUB_PATH
+      echo "$SBPF_TOOLS/scripts" >> $GITHUB_PATH
+      echo "$SBPF_TOOLS/dependencies/platform-tools/llvm/bin" >> $GITHUB_PATH
+    shell: 'sh'
   - id: 'cache-platform-tools'
     name: 'Cache Solana platform tools'
     uses: 'actions/cache@v4'
@@ -70,14 +78,6 @@ runs:
       cargo-build-sbf
       --tools-version ${{ inputs.platform-tools-version }}
       --install-only
-    shell: 'sh'
-  - name: 'Add Solana tools to PATH'
-    run: |
-      SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
-      SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
-      echo "$SOLANA_RELEASE" >> $GITHUB_PATH
-      echo "$SBPF_TOOLS/scripts" >> $GITHUB_PATH
-      echo "$SBPF_TOOLS/dependencies/platform-tools/llvm/bin" >> $GITHUB_PATH
     shell: 'sh'
   - id: 'cache-sbpf'
     name: 'Cache sbpf'
