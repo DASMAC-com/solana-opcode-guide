@@ -4,11 +4,11 @@
 # cspell:word readelf
 # cspell:word rustup
 ---
-description: 'Install quickstart toolchain (LLVM, Rust, Solana, sbpf)'
+description: 'Install quickstart toolchain (Rust, Solana, sbpf)'
 inputs:
-  llvm-package:
-    default: 'llvm-18'
-    description: 'LLVM package name to include in PATH'
+  platform-tools-version:
+    default: 'v1.51'
+    description: 'Solana platform-tools version to install'
     required: false
   rust-toolchain-version:
     default: '1.91.0'
@@ -27,14 +27,6 @@ runs:
   steps:
   - name: 'Set platform identifier'
     run: 'echo "PLATFORM=${{ runner.os }}-${{ runner.arch }}" >> $GITHUB_ENV'
-    shell: 'sh'
-  - name: 'Verify LLVM installation'
-    run: >-
-      ${{ github.action_path }}/scripts/verify-llvm.sh
-      "${{ inputs.llvm-package }}"
-    shell: 'sh'
-  - name: 'Add LLVM to PATH'
-    run: 'echo "/usr/lib/${{ inputs.llvm-package }}/bin" >> $GITHUB_PATH'
     shell: 'sh'
   - id: 'cache-rust'
     name: 'Cache Rust toolchain'
@@ -66,12 +58,26 @@ runs:
       ${{ github.action_path }}/scripts/install-solana.sh
       "${{ inputs.solana-version }}"
     shell: 'sh'
-  - name: 'Add Solana and dump.sh to PATH'
+  - id: 'cache-platform-tools'
+    name: 'Cache Solana platform tools'
+    uses: 'actions/cache@v4'
+    with:
+      key: >-
+        platform-tools-${{ inputs.platform-tools-version }}-${{ env.PLATFORM }}
+      path: '~/.cache/solana'
+  - name: 'Install Solana platform tools'
+    run: >-
+      cargo-build-sbf
+      --tools-version ${{ inputs.platform-tools-version }}
+      --install-only
+    shell: 'sh'
+  - name: 'Add Solana tools to PATH'
     run: |
       SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
-      SCRIPTS_DIR="$SOLANA_RELEASE/platform-tools-sdk/sbf/scripts"
+      SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
       echo "$SOLANA_RELEASE" >> $GITHUB_PATH
-      echo "$SCRIPTS_DIR" >> $GITHUB_PATH
+      echo "$SBPF_TOOLS/scripts" >> $GITHUB_PATH
+      echo "$SBPF_TOOLS/dependencies/platform-tools/llvm/bin" >> $GITHUB_PATH
     shell: 'sh'
   - id: 'cache-sbpf'
     name: 'Cache sbpf'
