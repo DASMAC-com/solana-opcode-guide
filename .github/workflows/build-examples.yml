@@ -1,6 +1,6 @@
 ---
 env:
-  LLVM_PACKAGE: 'llvm-20'
+  LLVM_PACKAGE: 'llvm-18'
   RUST_VERSION: '1.91.0'
   SBPF_REVISION: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
   SOLANA_VERSION: 'v3.1.2'
