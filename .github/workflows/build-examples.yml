@@ -18,6 +18,9 @@ jobs:
         rust-toolchain-version: '${{ env.RUST_VERSION }}'
         sbpf-revision: '${{ env.SBPF_REVISION }}'
         solana-version: '${{ env.SOLANA_VERSION }}'
+    - name: 'Check examples'
+      working-directory: 'examples'
+      run: 'cargo check'
 name: 'Build examples'
 'on':
   pull_request: null
