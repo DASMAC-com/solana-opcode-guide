@@ -9,16 +9,20 @@ description: 'Install quickstart toolchain (LLVM, Rust, Solana, sbpf)'
 inputs:
   llvm-package:
     description: 'LLVM package name to include in PATH'
-    required: true
+    required: false
+    default: 'llvm-18'
   rust-toolchain-version:
     description: 'Rust toolchain version to install'
-    required: true
+    required: false
+    default: '1.91.0'
   sbpf-revision:
     description: 'SBPF revision (git commit hash, tag, or branch) to install'
-    required: true
+    required: false
+    default: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
   solana-version:
     description: 'Solana version to install'
-    required: true
+    required: false
+    default: 'v3.1.2'
 runs:
   using: 'composite'
   steps:
