@@ -1,7 +1,8 @@
 # cspell:word objdump
 # cspell:word readelf
+# cspell:word rustup
 ---
-description: 'Install quickstart toolchain (Solana, sbpf)'
+description: 'Install quickstart toolchain (rustup, Solana, sbpf)'
 inputs:
   platform-tools-version-sbpf-v3-arch:
     default: 'v1.52'
@@ -33,6 +34,29 @@ runs:
       echo "PLATFORM=${PLATFORM}" >> $GITHUB_ENV
       echo "platform=${PLATFORM}" >> $GITHUB_OUTPUT
     shell: 'sh'
+  - id: 'cache-rustup'
+    name: 'Cache rustup'
+    uses: 'actions/cache@v4'
+    with:
+      key: 'rustup-only-${{ env.PLATFORM }}'
+      path: |
+        ~/.cargo/bin/rustup
+        ~/.cargo/bin/rustup-init
+        ~/.rustup/settings.toml
+        ~/.rustup/toolchains
+  - if: 'steps.cache-rustup.outputs.cache-hit != ''true'''
+    name: 'Install rustup (no default toolchain)'
+    run: |
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+      echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    shell: 'sh'
+  - if: 'steps.cache-rustup.outputs.cache-hit == ''true'''
+    name: 'Add rustup to PATH'
+    run: 'echo "$HOME/.cargo/bin" >> $GITHUB_PATH'
+    shell: 'sh'
+  - name: 'Verify rustup is installed'
+    run: 'rustup --version'
+    shell: 'sh'
   - id: 'cache-solana'
     name: 'Cache Solana toolchain'
     uses: 'actions/cache@v4'
@@ -60,7 +84,8 @@ runs:
       key: 'platform-tools-${{ inputs.platform-tools-version-sbpf-v3-arch
             }}-${{ env.PLATFORM }}'
       path: '~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v3-arch }}'
-  - name: 'Install platform-tools (SBPF v3)'
+  - if: 'steps.cache-platform-tools-sbpf-v3.outputs.cache-hit != ''true'''
+    name: 'Install platform-tools (SBPF v3)'
     run: >-
       cargo-build-sbf
       --tools-version ${{ inputs.platform-tools-version-sbpf-v3-arch }}
@@ -73,7 +98,8 @@ runs:
       key: 'platform-tools-${{ inputs.platform-tools-version-sbpf-v4-arch
             }}-${{ env.PLATFORM }}'
       path: '~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v4-arch }}'
-  - name: 'Install platform-tools (SBPF v4)'
+  - if: 'steps.cache-platform-tools-sbpf-v4.outputs.cache-hit != ''true'''
+    name: 'Install platform-tools (SBPF v4)'
     run: >-
       cargo-build-sbf
       --tools-version ${{ inputs.platform-tools-version-sbpf-v4-arch }}
