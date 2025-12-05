@@ -24,7 +24,7 @@ jobs:
     # - name: 'Build memo with sbpf'
     #   run: 'sbpf build'
     #   shell: 'sh'
-      working-directory: 'examples/memo'
+    #  working-directory: 'examples/memo'
     - name: 'Build memo with cargo-build-sbf v4'
       run: 'cargo build-sbf --arch v4'
       shell: 'sh'
