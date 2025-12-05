@@ -1,5 +1,3 @@
-# cspell:word dasmac
-# cspell:word sbpf
 ---
 jobs:
   build-examples:
