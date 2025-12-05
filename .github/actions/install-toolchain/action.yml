@@ -44,17 +44,9 @@ runs:
             inputs.platform-tools-version-sbpf-v4-arch }}-${{
             inputs.sbpf-revision }}-${{
             env.PLATFORM }}'
-      # Cache paths:
-      # - ~/.local/share/solana: Solana CLI installation.
-      # - ~/.cache/solana: Criterion test framework (if not also cached,
-      #   `cargo-build-sbf` downloads it at build time, slowing builds).
-      # - ~/.cache/solana/v*: platform-tools for specific SBPF architectures.
-      # - ~/.cargo/bin/sbpf: sbpf CLI binary
       path: |
         ~/.local/share/solana
         ~/.cache/solana
-        ~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v3-arch }}
-        ~/.cache/solana/${{ inputs.platform-tools-version-sbpf-v4-arch }}
         ~/.cargo/bin/sbpf
   - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Install Solana toolchain'
