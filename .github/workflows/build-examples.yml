@@ -8,6 +8,17 @@ jobs:
       uses: 'actions/checkout@v4'
     - name: 'Install toolchain'
       uses: './.github/actions/install-toolchain'
+    - name: 'Cache SBF platform tools'
+      uses: 'actions/cache@v4'
+      with:
+        key: 'platform-tools-v1.51-${{ runner.os }}'
+        path: '~/.cache/solana'
+    - name: 'Install SBF platform tools'
+      run: 'cargo-build-sbf --install-only'
+      working-directory: 'examples'
+    - name: 'Cache SBF dependencies'
+      run: 'cargo check --workspace --release --target sbpfv4-solana-solana'
+      working-directory: 'examples'
 name: 'Build examples'
 'on':
   pull_request: null
