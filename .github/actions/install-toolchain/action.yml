@@ -8,7 +8,7 @@ name: 'Install toolchain'
 description: 'Install quickstart toolchain (LLVM, Rust, Solana, sbpf)'
 inputs:
   llvm-package:
-    description: 'LLVM package name to install'
+    description: 'LLVM package name to include in PATH'
     required: true
   rust-toolchain-version:
     description: 'Rust toolchain version to install'
