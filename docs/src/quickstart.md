@@ -25,17 +25,6 @@ you to compare the two implementations side-by-side.
    > [!tip]
    > This example is from `~/.zshrc` on a Mac with [Oh My Zsh].
 
-1. Note the pinned [`tools-version`] in `examples/Cargo.toml`, which is required
-   (as of the time of this writing) for `cargo build-sbf --arch v4` to access
-   the `sbpfv4-solana-solana` target that was [removed in v1.52] of the
-   [`platform-tools`].
-
-   ::: details Cargo.toml
-
-   <<< ../../examples/Cargo.toml
-
-   :::
-
 1. Install [`rustfilt`], which is also required by [`dump.sh`]:
 
    ```sh:no-line-numbers
@@ -110,8 +99,13 @@ you to compare the two implementations side-by-side.
    | `hello_dasmac-dump.txt` | Dump of the output            |
 
    ```sh:no-line-numbers
-   cargo build-sbf --arch v4 --dump
+   cargo build-sbf --arch v4 --tools-version v1.51 --dump
    ```
+
+   > [!tip]
+   > The pinned [`tools-version`] is required (as of the time of this writing)
+   > for `cargo build-sbf --arch v4` to access the `sbpfv4-solana-solana` target
+   > that was [removed in v1.52] of the [`platform-tools`].
 
 1. Compare the two dumps, in particular the below highlighted sections. Note the
    considerable overhead introduced by the Rust implementation:
