@@ -26,7 +26,7 @@ jobs:
     #   shell: 'sh'
     #   working-directory: 'examples/memo'
     - name: 'Pre-download Criterion test framework'
-    - run: >-
+      run: >-
         $HOME/.local/share/solana/install/active_release/bin/platform-tools-sdk/sbf/scripts/install.sh
     - name: 'Build memo with cargo-build-sbf v4 --tools-version'
       run: 'cargo build-sbf --arch v4'
