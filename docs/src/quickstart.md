@@ -10,13 +10,13 @@ you to compare the two implementations side-by-side.
 
 1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
    install, in particular the [`dump.sh`] script [called internally] by
-   [`cargo build-sbf`] `--dump`, and the [LLVM] binaries it requires. This will
-   look something like:
+   [`cargo build-sbf`] `--dump`, and the [patched LLVM binaries] it requires.
+   This will look something like:
 
    ```sh
    # Solana tools.
-   export SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
-   export SOLANA_SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
+   SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
+   SOLANA_SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
    export PATH="$SOLANA_RELEASE:$PATH"
    export PATH="$SOLANA_SBPF_TOOLS/scripts:$PATH"
    export PATH="$SOLANA_SBPF_TOOLS/dependencies/platform-tools/llvm/bin:$PATH"
@@ -24,17 +24,6 @@ you to compare the two implementations side-by-side.
 
    > [!tip]
    > This example is from `~/.zshrc` on a Mac with [Oh My Zsh].
-
-1. Note the pinned [`tools-version`] in `examples/Cargo.toml`, which is required
-   (as of the time of this writing) for `cargo build-sbf --arch v4` to access
-   the `sbpfv4-solana-solana` target that was [removed in v1.52] of the
-   [`platform-tools`].
-
-   ::: details Cargo.toml
-
-   <<< ../../examples/Cargo.toml
-
-   :::
 
 1. Install [`rustfilt`], which is also required by [`dump.sh`]:
 
@@ -110,8 +99,13 @@ you to compare the two implementations side-by-side.
    | `hello_dasmac-dump.txt` | Dump of the output            |
 
    ```sh:no-line-numbers
-   cargo build-sbf --arch v4 --dump
+   cargo build-sbf --arch v4 --tools-version v1.51 --dump
    ```
+
+   > [!tip]
+   > The pinned [`tools-version`] is required (as of the time of this writing)
+   > for `cargo build-sbf --arch v4` to access the `sbpfv4-solana-solana` target
+   > that was [removed in v1.52] of the [`platform-tools`].
 
 1. Compare the two dumps, in particular the below highlighted sections. Note the
    considerable overhead introduced by the Rust implementation:
@@ -208,7 +202,7 @@ program!
 [called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
 [known issue]: https://stackoverflow.com/a/78398587
-[llvm]: https://llvm.org/
+[patched llvm binaries]: https://github.com/anza-xyz/platform-tools
 [loading up to sbpf v3]: https://github.com/anza-xyz/agave/blob/v3.1.2/feature-set/src/lib.rs#L140-L141
 [oh my zsh]: https://ohmyz.sh/
 [removed in v1.52]: https://github.com/anza-xyz/platform-tools/commit/9dcb73be29b1140467243867f38a388520c85251#diff-4d2a8eefdf2a9783512a35da4dc7676a66404b6f3826a8af9aad038722da6823L100
