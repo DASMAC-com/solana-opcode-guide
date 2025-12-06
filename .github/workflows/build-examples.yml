@@ -29,11 +29,11 @@ jobs:
       run: >-
         $HOME/.local/share/solana/install/active_release/bin/platform-tools-sdk/sbf/scripts/install.sh
     - name: 'Build memo with cargo-build-sbf v4'
-      run: 'cargo build-sbf --arch v4'
+      run: 'cargo build-sbf --arch v4 --tools-version v1.51'
       shell: 'sh'
       working-directory: 'examples/memo'
     - name: 'Build memo with cargo-build-sbf v3'
-      run: 'cargo build-sbf --arch v3'
+      run: 'cargo build-sbf --arch v3 --tools-version v1.52'
       shell: 'sh'
       working-directory: 'examples/memo'
     - name: 'Show rustup toolchain'
