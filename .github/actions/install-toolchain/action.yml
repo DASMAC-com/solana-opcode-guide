@@ -82,8 +82,5 @@ runs:
   - name: 'Verify all tools are installed'
     run: '${{ github.action_path }}/scripts/verify-tools.sh'
     shell: 'sh'
-  - name: 'Show rustup toolchain'
-    run: 'rustup show'
-    shell: 'sh'
   using: 'composite'
 ...
