@@ -12,3 +12,6 @@ solana-sdk = "3.0.0"
 
 [workspace.lints.rust]
 unexpected_cfgs = {level = "warn", check-cfg = ['cfg(target_os, values("solana"))']}
+
+[workspace.metadata.solana]
+tools-version = "v1.51"
