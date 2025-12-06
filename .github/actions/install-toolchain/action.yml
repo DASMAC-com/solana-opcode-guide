@@ -48,7 +48,6 @@ runs:
         ~/.cache/solana
         ~/.cargo/bin/sbpf
         ~/.local/share/solana
-        ~/.rustup/toolchains
   - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Install Solana toolchain'
     run: >-
@@ -72,6 +71,13 @@ runs:
     run: >-
       cargo install --git https://github.com/blueshift-gg/sbpf.git
       --rev ${{ inputs.sbpf-revision }}
+    shell: 'sh'
+  # The platform tools install command skips over the SBF install script (in
+  # the same directory as dump.sh), even though `cargo-build-sbf` runs it at
+  # build time. This step caches the result.
+  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
+    name: 'Run platform tools SBF install script'
+    run: 'install.sh'
     shell: 'sh'
   - name: 'Verify all tools are installed'
     run: '${{ github.action_path }}/scripts/verify-tools.sh'
