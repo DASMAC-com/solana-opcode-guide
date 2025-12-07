@@ -1,16 +1,12 @@
 ---
 description: 'Install quickstart toolchain'
 inputs:
-  platform-tools-version-sbpf-v3-arch:
-    default: 'v1.52'
-    description: 'Solana platform-tools version for SBPF v3 architecture'
-    required: false
-  platform-tools-version-sbpf-v4-arch:
+  platform-tools-version:
     default: 'v1.51'
-    description: 'Solana platform-tools version for SBPF v4 architecture'
+    description: 'Solana platform-tools version'
     required: false
   sbpf-revision:
-    default: '97f6ead8fe68f6329fb5015d7edbc6dcc2390d8b'
+    default: 'fae3e8a'
     description: 'sbpf CLI rev (git commit hash, tag, or branch) to install'
     required: false
   solana-version:
@@ -40,8 +36,7 @@ runs:
     with:
       key: 'solana-opcode-guide-toolchain-${{
             inputs.solana-version }}-${{
-            inputs.platform-tools-version-sbpf-v3-arch }}-${{
-            inputs.platform-tools-version-sbpf-v4-arch }}-${{
+            inputs.platform-tools-version }}-${{
             inputs.sbpf-revision }}-${{
             env.PLATFORM }}'
       path: |
@@ -55,22 +50,10 @@ runs:
       "${{ inputs.solana-version }}"
     shell: 'sh'
   - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
-    name: 'Install platform-tools (SBPF v3)'
+    name: 'Install platform-tools'
     run: >-
-      ${{ github.action_path }}/scripts/install-platform-tools.sh
-      ${{ inputs.platform-tools-version-sbpf-v3-arch }}
-    shell: 'sh'
-  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
-    name: 'Install platform-tools (SBPF v4)'
-    run: >-
-      ${{ github.action_path }}/scripts/install-platform-tools.sh
-      ${{ inputs.platform-tools-version-sbpf-v4-arch }}
-    shell: 'sh'
-  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
-    name: 'Install sbpf CLI'
-    run: >-
-      cargo install --git https://github.com/blueshift-gg/sbpf.git
-      --rev ${{ inputs.sbpf-revision }}
+      cargo-build-sbf --install-only --tools-version
+      ${{ inputs.platform-tools-version }}
     shell: 'sh'
   # The platform tools install command skips over the SBF install script (in
   # the same directory as dump.sh), even though `cargo-build-sbf` runs it at
@@ -78,6 +61,12 @@ runs:
   - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
     name: 'Run platform tools SBF install script'
     run: 'install.sh'
+    shell: 'sh'
+  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
+    name: 'Install sbpf CLI'
+    run: >-
+      cargo install --git https://github.com/blueshift-gg/sbpf.git
+      --rev ${{ inputs.sbpf-revision }}
     shell: 'sh'
   - name: 'Verify all tools are installed'
     run: '${{ github.action_path }}/scripts/verify-tools.sh'
