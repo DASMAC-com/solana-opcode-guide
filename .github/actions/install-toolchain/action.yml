@@ -17,18 +17,15 @@ name: 'Install toolchain'
 outputs:
   platform:
     description: 'Platform identifier (OS-ARCH)'
-    value: '${{ steps.set-platform.outputs.platform }}'
+    value: '${{ steps.set-path-vars.outputs.platform }}'
 runs:
   steps:
-  - id: 'set-platform'
-    name: 'Set platform identifier'
-    run: |
-      PLATFORM="${{ runner.os }}-${{ runner.arch }}"
-      echo "PLATFORM=${PLATFORM}" >> $GITHUB_ENV
-      echo "platform=${PLATFORM}" >> $GITHUB_OUTPUT
-    shell: 'sh'
-  - name: 'Add Solana tools to PATH'
-    run: '${{ github.action_path }}/scripts/add-solana-tools-to-path.sh'
+  - env:
+      RUNNER_ARCH: '${{ runner.arch }}'
+      RUNNER_OS: '${{ runner.os }}'
+    id: 'set-path-vars'
+    name: 'Set path variables'
+    run: '${{ github.action_path }}/scripts/set-path-vars.sh'
     shell: 'sh'
   - id: 'cache-toolchain'
     name: 'Cache toolchain components'
@@ -44,31 +41,14 @@ runs:
         ~/.cargo/bin/sbpf
         ~/.local/share/solana
   - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
-    name: 'Install Solana toolchain'
+    name: 'Install tools'
     run: >-
-      ${{ github.action_path }}/scripts/install-solana.sh
+      ${{ github.action_path }}/scripts/install-tools.sh
       "${{ inputs.solana-version }}"
+      "${{ inputs.platform-tools-version }}"
+      "${{ inputs.sbpf-revision }}"
     shell: 'sh'
-  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
-    name: 'Install platform-tools'
-    run: >-
-      cargo-build-sbf --install-only --tools-version
-      ${{ inputs.platform-tools-version }}
-    shell: 'sh'
-  # The platform tools install command skips over the SBF install script (in
-  # the same directory as dump.sh), even though `cargo-build-sbf` runs it at
-  # build time. This step caches the result.
-  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
-    name: 'Run platform tools SBF install script'
-    run: 'install.sh'
-    shell: 'sh'
-  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
-    name: 'Install sbpf CLI'
-    run: >-
-      cargo install --git https://github.com/blueshift-gg/sbpf.git
-      --rev ${{ inputs.sbpf-revision }}
-    shell: 'sh'
-  - name: 'Verify all tools are installed'
+  - name: 'Verify tools'
     run: '${{ github.action_path }}/scripts/verify-tools.sh'
     shell: 'sh'
   using: 'composite'
