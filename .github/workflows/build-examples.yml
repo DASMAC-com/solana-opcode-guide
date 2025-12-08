@@ -23,30 +23,45 @@ jobs:
         path: 'examples/target'
     - if: 'steps.cache-deps.outputs.cache-hit != ''true'''
       name: 'Cache dependencies'
-      run: 'sh .github/actions/install-toolchain/scripts/cache-deps.sh $SBPF_ARCH_A $TOOLS_VERSION_A $SBPF_ARCH_B $TOOLS_VERSION_B'
+      run: >-
+        sh .github/actions/install-toolchain/scripts/cache-deps.sh
+        "${{ env.SBPF_ARCH_A }}" "${{ env.TOOLS_VERSION_A }}"
+        "${{ env.SBPF_ARCH_B }}" "${{ env.TOOLS_VERSION_B }}"
       shell: 'sh'
     - name: 'Build memo with sbpf'
       run: 'sbpf build'
       shell: 'sh'
       working-directory: 'examples/memo'
-    - name: 'Build memo with cargo-build-sbf v4'
-      run: 'cargo build-sbf --arch v4 --tools-version v1.51'
+    - name: 'Build memo with cargo-build-sbf'
+      run: >-
+        cargo build-sbf
+        --arch ${{ env.SBPF_ARCH_A }}
+        --tools-version ${{ env.TOOLS_VERSION_A }}'
       shell: 'sh'
       working-directory: 'examples/memo'
-    - name: 'Build memo with cargo-build-sbf v3'
-      run: 'cargo build-sbf --arch v3 --tools-version v1.51'
+    - name: 'Build memo with cargo-build-sbf'
+      run: >-
+        cargo build-sbf
+        --arch ${{ env.SBPF_ARCH_B }}
+        --tools-version ${{ env.TOOLS_VERSION_B }}'
       shell: 'sh'
       working-directory: 'examples/memo'
     - name: 'Build hello-dasmac with sbpf'
       run: 'sbpf build'
       shell: 'sh'
       working-directory: 'examples/hello-dasmac'
-    - name: 'Build hello-dasmac with cargo-build-sbf v4'
-      run: 'cargo build-sbf --arch v4 --tools-version v1.51'
+    - name: 'Build hello-dasmac with cargo-build-sbf'
+      run: >-
+        cargo build-sbf
+        --arch ${{ env.SBPF_ARCH_A }}
+        --tools-version ${{ env.TOOLS_VERSION_A }}'
       shell: 'sh'
       working-directory: 'examples/hello-dasmac'
-    - name: 'Build hello-dasmac with cargo-build-sbf v3'
-      run: 'cargo build-sbf --arch v3 --tools-version v1.51'
+    - name: 'Build hello-dasmac with cargo-build-sbf'
+      run: >-
+        cargo build-sbf
+        --arch ${{ env.SBPF_ARCH_B }}
+        --tools-version ${{ env.TOOLS_VERSION_B }}'
       shell: 'sh'
       working-directory: 'examples/hello-dasmac'
     - name: 'Run tests'
