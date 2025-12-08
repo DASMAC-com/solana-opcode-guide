@@ -7,6 +7,7 @@ you to compare the two implementations side-by-side.
 ## :wrench: Set up your environment {#env-setup}
 
 1. Install [`rustup`] if you don't have it.
+
 1. Install the latest version of [`solana`].
 
 1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
@@ -212,15 +213,14 @@ program!
 > [`sbpf`] `init` command.
 
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
+[#10]: https://github.com/deanmlittle/vscode-sbpf-asm/pull/10
 [assembly]: https://en.wikipedia.org/wiki/Assembly_language
 [called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
 [known issue]: https://stackoverflow.com/a/78398587
-[patched llvm binaries]: https://github.com/anza-xyz/platform-tools
-[#10]: https://github.com/deanmlittle/vscode-sbpf-asm/pull/10
 [loading up to sbpf v3]: https://github.com/anza-xyz/agave/blob/v3.1.2/feature-set/src/lib.rs#L140-L141
 [oh my zsh]: https://ohmyz.sh/
-[`platform-tools` v1.52 removed]: https://github.com/anza-xyz/platform-tools/commit/9dcb73be29b1140467243867f38a388520c85251#diff-4d2a8eefdf2a9783512a35da4dc7676a66404b6f3826a8af9aad038722da6823L114-L115
+[patched llvm binaries]: https://github.com/anza-xyz/platform-tools
 [rust]: https://solana.com/docs/programs/rust
 [sbpf]: https://solana.com/docs/core/programs
 [sbpf v4]: https://github.com/anza-xyz/sbpf
@@ -230,9 +230,9 @@ program!
 [`dump.sh`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/sbf/scripts/dump.sh
 [`path`]: https://en.wikipedia.org/wiki/PATH_(variable)
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
-[`platform-tools`]: https://github.com/anza-xyz/platform-tools
+[`platform-tools` v1.52 removed]: https://github.com/anza-xyz/platform-tools/commit/9dcb73be29b1140467243867f38a388520c85251#diff-4d2a8eefdf2a9783512a35da4dc7676a66404b6f3826a8af9aad038722da6823L114-L115
 [`rustfilt`]: https://github.com/luser/rustfilt
+[`rustup`]: https://rustup.rs/
 [`sbpf`]: https://github.com/blueshift-gg/sbpf
 [`solana`]: https://docs.anza.xyz/cli/install
 [`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487
-[`rustup`]: https://rustup.rs/
