@@ -31,7 +31,7 @@ jobs:
     - if: 'steps.cache-deps.outputs.cache-hit != ''true'''
       name: 'Build dependencies'
       run: >-
-        sh .github/actions/install-toolchain/scripts/cache-deps.sh
+        sh .github/actions/install-toolchain/scripts/build-deps.sh
         "${{ env.SBPF_ARCH_DUMP }}" "${{ env.TOOLS_VERSION_DUMP }}"
         "${{ env.SBPF_ARCH_TEST }}" "${{ env.TOOLS_VERSION_TEST }}"
       shell: 'sh'
@@ -71,6 +71,10 @@ jobs:
         --tools-version ${{ env.TOOLS_VERSION_TEST }}
       shell: 'sh'
       working-directory: 'examples/hello-dasmac'
+    - name: 'Build examples'
+      run: 'cargo run --bin build-examples'
+      shell: 'sh'
+      working-directory: 'examples'
     - name: 'Run tests'
       run: 'cargo test'
       shell: 'sh'

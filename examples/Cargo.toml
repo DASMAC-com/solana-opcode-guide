@@ -1,13 +1,20 @@
 # cspell:word cfgs
 
 [workspace]
-members = ["hello-dasmac", "memo", "utils/program-deps", "utils/test-utils"]
+members = [
+    "hello-dasmac",
+    "memo",
+    "utils/build-examples",
+    "utils/deps/build",
+    "utils/deps/program",
+]
 resolver = "2"
 
 [workspace.dependencies]
 mollusk-svm = "0.7.2"
 pinocchio = "0.9.2"
 solana-sdk = "3.0.0"
+toml = "0.9.8"
 
 [workspace.lints.rust]
 unexpected_cfgs = {level = "warn", check-cfg = ['cfg(target_os, values("solana"))']}

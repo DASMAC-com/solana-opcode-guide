@@ -1,0 +1,12 @@
+[package]
+name = "build-examples"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+toml.workspace = true
+
+[[bin]]
+name = "build-examples"
+path = "src/main.rs"
