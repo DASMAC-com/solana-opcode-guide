@@ -1,6 +1,6 @@
 [dependencies]
-mollusk-svm = {workspace = true}
-solana-sdk = {workspace = true}
+mollusk-svm.workspace = true
+solana-sdk.workspace = true
 
 [lints]
 workspace = true

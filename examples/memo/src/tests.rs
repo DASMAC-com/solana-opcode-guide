@@ -35,7 +35,7 @@ fn test_rs() {
     happy_path(ProgramLanguage::Rust);
 }
 
-fn happy_path(program_language: test_utils::ProgramLanguage) {
+fn happy_path(program_language: ProgramLanguage) {
     let setup = setup_test!(program_language);
 
     // Create an instruction with a simple memo message.
