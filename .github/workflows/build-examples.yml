@@ -2,6 +2,8 @@
 env:
   SBPF_ARCH_DUMP: 'v4'
   SBPF_ARCH_TEST: 'v3'
+  SBPF_CLI_REVISION: 'fae3e8a'
+  SOLANA_VERSION: 'v3.1.2'
   TOOLS_VERSION_DUMP: 'v1.51'
   TOOLS_VERSION_TEST: 'v1.51'
 jobs:
@@ -14,6 +16,11 @@ jobs:
     - id: 'install-toolchain'
       name: 'Install toolchain'
       uses: './.github/actions/install-toolchain'
+      with:
+        tools-version-dump: '${{ env.TOOLS_VERSION_DUMP }}'
+        tools-version-test: '${{ env.TOOLS_VERSION_TEST }}'
+        sbpf-cli-revision: '${{ env.SBPF_CLI_REVISION }}'
+        solana-version: '${{ env.SOLANA_VERSION }}'
     - id: 'cache-deps'
       name: 'Cache dependencies'
       uses: 'actions/cache@v4'

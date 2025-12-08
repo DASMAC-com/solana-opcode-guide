@@ -1,18 +1,18 @@
 ---
 description: 'Install quickstart toolchain'
 inputs:
-  platform-tools-version:
-    default: 'v1.51'
-    description: 'Solana platform-tools version'
-    required: false
-  sbpf-revision:
-    default: 'fae3e8a'
+  tools-version-dump:
+    description: 'Solana platform-tools version for Rust compilation dumps'
+    required: true
+  tools-version-test:
+    description: 'Solana platform-tools version for Rust compilation tests'
+    required: true
+  sbpf-cli-revision:
     description: 'sbpf CLI rev (git commit hash, tag, or branch) to install'
-    required: false
+    required: true
   solana-version:
-    default: 'v3.1.2'
     description: 'Solana version to install'
-    required: false
+    required: true
 name: 'Install toolchain'
 outputs:
   platform:
@@ -33,8 +33,9 @@ runs:
     with:
       key: 'solana-opcode-guide-toolchain-${{
             inputs.solana-version }}-${{
-            inputs.platform-tools-version }}-${{
-            inputs.sbpf-revision }}-${{
+            inputs.tools-version-dump }}-${{
+            inputs.tools-version-test }}-${{
+            inputs.sbpf-cli-revision }}-${{
             env.PLATFORM }}'
       path: |
         ~/.cache/solana
@@ -45,8 +46,9 @@ runs:
     run: >-
       ${{ github.action_path }}/scripts/install-tools.sh
       "${{ inputs.solana-version }}"
-      "${{ inputs.platform-tools-version }}"
-      "${{ inputs.sbpf-revision }}"
+      "${{ inputs.tools-version-dump }}"
+      "${{ inputs.tools-version-test }}"
+      "${{ inputs.sbpf-cli-revision }}"
     shell: 'sh'
   - name: 'Verify tools'
     run: '${{ github.action_path }}/scripts/verify-tools.sh'
