@@ -1,0 +1,14 @@
+[package]
+edition = "2021"
+name = "program-stub"
+publish = false
+version = "0.1.0"
+
+[dependencies]
+pinocchio.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[lints]
+workspace = true
