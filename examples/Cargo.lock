@@ -897,6 +897,7 @@ version = "0.1.0"
 dependencies = [
  "mollusk-svm",
  "pinocchio",
+ "solana-sdk",
  "test-utils",
 ]
 
