@@ -29,7 +29,7 @@ jobs:
               }}-${{ hashFiles(''examples/Cargo.lock'') }}'
         path: 'examples/target'
     - if: 'steps.cache-deps.outputs.cache-hit != ''true'''
-      name: 'Cache dependencies'
+      name: 'Build dependencies'
       run: >-
         sh .github/actions/install-toolchain/scripts/cache-deps.sh
         "${{ env.SBPF_ARCH_DUMP }}" "${{ env.TOOLS_VERSION_DUMP }}"
