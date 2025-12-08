@@ -1,4 +1,9 @@
 ---
+env:
+  SBPF_ARCH_A: 'v3'
+  SBPF_ARCH_B: 'v4'
+  TOOLS_VERSION_A: 'v1.51'
+  TOOLS_VERSION_B: 'v1.51'
 jobs:
   build-examples:
     name: 'Build examples'
@@ -9,18 +14,17 @@ jobs:
     - id: 'install-toolchain'
       name: 'Install toolchain'
       uses: './.github/actions/install-toolchain'
-    - id: 'cache-test-deps'
-      name: 'Cache test dependencies'
+    - id: 'cache-deps'
+      name: 'Cache dependencies'
       uses: 'actions/cache@v4'
       with:
         key: 'cargo-test-examples-${{ steps.install-toolchain.outputs.platform
               }}-${{ hashFiles(''examples/Cargo.lock'') }}'
         path: 'examples/target'
-    - if: 'steps.cache-test-deps.outputs.cache-hit != ''true'''
-      name: 'Build test dependencies'
-      run: 'cargo test --no-run'
+    - if: 'steps.cache-deps.outputs.cache-hit != ''true'''
+      name: 'Cache dependencies'
+      run: 'sh .github/actions/install-toolchain/scripts/cache-deps.sh $SBPF_ARCH_A $TOOLS_VERSION_A $SBPF_ARCH_B $TOOLS_VERSION_B'
       shell: 'sh'
-      working-directory: 'examples'
     - name: 'Build memo with sbpf'
       run: 'sbpf build'
       shell: 'sh'

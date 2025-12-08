@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "program-stub"
+name = "program-deps"
 publish = false
 version = "0.1.0"
 

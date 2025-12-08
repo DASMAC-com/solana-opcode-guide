@@ -1387,7 +1387,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "program-stub"
+name = "program-deps"
 version = "0.1.0"
 dependencies = [
  "pinocchio",
