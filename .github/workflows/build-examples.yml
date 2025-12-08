@@ -1,9 +1,9 @@
 ---
 env:
-  SBPF_ARCH_A: 'v3'
-  SBPF_ARCH_B: 'v4'
-  TOOLS_VERSION_A: 'v1.51'
-  TOOLS_VERSION_B: 'v1.51'
+  SBPF_ARCH_DUMP: 'v4'
+  SBPF_ARCH_TEST: 'v3'
+  TOOLS_VERSION_DUMP: 'v1.51'
+  TOOLS_VERSION_TEST: 'v1.51'
 jobs:
   build-examples:
     name: 'Build examples'
@@ -25,8 +25,8 @@ jobs:
       name: 'Cache dependencies'
       run: >-
         sh .github/actions/install-toolchain/scripts/cache-deps.sh
-        "${{ env.SBPF_ARCH_A }}" "${{ env.TOOLS_VERSION_A }}"
-        "${{ env.SBPF_ARCH_B }}" "${{ env.TOOLS_VERSION_B }}"
+        "${{ env.SBPF_ARCH_DUMP }}" "${{ env.TOOLS_VERSION_DUMP }}"
+        "${{ env.SBPF_ARCH_TEST }}" "${{ env.TOOLS_VERSION_TEST }}"
       shell: 'sh'
     - name: 'Build memo with sbpf'
       run: 'sbpf build'
@@ -35,15 +35,15 @@ jobs:
     - name: 'Build memo with cargo-build-sbf'
       run: >-
         cargo build-sbf
-        --arch ${{ env.SBPF_ARCH_A }}
-        --tools-version ${{ env.TOOLS_VERSION_A }}
+        --arch ${{ env.SBPF_ARCH_DUMP }}
+        --tools-version ${{ env.TOOLS_VERSION_DUMP }}
       shell: 'sh'
       working-directory: 'examples/memo'
     - name: 'Build memo with cargo-build-sbf'
       run: >-
         cargo build-sbf
-        --arch ${{ env.SBPF_ARCH_B }}
-        --tools-version ${{ env.TOOLS_VERSION_B }}
+        --arch ${{ env.SBPF_ARCH_TEST }}
+        --tools-version ${{ env.TOOLS_VERSION_TEST }}
       shell: 'sh'
       working-directory: 'examples/memo'
     - name: 'Build hello-dasmac with sbpf'
@@ -53,15 +53,15 @@ jobs:
     - name: 'Build hello-dasmac with cargo-build-sbf'
       run: >-
         cargo build-sbf
-        --arch ${{ env.SBPF_ARCH_A }}
-        --tools-version ${{ env.TOOLS_VERSION_A }}
+        --arch ${{ env.SBPF_ARCH_DUMP }}
+        --tools-version ${{ env.TOOLS_VERSION_DUMP }}
       shell: 'sh'
       working-directory: 'examples/hello-dasmac'
     - name: 'Build hello-dasmac with cargo-build-sbf'
       run: >-
         cargo build-sbf
-        --arch ${{ env.SBPF_ARCH_B }}
-        --tools-version ${{ env.TOOLS_VERSION_B }}
+        --arch ${{ env.SBPF_ARCH_TEST }}
+        --tools-version ${{ env.TOOLS_VERSION_TEST }}
       shell: 'sh'
       working-directory: 'examples/hello-dasmac'
     - name: 'Run tests'
