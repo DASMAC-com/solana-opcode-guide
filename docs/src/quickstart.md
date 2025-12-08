@@ -1,3 +1,5 @@
+<!-- cspell:word rustup -->
+
 # Quickstart
 
 This quickstart guide will help you set up your environment to build and test
@@ -29,7 +31,8 @@ you to compare the two implementations side-by-side.
 
 1. Install [`cargo build-sbf`] with [`tools-version`] `v1.51`, which is required
    (as of the time of this writing) to compile to [SBPF v3 and v4][sbpf v4]
-   since [`platform-tools` v1.52 removed] the `sbpfv3-solana-solana` and `sbpfv4-solana-solana` targets and there is no newer supporting version than
+   since [`platform-tools` v1.52 removed] the `sbpfv3-solana-solana` and
+   `sbpfv4-solana-solana` targets and there is no newer supporting version than
    `v1.51`.
 
    ```sh:no-line-numbers
