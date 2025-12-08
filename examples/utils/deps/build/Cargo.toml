@@ -2,8 +2,8 @@
 workspace = true
 
 [dependencies]
+cargo-manifest.workspace = true
 pinocchio.workspace = true
-toml.workspace = true
 
 [dev-dependencies]
 mollusk-svm.workspace = true
