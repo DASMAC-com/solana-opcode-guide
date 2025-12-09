@@ -266,6 +266,9 @@ fn build_example(
 
     // Run tests and save snippets.
     run_and_save_test_snippets(path, package_name);
+
+    // Verify code snippets match source files.
+    verify_code_snippets(path, package_name);
 }
 
 /// For any lines containing "{package_name}.so", replace the start of the line up until the match
@@ -412,4 +415,67 @@ fn clean_test_output(output: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+/// Verify that code snippets in snippets/asm and snippets/rs match the source files.
+fn verify_code_snippets(path: &Path, package_name: &str) {
+    let snippets_dir = path.join("snippets");
+
+    // Check asm snippets against the .s source file.
+    let asm_snippets_dir = snippets_dir.join("asm");
+    if asm_snippets_dir.exists() {
+        let asm_source_path = path.join(format!("src/{}/{}.s", package_name, package_name));
+        let asm_source = fs::read_to_string(&asm_source_path)
+            .unwrap_or_else(|_| panic!("failed to read {}", asm_source_path.display()));
+        verify_snippets_in_source(&asm_snippets_dir, &asm_source, "asm");
+    }
+
+    // Check rs snippets against the program.rs source file.
+    let rs_snippets_dir = snippets_dir.join("rs");
+    if rs_snippets_dir.exists() {
+        let rs_source_path = path.join("src/program.rs");
+        let rs_source = fs::read_to_string(&rs_source_path)
+            .unwrap_or_else(|_| panic!("failed to read {}", rs_source_path.display()));
+        verify_snippets_in_source(&rs_snippets_dir, &rs_source, "rs");
+    }
+}
+
+/// Verify all .txt snippets in a directory exist in the source content.
+fn verify_snippets_in_source(snippets_dir: &Path, source: &str, snippet_type: &str) {
+    let entries = fs::read_dir(snippets_dir).unwrap_or_else(|_| {
+        panic!(
+            "failed to read snippets directory: {}",
+            snippets_dir.display()
+        )
+    });
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.extension().is_some_and(|ext| ext == "txt") {
+            let snippet_name = path.file_name().unwrap().to_str().unwrap();
+            let snippet_content = fs::read_to_string(&path)
+                .unwrap_or_else(|_| panic!("failed to read snippet: {}", path.display()));
+
+            // Normalize whitespace for comparison (trim trailing whitespace from each line).
+            let normalized_snippet: String = snippet_content
+                .lines()
+                .map(|line| line.trim_end())
+                .collect::<Vec<_>>()
+                .join("\n");
+
+            let normalized_source: String = source
+                .lines()
+                .map(|line| line.trim_end())
+                .collect::<Vec<_>>()
+                .join("\n");
+
+            assert!(
+                normalized_source.contains(&normalized_snippet),
+                "snippet '{}' in snippets/{} not found in source file:\n---\n{}\n---",
+                snippet_name,
+                snippet_type,
+                snippet_content
+            );
+        }
+    }
 }
