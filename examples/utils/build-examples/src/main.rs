@@ -44,12 +44,21 @@ fn main() {
         }
     }
 
-    // Parse dependencies from non-example crates.
+    check_dependencies(utils_path, program_dependencies, dev_dependencies);
+}
+
+fn check_dependencies(
+    utils_path: Option<PathBuf>,
+    program_dependencies: HashSet<String>,
+    mut dev_dependencies: HashSet<String>,
+) {
+    // Parse dependencies from utils crates.
     let utils_path = utils_path.expect("missing utils directory");
     let test_utils_crate = &utils_path.clone().join("test-utils");
     let build_examples_crate = &utils_path.clone().join("build-examples");
     let mut build_dependencies = program_dependencies.clone();
 
+    // Extend the dependency sets. Note all test utils are dev-dependencies.
     extend_dep_set(&mut dev_dependencies, test_utils_crate, DepKind::Regular);
     extend_dep_set(&mut dev_dependencies, build_examples_crate, DepKind::Dev);
     extend_dep_set(
@@ -58,7 +67,7 @@ fn main() {
         DepKind::Regular,
     );
 
-    // Verify program dependencies.
+    // Get program and build dependency crates manifests.
     let deps_path = utils_path.join("deps");
     let program_deps_crate = deps_path.join("program");
     let build_deps_crate = deps_path.join("build");

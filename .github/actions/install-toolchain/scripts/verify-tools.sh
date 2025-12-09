@@ -5,5 +5,6 @@ set -e
 which dump.sh
 llvm-objdump --version
 llvm-readelf --version
+rustfilt --version
 solana --version
 sbpf --version
