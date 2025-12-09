@@ -225,23 +225,41 @@ fn build_example(
 
     // Dump the sbpf build.
     let asm_build_path = path.join(format!("deploy/{}.so", package_name));
+    let dump_dir_path = path.join("dumps");
+    let asm_dump_path = dump_dir_path.join("asm.txt");
     run_command(
-        &["dump.sh", asm_build_path.to_str().unwrap(), "dumps/asm.txt"],
+        &[
+            "dump.sh",
+            asm_build_path.to_str().unwrap(),
+            asm_dump_path.to_str().unwrap(),
+        ],
         path,
     );
 
-    // In the sbpf build file, find all lines that contain the build path and replace all the text up until the build path with "{package-name}.so"
-    let dump_path = path.join("dumps/asm.txt");
-    let dump_contents = fs::read_to_string(&dump_path).expect("failed to read dump file");
-    let build_path_str = asm_build_path.to_str().unwrap();
-    let modified_dump_contents = dump_contents
+    // Move the cargo-build-sbf dump file.
+    let rs_dump_path_old = path
+        .join("../target/deploy/")
+        .join(package_name.replace("-", "_") + "-dump.txt");
+    let rs_dump_path = dump_dir_path.join("rs.txt");
+    fs::rename(&rs_dump_path_old, &rs_dump_path).expect("failed to move cargo-build-sbf dump");
+
+    // Clean metadata for the dump files.
+    clean_dump_file_metadata(&asm_dump_path, package_name);
+    clean_dump_file_metadata(&rs_dump_path, &package_name.replace("-", "_"));
+}
+
+/// For any lines containing "{package_name}.so", replace the start of the line up until the match
+/// with just "{package_name}.so". This removes any build-path-specific metadata.
+fn clean_dump_file_metadata(dump_path: &Path, package_name: &str) {
+    let dump_contents = fs::read_to_string(dump_path).expect("failed to read dump file");
+    let modified_contents = dump_contents
         .lines()
         .map(|line| {
-            if let Some(index) = line.find(build_path_str) {
+            if let Some(index) = line.find(format!("{}.so", package_name).as_str()) {
                 format!(
-                    "{}{}",
-                    package_name.to_string() + ".so",
-                    &line[index + build_path_str.len()..]
+                    "{}.so{}",
+                    package_name,
+                    &line[index + format!("{}.so", package_name).len()..]
                 )
             } else {
                 line.to_string()
@@ -249,12 +267,5 @@ fn build_example(
         })
         .collect::<Vec<String>>()
         .join("\n");
-    fs::write(&dump_path, modified_dump_contents).expect("failed to write modified dump file");
-
-    // Move the cargo-build-sbf dump.
-    let rs_build_path = path
-        .join("../target/deploy/")
-        .join(package_name.replace("-", "_") + "-dump.txt");
-    let rs_dump_path = path.join("dumps/rs.txt");
-    fs::rename(&rs_build_path, &rs_dump_path).expect("failed to move cargo-build-sbf dump");
+    fs::write(dump_path, modified_contents).expect("failed to write modified dump file");
 }
