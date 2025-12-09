@@ -382,6 +382,7 @@ dependencies = [
  "cargo-manifest",
  "mollusk-svm",
  "pinocchio",
+ "regex",
  "solana-sdk",
  "test-utils",
 ]
@@ -391,6 +392,7 @@ name = "build-examples"
 version = "0.1.0"
 dependencies = [
  "cargo-manifest",
+ "regex",
 ]
 
 [[package]]

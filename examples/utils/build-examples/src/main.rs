@@ -1,4 +1,5 @@
 use cargo_manifest::Manifest;
+use regex::Regex;
 use std::collections::HashSet;
 use std::env::current_dir;
 use std::fs;
@@ -261,6 +262,9 @@ fn build_example(
         ],
         path,
     );
+
+    // Run tests and save snippets.
+    run_and_save_test_snippets(path, package_name);
 }
 
 /// For any lines containing "{package_name}.so", replace the start of the line up until the match
@@ -283,4 +287,101 @@ fn clean_dump_file_metadata(dump_path: &Path, package_name: &str) {
         .collect::<Vec<String>>()
         .join("\n");
     fs::write(dump_path, modified_contents).expect("failed to write modified dump file");
+}
+
+/// Discover test functions in the tests.rs file and return (test_name, test_code) pairs.
+fn discover_tests(tests_path: &Path) -> Vec<(String, String)> {
+    let contents = fs::read_to_string(tests_path).expect("failed to read tests.rs");
+
+    // Match #[test] followed by fn test_name(...) { ... }
+    // Find matching braces to extract the full function body.
+    let test_attr_re = Regex::new(r"#\[test\]\s*\n\s*fn\s+(\w+)").unwrap();
+
+    let mut tests = Vec::new();
+
+    for cap in test_attr_re.captures_iter(&contents) {
+        let test_name = cap.get(1).unwrap().as_str().to_string();
+        let match_start = cap.get(0).unwrap().start();
+
+        // Find the opening brace of the function.
+        let rest = &contents[match_start..];
+        if let Some(brace_start) = rest.find('{') {
+            // Count braces to find the matching closing brace.
+            let mut brace_count = 0;
+            let mut end_pos = 0;
+            for (i, c) in rest[brace_start..].char_indices() {
+                match c {
+                    '{' => brace_count += 1,
+                    '}' => {
+                        brace_count -= 1;
+                        if brace_count == 0 {
+                            end_pos = brace_start + i + 1;
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            if end_pos > 0 {
+                let test_code = rest[..end_pos].to_string();
+                tests.push((test_name, test_code));
+            }
+        }
+    }
+
+    tests
+}
+
+/// Run tests and save snippets for each test.
+fn run_and_save_test_snippets(path: &Path, package_name: &str) {
+    let tests_path = path.join("src/tests.rs");
+    assert!(
+        tests_path.exists(),
+        "missing tests.rs file: {}",
+        tests_path.display()
+    );
+
+    let tests = discover_tests(&tests_path);
+    let snippets_dir = path.join("snippets");
+
+    for (test_name, test_code) in tests {
+        // Create the snippet directory.
+        let test_dir = snippets_dir.join(&test_name);
+        fs::create_dir_all(&test_dir).expect("failed to create snippet directory");
+
+        // Save the test code.
+        let test_file = test_dir.join("test.txt");
+        fs::write(&test_file, &test_code).expect("failed to write test.txt");
+
+        // Run the test and capture output.
+        let full_test_name = format!("tests::{}", test_name);
+        let test_output = std::process::Command::new("cargo")
+            .args([
+                "test",
+                "--package",
+                package_name,
+                "--lib",
+                "--",
+                &full_test_name,
+                "--exact",
+                "--nocapture",
+            ])
+            .current_dir(path)
+            .output()
+            .expect("failed to run cargo test");
+        assert!(
+            test_output.status.success(),
+            "test failed: {}",
+            full_test_name
+        );
+
+        // Combine stdout and stderr for the result.
+        let mut result = String::from_utf8_lossy(&test_output.stdout).to_string();
+        if !test_output.stderr.is_empty() {
+            result.push_str(&String::from_utf8_lossy(&test_output.stderr));
+        }
+
+        let result_file = test_dir.join("result.txt");
+        fs::write(&result_file, result).expect("failed to write result.txt");
+    }
 }

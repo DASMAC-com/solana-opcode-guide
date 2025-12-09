@@ -4,6 +4,7 @@ workspace = true
 [dependencies]
 cargo-manifest.workspace = true
 pinocchio.workspace = true
+regex.workspace = true
 
 [dev-dependencies]
 mollusk-svm.workspace = true

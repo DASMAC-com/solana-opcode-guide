@@ -6,6 +6,7 @@ publish = false
 
 [dependencies]
 cargo-manifest.workspace = true
+regex.workspace = true
 
 [[bin]]
 name = "build-examples"
