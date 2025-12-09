@@ -238,14 +238,16 @@ fn build_example(
 
     // Disassemble the cargo-build-sbf file.
     let rs_build_path = rs_deploy_dir_path.join(rs_package_name + ".so");
-    run_command(
-        &[
-            "sbpf",
-            "disassemble",
-            rs_build_path.file_name().unwrap().to_str().unwrap(),
-        ],
-        &rs_deploy_dir_path,
+    let rs_asm_path = dump_dir_path.join("rs.s");
+    let disassemble_output = std::process::Command::new("sbpf")
+        .args(["disassemble", rs_build_path.to_str().unwrap()])
+        .output()
+        .expect("failed to run: sbpf disassemble");
+    assert!(
+        disassemble_output.status.success(),
+        "command failed: sbpf disassemble"
     );
+    fs::write(&rs_asm_path, disassemble_output.stdout).expect("failed to write rs.s");
 
     // Build the testable version of the program now that dumps are done.
     run_command(
