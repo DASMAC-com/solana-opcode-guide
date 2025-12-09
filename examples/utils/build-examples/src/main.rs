@@ -222,4 +222,39 @@ fn build_example(
         ],
         path,
     );
+
+    // Dump the sbpf build.
+    let asm_build_path = path.join(format!("deploy/{}.so", package_name));
+    run_command(
+        &["dump.sh", asm_build_path.to_str().unwrap(), "dumps/asm.txt"],
+        path,
+    );
+
+    // In the sbpf build file, find all lines that contain the build path and replace all the text up until the build path with "{package-name}.so"
+    let dump_path = path.join("dumps/asm.txt");
+    let dump_contents = fs::read_to_string(&dump_path).expect("failed to read dump file");
+    let build_path_str = asm_build_path.to_str().unwrap();
+    let modified_dump_contents = dump_contents
+        .lines()
+        .map(|line| {
+            if let Some(index) = line.find(build_path_str) {
+                format!(
+                    "{}{}",
+                    package_name.to_string() + ".so",
+                    &line[index + build_path_str.len()..]
+                )
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+    fs::write(&dump_path, modified_dump_contents).expect("failed to write modified dump file");
+
+    // Move the cargo-build-sbf dump.
+    let rs_build_path = path
+        .join("../target/deploy/")
+        .join(package_name.replace("-", "_") + "-dump.txt");
+    let rs_dump_path = path.join("dumps/rs.txt");
+    fs::rename(&rs_build_path, &rs_dump_path).expect("failed to move cargo-build-sbf dump");
 }
