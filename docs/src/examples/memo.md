@@ -74,7 +74,13 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 
 Note the minimal [compute unit] consumption for a failure:
 
-<<< ../../../examples/memo/test-runs/asm_fail.txt{2 sh:line-numbers}
+<<< ../../../examples/memo/snippets/test_asm_fail/result.txt{3 sh:line-numbers}
+
+::: details test_asm_fail
+
+<<< ../../../examples/memo/snippets/test_asm_fail/test.txt{rs:line-numbers}
+
+:::
 
 ## :speech_balloon: Logging
 
@@ -104,7 +110,13 @@ After the logging operation, the program concludes:
 
 Note the [compute unit] consumption for a successful log:
 
-<<< ../../../examples/memo/test-runs/asm_pass.txt{3 sh:line-numbers}
+<<< ../../../examples/memo/snippets/test_asm_pass/result.txt{4 sh:line-numbers}
+
+::: details test_asm_pass
+
+<<< ../../../examples/memo/snippets/test_asm_pass/test.txt{rs:line-numbers}
+
+:::
 
 ## :crab: Rust implementation
 
@@ -115,7 +127,13 @@ with the passed instruction data.
 
 Notably, however, it introduces [compute unit] overhead:
 
-<<< ../../../examples/memo/test-runs/rs.txt{3 sh:line-numbers}
+<<< ../../../examples/memo/snippets/test_rs/result.txt{4 sh:line-numbers}
+
+::: details test_rs
+
+<<< ../../../examples/memo/snippets/test_rs/test.txt{rs:line-numbers}
+
+:::
 
 ## :white_check_mark: Tests
 

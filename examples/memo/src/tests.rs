@@ -9,7 +9,7 @@ use test_utils::{setup_test, ProgramLanguage};
 fn test_asm_fail() {
     let setup = setup_test!(ProgramLanguage::Assembly);
 
-    // Create a mock account will trigger an error when passed.
+    // Create a mock account that will trigger an error when passed.
     let mock_account_pubkey = Pubkey::new_unique();
     let mock_account_data = AccountSharedData::default();
     let accounts = vec![AccountMeta::new(mock_account_pubkey, false)];

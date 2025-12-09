@@ -143,23 +143,18 @@ you to compare the two implementations side-by-side.
 
    :::
 
-   > [!tip]
-   >
-   > You can generate a similar output using the [`sbpf`] `disassemble` command:
-   >
-   > ```sh:no-line-numbers
-   > sbpf disassemble deploy/hello-dasmac.so > deploy/asm-disassembly.json
-   > ```
-   >
-   > ::: details Output
-   >
-   > <!-- markdownlint-disable MD013 -->
-   >
-   > <<< ../../examples/hello-dasmac/dumps/asm-disassembly.json
-   >
-   > <!-- markdownlint-enable MD013 -->
-   >
-   > :::
+1. Run [`sbpf`] `disassemble` on the Rust build output to see its corresponding
+   assembly implementation:
+
+    ```sh:no-line-numbers
+    sbpf disassemble ../target/deploy/hello_dasmac.so > dumps/rs.s
+    ```
+
+   ::: details Output
+
+   <<< ../../examples/hello-dasmac/dumps/rs.s{asm}
+
+   :::
 
 1. Run the assembly implementation test.
 
@@ -198,13 +193,21 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/test-runs/asm.txt{3 sh:line-numbers} [Assembly]
+   <<< ../../examples/hello-dasmac/snippets/test_asm/result.txt{4 sh:line-numbers} [Assembly]
 
-   <<< ../../examples/hello-dasmac/test-runs/rs.txt{3 sh:line-numbers} [Rust]
+   <<< ../../examples/hello-dasmac/snippets/test_rs/result.txt{4 sh:line-numbers} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
    :::
+
+> [!tip]
+> To run these commands on all examples, run from inside the `examples`
+> directory:
+>
+> ```sh
+> cargo run --bin build-examples
+> ```
 
 ## :tada: Congratulations :tada:
 
