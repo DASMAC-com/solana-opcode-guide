@@ -30,90 +30,13 @@ fn main() {
         } else if dir == "utils" {
             utils_path = Some(path.clone());
         } else {
-            // Collect dependencies for build caching.
-            let manifest = crate_manifest(&path);
-            assert!(
-                manifest
-                    .package
-                    .clone()
-                    .expect("missing package section")
-                    .name
-                    == dir.to_str().unwrap(),
-                "directory name and package name do not match"
+            process_example(
+                &path,
+                &mut examples_keypair,
+                &mut dev_dependencies,
+                &mut program_dependencies,
             );
-            extend_dep_set(&mut dev_dependencies, &path, true);
-            extend_dep_set(&mut program_dependencies, &path, false);
-
-            // Verify keypair matches across all examples.
-            let keypair_path = path.join(format!("deploy/{}-keypair.json", dir.to_str().unwrap()));
-            let keypair = fs::read_to_string(&keypair_path).expect("failed to read keypair file");
-            if examples_keypair.is_none() {
-                examples_keypair = Some(keypair);
-            } else {
-                assert_eq!(
-                    examples_keypair.as_ref().unwrap(),
-                    &keypair,
-                    "example keypair does not match: {}",
-                    keypair_path.display()
-                );
-            }
-
-            // Verify there is an assembly file at src/{package-name}/{package-name}.s
-            let package_name = dir.to_str().unwrap();
-            let asm_path = path.join(format!("src/{}/{}.s", package_name, package_name));
-            assert!(
-                asm_path.exists(),
-                "missing assembly file: {}",
-                asm_path.display()
-            );
-
-            // Run sbpf build.
-            let build_status = std::process::Command::new("sbpf")
-                .arg("build")
-                .current_dir(&path)
-                .status()
-                .expect("failed to run sbpf build");
-            assert!(
-                build_status.success(),
-                "cargo sbpf build failed for example: {}",
-                dir.to_str().unwrap()
-            );
-
-            // Run cargo build-sbf and dump it.
-            let dump_status = std::process::Command::new("cargo")
-                .args([
-                    "build-sbf",
-                    "--arch",
-                    SBPF_ARCH_DUMP,
-                    "--tools-version",
-                    TOOLS_VERSION_DUMP,
-                    "--dump",
-                ])
-                .current_dir(&path)
-                .status()
-                .expect("failed to run cargo build-sbf --dump");
-            assert!(
-                dump_status.success(),
-                "cargo build-sbf --dump failed for example: {}",
-                dir.to_str().unwrap()
-            );
-
-            // Run cargo build-sbf for testing.
-            let test_status = std::process::Command::new("cargo")
-                .arg("build-sbf")
-                .arg("--arch")
-                .arg(SBPF_ARCH_TEST)
-                .arg("--tools-version")
-                .arg(TOOLS_VERSION_TEST)
-                .current_dir(&path)
-                .status()
-                .expect("failed to run cargo build-sbf");
-            assert!(
-                test_status.success(),
-                "cargo build-sbf failed for example: {}",
-                dir.to_str().unwrap()
-            );
-        };
+        }
     }
 
     // Parse dependencies from non-example crates.
@@ -207,4 +130,88 @@ fn dependency_section_str(dev_deps: &bool) -> &str {
     } else {
         "[dependencies]"
     }
+}
+
+fn run_command(tokens: &[&str], current_dir: &Path) {
+    let (cmd, args) = tokens
+        .split_first()
+        .expect("command tokens cannot be empty");
+    let status = std::process::Command::new(cmd)
+        .args(args)
+        .current_dir(current_dir)
+        .status()
+        .unwrap_or_else(|_| panic!("failed to run: {}", tokens.join(" ")));
+    assert!(status.success(), "command failed: {}", tokens.join(" "));
+}
+
+fn process_example(
+    path: &Path,
+    examples_keypair: &mut Option<String>,
+    dev_dependencies: &mut HashSet<String>,
+    program_dependencies: &mut HashSet<String>,
+) {
+    let dir = path.file_name().expect("failed to get directory name");
+    let package_name = dir.to_str().unwrap();
+
+    // Collect dependencies for build caching.
+    let manifest = crate_manifest(path);
+    assert!(
+        manifest
+            .package
+            .clone()
+            .expect("missing package section")
+            .name
+            == package_name,
+        "directory name and package name do not match"
+    );
+    extend_dep_set(dev_dependencies, path, true);
+    extend_dep_set(program_dependencies, path, false);
+
+    // Verify keypair matches across all examples.
+    let keypair_path = path.join(format!("deploy/{}-keypair.json", package_name));
+    let keypair = fs::read_to_string(&keypair_path).expect("failed to read keypair file");
+    if examples_keypair.is_none() {
+        *examples_keypair = Some(keypair);
+    } else {
+        assert_eq!(
+            examples_keypair.as_ref().unwrap(),
+            &keypair,
+            "example keypair does not match: {}",
+            keypair_path.display()
+        );
+    }
+
+    // Verify there is an assembly file at src/{package-name}/{package-name}.s
+    let asm_path = path.join(format!("src/{}/{}.s", package_name, package_name));
+    assert!(
+        asm_path.exists(),
+        "missing assembly file: {}",
+        asm_path.display()
+    );
+
+    // Run build commands.
+    run_command(&["sbpf", "build"], path);
+    run_command(
+        &[
+            "cargo",
+            "build-sbf",
+            "--arch",
+            SBPF_ARCH_DUMP,
+            "--tools-version",
+            TOOLS_VERSION_DUMP,
+            "--dump",
+        ],
+        path,
+    );
+    run_command(
+        &[
+            "cargo",
+            "build-sbf",
+            "--arch",
+            SBPF_ARCH_TEST,
+            "--tools-version",
+            TOOLS_VERSION_TEST,
+        ],
+        path,
+    );
 }
