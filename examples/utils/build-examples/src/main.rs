@@ -72,7 +72,7 @@ fn main() {
                 .arg("build")
                 .current_dir(&path)
                 .status()
-                .expect("failed to run cargo sbpf build");
+                .expect("failed to run sbpf build");
             assert!(
                 build_status.success(),
                 "cargo sbpf build failed for example: {}",
@@ -81,12 +81,14 @@ fn main() {
 
             // Run cargo build-sbf and dump it.
             let dump_status = std::process::Command::new("cargo")
-                .arg("build-sbf")
-                .arg("--arch")
-                .arg(SBPF_ARCH_DUMP)
-                .arg("--tools-version")
-                .arg(TOOLS_VERSION_DUMP)
-                .arg("--dump")
+                .args([
+                    "build-sbf",
+                    "--arch",
+                    SBPF_ARCH_DUMP,
+                    "--tools-version",
+                    TOOLS_VERSION_DUMP,
+                    "--dump",
+                ])
                 .current_dir(&path)
                 .status()
                 .expect("failed to run cargo build-sbf --dump");
@@ -97,7 +99,7 @@ fn main() {
             );
 
             // Run cargo build-sbf for testing.
-            let dump_status = std::process::Command::new("cargo")
+            let test_status = std::process::Command::new("cargo")
                 .arg("build-sbf")
                 .arg("--arch")
                 .arg(SBPF_ARCH_TEST)
@@ -107,7 +109,7 @@ fn main() {
                 .status()
                 .expect("failed to run cargo build-sbf");
             assert!(
-                dump_status.success(),
+                test_status.success(),
                 "cargo build-sbf failed for example: {}",
                 dir.to_str().unwrap()
             );
