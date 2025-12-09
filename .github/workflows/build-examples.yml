@@ -1,6 +1,6 @@
 ---
 env:
-  RUSTFILT_VERSION: 'v0.2.1'
+  RUSTFILT_VERSION: '0.2.1'
   SBPF_ARCH_DUMP: 'v4'
   SBPF_ARCH_TEST: 'v3'
   SBPF_CLI_REVISION: 'fae3e8a'
