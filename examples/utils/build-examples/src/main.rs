@@ -381,7 +381,34 @@ fn run_and_save_test_snippets(path: &Path, package_name: &str) {
             result.push_str(&String::from_utf8_lossy(&test_output.stderr));
         }
 
+        // Clean the test output for readability.
+        let result = clean_test_output(&result);
+
         let result_file = test_dir.join("result.txt");
         fs::write(&result_file, result).expect("failed to write result.txt");
     }
+}
+
+/// Clean test output for readability by:
+/// - Removing "running N tests" and summary lines
+/// - Removing cargo build output lines
+/// - Simplifying timestamps to "[ ... DEBUG ... ]"
+/// - Truncating the program ID to "DASMAC..."
+fn clean_test_output(output: &str) -> String {
+    let timestamp_re = Regex::new(r"\[\d{4}-\d{2}-\d{2}T[\d:.]+Z DEBUG [^\]]+\]").unwrap();
+    let program_id_re = Regex::new(r"DASMACWxk3nD3fhGGS5XvCgkKvqyZQbU2rJSMyW3Co1z").unwrap();
+
+    output
+        .lines()
+        .filter(|line| {
+            // Keep test result lines and DEBUG log lines.
+            (line.starts_with("test ") && line.contains("...")) || line.contains("DEBUG")
+        })
+        .map(|line| {
+            let line = timestamp_re.replace_all(line, "[ ... DEBUG ... ]");
+            let line = program_id_re.replace_all(&line, "DASMAC...");
+            line.to_string()
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
