@@ -211,17 +211,6 @@ fn build_example(
         ],
         path,
     );
-    run_command(
-        &[
-            "cargo",
-            "build-sbf",
-            "--arch",
-            SBPF_ARCH_TEST,
-            "--tools-version",
-            TOOLS_VERSION_TEST,
-        ],
-        path,
-    );
 
     // Dump the sbpf build.
     let asm_build_path = path.join(format!("deploy/{}.so", package_name));
@@ -237,15 +226,39 @@ fn build_example(
     );
 
     // Move the cargo-build-sbf dump file.
-    let rs_dump_path_old = path
-        .join("../target/deploy/")
-        .join(package_name.replace("-", "_") + "-dump.txt");
+    let rs_package_name = package_name.replace("-", "_");
+    let rs_deploy_dir_path = path.parent().unwrap().join("target/deploy");
+    let rs_dump_path_old = rs_deploy_dir_path.join(rs_package_name.clone() + "-dump.txt");
     let rs_dump_path = dump_dir_path.join("rs.txt");
     fs::rename(&rs_dump_path_old, &rs_dump_path).expect("failed to move cargo-build-sbf dump");
 
     // Clean metadata for the dump files.
     clean_dump_file_metadata(&asm_dump_path, package_name);
     clean_dump_file_metadata(&rs_dump_path, &package_name.replace("-", "_"));
+
+    // Disassemble the cargo-build-sbf file.
+    let rs_build_path = rs_deploy_dir_path.join(rs_package_name + ".so");
+    run_command(
+        &[
+            "sbpf",
+            "disassemble",
+            rs_build_path.file_name().unwrap().to_str().unwrap(),
+        ],
+        &rs_deploy_dir_path,
+    );
+
+    // Build the testable version of the program now that dumps are done.
+    run_command(
+        &[
+            "cargo",
+            "build-sbf",
+            "--arch",
+            SBPF_ARCH_TEST,
+            "--tools-version",
+            TOOLS_VERSION_TEST,
+        ],
+        path,
+    );
 }
 
 /// For any lines containing "{package_name}.so", replace the start of the line up until the match
