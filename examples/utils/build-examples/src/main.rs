@@ -67,7 +67,7 @@ fn main() {
                 asm_path.display()
             );
 
-            // Run sbpf build from inside the example directory.
+            // Run sbpf build.
             let build_status = std::process::Command::new("sbpf")
                 .arg("build")
                 .current_dir(&path)
@@ -79,7 +79,7 @@ fn main() {
                 dir.to_str().unwrap()
             );
 
-            // Build SBPF and dump it.
+            // Run cargo build-sbf and dump it.
             let dump_status = std::process::Command::new("cargo")
                 .arg("build-sbf")
                 .arg("--arch")
@@ -96,7 +96,7 @@ fn main() {
                 dir.to_str().unwrap()
             );
 
-            // Build SBPF for testing.
+            // Run cargo build-sbf for testing.
             let dump_status = std::process::Command::new("cargo")
                 .arg("build-sbf")
                 .arg("--arch")
