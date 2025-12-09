@@ -246,7 +246,8 @@ fn build_example(
         .expect("failed to run: sbpf disassemble");
     assert!(
         disassemble_output.status.success(),
-        "command failed: sbpf disassemble"
+        "command failed: sbpf disassemble ({})",
+        String::from_utf8_lossy(&disassemble_output.stderr)
     );
     fs::write(&rs_asm_path, disassemble_output.stdout).expect("failed to write rs.s");
 
