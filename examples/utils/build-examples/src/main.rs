@@ -9,6 +9,7 @@ fn main() {
     let mut utils_path: Option<PathBuf> = None;
     let mut program_dependencies = HashSet::<String>::new();
     let mut dev_dependencies = HashSet::<String>::new();
+    let mut examples_keypair = None;
 
     let dir_paths = fs::read_dir(current_dir().expect("failed to get current directory"))
         .expect("failed to read examples directory")
@@ -24,8 +25,8 @@ fn main() {
         } else if dir == "utils" {
             utils_path = Some(path.clone());
         } else {
-            let manifest =
-                Manifest::from_path(path.join("Cargo.toml")).expect("failed to parse Cargo.toml");
+            // Collect dependencies for build caching.
+            let manifest = crate_manifest(&path);
             assert!(
                 manifest
                     .package
@@ -37,6 +38,29 @@ fn main() {
             );
             extend_dep_set(&mut dev_dependencies, &path, true);
             extend_dep_set(&mut program_dependencies, &path, false);
+
+            // Verify keypair matches across all examples.
+            let keypair_path = path.join(format!("deploy/{}-keypair.json", dir.to_str().unwrap()));
+            let keypair = fs::read_to_string(&keypair_path).expect("failed to read keypair file");
+            if examples_keypair.is_none() {
+                examples_keypair = Some(keypair);
+            } else {
+                assert_eq!(
+                    examples_keypair.as_ref().unwrap(),
+                    &keypair,
+                    "example keypair does not match: {}",
+                    keypair_path.display()
+                );
+            }
+
+            // Verify there is an assembly file at src/{package-name}/{package-name}.s
+            let package_name = dir.to_str().unwrap();
+            let asm_path = path.join(format!("src/{}/{}.s", package_name, package_name));
+            assert!(
+                asm_path.exists(),
+                "missing assembly file: {}",
+                asm_path.display()
+            );
         };
     }
 
