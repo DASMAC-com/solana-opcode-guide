@@ -5,6 +5,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::exit;
 
+#[derive(Clone, Copy)]
+enum DepKind {
+    Regular,
+    Dev,
+}
+
 const SBPF_ARCH_DUMP: &str = "v4";
 const SBPF_ARCH_TEST: &str = "v3";
 const TOOLS_VERSION_DUMP: &str = "1.51";
@@ -22,7 +28,6 @@ fn main() {
         .map(|entry| entry.path())
         .filter(|path| path.is_dir());
 
-    // Get dependencies and dev dependencies from all example crates.
     for path in dir_paths {
         let dir = path.file_name().expect("failed to get directory name");
         if dir == "target" {
@@ -30,7 +35,7 @@ fn main() {
         } else if dir == "utils" {
             utils_path = Some(path.clone());
         } else {
-            process_example(
+            build_example(
                 &path,
                 &mut examples_keypair,
                 &mut dev_dependencies,
@@ -45,10 +50,13 @@ fn main() {
     let build_examples_crate = &utils_path.clone().join("build-examples");
     let mut build_dependencies = program_dependencies.clone();
 
-    // All test utils dependencies are dev dependencies.
-    extend_dep_set(&mut dev_dependencies, test_utils_crate, false);
-    extend_dep_set(&mut dev_dependencies, build_examples_crate, true);
-    extend_dep_set(&mut build_dependencies, build_examples_crate, false);
+    extend_dep_set(&mut dev_dependencies, test_utils_crate, DepKind::Regular);
+    extend_dep_set(&mut dev_dependencies, build_examples_crate, DepKind::Dev);
+    extend_dep_set(
+        &mut build_dependencies,
+        build_examples_crate,
+        DepKind::Regular,
+    );
 
     // Verify program dependencies.
     let deps_path = utils_path.join("deps");
@@ -56,19 +64,18 @@ fn main() {
     let build_deps_crate = deps_path.join("build");
 
     // Verify manifest dependencies.
-    verify_manifest_deps(&program_deps_crate, &program_dependencies, false);
-    verify_manifest_deps(&build_deps_crate, &dev_dependencies, true);
-    verify_manifest_deps(&build_deps_crate, &build_dependencies, false);
+    verify_manifest_deps(&program_deps_crate, &program_dependencies, DepKind::Regular);
+    verify_manifest_deps(&build_deps_crate, &dev_dependencies, DepKind::Dev);
+    verify_manifest_deps(&build_deps_crate, &build_dependencies, DepKind::Regular);
 
     exit(0);
 }
 
-fn extend_dep_set(target: &mut HashSet<String>, crate_dir: &Path, dev_deps: bool) {
+fn extend_dep_set(target: &mut HashSet<String>, crate_dir: &Path, kind: DepKind) {
     let manifest = crate_manifest(crate_dir);
-    let dep_set = if dev_deps {
-        &manifest.dev_dependencies
-    } else {
-        &manifest.dependencies
+    let dep_set = match kind {
+        DepKind::Dev => &manifest.dev_dependencies,
+        DepKind::Regular => &manifest.dependencies,
     };
     if let Some(dependencies) = dep_set {
         target.extend(dependencies.keys().cloned());
@@ -82,12 +89,11 @@ fn crate_manifest(crate_dir: &Path) -> Manifest {
     Manifest::from_path(crate_dir.join("Cargo.toml")).expect("failed to parse Cargo.toml")
 }
 
-fn verify_manifest_deps(crate_dir: &Path, expected_deps: &HashSet<String>, dev_deps: bool) {
+fn verify_manifest_deps(crate_dir: &Path, expected_deps: &HashSet<String>, kind: DepKind) {
     let manifest = crate_manifest(crate_dir);
-    let dep_set = if dev_deps {
-        &manifest.dev_dependencies
-    } else {
-        &manifest.dependencies
+    let dep_set = match kind {
+        DepKind::Dev => &manifest.dev_dependencies,
+        DepKind::Regular => &manifest.dependencies,
     };
     let manifest_deps: HashSet<String> = match dep_set {
         Some(dependencies) => dependencies.keys().cloned().collect(),
@@ -97,17 +103,18 @@ fn verify_manifest_deps(crate_dir: &Path, expected_deps: &HashSet<String>, dev_d
     let missing: Vec<_> = expected_deps.difference(&manifest_deps).collect();
     let extra: Vec<_> = manifest_deps.difference(expected_deps).collect();
 
+    let section_str = match kind {
+        DepKind::Dev => "[dev-dependencies]",
+        DepKind::Regular => "[dependencies]",
+    };
+
     if missing.is_empty() && extra.is_empty() {
-        println!(
-            "{} match ({})",
-            dependency_section_str(&dev_deps),
-            crate_dir.display()
-        );
+        println!("{} match ({})", section_str, crate_dir.display());
     } else {
         if !missing.is_empty() {
             println!(
                 "MISSING from {}: {:?} ({})",
-                dependency_section_str(&dev_deps),
+                section_str,
                 missing,
                 crate_dir.display()
             );
@@ -115,20 +122,12 @@ fn verify_manifest_deps(crate_dir: &Path, expected_deps: &HashSet<String>, dev_d
         if !extra.is_empty() {
             println!(
                 "EXTRA in {}: {:?} ({})",
-                dependency_section_str(&dev_deps),
+                section_str,
                 extra,
                 crate_dir.display()
             );
         }
         exit(1);
-    }
-}
-
-fn dependency_section_str(dev_deps: &bool) -> &str {
-    if *dev_deps {
-        "[dev-dependencies]"
-    } else {
-        "[dependencies]"
     }
 }
 
@@ -144,7 +143,7 @@ fn run_command(tokens: &[&str], current_dir: &Path) {
     assert!(status.success(), "command failed: {}", tokens.join(" "));
 }
 
-fn process_example(
+fn build_example(
     path: &Path,
     examples_keypair: &mut Option<String>,
     dev_dependencies: &mut HashSet<String>,
@@ -164,8 +163,8 @@ fn process_example(
             == package_name,
         "directory name and package name do not match"
     );
-    extend_dep_set(dev_dependencies, path, true);
-    extend_dep_set(program_dependencies, path, false);
+    extend_dep_set(dev_dependencies, path, DepKind::Dev);
+    extend_dep_set(program_dependencies, path, DepKind::Regular);
 
     // Verify keypair matches across all examples.
     let keypair_path = path.join(format!("deploy/{}-keypair.json", package_name));
