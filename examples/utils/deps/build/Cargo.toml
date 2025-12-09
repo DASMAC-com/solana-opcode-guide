@@ -1,0 +1,18 @@
+[lints]
+workspace = true
+
+[dependencies]
+cargo-manifest.workspace = true
+pinocchio.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+mollusk-svm.workspace = true
+solana-sdk.workspace = true
+test-utils.path = "../../test-utils"
+
+[package]
+edition = "2021"
+name = "build-deps"
+publish = false
+version = "0.1.0"

@@ -1,12 +1,14 @@
 [dependencies]
-mollusk-svm = {workspace = true}
-solana-sdk = {workspace = true}
+pinocchio.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
 
 [lints]
 workspace = true
 
 [package]
 edition = "2021"
-name = "test-utils"
+name = "program-deps"
 publish = false
 version = "0.1.0"

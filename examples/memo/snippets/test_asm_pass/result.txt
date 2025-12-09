@@ -1,0 +1,5 @@
+test tests::test_asm_pass ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program log: Hello again, DASMAC!
+[ ... DEBUG ... ] Program DASMAC... consumed 106 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success

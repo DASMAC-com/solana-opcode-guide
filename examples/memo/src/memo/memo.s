@@ -15,8 +15,3 @@ entrypoint:
     add64 r1, INSTRUCTION_DATA_OFFSET
     call sol_log_
     exit
-
-# Without mock .rodata the dump script fails.
-# https://github.com/blueshift-gg/sbpf/issues/82
-.rodata
-    null: .byte 0

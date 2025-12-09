@@ -1,0 +1,4 @@
+#[test]
+fn test_rs() {
+    happy_path(ProgramLanguage::Rust);
+}
