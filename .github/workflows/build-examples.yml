@@ -35,42 +35,6 @@ jobs:
         "${{ env.SBPF_ARCH_DUMP }}" "${{ env.TOOLS_VERSION_DUMP }}"
         "${{ env.SBPF_ARCH_TEST }}" "${{ env.TOOLS_VERSION_TEST }}"
       shell: 'sh'
-    - name: 'Build memo with sbpf'
-      run: 'sbpf build'
-      shell: 'sh'
-      working-directory: 'examples/memo'
-    - name: 'Build memo with cargo-build-sbf'
-      run: >-
-        cargo build-sbf
-        --arch ${{ env.SBPF_ARCH_DUMP }}
-        --tools-version ${{ env.TOOLS_VERSION_DUMP }}
-      shell: 'sh'
-      working-directory: 'examples/memo'
-    - name: 'Build memo with cargo-build-sbf'
-      run: >-
-        cargo build-sbf
-        --arch ${{ env.SBPF_ARCH_TEST }}
-        --tools-version ${{ env.TOOLS_VERSION_TEST }}
-      shell: 'sh'
-      working-directory: 'examples/memo'
-    - name: 'Build hello-dasmac with sbpf'
-      run: 'sbpf build'
-      shell: 'sh'
-      working-directory: 'examples/hello-dasmac'
-    - name: 'Build hello-dasmac with cargo-build-sbf'
-      run: >-
-        cargo build-sbf
-        --arch ${{ env.SBPF_ARCH_DUMP }}
-        --tools-version ${{ env.TOOLS_VERSION_DUMP }}
-      shell: 'sh'
-      working-directory: 'examples/hello-dasmac'
-    - name: 'Build hello-dasmac with cargo-build-sbf'
-      run: >-
-        cargo build-sbf
-        --arch ${{ env.SBPF_ARCH_TEST }}
-        --tools-version ${{ env.TOOLS_VERSION_TEST }}
-      shell: 'sh'
-      working-directory: 'examples/hello-dasmac'
     - name: 'Build examples'
       run: 'cargo run --bin build-examples'
       shell: 'sh'

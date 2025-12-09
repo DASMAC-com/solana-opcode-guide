@@ -5,6 +5,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::exit;
 
+const SBPF_ARCH_DUMP: &str = "v4";
+const SBPF_ARCH_TEST: &str = "v3";
+const TOOLS_VERSION_DUMP: &str = "1.51";
+const TOOLS_VERSION_TEST: &str = "1.51";
+
 fn main() {
     let mut utils_path: Option<PathBuf> = None;
     let mut program_dependencies = HashSet::<String>::new();
@@ -60,6 +65,51 @@ fn main() {
                 asm_path.exists(),
                 "missing assembly file: {}",
                 asm_path.display()
+            );
+
+            // Run sbpf build from inside the example directory.
+            let build_status = std::process::Command::new("sbpf")
+                .arg("build")
+                .current_dir(&path)
+                .status()
+                .expect("failed to run cargo sbpf build");
+            assert!(
+                build_status.success(),
+                "cargo sbpf build failed for example: {}",
+                dir.to_str().unwrap()
+            );
+
+            // Build SBPF and dump it.
+            let dump_status = std::process::Command::new("cargo")
+                .arg("build-sbf")
+                .arg("--arch")
+                .arg(SBPF_ARCH_DUMP)
+                .arg("--tools-version")
+                .arg(TOOLS_VERSION_DUMP)
+                .arg("--dump")
+                .current_dir(&path)
+                .status()
+                .expect("failed to run cargo build-sbf --dump");
+            assert!(
+                dump_status.success(),
+                "cargo build-sbf --dump failed for example: {}",
+                dir.to_str().unwrap()
+            );
+
+            // Build SBPF for testing.
+            let dump_status = std::process::Command::new("cargo")
+                .arg("build-sbf")
+                .arg("--arch")
+                .arg(SBPF_ARCH_TEST)
+                .arg("--tools-version")
+                .arg(TOOLS_VERSION_TEST)
+                .current_dir(&path)
+                .status()
+                .expect("failed to run cargo build-sbf");
+            assert!(
+                dump_status.success(),
+                "cargo build-sbf failed for example: {}",
+                dir.to_str().unwrap()
             );
         };
     }
