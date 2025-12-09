@@ -1,5 +1,6 @@
 ---
 env:
+  RUSTFILT_VERSION: 'v0.2.1'
   SBPF_ARCH_DUMP: 'v4'
   SBPF_ARCH_TEST: 'v3'
   SBPF_CLI_REVISION: 'fae3e8a'
@@ -21,11 +22,12 @@ jobs:
         tools-version-test: '${{ env.TOOLS_VERSION_TEST }}'
         sbpf-cli-revision: '${{ env.SBPF_CLI_REVISION }}'
         solana-version: '${{ env.SOLANA_VERSION }}'
+        rustfilt-version: '${{ env.RUSTFILT_VERSION }}'
     - id: 'cache-deps'
       name: 'Cache dependencies'
       uses: 'actions/cache@v4'
       with:
-        key: 'cargo-test-examples-${{ steps.install-toolchain.outputs.platform
+        key: 'cargo-build-examples-${{ steps.install-toolchain.outputs.platform
               }}-${{ hashFiles(''examples/Cargo.lock'') }}'
         path: 'examples/target'
     - if: 'steps.cache-deps.outputs.cache-hit != ''true'''

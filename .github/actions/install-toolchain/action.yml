@@ -1,6 +1,9 @@
 ---
 description: 'Install quickstart toolchain'
 inputs:
+  rustfilt-version:
+    description: 'rustfilt version to install'
+    required: true
   tools-version-dump:
     description: 'Solana platform-tools version for Rust compilation dumps'
     required: true
@@ -36,6 +39,7 @@ runs:
             inputs.tools-version-dump }}-${{
             inputs.tools-version-test }}-${{
             inputs.sbpf-cli-revision }}-${{
+            inputs.rustfilt-version }}-${{
             env.PLATFORM }}'
       path: |
         ~/.cache/solana
@@ -49,6 +53,7 @@ runs:
       "${{ inputs.tools-version-dump }}"
       "${{ inputs.tools-version-test }}"
       "${{ inputs.sbpf-cli-revision }}"
+      "${{ inputs.rustfilt-version }}"
     shell: 'sh'
   - name: 'Verify tools'
     run: '${{ github.action_path }}/scripts/verify-tools.sh'

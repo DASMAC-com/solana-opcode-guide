@@ -5,6 +5,7 @@ SOLANA_VERSION="$1"
 PLATFORM_TOOLS_VERSION_DUMP="$2"
 PLATFORM_TOOLS_VERSION_TEST="$3"
 SBPF_REVISION="$4"
+RUSTFILT_VERSION="$5"
 
 # Install Solana toolchain.
 sh -c "$(curl -sSfL "https://release.anza.xyz/${SOLANA_VERSION}/install")"
@@ -19,3 +20,6 @@ install.sh
 
 # Install sbpf CLI.
 cargo install --git https://github.com/blueshift-gg/sbpf.git --rev "$SBPF_REVISION"
+
+# Install rustfilt.
+cargo install rustfilt --version "$RUSTFILT_VERSION"
