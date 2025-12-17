@@ -66,6 +66,9 @@ repos:
   - id: 'detect-private-key'
   - exclude: 'CNAME|examples/.*/artifacts/(dumps|snippets|tests)/.*'
     id: 'end-of-file-fixer'
+  # Handled by Rust formatter.
+  - exclude: '*.rs'
+    id: 'end-of-file-fixer'
   - files: 'cfg/dictionary.txt'
     id: 'file-contents-sorter'
   - files: '\.gitignore$'
