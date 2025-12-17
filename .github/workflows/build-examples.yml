@@ -32,7 +32,10 @@ jobs:
       with:
         key: 'cargo-build-examples-${{ steps.install-toolchain.outputs.platform
               }}-${{ hashFiles(''examples/Cargo.lock'') }}'
-        path: 'examples/target'
+        path: |
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          examples/target
     - if: 'steps.cache-deps.outputs.cache-hit != ''true'''
       name: 'Build dependencies'
       run: >-
