@@ -107,7 +107,7 @@ you to compare the two implementations side-by-side.
    `deploy/hello-dasmac.so`:
 
    ```sh:no-line-numbers
-   dump.sh deploy/hello-dasmac.so deploy/asm-dump.txt
+   dump.sh deploy/hello-dasmac.so artifacts/dumps/asm.txt
    ```
 
 1. Build the Rust implementation with [SBPF v4] and dump the build. This
@@ -186,7 +186,7 @@ you to compare the two implementations side-by-side.
    > rm -rf ~/.cache/solana
    > ```
 
-1. Regenerate a v3 SBPF Rust implementation and run its test.
+1. Regenerate an [SBPF v3][sbpf v4] Rust implementation and run its test.
 
    <!-- markdownlint-disable MD013 -->
 
@@ -222,7 +222,7 @@ you to compare the two implementations side-by-side.
 > To run these commands on all examples, run from inside the `examples`
 > directory:
 >
-> ```sh
+> ```sh:no-line-numbers
 > cargo run --bin build-examples
 > ```
 
