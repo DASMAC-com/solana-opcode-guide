@@ -54,7 +54,6 @@ fn main() {
         &["cargo", "fmt", "--", "--check", "--color=always"],
         examples_dir.as_path(),
     );
-    print!("Running cargo clippy...\n\n\n");
     run_command(
         &["cargo", "clippy", "--", "-D", "warnings"],
         examples_dir.as_path(),
@@ -199,6 +198,8 @@ fn verify_workflow_constants(utils_path: &Path) {
 }
 
 fn run_command(tokens: &[&str], current_dir: &Path) {
+    let command_tokens = tokens.join(" ");
+    println!("\nRunning in {}: {}", current_dir.display(), command_tokens);
     let (cmd, args) = tokens
         .split_first()
         .expect("command tokens cannot be empty");
@@ -207,7 +208,7 @@ fn run_command(tokens: &[&str], current_dir: &Path) {
         .current_dir(current_dir)
         .status()
         .unwrap_or_else(|_| panic!("failed to run: {}", tokens.join(" ")));
-    assert!(status.success(), "command failed: {}", tokens.join(" "));
+    assert!(status.success(), "command failed: {}", command_tokens);
 }
 
 fn remove_sbf_binary(path: &Path, package_name: &str) {
@@ -227,6 +228,8 @@ fn build_example(
 ) {
     let dir = path.file_name().expect("failed to get directory name");
     let package_name = dir.to_str().unwrap();
+
+    print!("\nBuilding example: {}", package_name);
 
     // Collect dependencies for build caching.
     let manifest = crate_manifest(path);
