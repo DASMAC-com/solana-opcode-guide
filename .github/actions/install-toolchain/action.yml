@@ -1,0 +1,68 @@
+---
+description: 'Install quickstart toolchain'
+inputs:
+  rustfilt-version:
+    description: 'rustfilt version to install'
+    required: true
+  sbpf-cli-revision:
+    description: 'sbpf CLI rev (git commit hash, tag, or branch) to install'
+    required: true
+  solana-version:
+    description: 'Solana version to install'
+    required: true
+  tools-version-disassemble:
+    description: 'Solana platform-tools version for Rust program disassembly'
+    required: true
+  tools-version-dump:
+    description: 'Solana platform-tools version for Rust program dumps'
+    required: true
+  tools-version-test:
+    description: 'Solana platform-tools version for Rust program tests'
+    required: true
+name: 'Install toolchain'
+outputs:
+  platform:
+    description: 'Platform identifier (OS-ARCH)'
+    value: '${{ steps.set-path-vars.outputs.platform }}'
+runs:
+  steps:
+  - env:
+      RUNNER_ARCH: '${{ runner.arch }}'
+      RUNNER_OS: '${{ runner.os }}'
+    id: 'set-path-vars'
+    name: 'Set path variables'
+    run: '${{ github.action_path }}/scripts/set-path-vars.sh'
+    shell: 'sh'
+  - id: 'cache-toolchain'
+    name: 'Cache toolchain components'
+    uses: 'actions/cache@v4'
+    with:
+      key: 'solana-opcode-guide-toolchain-solana-${{
+            inputs.solana-version }}-disassemble-tools-${{
+            inputs.tools-version-disassemble }}-dump-tools-${{
+            inputs.tools-version-dump }}-test-tools-${{
+            inputs.tools-version-test }}-sbpf-cli-${{
+            inputs.sbpf-cli-revision }}-rustfilt-${{
+            inputs.rustfilt-version }}-${{
+            env.PLATFORM }}'
+      path: |
+        ~/.cache/solana
+        ~/.cargo/bin/rustfilt
+        ~/.cargo/bin/sbpf
+        ~/.local/share/solana
+  - if: 'steps.cache-toolchain.outputs.cache-hit != ''true'''
+    name: 'Install tools'
+    run: >-
+      ${{ github.action_path }}/scripts/install-tools.sh
+      "${{ inputs.solana-version }}"
+      "${{ inputs.tools-version-disassemble }}"
+      "${{ inputs.tools-version-dump }}"
+      "${{ inputs.tools-version-test }}"
+      "${{ inputs.sbpf-cli-revision }}"
+      "${{ inputs.rustfilt-version }}"
+    shell: 'sh'
+  - name: 'Verify tools'
+    run: '${{ github.action_path }}/scripts/verify-tools.sh'
+    shell: 'sh'
+  using: 'composite'
+...

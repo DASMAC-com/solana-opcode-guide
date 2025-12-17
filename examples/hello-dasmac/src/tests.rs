@@ -12,7 +12,7 @@ fn test_rs() {
     happy_path(ProgramLanguage::Rust);
 }
 
-fn happy_path(program_language: test_utils::ProgramLanguage) {
+fn happy_path(program_language: ProgramLanguage) {
     let setup = setup_test!(program_language);
 
     // Invoke the program with an empty instruction and verify success.

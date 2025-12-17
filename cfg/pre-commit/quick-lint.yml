@@ -64,7 +64,10 @@ repos:
   - id: 'check-added-large-files'
   - id: 'check-case-conflict'
   - id: 'detect-private-key'
-  - exclude: 'CNAME|examples/.*/(snippets|test-runs)/.*'
+  # .rs files handled by rustfmt.
+  # CNAME is a single small file for GitHub Pages.
+  # Artifacts are generated.
+  - exclude: '.*.rs|CNAME|examples/.*/artifacts/(dumps|snippets|tests)/.*'
     id: 'end-of-file-fixer'
   - files: 'cfg/dictionary.txt'
     id: 'file-contents-sorter'

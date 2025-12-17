@@ -1,3 +1,5 @@
+<!-- cspell:word rustup -->
+
 # Quickstart
 
 This quickstart guide will help you set up your environment to build and test
@@ -6,17 +8,19 @@ you to compare the two implementations side-by-side.
 
 ## :wrench: Set up your environment {#env-setup}
 
+1. Install [`rustup`] if you don't have it.
+
 1. Install the latest version of [`solana`].
 
 1. Update your [`PATH`] to include key [SBPF] tools packaged with the `solana`
    install, in particular the [`dump.sh`] script [called internally] by
-   [`cargo build-sbf`] `--dump`, and the [LLVM] binaries it requires. This will
-   look something like:
+   [`cargo build-sbf`] `--dump`, and the [patched LLVM binaries] it requires
+   (covered below). This will look something like:
 
    ```sh
    # Solana tools.
-   export SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
-   export SOLANA_SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
+   SOLANA_RELEASE="$HOME/.local/share/solana/install/active_release/bin"
+   SOLANA_SBPF_TOOLS="$SOLANA_RELEASE/platform-tools-sdk/sbf"
    export PATH="$SOLANA_RELEASE:$PATH"
    export PATH="$SOLANA_SBPF_TOOLS/scripts:$PATH"
    export PATH="$SOLANA_SBPF_TOOLS/dependencies/platform-tools/llvm/bin:$PATH"
@@ -25,16 +29,16 @@ you to compare the two implementations side-by-side.
    > [!tip]
    > This example is from `~/.zshrc` on a Mac with [Oh My Zsh].
 
-1. Note the pinned [`tools-version`] in `examples/Cargo.toml`, which is required
-   (as of the time of this writing) for `cargo build-sbf --arch v4` to access
-   the `sbpfv4-solana-solana` target that was [removed in v1.52] of the
-   [`platform-tools`].
+1. Install [`cargo build-sbf`] with [`tools-version`] `v1.52` and `v1.51`, which
+   is required (as of the time of this writing) to compile to
+   [SBPF v3 and v4][sbpf v4] since [`platform-tools` v1.52 removed] the
+   `sbpfv3-solana-solana` and `sbpfv4-solana-solana` targets and there is no
+   newer supporting version than `v1.51`.
 
-   ::: details Cargo.toml
-
-   <<< ../../examples/Cargo.toml
-
-   :::
+   ```sh:no-line-numbers
+   cargo-build-sbf --install-only --tools-version v1.52
+   cargo-build-sbf --install-only --tools-version v1.51
+   ```
 
 1. Install [`rustfilt`], which is also required by [`dump.sh`]:
 
@@ -49,6 +53,11 @@ you to compare the two implementations side-by-side.
    ```
 
 1. (Optional) Install the [VS Code SBPF Assembly extension].
+
+   > [!tip]
+   > Pending the acceptance of [#10] you can even install the additional
+   > highlighting features contained therein using a development version of the
+   > extension.
 
 ## :zap: Run the `hello-dasmac` example
 
@@ -87,7 +96,8 @@ you to compare the two implementations side-by-side.
 
    :::
 
-1. Build the assembly implementation.
+1. Build the assembly implementation using [`sbpf`] which, as of the time of
+   this writing, [produces a v0 SBPF build].
 
    ```sh:no-line-numbers
    sbpf build
@@ -97,7 +107,7 @@ you to compare the two implementations side-by-side.
    `deploy/hello-dasmac.so`:
 
    ```sh:no-line-numbers
-   dump.sh deploy/hello-dasmac.so deploy/asm-dump.txt
+   dump.sh deploy/hello-dasmac.so artifacts/dumps/asm.txt
    ```
 
 1. Build the Rust implementation with [SBPF v4] and dump the build. This
@@ -110,7 +120,7 @@ you to compare the two implementations side-by-side.
    | `hello_dasmac-dump.txt` | Dump of the output            |
 
    ```sh:no-line-numbers
-   cargo build-sbf --arch v4 --dump
+   cargo build-sbf --arch v4 --tools-version v1.51 --dump
    ```
 
 1. Compare the two dumps, in particular the below highlighted sections. Note the
@@ -127,31 +137,39 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/dumps/asm.txt{9,13,16,19-20,27,83-89} [Assembly]
+   <<< ../../examples/hello-dasmac/artifacts/dumps/asm.txt{9,13,16,19-20,27,83-90} [Assembly]
 
-   <<< ../../examples/hello-dasmac/dumps/rs.txt{9,13,16,19-20,27,107-374} [Rust]
+   <<< ../../examples/hello-dasmac/artifacts/dumps/rs.txt{9,13,16,19-20,27,107-377} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
    :::
 
-   > [!tip]
-   >
-   > You can generate a similar output using the [`sbpf`] `disassemble` command:
-   >
-   > ```sh:no-line-numbers
-   > sbpf disassemble deploy/hello-dasmac.so > deploy/asm-disassembly.json
-   > ```
-   >
-   > ::: details Output
-   >
-   > <!-- markdownlint-disable MD013 -->
-   >
-   > <<< ../../examples/hello-dasmac/dumps/asm-disassembly.json
-   >
-   > <!-- markdownlint-enable MD013 -->
-   >
-   > :::
+1. Remove the Rust program then build it with [`cargo build-sbf`] for an
+   [SBPF v2][sbpf v4] target since, as of the time of this writing, the
+   `sbpf disassemble` command [only supports up to SBPF v2].
+
+   ```sh:no-line-numbers
+   rm ../target/deploy/hello_dasmac.so
+   cargo build-sbf --arch v2 --tools-version v1.52
+   ```
+
+1. Run [`sbpf`] `disassemble` on the Rust build output to see its corresponding
+   assembly implementation:
+
+   <!-- markdownlint-disable MD013 -->
+
+   ```sh:no-line-numbers
+   sbpf disassemble ../target/deploy/hello_dasmac.so > artifacts/rs-disassembly.s
+   ```
+
+   <!-- markdownlint-enable MD013 -->
+
+   ::: details Output
+
+   <<< ../../examples/hello-dasmac/artifacts/rs-disassembly.s{asm}
+
+   :::
 
 1. Run the assembly implementation test.
 
@@ -168,11 +186,17 @@ you to compare the two implementations side-by-side.
    > rm -rf ~/.cache/solana
    > ```
 
-1. Rebuild the Rust implementation and run its test.
+1. Regenerate an [SBPF v3][sbpf v4] Rust implementation and run its test.
+
+   <!-- markdownlint-disable MD013 -->
 
    ```sh:no-line-numbers
-   cargo build-sbf --arch v3 && cargo test -- --test test_rs
+   rm ../target/deploy/hello_dasmac.so
+   cargo build-sbf --arch v3 --tools-version v1.51
+   cargo test -- --test test_rs
    ```
+
+   <!-- markdownlint-enable MD013 -->
 
    > [!note]
    > As of the time of this writing, although [SBPF v4] compilation is
@@ -186,13 +210,21 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/test-runs/asm.txt{3 sh:line-numbers} [Assembly]
+   <<< ../../examples/hello-dasmac/artifacts/tests/asm/result.txt{4 sh:line-numbers} [Assembly]
 
-   <<< ../../examples/hello-dasmac/test-runs/rs.txt{3 sh:line-numbers} [Rust]
+   <<< ../../examples/hello-dasmac/artifacts/tests/rs/result.txt{4 sh:line-numbers} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
    :::
+
+> [!tip]
+> To run these commands on all examples, run from inside the `examples`
+> directory:
+>
+> ```sh:no-line-numbers
+> cargo run --bin build-examples
+> ```
 
 ## :tada: Congratulations :tada:
 
@@ -204,14 +236,16 @@ program!
 > [`sbpf`] `init` command.
 
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
+[#10]: https://github.com/deanmlittle/vscode-sbpf-asm/pull/10
 [assembly]: https://en.wikipedia.org/wiki/Assembly_language
 [called internally]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/post_processing.rs#L93
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
 [known issue]: https://stackoverflow.com/a/78398587
-[llvm]: https://llvm.org/
 [loading up to sbpf v3]: https://github.com/anza-xyz/agave/blob/v3.1.2/feature-set/src/lib.rs#L140-L141
 [oh my zsh]: https://ohmyz.sh/
-[removed in v1.52]: https://github.com/anza-xyz/platform-tools/commit/9dcb73be29b1140467243867f38a388520c85251#diff-4d2a8eefdf2a9783512a35da4dc7676a66404b6f3826a8af9aad038722da6823L100
+[only supports up to sbpf v2]: https://github.com/blueshift-gg/sbpf/blob/9a28921055a6fefd1036ebe7ab5b0d7abae3a519/crates/common/src/instruction.rs#L88
+[patched llvm binaries]: https://github.com/anza-xyz/platform-tools
+[produces a v0 sbpf build]: https://github.com/blueshift-gg/sbpf/issues/79#issuecomment-3596193259
 [rust]: https://solana.com/docs/programs/rust
 [sbpf]: https://solana.com/docs/core/programs
 [sbpf v4]: https://github.com/anza-xyz/sbpf
@@ -221,8 +255,9 @@ program!
 [`dump.sh`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/sbf/scripts/dump.sh
 [`path`]: https://en.wikipedia.org/wiki/PATH_(variable)
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
-[`platform-tools`]: https://github.com/anza-xyz/platform-tools
+[`platform-tools` v1.52 removed]: https://github.com/anza-xyz/platform-tools/commit/9dcb73be29b1140467243867f38a388520c85251#diff-4d2a8eefdf2a9783512a35da4dc7676a66404b6f3826a8af9aad038722da6823L114-L115
 [`rustfilt`]: https://github.com/luser/rustfilt
+[`rustup`]: https://rustup.rs/
 [`sbpf`]: https://github.com/blueshift-gg/sbpf
 [`solana`]: https://docs.anza.xyz/cli/install
 [`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487

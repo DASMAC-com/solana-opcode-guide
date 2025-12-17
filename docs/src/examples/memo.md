@@ -30,7 +30,7 @@ print, the input buffer layout is as follows:
 Related constants are defined at the top of the assembly implementation and used
 throughout the remainder of the program:
 
-<<< ../../../examples/memo/snippets/asm-constants.txt{1-3 asm}
+<<< ../../../examples/memo/artifacts/snippets/asm/constants.txt{1-3 asm}
 
 ::: details Full program
 
@@ -64,7 +64,7 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 [32 bits from an immediate][immediate value] as opposed to
 [all 64 register bits] from `r4`:
 
-<<< ../../../examples/memo/snippets/asm-error-checking.txt{4-7 asm}
+<<< ../../../examples/memo/artifacts/snippets/asm/error-checking.txt{4-7 asm}
 
 ::: details Full program
 
@@ -74,7 +74,16 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 
 Note the minimal [compute unit] consumption for a failure:
 
-<<< ../../../examples/memo/test-runs/asm_fail.txt{2 sh:line-numbers}
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/memo/artifacts/tests/asm_fail/result.txt{3 sh:line-numbers}
+
+<!-- markdownlint-enable MD013 -->
+
+::: details `test_asm_fail`
+
+<<< ../../../examples/memo/artifacts/tests/asm_fail/test.txt{rs:line-numbers}
+:::
 
 ## :speech_balloon: Logging
 
@@ -94,7 +103,7 @@ These operations preposition a [`call` via `CALL_IMM`] to [`sol_log_`], which
 
 After the logging operation, the program concludes:
 
-<<< ../../../examples/memo/snippets/asm-logging.txt{6-11 asm}
+<<< ../../../examples/memo/artifacts/snippets/asm/logging.txt{6-11 asm}
 
 ::: details Full program
 
@@ -104,7 +113,17 @@ After the logging operation, the program concludes:
 
 Note the [compute unit] consumption for a successful log:
 
-<<< ../../../examples/memo/test-runs/asm_pass.txt{3 sh:line-numbers}
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/memo/artifacts/tests/asm_pass/result.txt{4 sh:line-numbers}
+
+<!-- markdownlint-enable MD013 -->
+
+::: details `test_asm_pass`
+
+<<< ../../../examples/memo/artifacts/tests/asm_pass/test.txt{rs:line-numbers}
+
+:::
 
 ## :crab: Rust implementation
 
@@ -115,11 +134,16 @@ with the passed instruction data.
 
 Notably, however, it introduces [compute unit] overhead:
 
-<<< ../../../examples/memo/test-runs/rs.txt{3 sh:line-numbers}
+<<< ../../../examples/memo/artifacts/tests/rs/result.txt{4 sh:line-numbers}
 
-## :white_check_mark: Tests
+::: details `test_rs`
 
-::: details Tests
+<<< ../../../examples/memo/artifacts/tests/rs/test.txt{rs:line-numbers}
+:::
+
+## :white_check_mark: All tests
+
+::: details `tests.rs`
 
 <<< ../../../examples/memo/src/tests.rs{rs:line-numbers}
 

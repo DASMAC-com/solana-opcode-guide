@@ -1,3 +1,4 @@
+hello-dasmac.so
 ELF Header
   Magic   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
   Class                             ELF64
@@ -48,13 +49,13 @@ Program Headers
 
  Section to Segment mapping
   Segment Sections...
-   00     .text .rodata
-   01     .dynsym .dynstr .rel.dyn
-   02     .dynamic
-   None   .s
+   00     .text .rodata 
+   01     .dynsym .dynstr .rel.dyn 
+   02     .dynamic 
+   None   .s 
 Dynamic section at offset 0x128 contains 11 entries
   Tag                Type       Name/Value
-  0x000000000000001e (FLAGS)    TEXTREL
+  0x000000000000001e (FLAGS)    TEXTREL 
   0x0000000000000011 (REL)      0x238
   0x0000000000000012 (RELSZ)    32 (bytes)
   0x0000000000000013 (RELENT)   16 (bytes)
@@ -68,17 +69,17 @@ Dynamic section at offset 0x128 contains 11 entries
 
 Relocation section '.rel.dyn' at offset 0x238 contains 2 entries
     Offset             Info             Type               Symbol's Value  Symbol's Name
-00000000000000e8  0000000000000008 Unknown
+00000000000000e8  0000000000000008 Unknown                           
 0000000000000108  000000020000000a R_BPF_64_32            0000000000000000 sol_log_
 
 Symbol table '.dynsym' contains 3 entries
    Num    Value          Size Type    Bind   Vis       Ndx Name
-     0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND 
      1 00000000000000e8     0 NOTYPE  GLOBAL DEFAULT     1 entrypoint
      2 0000000000000000     0 NOTYPE  GLOBAL DEFAULT   UND sol_log_
 There are no section groups in this file.
 
-deploy/hello-dasmac.so	file format elf64-bpf
+hello-dasmac.so	file format elf64-bpf
 
 Disassembly of section .text
 

@@ -1,0 +1,13 @@
+[[bin]]
+name = "build-examples"
+path = "src/main.rs"
+
+[dependencies]
+cargo-manifest.workspace = true
+regex.workspace = true
+
+[package]
+edition = "2021"
+name = "build-examples"
+publish = false
+version = "0.1.0"

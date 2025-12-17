@@ -1,0 +1,57 @@
+---
+env:
+  RUSTFILT_VERSION: '0.2.1'
+  SBPF_ARCH_DISASSEMBLE: 'v2'
+  SBPF_ARCH_DUMP: 'v4'
+  SBPF_ARCH_TEST: 'v3'
+  SBPF_CLI_REVISION: 'b541997'
+  SOLANA_VERSION: 'v3.1.2'
+  TOOLS_VERSION_DISASSEMBLE: 'v1.52'
+  TOOLS_VERSION_DUMP: 'v1.51'
+  TOOLS_VERSION_TEST: 'v1.51'
+jobs:
+  build-examples:
+    name: 'Build examples'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - name: 'Checkout repository'
+      uses: 'actions/checkout@v4'
+    - id: 'install-toolchain'
+      name: 'Install toolchain'
+      uses: './.github/actions/install-toolchain'
+      with:
+        rustfilt-version: '${{ env.RUSTFILT_VERSION }}'
+        sbpf-cli-revision: '${{ env.SBPF_CLI_REVISION }}'
+        solana-version: '${{ env.SOLANA_VERSION }}'
+        tools-version-disassemble: '${{ env.TOOLS_VERSION_DISASSEMBLE }}'
+        tools-version-dump: '${{ env.TOOLS_VERSION_DUMP }}'
+        tools-version-test: '${{ env.TOOLS_VERSION_TEST }}'
+    - id: 'cache-deps'
+      name: 'Cache dependencies'
+      uses: 'actions/cache@v4'
+      with:
+        key: 'cargo-build-examples-${{ steps.install-toolchain.outputs.platform
+              }}-${{ hashFiles(''examples/Cargo.lock'') }}'
+        path: |
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          examples/target
+    - if: 'steps.cache-deps.outputs.cache-hit != ''true'''
+      name: 'Build dependencies'
+      run: >-
+        sh .github/actions/install-toolchain/scripts/build-deps.sh
+        "${{ env.SBPF_ARCH_DISASSEMBLE }}"
+        "${{ env.TOOLS_VERSION_DISASSEMBLE }}"
+        "${{ env.SBPF_ARCH_DUMP }}"
+        "${{ env.TOOLS_VERSION_DUMP }}"
+        "${{ env.SBPF_ARCH_TEST }}"
+        "${{ env.TOOLS_VERSION_TEST }}"
+      shell: 'sh'
+    - name: 'Build examples'
+      run: 'cargo run --bin build-examples'
+      shell: 'sh'
+      working-directory: 'examples'
+name: 'Build examples'
+'on':
+  pull_request: null
+...
