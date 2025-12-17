@@ -35,7 +35,8 @@ fn main() {
 
     for path in dir_paths {
         let dir = path.file_name().expect("failed to get directory name");
-        if dir == "target" { continue;
+        if dir == "target" {
+            continue;
         } else if dir == "utils" {
             utils_path = Some(path.clone());
         } else {
