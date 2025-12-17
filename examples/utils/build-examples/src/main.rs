@@ -19,6 +19,7 @@ const SBPF_ARCH_TEST: &str = "v3";
 const TOOLS_VERSION_DISASSEMBLE: &str = "1.52";
 const TOOLS_VERSION_DUMP: &str = "1.51";
 const TOOLS_VERSION_TEST: &str = "1.51";
+const TOOLS_VERSION_TESTY: &str = "1.51";
 
 fn main() {
     let mut utils_path: Option<PathBuf> = None;
