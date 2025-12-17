@@ -10,6 +10,7 @@ TOOLS_VERSION_TEST="$6"
 cd examples
 cargo build --package build-deps
 cargo test --no-run --package build-deps
+cargo clippy --package build-deps
 (
 	cd utils/deps/program &&
 		cargo build-sbf --arch "$SBPF_ARCH_DISASSEMBLE" --tools-version "$TOOLS_VERSION_DISASSEMBLE" &&
