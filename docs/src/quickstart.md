@@ -29,13 +29,14 @@ you to compare the two implementations side-by-side.
    > [!tip]
    > This example is from `~/.zshrc` on a Mac with [Oh My Zsh].
 
-1. Install [`cargo build-sbf`] with [`tools-version`] `v1.51`, which is required
-   (as of the time of this writing) to compile to [SBPF v3 and v4][sbpf v4]
-   since [`platform-tools` v1.52 removed] the `sbpfv3-solana-solana` and
-   `sbpfv4-solana-solana` targets and there is no newer supporting version than
-   `v1.51`.
+1. Install [`cargo build-sbf`] with [`tools-version`] `v1.52` and `v1.51`, which
+   is required (as of the time of this writing) to compile to
+   [SBPF v3 and v4][sbpf v4] since [`platform-tools` v1.52 removed] the
+   `sbpfv3-solana-solana` and `sbpfv4-solana-solana` targets and there is no
+   newer supporting version than `v1.51`.
 
    ```sh:no-line-numbers
+   cargo-build-sbf --install-only --tools-version v1.52
    cargo-build-sbf --install-only --tools-version v1.51
    ```
 
@@ -95,7 +96,8 @@ you to compare the two implementations side-by-side.
 
    :::
 
-1. Build the assembly implementation.
+1. Build the assembly implementation using [`sbpf`] which, as of the time of
+   this writing, [produces a v0 SBPF build].
 
    ```sh:no-line-numbers
    sbpf build
@@ -143,12 +145,21 @@ you to compare the two implementations side-by-side.
 
    :::
 
+1. Remove the Rust program then regenerate it with [`cargo build-sbf`] for a
+   v2 SBPF target since, as of the time of this writing, the `sbpf disassemble`
+   command only supports up to SBPF v2.
+
+   ```sh:no-line-numbers
+   rm ../target/deploy/hello_dasmac.so
+   cargo build-sbf --arch v2 --tools-version v1.52
+   ```
+
 1. Run [`sbpf`] `disassemble` on the Rust build output to see its corresponding
    assembly implementation:
 
-    ```sh:no-line-numbers
-    sbpf disassemble ../target/deploy/hello_dasmac.so > dumps/rs.s
-    ```
+   ```sh:no-line-numbers
+   sbpf disassemble ../target/deploy/hello_dasmac.so > dumps/rs.s
+   ```
 
    ::: details Output
 
@@ -171,12 +182,14 @@ you to compare the two implementations side-by-side.
    > rm -rf ~/.cache/solana
    > ```
 
-1. Rebuild the Rust implementation and run its test.
+1. Renegerate a v3 SBPF Rust implementation and run its test.
 
    <!-- markdownlint-disable MD013 -->
 
    ```sh:no-line-numbers
-   cargo build-sbf --arch v3 --tools-version v1.51 && cargo test -- --test test_rs
+   rm ../target/deploy/hello_dasmac.so
+   cargo build-sbf --arch v3 --tools-version v1.51
+   cargo test -- --test test_rs
    ```
 
    <!-- markdownlint-enable MD013 -->
@@ -242,3 +255,4 @@ program!
 [`sbpf`]: https://github.com/blueshift-gg/sbpf
 [`solana`]: https://docs.anza.xyz/cli/install
 [`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487
+[produces a v0 SBPF build]: https://github.com/blueshift-gg/sbpf/issues/79#issuecomment-3596193259
