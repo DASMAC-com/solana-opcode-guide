@@ -2,15 +2,16 @@
 set -e
 
 SOLANA_VERSION="$1"
-PLATFORM_TOOLS_VERSION_DUMP="$2"
-PLATFORM_TOOLS_VERSION_TEST="$3"
-SBPF_REVISION="$4"
-RUSTFILT_VERSION="$5"
-
+PLATFORM_TOOLS_VERSION_DISASSEMBLE="$2"
+PLATFORM_TOOLS_VERSION_DUMP="$3"
+PLATFORM_TOOLS_VERSION_TEST="$4"
+SBPF_REVISION="$5"
+RUSTFILT_VERSION="$6"
 # Install Solana toolchain.
 sh -c "$(curl -sSfL "https://release.anza.xyz/${SOLANA_VERSION}/install")"
 
 # Install platform-tools.
+cargo-build-sbf --install-only --tools-version "$PLATFORM_TOOLS_VERSION_DISASSEMBLE"
 cargo-build-sbf --install-only --tools-version "$PLATFORM_TOOLS_VERSION_DUMP"
 cargo-build-sbf --install-only --tools-version "$PLATFORM_TOOLS_VERSION_TEST"
 

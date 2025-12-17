@@ -4,11 +4,14 @@ inputs:
   rustfilt-version:
     description: 'rustfilt version to install'
     required: true
+  tools-version-disassemble:
+    description: 'Solana platform-tools version for Rust program disassembly'
+    required: true
   tools-version-dump:
-    description: 'Solana platform-tools version for Rust compilation dumps'
+    description: 'Solana platform-tools version for Rust program dumps'
     required: true
   tools-version-test:
-    description: 'Solana platform-tools version for Rust compilation tests'
+    description: 'Solana platform-tools version for Rust program tests'
     required: true
   sbpf-cli-revision:
     description: 'sbpf CLI rev (git commit hash, tag, or branch) to install'
@@ -36,6 +39,7 @@ runs:
     with:
       key: 'solana-opcode-guide-toolchain-${{
             inputs.solana-version }}-${{
+            inputs.tools-version-disassemble }}-${{
             inputs.tools-version-dump }}-${{
             inputs.tools-version-test }}-${{
             inputs.sbpf-cli-revision }}-${{
@@ -51,6 +55,7 @@ runs:
     run: >-
       ${{ github.action_path }}/scripts/install-tools.sh
       "${{ inputs.solana-version }}"
+      "${{ inputs.tools-version-disassemble }}"
       "${{ inputs.tools-version-dump }}"
       "${{ inputs.tools-version-test }}"
       "${{ inputs.sbpf-cli-revision }}"

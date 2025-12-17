@@ -1,10 +1,12 @@
 ---
 env:
   RUSTFILT_VERSION: '0.2.1'
+  SBPF_ARCH_DISASSEMBLE: 'v2'
   SBPF_ARCH_DUMP: 'v4'
   SBPF_ARCH_TEST: 'v3'
   SBPF_CLI_REVISION: 'b541997'
   SOLANA_VERSION: 'v3.1.2'
+  TOOLS_VERSION_DISASSEMBLE: 'v1.52'
   TOOLS_VERSION_DUMP: 'v1.51'
   TOOLS_VERSION_TEST: 'v1.51'
 jobs:
@@ -18,6 +20,7 @@ jobs:
       name: 'Install toolchain'
       uses: './.github/actions/install-toolchain'
       with:
+        tools-version-disassemble: '${{ env.TOOLS_VERSION_DISASSEMBLE }}'
         tools-version-dump: '${{ env.TOOLS_VERSION_DUMP }}'
         tools-version-test: '${{ env.TOOLS_VERSION_TEST }}'
         sbpf-cli-revision: '${{ env.SBPF_CLI_REVISION }}'
@@ -34,8 +37,12 @@ jobs:
       name: 'Build dependencies'
       run: >-
         sh .github/actions/install-toolchain/scripts/build-deps.sh
-        "${{ env.SBPF_ARCH_DUMP }}" "${{ env.TOOLS_VERSION_DUMP }}"
-        "${{ env.SBPF_ARCH_TEST }}" "${{ env.TOOLS_VERSION_TEST }}"
+        "${{ env.SBPF_ARCH_DISASSEMBLE }}"
+        "${{ env.TOOLS_VERSION_DISASSEMBLE }}"
+        "${{ env.SBPF_ARCH_DUMP }}"
+        "${{ env.TOOLS_VERSION_DUMP }}"
+        "${{ env.SBPF_ARCH_TEST }}"
+        "${{ env.TOOLS_VERSION_TEST }}"
       shell: 'sh'
     - name: 'Build examples'
       run: 'cargo run --bin build-examples'
