@@ -19,7 +19,6 @@ const SBPF_ARCH_TEST: &str = "v3";
 const TOOLS_VERSION_DISASSEMBLE: &str = "1.52";
 const TOOLS_VERSION_DUMP: &str = "1.51";
 const TOOLS_VERSION_TEST: &str = "1.51";
-const TOOLS_VERSION_TESTY: &str = "1.51";
 
 fn main() {
     let mut utils_path: Option<PathBuf> = None;
@@ -36,8 +35,7 @@ fn main() {
 
     for path in dir_paths {
         let dir = path.file_name().expect("failed to get directory name");
-        if dir == "target" {
-            continue;
+        if dir == "target" { continue;
         } else if dir == "utils" {
             utils_path = Some(path.clone());
         } else {
