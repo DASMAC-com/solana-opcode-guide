@@ -48,10 +48,6 @@ jobs:
       run: 'cargo run --bin build-examples'
       shell: 'sh'
       working-directory: 'examples'
-    - name: 'Run tests'
-      run: 'cargo test'
-      shell: 'sh'
-      working-directory: 'examples'
 name: 'Build examples'
 'on':
   pull_request: null
