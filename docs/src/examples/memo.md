@@ -74,7 +74,11 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 
 Note the minimal [compute unit] consumption for a failure:
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/memo/artifacts/tests/asm_fail/result.txt{3 sh:line-numbers}
+
+<!-- markdownlint-enable MD013 -->
 
 ::: details `test_asm_fail`
 
@@ -109,7 +113,11 @@ After the logging operation, the program concludes:
 
 Note the [compute unit] consumption for a successful log:
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/memo/artifacts/tests/asm_pass/result.txt{4 sh:line-numbers}
+
+<!-- markdownlint-enable MD013 -->
 
 ::: details `test_asm_pass`
 
