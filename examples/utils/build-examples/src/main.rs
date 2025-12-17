@@ -50,7 +50,7 @@ fn main() {
     }
 
     // Run cargo fmt and clippy on the workspace.
-    run_command(&["cargo", "fmt", "--all"], examples_dir.as_path());
+    run_command(&["cargo", "fmt", "--check"], examples_dir.as_path());
     run_command(
         &["cargo", "clippy", "--", "-D", "warnings"],
         examples_dir.as_path(),
