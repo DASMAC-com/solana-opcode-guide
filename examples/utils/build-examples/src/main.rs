@@ -56,8 +56,11 @@ fn check_dependencies(
     program_dependencies: HashSet<String>,
     mut dev_dependencies: HashSet<String>,
 ) {
-    // Parse dependencies from utils crates.
+    // Verify workflow constants match main.rs constants.
     let utils_path = utils_path.expect("missing utils directory");
+    verify_workflow_constants(utils_path.as_path());
+
+    // Parse dependencies from utils crates.
     let test_utils_crate = &utils_path.clone().join("test-utils");
     let build_examples_crate = &utils_path.clone().join("build-examples");
     let mut build_dependencies = program_dependencies.clone();
@@ -146,6 +149,41 @@ fn verify_manifest_deps(crate_dir: &Path, expected_deps: &HashSet<String>, kind:
         }
         exit(1);
     }
+}
+
+fn verify_workflow_constants(utils_path: &Path) {
+    let workflow_path = utils_path
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join(".github/workflows/build-examples.yml");
+    let workflow_contents =
+        fs::read_to_string(&workflow_path).expect("failed to read build-examples.yml");
+
+    let expected = [
+        ("SBPF_ARCH_DISASSEMBLE", SBPF_ARCH_DISASSEMBLE),
+        ("SBPF_ARCH_DUMP", SBPF_ARCH_DUMP),
+        ("SBPF_ARCH_TEST", SBPF_ARCH_TEST),
+        ("TOOLS_VERSION_DISASSEMBLE", TOOLS_VERSION_DISASSEMBLE),
+        ("TOOLS_VERSION_DUMP", TOOLS_VERSION_DUMP),
+        ("TOOLS_VERSION_TEST", TOOLS_VERSION_TEST),
+    ];
+
+    for (name, value) in expected {
+        // Match patterns like "SBPF_ARCH_DISASSEMBLE: 'v2'" (with optional 'v' prefix for versions).
+        let pattern = format!("{}: 'v?{}'", name, value);
+        let re = Regex::new(&pattern).unwrap();
+        assert!(
+            re.is_match(&workflow_contents),
+            "workflow constant {} does not match main.rs value '{}' in {}",
+            name,
+            value,
+            workflow_path.display()
+        );
+    }
+
+    println!("workflow constants match ({})", workflow_path.display());
 }
 
 fn run_command(tokens: &[&str], current_dir: &Path) {
@@ -379,8 +417,15 @@ fn run_and_save_test_snippets(path: &Path, package_name: &str) {
     let tests_dir = path.join("artifacts/tests");
 
     for (test_name, test_code) in tests {
+        // Verify test name starts with "test_".
+        assert!(
+            test_name.starts_with("test_"),
+            "test name '{}' must start with 'test_'",
+            test_name
+        );
+
         // Strip "test_" prefix from test name for directory.
-        let dir_name = test_name.strip_prefix("test_").unwrap_or(&test_name);
+        let dir_name = test_name.strip_prefix("test_").unwrap();
 
         // Create the test artifact directory.
         let test_dir = tests_dir.join(dir_name);
