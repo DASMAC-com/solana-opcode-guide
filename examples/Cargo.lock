@@ -384,7 +384,6 @@ dependencies = [
  "pinocchio",
  "regex",
  "solana-sdk",
- "test-utils",
 ]
 
 [[package]]

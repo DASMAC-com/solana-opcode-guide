@@ -6,7 +6,6 @@ regex.workspace = true
 [dev-dependencies]
 mollusk-svm.workspace = true
 solana-sdk.workspace = true
-test-utils.path = "../../test-utils"
 
 [lints]
 workspace = true

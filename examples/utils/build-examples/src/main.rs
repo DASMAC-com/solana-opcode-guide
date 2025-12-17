@@ -62,7 +62,7 @@ fn check_dependencies(
     let build_examples_crate = &utils_path.clone().join("build-examples");
     let mut build_dependencies = program_dependencies.clone();
 
-    // Extend the dependency sets. Note all test utils are dev-dependencies.
+    // Extend the dependency sets. Note all test utils deps are are dev-dependencies.
     extend_dep_set(&mut dev_dependencies, test_utils_crate, DepKind::Regular);
     extend_dep_set(&mut dev_dependencies, build_examples_crate, DepKind::Dev);
     extend_dep_set(
@@ -70,6 +70,10 @@ fn check_dependencies(
         build_examples_crate,
         DepKind::Regular,
     );
+
+    // Remove the test-utils crate from the build build deps dev-dependencies, since it is a local
+    // path dependency that may change between caches.
+    dev_dependencies.remove("test-utils");
 
     // Get program and build dependency crates manifests.
     let deps_path = utils_path.join("deps");
