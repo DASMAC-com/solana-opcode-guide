@@ -26,7 +26,8 @@ fn main() {
     let mut dev_dependencies = HashSet::<String>::new();
     let mut examples_keypair = None;
 
-    let dir_paths = fs::read_dir(current_dir().expect("failed to get current directory"))
+    let examples_dir = current_dir().expect("failed to get current directory");
+    let dir_paths = fs::read_dir(examples_dir.clone())
         .expect("failed to read examples directory")
         .flatten()
         .map(|entry| entry.path())
@@ -47,6 +48,13 @@ fn main() {
             );
         }
     }
+
+    // Run cargo fmt and clippy on the workspace.
+    run_command(&["cargo", "fmt", "--all"], examples_dir.as_path());
+    run_command(
+        &["cargo", "clippy", "--", "-D", "warnings"],
+        examples_dir.as_path(),
+    );
 
     check_dependencies(utils_path, program_dependencies, dev_dependencies);
 }
