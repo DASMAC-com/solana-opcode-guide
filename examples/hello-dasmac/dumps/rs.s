@@ -10,7 +10,7 @@ entrypoint:
   jge r3, 3, jmp_0068
 
 jmp_0038:
-  mov32 r1, 2344
+  mov32 r1, 2352
   hor64 r1, 0
   mov64 r2, 14
   call sol_log_
@@ -315,11 +315,12 @@ jmp_0790:
   add64 r1, r3
   ldxdw r1, [r1+0]
   ja jmp_0418
-  ldxdw r1, [r1+8]
   ldxdw r2, [r1+8]
-  ldxdw r1, [r1+0]
+  ldxdw r1, [r2+0]
+  ldxdw r2, [r2+8]
+  add64 r2, -1
   call sol_log_
-  mov32 r1, 2358
+  mov32 r1, 2366
   hor64 r1, 0
   mov64 r2, 14
   call sol_log_

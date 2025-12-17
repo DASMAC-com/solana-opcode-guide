@@ -341,11 +341,12 @@ jmp_0828:
   ldxdw r3, [r4+0]
   stxdw [r2+8], r3
   ja jmp_05c0
-  ldxdw r1, [r1+8]
   ldxdw r2, [r1+8]
-  ldxdw r1, [r1+0]
+  ldxdw r1, [r2+0]
+  ldxdw r2, [r2+8]
+  add64 r2, -1
   call sol_log_
-  mov32 r1, 2504
+  mov32 r1, 2512
   hor64 r1, 0
   mov64 r2, 14
   call sol_log_

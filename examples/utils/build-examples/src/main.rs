@@ -12,8 +12,10 @@ enum DepKind {
     Dev,
 }
 
+const SBPF_ARCH_DISASSEMBLE: &str = "v2";
 const SBPF_ARCH_DUMP: &str = "v4";
 const SBPF_ARCH_TEST: &str = "v3";
+const TOOLS_VERSION_DISASSEMBLE: &str = "1.52";
 const TOOLS_VERSION_DUMP: &str = "1.51";
 const TOOLS_VERSION_TEST: &str = "1.51";
 
@@ -153,6 +155,15 @@ fn run_command(tokens: &[&str], current_dir: &Path) {
     assert!(status.success(), "command failed: {}", tokens.join(" "));
 }
 
+fn remove_sbf_binary(path: &Path, package_name: &str) {
+    let rs_package_name = package_name.replace("-", "_");
+    let deploy_dir = path.parent().unwrap().join("target/deploy");
+    let binary_path = deploy_dir.join(format!("{}.so", rs_package_name));
+    if binary_path.exists() {
+        fs::remove_file(&binary_path).expect("failed to remove .so binary");
+    }
+}
+
 fn build_example(
     path: &Path,
     examples_keypair: &mut Option<String>,
@@ -198,7 +209,7 @@ fn build_example(
         asm_path.display()
     );
 
-    // Run build commands.
+    // Run build commands for ELF files to dump.
     run_command(&["sbpf", "build"], path);
     run_command(
         &[
@@ -237,7 +248,19 @@ fn build_example(
     clean_dump_file_metadata(&asm_dump_path, package_name);
     clean_dump_file_metadata(&rs_dump_path, &package_name.replace("-", "_"));
 
-    // Disassemble the cargo-build-sbf file.
+    // Regenerate rust program for disassembly.
+    remove_sbf_binary(path, package_name);
+    run_command(
+        &[
+            "cargo",
+            "build-sbf",
+            "--arch",
+            SBPF_ARCH_DISASSEMBLE,
+            "--tools-version",
+            TOOLS_VERSION_DISASSEMBLE,
+        ],
+        path,
+    );
     let rs_build_path = rs_deploy_dir_path.join(rs_package_name + ".so");
     let rs_asm_path = dump_dir_path.join("rs.s");
     let disassemble_output = std::process::Command::new("sbpf")
@@ -251,7 +274,8 @@ fn build_example(
     );
     fs::write(&rs_asm_path, disassemble_output.stdout).expect("failed to write rs.s");
 
-    // Build the testable version of the program now that dumps are done.
+    // Regenerate the testable version of the program now that dumps are done.
+    remove_sbf_binary(path, package_name);
     run_command(
         &[
             "cargo",
