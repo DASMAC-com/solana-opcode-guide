@@ -7,4 +7,5 @@ dictionaryDefinitions:
   path: './dictionary.txt'
 ignorePaths:
 - '**/examples/**/dumps/**'
+- '**/examples/**/artifacts/rs-disassembly.s'
 ...
