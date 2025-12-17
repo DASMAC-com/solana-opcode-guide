@@ -1,13 +1,13 @@
-[package]
+[[bin]]
 name = "build-examples"
-version = "0.1.0"
-edition = "2021"
-publish = false
+path = "src/main.rs"
 
 [dependencies]
 cargo-manifest.workspace = true
 regex.workspace = true
 
-[[bin]]
+[package]
+edition = "2021"
 name = "build-examples"
-path = "src/main.rs"
+publish = false
+version = "0.1.0"

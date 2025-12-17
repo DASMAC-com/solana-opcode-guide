@@ -1,3 +1,4 @@
+// cspell:word nocapture
 use cargo_manifest::Manifest;
 use regex::Regex;
 use std::collections::HashSet;

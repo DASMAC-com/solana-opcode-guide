@@ -145,9 +145,9 @@ you to compare the two implementations side-by-side.
 
    :::
 
-1. Remove the Rust program then regenerate it with [`cargo build-sbf`] for a
-   v2 SBPF target since, as of the time of this writing, the `sbpf disassemble`
-   command only supports up to SBPF v2.
+1. Remove the Rust program then build it with [`cargo build-sbf`] for an
+   [SBPF v2][sbpf v4] target since, as of the time of this writing, the
+   `sbpf disassemble` command [only supports up to SBPF v2].
 
    ```sh:no-line-numbers
    rm ../target/deploy/hello_dasmac.so
@@ -182,7 +182,7 @@ you to compare the two implementations side-by-side.
    > rm -rf ~/.cache/solana
    > ```
 
-1. Renegerate a v3 SBPF Rust implementation and run its test.
+1. Regenerate a v3 SBPF Rust implementation and run its test.
 
    <!-- markdownlint-disable MD013 -->
 
@@ -239,7 +239,9 @@ program!
 [known issue]: https://stackoverflow.com/a/78398587
 [loading up to sbpf v3]: https://github.com/anza-xyz/agave/blob/v3.1.2/feature-set/src/lib.rs#L140-L141
 [oh my zsh]: https://ohmyz.sh/
+[only supports up to sbpf v2]: https://github.com/blueshift-gg/sbpf/blob/9a28921055a6fefd1036ebe7ab5b0d7abae3a519/crates/common/src/instruction.rs#L88
 [patched llvm binaries]: https://github.com/anza-xyz/platform-tools
+[produces a v0 sbpf build]: https://github.com/blueshift-gg/sbpf/issues/79#issuecomment-3596193259
 [rust]: https://solana.com/docs/programs/rust
 [sbpf]: https://solana.com/docs/core/programs
 [sbpf v4]: https://github.com/anza-xyz/sbpf
@@ -255,4 +257,3 @@ program!
 [`sbpf`]: https://github.com/blueshift-gg/sbpf
 [`solana`]: https://docs.anza.xyz/cli/install
 [`tools-version`]: https://github.com/anza-xyz/agave/blob/v3.1.2/platform-tools-sdk/cargo-build-sbf/src/toolchain.rs#L487
-[produces a v0 SBPF build]: https://github.com/blueshift-gg/sbpf/issues/79#issuecomment-3596193259

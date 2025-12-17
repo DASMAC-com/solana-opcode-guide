@@ -4,6 +4,12 @@ inputs:
   rustfilt-version:
     description: 'rustfilt version to install'
     required: true
+  sbpf-cli-revision:
+    description: 'sbpf CLI rev (git commit hash, tag, or branch) to install'
+    required: true
+  solana-version:
+    description: 'Solana version to install'
+    required: true
   tools-version-disassemble:
     description: 'Solana platform-tools version for Rust program disassembly'
     required: true
@@ -12,12 +18,6 @@ inputs:
     required: true
   tools-version-test:
     description: 'Solana platform-tools version for Rust program tests'
-    required: true
-  sbpf-cli-revision:
-    description: 'sbpf CLI rev (git commit hash, tag, or branch) to install'
-    required: true
-  solana-version:
-    description: 'Solana version to install'
     required: true
 name: 'Install toolchain'
 outputs:

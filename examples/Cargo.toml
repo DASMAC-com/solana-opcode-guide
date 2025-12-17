@@ -2,11 +2,11 @@
 
 [workspace]
 members = [
-    "hello-dasmac",
-    "memo",
-    "utils/build-examples",
-    "utils/deps/build",
-    "utils/deps/program",
+  "hello-dasmac",
+  "memo",
+  "utils/build-examples",
+  "utils/deps/build",
+  "utils/deps/program"
 ]
 resolver = "2"
 
