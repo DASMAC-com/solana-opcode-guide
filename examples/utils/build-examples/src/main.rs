@@ -450,26 +450,26 @@ fn clean_test_output(output: &str) -> String {
         .join("\n")
 }
 
-/// Verify that code snippets in artifacts/asm and artifacts/rs match the source files.
+/// Verify that code snippets in artifacts/snippets/asm and artifacts/snippets/rs match the source files.
 fn verify_code_snippets(path: &Path, package_name: &str) {
-    let artifacts_dir = path.join("artifacts");
+    let snippets_dir = path.join("artifacts/snippets");
 
     // Check asm snippets against the .s source file.
-    let asm_snippets_dir = artifacts_dir.join("asm");
+    let asm_snippets_dir = snippets_dir.join("asm");
     if asm_snippets_dir.exists() {
         let asm_source_path = path.join(format!("src/{}/{}.s", package_name, package_name));
         let asm_source = fs::read_to_string(&asm_source_path)
             .unwrap_or_else(|_| panic!("failed to read {}", asm_source_path.display()));
-        verify_snippets_in_source(&asm_snippets_dir, &asm_source, "asm");
+        verify_snippets_in_source(&asm_snippets_dir, &asm_source, "snippets/asm");
     }
 
     // Check rs snippets against the program.rs source file.
-    let rs_snippets_dir = artifacts_dir.join("rs");
+    let rs_snippets_dir = snippets_dir.join("rs");
     if rs_snippets_dir.exists() {
         let rs_source_path = path.join("src/program.rs");
         let rs_source = fs::read_to_string(&rs_source_path)
             .unwrap_or_else(|_| panic!("failed to read {}", rs_source_path.display()));
-        verify_snippets_in_source(&rs_snippets_dir, &rs_source, "rs");
+        verify_snippets_in_source(&rs_snippets_dir, &rs_source, "snippets/rs");
     }
 }
 
