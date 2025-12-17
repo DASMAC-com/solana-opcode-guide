@@ -231,7 +231,8 @@ fn build_example(
 
     // Dump the sbpf build.
     let asm_build_path = path.join(format!("deploy/{}.so", package_name));
-    let dump_dir_path = path.join("dumps");
+    let artifacts_dir = path.join("artifacts");
+    let dump_dir_path = artifacts_dir.join("dumps");
     let asm_dump_path = dump_dir_path.join("asm.txt");
     run_command(
         &[
@@ -267,7 +268,7 @@ fn build_example(
         path,
     );
     let rs_build_path = rs_deploy_dir_path.join(rs_package_name + ".so");
-    let rs_asm_path = dump_dir_path.join("rs.s");
+    let rs_asm_path = artifacts_dir.join("rs-disassembly.s");
     let disassemble_output = std::process::Command::new("sbpf")
         .args(["disassemble", rs_build_path.to_str().unwrap()])
         .output()
@@ -375,12 +376,15 @@ fn run_and_save_test_snippets(path: &Path, package_name: &str) {
     );
 
     let tests = discover_tests(&tests_path);
-    let snippets_dir = path.join("snippets");
+    let tests_dir = path.join("artifacts/tests");
 
     for (test_name, test_code) in tests {
-        // Create the snippet directory.
-        let test_dir = snippets_dir.join(&test_name);
-        fs::create_dir_all(&test_dir).expect("failed to create snippet directory");
+        // Strip "test_" prefix from test name for directory.
+        let dir_name = test_name.strip_prefix("test_").unwrap_or(&test_name);
+
+        // Create the test artifact directory.
+        let test_dir = tests_dir.join(dir_name);
+        fs::create_dir_all(&test_dir).expect("failed to create test artifact directory");
 
         // Save the test code.
         let test_file = test_dir.join("test.txt");
@@ -446,12 +450,12 @@ fn clean_test_output(output: &str) -> String {
         .join("\n")
 }
 
-/// Verify that code snippets in snippets/asm and snippets/rs match the source files.
+/// Verify that code snippets in artifacts/asm and artifacts/rs match the source files.
 fn verify_code_snippets(path: &Path, package_name: &str) {
-    let snippets_dir = path.join("snippets");
+    let artifacts_dir = path.join("artifacts");
 
     // Check asm snippets against the .s source file.
-    let asm_snippets_dir = snippets_dir.join("asm");
+    let asm_snippets_dir = artifacts_dir.join("asm");
     if asm_snippets_dir.exists() {
         let asm_source_path = path.join(format!("src/{}/{}.s", package_name, package_name));
         let asm_source = fs::read_to_string(&asm_source_path)
@@ -460,7 +464,7 @@ fn verify_code_snippets(path: &Path, package_name: &str) {
     }
 
     // Check rs snippets against the program.rs source file.
-    let rs_snippets_dir = snippets_dir.join("rs");
+    let rs_snippets_dir = artifacts_dir.join("rs");
     if rs_snippets_dir.exists() {
         let rs_source_path = path.join("src/program.rs");
         let rs_source = fs::read_to_string(&rs_source_path)
@@ -500,7 +504,7 @@ fn verify_snippets_in_source(snippets_dir: &Path, source: &str, snippet_type: &s
 
             assert!(
                 normalized_source.contains(&normalized_snippet),
-                "snippet '{}' in snippets/{} not found in source file:\n---\n{}\n---",
+                "snippet '{}' in artifacts/{} not found in source file:\n---\n{}\n---",
                 snippet_name,
                 snippet_type,
                 snippet_content
