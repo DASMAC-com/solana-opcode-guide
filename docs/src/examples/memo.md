@@ -30,7 +30,7 @@ print, the input buffer layout is as follows:
 Related constants are defined at the top of the assembly implementation and used
 throughout the remainder of the program:
 
-<<< ../../../examples/memo/snippets/asm/constants.txt{1-3 asm}
+<<< ../../../examples/memo/artifacts/snippets/asm/constants.txt{1-3 asm}
 
 ::: details Full program
 
@@ -64,7 +64,7 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 [32 bits from an immediate][immediate value] as opposed to
 [all 64 register bits] from `r4`:
 
-<<< ../../../examples/memo/snippets/asm/error-checking.txt{4-7 asm}
+<<< ../../../examples/memo/artifacts/snippets/asm/error-checking.txt{4-7 asm}
 
 ::: details Full program
 
@@ -74,12 +74,11 @@ use [`JNE_IMM`] and therefore only compare `r0` against
 
 Note the minimal [compute unit] consumption for a failure:
 
-<<< ../../../examples/memo/snippets/test_asm_fail/result.txt{3 sh:line-numbers}
+<<< ../../../examples/memo/artifacts/tests/asm_fail/result.txt{3 sh:line-numbers}
 
-::: details test_asm_fail
+::: details `test_asm_fail`
 
-<<< ../../../examples/memo/snippets/test_asm_fail/test.txt{rs:line-numbers}
-
+<<< ../../../examples/memo/artifacts/tests/asm_fail/test.txt{rs:line-numbers}
 :::
 
 ## :speech_balloon: Logging
@@ -100,7 +99,7 @@ These operations preposition a [`call` via `CALL_IMM`] to [`sol_log_`], which
 
 After the logging operation, the program concludes:
 
-<<< ../../../examples/memo/snippets/asm/logging.txt{6-11 asm}
+<<< ../../../examples/memo/artifacts/snippets/asm/logging.txt{6-11 asm}
 
 ::: details Full program
 
@@ -110,11 +109,11 @@ After the logging operation, the program concludes:
 
 Note the [compute unit] consumption for a successful log:
 
-<<< ../../../examples/memo/snippets/test_asm_pass/result.txt{4 sh:line-numbers}
+<<< ../../../examples/memo/artifacts/tests/asm_pass/result.txt{4 sh:line-numbers}
 
-::: details test_asm_pass
+::: details `test_asm_pass`
 
-<<< ../../../examples/memo/snippets/test_asm_pass/test.txt{rs:line-numbers}
+<<< ../../../examples/memo/artifacts/tests/asm_pass/test.txt{rs:line-numbers}
 
 :::
 
@@ -127,17 +126,16 @@ with the passed instruction data.
 
 Notably, however, it introduces [compute unit] overhead:
 
-<<< ../../../examples/memo/snippets/test_rs/result.txt{4 sh:line-numbers}
+<<< ../../../examples/memo/artifacts/tests/rs/result.txt{4 sh:line-numbers}
 
-::: details test_rs
+::: details `test_rs`
 
-<<< ../../../examples/memo/snippets/test_rs/test.txt{rs:line-numbers}
-
+<<< ../../../examples/memo/artifacts/tests/rs/test.txt{rs:line-numbers}
 :::
 
-## :white_check_mark: Tests
+## :white_check_mark: All tests
 
-::: details Tests
+::: details `tests.rs`
 
 <<< ../../../examples/memo/src/tests.rs{rs:line-numbers}
 

@@ -137,9 +137,9 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/dumps/asm.txt{9,13,16,19-20,27,83-89} [Assembly]
+   <<< ../../examples/hello-dasmac/artifacts/dumps/asm.txt{9,13,16,19-20,27,83-90} [Assembly]
 
-   <<< ../../examples/hello-dasmac/dumps/rs.txt{9,13,16,19-20,27,107-374} [Rust]
+   <<< ../../examples/hello-dasmac/artifacts/dumps/rs.txt{9,13,16,19-20,27,107-377} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
@@ -157,13 +157,17 @@ you to compare the two implementations side-by-side.
 1. Run [`sbpf`] `disassemble` on the Rust build output to see its corresponding
    assembly implementation:
 
+   <!-- markdownlint-disable MD013 -->
+
    ```sh:no-line-numbers
-   sbpf disassemble ../target/deploy/hello_dasmac.so > dumps/rs.s
+   sbpf disassemble ../target/deploy/hello_dasmac.so > artifacts/rs-disassembly.s
    ```
+
+   <!-- markdownlint-enable MD013 -->
 
    ::: details Output
 
-   <<< ../../examples/hello-dasmac/dumps/rs.s{asm}
+   <<< ../../examples/hello-dasmac/artifacts/rs-disassembly.s{asm}
 
    :::
 
@@ -206,9 +210,9 @@ you to compare the two implementations side-by-side.
 
    <!-- markdownlint-disable MD013 -->
 
-   <<< ../../examples/hello-dasmac/snippets/test_asm/result.txt{4 sh:line-numbers} [Assembly]
+   <<< ../../examples/hello-dasmac/artifacts/tests/asm/result.txt{4 sh:line-numbers} [Assembly]
 
-   <<< ../../examples/hello-dasmac/snippets/test_rs/result.txt{4 sh:line-numbers} [Rust]
+   <<< ../../examples/hello-dasmac/artifacts/tests/rs/result.txt{4 sh:line-numbers} [Rust]
 
    <!-- markdownlint-enable MD013 -->
 
