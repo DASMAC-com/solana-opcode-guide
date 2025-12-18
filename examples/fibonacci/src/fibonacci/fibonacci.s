@@ -36,16 +36,16 @@ loop:
     # numbers of the two Fibonacci numbers being tracked.
     # e.g. on the first iteration,
     # r6 = F(0), r7 = F(1) -> r6 = F(1), r7 = F(2).
-#    mov64 r9, r6
-#    mov64 r6, r7
-#    add64 r7, r9
+    mov64 r9, r6
+    mov64 r6, r7
+    add64 r7, r9
 
-#    # Decrement sequence number counter.
-#    sub32 r8, 1
-#    # If sequence number counter > 1, continue loop.
-#    jgt r8, MAX_N_SPECIAL_CASE, loop
-#    # Now result in r7 = F(n), move into return code register.
-#    mov64 r0, r7
+    # Decrement sequence number counter.
+    sub32 r8, 1
+    # If sequence number counter > 1, continue loop.
+    jgt r8, MAX_N_SPECIAL_CASE, loop
+    # Now result in r7 = F(n), move into return code register.
+    mov64 r0, r7
     exit
 
 abort_accounts:
