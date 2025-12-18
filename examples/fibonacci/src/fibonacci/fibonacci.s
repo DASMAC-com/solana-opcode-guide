@@ -24,13 +24,13 @@ entrypoint:
 #    # r6 = F(0) = 0, r7 = F(1) = 1. (r6 defaults to 0).
 #    mov64 r7, 1
 
-#    # F(n) = n for n = 0, 1. So compare sequence number to
-#    # MAX_N_SPECIAL_CASE then loop if not special case.
-#    jgt r8, MAX_N_SPECIAL_CASE, loop
-#    mov64 r0, r8
+    # F(n) = n for n = 0, 1. So compare sequence number to
+    # MAX_N_SPECIAL_CASE then loop if not special case.
+    jgt r8, MAX_N_SPECIAL_CASE, loop
+    mov64 r0, r8
     exit
 
-#loop:
+loop:
     # Decrement sequence number tracker for iteration.
     # Using r9 as a temporary register, increment the sequence
     # numbers of the two Fibonacci numbers being tracked.
@@ -46,7 +46,7 @@ entrypoint:
 #    jgt r8, MAX_N_SPECIAL_CASE, loop
 #    # Now result in r7 = F(n), move into return code register.
 #    mov64 r0, r7
-#    exit
+    exit
 
 abort_accounts:
     sub64 r0, E_ACCOUNTS
