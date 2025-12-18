@@ -20,9 +20,9 @@ entrypoint:
     # If sequence number > MAX_N, jump to exit with error code E_MAX_N.
     #jgt r8, MAX_N, abort_max_n
 
-#    # Prepare call-preserved registers for loop.
-#    # r6 = F(0) = 0, r7 = F(1) = 1. (r6 defaults to 0).
-#    mov64 r7, 1
+    # Prepare call-preserved registers for loop.
+    # r6 = F(0) = 0, r7 = F(1) = 1. (r6 defaults to 0).
+    mov64 r7, 1
 
     # F(n) = n for n = 0, 1. So compare sequence number to
     # MAX_N_SPECIAL_CASE then loop if not special case.
