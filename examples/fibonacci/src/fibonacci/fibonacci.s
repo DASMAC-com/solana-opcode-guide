@@ -44,7 +44,7 @@ loop:
     sub32 r8, 1
     # If sequence number counter > 1, continue loop.
     jgt r8, MAX_N_SPECIAL_CASE, loop
-    # Move result F(n) into return code register.
+    # Now result in r7 = F(n), move into return code register.
     mov64 r0, r7
     exit
 
