@@ -33,7 +33,7 @@ entrypoint:
     exit
 
 loop:
-    # Decrement sequence number tracker for iteration. Using r9 as a sratch
+    # Decrement sequence number tracker for iteration. Using r9 as a scratch
     # register, increment the sequence numbers of the two Fibonacci numbers
     # being tracked. For example on the first iteration,
     # r6 = F(0), r7 = F(1)
