@@ -2,6 +2,7 @@
 .equ INSTRUCTION_DATA_LENGTH_OFFSET, 8
 .equ INSTRUCTION_DATA_OFFSET, 16
 .equ E_ACCOUNTS, 1
+.equ E_MAX_N, 2
 .equ MAX_N, 93
 .equ MAX_N_SPECIAL_CASE, 1
 
@@ -18,7 +19,7 @@ entrypoint:
     # single byte since MAX_N < 256.
     ldxb r8, [r1 + INSTRUCTION_DATA_OFFSET]
     # If sequence number > MAX_N, jump to exit with error code E_MAX_N.
-    #jgt r8, MAX_N, abort_max_n
+    jgt r8, MAX_N, abort_max_n
 
     # Prepare call-preserved registers for loop.
     # r6 = F(0) = 0, r7 = F(1) = 1. (r6 defaults to 0).
@@ -52,6 +53,6 @@ abort_accounts:
     sub64 r0, E_ACCOUNTS
     exit
 
-# abort_max_n:
-#     sub64 r0, E_MAX_N
-#     exit
+abort_max_n:
+     sub64 r0, E_MAX_N
+     exit
