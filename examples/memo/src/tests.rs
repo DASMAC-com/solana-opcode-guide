@@ -11,18 +11,16 @@ fn test_asm_fail() {
 
     // Create a mock account that will trigger an error when passed.
     let mock_account_pubkey = Pubkey::new_unique();
-    let mock_account_data = AccountSharedData::default();
     let accounts = vec![AccountMeta::new(mock_account_pubkey, false)];
-    let n_accounts = accounts.len() as u32;
-    let instruction = Instruction::new_with_bytes(setup.program_id, b"Whoops", accounts);
+    let instruction = Instruction::new_with_bytes(setup.program_id, b"Whoops", accounts.clone());
+    let mock_account_data = AccountSharedData::default();
 
     // Verify that the instruction fails with the expected error code.
-    let result = setup.mollusk.process_and_validate_instruction(
+    setup.mollusk.process_and_validate_instruction(
         &instruction,
         &[(mock_account_pubkey, mock_account_data.into())],
-        &[Check::err(ProgramError::Custom(n_accounts))],
+        &[Check::err(ProgramError::Custom(accounts.len() as u32))],
     );
-    assert!(result.program_result.is_err());
 }
 
 #[test]
@@ -43,9 +41,7 @@ fn happy_path(program_language: ProgramLanguage) {
         Instruction::new_with_bytes(setup.program_id, b"Hello again, DASMAC!", vec![]);
 
     // Verify the instruction completes successfully.
-    assert!(!setup
+    setup
         .mollusk
-        .process_and_validate_instruction(&instruction, &[], &[Check::success()])
-        .program_result
-        .is_err());
+        .process_and_validate_instruction(&instruction, &[], &[Check::success()]);
 }
