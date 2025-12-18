@@ -2,6 +2,7 @@
 
 [workspace]
 members = [
+  "fibonacci",
   "hello-dasmac",
   "memo",
   "utils/build-examples",
