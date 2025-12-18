@@ -3,7 +3,7 @@
 .equ INSTRUCTION_DATA_OFFSET, 16
 .equ E_ACCOUNTS, 1
 .equ E_MAX_N, 2
-.equ MAX_N, 93
+.equ MAX_N, 47
 .equ MAX_N_SPECIAL_CASE, 1
 
 .global entrypoint
@@ -36,7 +36,7 @@ loop:
     # Decrement sequence number tracker for iteration. Using r9 as a scratch
     # register, increment the sequence numbers of the two Fibonacci numbers
     # being tracked. For example on the first iteration,
-    # {r6 = F(0), r7 = F(1)} --becomes--> {r6 = F(1), r7 = F(2)}
+    # {r6 = F(0), r7 = F(1)} -> {r6 = F(1), r7 = F(2)}
     mov64 r9, r6
     mov64 r6, r7
     add64 r7, r9
