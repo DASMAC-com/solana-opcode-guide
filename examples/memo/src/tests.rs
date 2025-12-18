@@ -7,7 +7,7 @@ use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
 fn test_asm_fail() {
-    let setup = setup_test!(ProgramLanguage::Assembly);
+    let setup = setup_test(ProgramLanguage::Assembly);
 
     // Create a mock account that will trigger an error when passed.
     let mock_account_pubkey = Pubkey::new_unique();
@@ -36,7 +36,7 @@ fn test_rs() {
 }
 
 fn happy_path(program_language: ProgramLanguage) {
-    let setup = setup_test!(program_language);
+    let setup = setup_test(program_language);
 
     // Create an instruction with a simple memo message.
     let instruction =
