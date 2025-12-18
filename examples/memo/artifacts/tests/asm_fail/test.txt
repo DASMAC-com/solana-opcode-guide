@@ -1,19 +1,17 @@
 #[test]
 fn test_asm_fail() {
-    let setup = setup_test!(ProgramLanguage::Assembly);
+    let setup = setup_test(ProgramLanguage::Assembly);
 
     // Create a mock account that will trigger an error when passed.
     let mock_account_pubkey = Pubkey::new_unique();
-    let mock_account_data = AccountSharedData::default();
     let accounts = vec![AccountMeta::new(mock_account_pubkey, false)];
-    let n_accounts = accounts.len() as u32;
-    let instruction = Instruction::new_with_bytes(setup.program_id, b"Whoops", accounts);
+    let instruction = Instruction::new_with_bytes(setup.program_id, b"Whoops", accounts.clone());
+    let mock_account_data = AccountSharedData::default();
 
     // Verify that the instruction fails with the expected error code.
-    let result = setup.mollusk.process_and_validate_instruction(
+    setup.mollusk.process_and_validate_instruction(
         &instruction,
         &[(mock_account_pubkey, mock_account_data.into())],
-        &[Check::err(ProgramError::Custom(n_accounts))],
+        &[Check::err(ProgramError::Custom(accounts.len() as u32))],
     );
-    assert!(result.program_result.is_err());
 }
