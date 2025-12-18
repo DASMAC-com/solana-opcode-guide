@@ -63,11 +63,13 @@ fn test_asm() {
     }
 
     // Pretty print the Fibonacci numbers along with their compute unit consumption.
-    eprintln!("Fibonacci Numbers and Compute Unit Consumption:");
+    println!("Fibonacci Numbers and Compute Unit Consumption:");
     for n in 0..=MAX_FIB_INDEX_U32 {
-        eprintln!(
-            "F({:<2}): {:<10} (Compute Units: {})",
-            n, fib_numbers[n as usize].0, fib_numbers[n as usize].1
+        println!(
+            "{:<7}{:<10} (Compute Units: {})",
+            format!("F({}):", n),
+            fib_numbers[n as usize].0,
+            fib_numbers[n as usize].1
         );
     }
 }
