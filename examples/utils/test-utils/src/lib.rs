@@ -14,8 +14,23 @@ pub struct TestSetup {
     pub mollusk: Mollusk,
 }
 
-#[doc(hidden)]
-pub fn setup_test_impl(package_name: &str, implementation: ProgramLanguage) -> TestSetup {
+/// Sets up a test environment for the given program language.
+///
+/// The package name is inferred from the current working directory, which works because tests run
+/// from the package root and package directories match their names.
+///
+/// ```ignore
+/// let setup = setup_test(ProgramLanguage::Assembly);
+/// ```
+pub fn setup_test(implementation: ProgramLanguage) -> TestSetup {
+    let package_name = std::env::current_dir()
+        .expect("Failed to get current directory")
+        .file_name()
+        .expect("Failed to get directory name")
+        .to_str()
+        .expect("Directory name is not valid UTF-8")
+        .to_string();
+
     let keypair = read_keypair_file(format!("deploy/{}-keypair.json", package_name))
         .expect("Failed to read keypair file");
     let program_id = keypair.pubkey();
@@ -35,11 +50,4 @@ pub fn setup_test_impl(package_name: &str, implementation: ProgramLanguage) -> T
         program_id,
         mollusk,
     }
-}
-
-#[macro_export]
-macro_rules! setup_test {
-    ($language:expr) => {
-        $crate::setup_test_impl(env!("CARGO_PKG_NAME"), $language)
-    };
 }
