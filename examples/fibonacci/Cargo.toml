@@ -3,6 +3,7 @@ pinocchio.workspace = true
 fib-rs.workspace = true
 
 [dev-dependencies]
+log.workspace = true
 mollusk-svm.workspace = true
 solana-sdk.workspace = true
 fib-rs.workspace = true

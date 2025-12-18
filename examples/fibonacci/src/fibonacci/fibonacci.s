@@ -1,8 +1,8 @@
 .equ NUM_ACCOUNTS_OFFSET, 0
 .equ INSTRUCTION_DATA_LENGTH_OFFSET, 8
 .equ INSTRUCTION_DATA_OFFSET, 16
-.equ E_ACCOUNTS, 1
-.equ E_MAX_N, 2
+.equ E_ACCOUNTS, 0xffffffff
+.equ E_MAX_N, 0xfffffffe
 .equ MAX_N, 47
 .equ MAX_N_SPECIAL_CASE, 1
 
@@ -50,9 +50,9 @@ loop:
     exit
 
 abort_accounts:
-    sub64 r0, E_ACCOUNTS
+    mov32 r0, E_ACCOUNTS
     exit
 
 abort_max_n:
-    sub64 r0, E_MAX_N
+    mov32 r0, E_MAX_N
     exit
