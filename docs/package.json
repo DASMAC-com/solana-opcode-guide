@@ -1,7 +1,8 @@
 {
   "devDependencies": {
     "prettier": "^3.7.4",
-    "vitepress": "^1.6.4"
+    "vitepress": "^1.6.4",
+    "markdown-it-mathjax3": "^4"
   },
   "name": "solana-opcode-guide",
   "scripts": {

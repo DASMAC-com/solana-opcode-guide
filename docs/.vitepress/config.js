@@ -3,6 +3,7 @@ export default {
   srcDir: "src",
   markdown: {
     lineNumbers: true,
+    math: true,
   },
   themeConfig: {
     sidebar: [
