@@ -1,4 +1,8 @@
-use pinocchio::{entrypoint, pubkey::Pubkey, ProgramResult};
+use fib_rs::Fib;
+use pinocchio::{entrypoint, program_error::ProgramError, pubkey::Pubkey, ProgramResult};
+
+const E_MAX_N: u32 = 0xfffffffe;
+const MAX_N: u8 = 47;
 
 entrypoint!(process_instruction);
 
@@ -8,5 +12,13 @@ fn process_instruction(
     _accounts: &[pinocchio::account_info::AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    Ok(())
+    let n = instruction_data[0];
+
+    match n {
+        0 => Ok(()),
+        n if n <= MAX_N => Err(ProgramError::Custom(
+            Fib::single(n.into()).try_into().unwrap(),
+        )),
+        _ => Err(ProgramError::Custom(E_MAX_N)),
+    }
 }
