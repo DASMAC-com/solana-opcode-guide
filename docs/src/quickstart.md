@@ -174,7 +174,7 @@ you to compare the two implementations side-by-side.
 1. Run the assembly implementation test.
 
    ```sh:no-line-numbers
-   cargo test -- --test test_asm
+   cargo test -- --no-capture --test test_asm
    ```
 
    > [!tip]
@@ -193,7 +193,7 @@ you to compare the two implementations side-by-side.
    ```sh:no-line-numbers
    rm ../target/deploy/hello_dasmac.so
    cargo build-sbf --arch v3 --tools-version v1.51
-   cargo test -- --test test_rs
+   cargo test -- --no-capture --test test_rs
    ```
 
    <!-- markdownlint-enable MD013 -->
