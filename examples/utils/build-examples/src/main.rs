@@ -498,8 +498,14 @@ fn clean_test_output(output: &str) -> String {
     output
         .lines()
         .filter(|line| {
-            // Keep test result lines and DEBUG log lines.
-            (line.starts_with("test ") && line.contains("...")) || line.contains("DEBUG")
+            // Filter out unwanted lines.
+            let skip = line.starts_with("running ")
+                || line.starts_with("test result:")
+                || line.trim().is_empty()
+                || line.contains("Compiling")
+                || line.contains("Finished")
+                || line.contains("Running");
+            !skip
         })
         .map(|line| {
             let line = timestamp_re.replace_all(line, "[ ... DEBUG ... ]");
