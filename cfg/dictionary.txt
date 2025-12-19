@@ -6,8 +6,8 @@ ebpf
 globl
 keypair
 lddw
-ldxdw
 ldxb
+ldxdw
 rodata
 rustfilt
 sbpf

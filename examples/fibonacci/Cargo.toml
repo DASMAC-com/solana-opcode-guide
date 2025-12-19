@@ -2,9 +2,9 @@
 pinocchio.workspace = true
 
 [dev-dependencies]
+fib-rs.workspace = true
 mollusk-svm.workspace = true
 solana-sdk.workspace = true
-fib-rs.workspace = true
 test-utils.path = "../utils/test-utils"
 
 [lib]
