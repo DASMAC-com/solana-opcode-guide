@@ -116,9 +116,9 @@ a comparable assembly loop output:
 
 <<< ../../../examples/fibonacci/src/program.rs{9-23 rs:line-numbers}
 
-::: details `rs-disassembly.s`
+::: details `rs-disassembly.s` (core Fibonacci logic highlighted)
 
-<<< ../../../examples/fibonacci/artifacts/rs-disassembly.s{asm}
+<<< ../../../examples/fibonacci/artifacts/rs-disassembly.s{43-58 asm:line-numbers}
 
 :::
 
