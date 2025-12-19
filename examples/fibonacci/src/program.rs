@@ -3,7 +3,7 @@ use pinocchio::{entrypoint, program_error::ProgramError, pubkey::Pubkey, Program
 const E_MAX_N: u32 = 0xfffffffe;
 const MAX_N: u8 = 47;
 
-entrypoint!(process_instruction);
+entrypoint!(process_instruction, 0);
 
 // If r8 is a u8 the compiler generates an extra opcode to cast it to u8.
 fn fib(mut r8: u64) -> u32 {
