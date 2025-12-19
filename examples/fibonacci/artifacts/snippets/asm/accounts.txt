@@ -1,0 +1,17 @@
+.equ NUM_ACCOUNTS_OFFSET, 0
+.equ INSTRUCTION_DATA_LENGTH_OFFSET, 8
+.equ INSTRUCTION_DATA_OFFSET, 16
+.equ E_ACCOUNTS, 0xffffffff
+.equ E_MAX_N, 0xfffffffe
+.equ MAX_N, 47
+.equ MAX_N_SPECIAL_CASE, 1
+
+.global entrypoint
+
+entrypoint:
+    # Indexed load double word the number of accounts into r3, for use as a
+    # scratch register.
+    ldxdw r3, [r1 + NUM_ACCOUNTS_OFFSET]
+    # If number of accounts is nonzero, jump to abort_accounts. Note r4
+    # initially contains zero.
+    jne r3, r4, abort_accounts
