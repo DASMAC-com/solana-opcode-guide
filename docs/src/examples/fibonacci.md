@@ -96,15 +96,15 @@ Each iteration performs these steps:
 The assembly implementation demonstrates $O(n)$ linear compute unit growth with
 the Fibonacci index, consuming 5 compute units per iteration:
 
-::: details Test results
-
-<<< ../../../examples/fibonacci/artifacts/tests/asm/result.txt{1-49 sh}
-
-:::
-
 ::: details `test_asm`
 
 <<< ../../../examples/fibonacci/artifacts/tests/asm/test.txt{rs:line-numbers}
+
+:::
+
+::: details Test results
+
+<<< ../../../examples/fibonacci/artifacts/tests/asm/result.txt{1-49 sh}
 
 :::
 
@@ -125,15 +125,15 @@ a comparable assembly loop output:
 The Rust implementation introduces some compute unit overhead compared to
 assembly:
 
-::: details Test results
-
-<<< ../../../examples/fibonacci/artifacts/tests/rs/result.txt{1-49 sh}
-
-:::
-
 ::: details `test_rs`
 
 <<< ../../../examples/fibonacci/artifacts/tests/rs/test.txt{rs:line-numbers}
+
+:::
+
+::: details Test results
+
+<<< ../../../examples/fibonacci/artifacts/tests/rs/result.txt{1-49 sh}
 
 :::
 
