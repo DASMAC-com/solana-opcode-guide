@@ -1,0 +1,148 @@
+test tests::test_rs ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 15 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xfffffffe
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 12 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 29 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 43 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 50 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x3
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 57 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x5
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 64 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 71 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xd
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 78 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x15
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 85 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x22
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 92 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x37
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 99 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x59
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 106 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x90
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 113 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xe9
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 120 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x179
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 127 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x262
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 134 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x3db
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 141 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x63d
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 148 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xa18
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 155 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1055
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 162 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1a6d
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 169 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2ac2
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 176 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x452f
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 183 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6ff1
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 190 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xb520
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 197 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x12511
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 204 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1da31
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 211 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2ff42
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 218 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x4d973
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 225 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x7d8b5
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 232 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xcb228
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 239 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x148add
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 246 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x213d05
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 253 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x35c7e2
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 260 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x5704e7
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 267 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8cccc9
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 274 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xe3d1b0
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 281 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1709e79
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 288 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2547029
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 295 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x3c50ea2
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 302 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6197ecb
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 309 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x9de8d6d
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 316 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xff80c38
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 323 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x19d699a5
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 330 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x29cea5dd
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 337 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x43a53f82
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 344 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6d73e55f
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 351 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xb11924e1

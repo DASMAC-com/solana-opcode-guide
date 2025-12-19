@@ -10,6 +10,10 @@ const MAX_FIB_INDEX_U32: u8 = 47;
 const E_PASSED_ACCOUNT: u32 = u32::MAX;
 const E_INDEX_TOO_BIG: u32 = u32::MAX - 1;
 
+fn fib(n: u8) -> u64 {
+    Fib::single(n.into()).try_into().unwrap()
+}
+
 #[test]
 fn test_asm() {
     let setup = setup_test(ProgramLanguage::Assembly);
@@ -48,7 +52,7 @@ fn test_asm() {
 
     // For F(1) onwards, verify correct Fibonacci numbers are returned as a custom error.
     for n in 1..=MAX_FIB_INDEX_U32 {
-        let expected_fib: u32 = Fib::single(n.into()).try_into().unwrap();
+        let expected_fib: u32 = fib(n) as u32;
         fib_numbers[n as usize] = (
             expected_fib,
             setup
@@ -104,7 +108,7 @@ fn test_rs() {
 
     // For F(1) onwards, verify correct Fibonacci numbers are returned as a custom error.
     for n in 1..=MAX_FIB_INDEX_U32 {
-        let expected_fib: u32 = Fib::single(n.into()).try_into().unwrap();
+        let expected_fib: u32 = fib(n) as u32;
         fib_numbers[n as usize] = (
             expected_fib,
             setup
@@ -133,7 +137,7 @@ fn test_rs() {
 /// Verify the index of the maximum Fibonacci number that fits in a u32, while allowing space for
 /// two error codes that may be returned by the Fibonacci program.
 #[test]
-fn verify_max_fib_u32() {
-    assert!(Fib::single(MAX_FIB_INDEX_U32.into()) <= E_INDEX_TOO_BIG.into());
-    assert!(Fib::single((MAX_FIB_INDEX_U32 + 1).into()) > u32::MAX.into());
+fn test_max_fib_u32() {
+    assert!(fib(MAX_FIB_INDEX_U32) <= E_INDEX_TOO_BIG.into());
+    assert!(fib(MAX_FIB_INDEX_U32 + 1) > u32::MAX.into());
 }

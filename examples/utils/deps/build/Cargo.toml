@@ -1,6 +1,5 @@
 [dependencies]
 cargo-manifest.workspace = true
-fib-rs.workspace = true
 pinocchio.workspace = true
 regex.workspace = true
 
