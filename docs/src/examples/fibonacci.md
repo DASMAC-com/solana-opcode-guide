@@ -122,11 +122,12 @@ The Rust implementation mirrors the assembly logic but uses a function to
 encapsulate the Fibonacci computation, which is written specifically to produce
 a comparable assembly loop output:
 
-<<< ../../../examples/fibonacci/src/program.rs{9-23 rs:line-numbers}
+<<< ../../../examples/fibonacci/src/program.rs{7,25-40 rs:line-numbers}
 
 Note that unlike the assembly version, the Rust implementation doesn't check
 for the number of passed accounts because [Pinocchio's `entrypoint!` macro]
-by default [handles account parsing automatically].
+by default [handles account parsing automatically], including specifying a
+maximum number of accounts, [past which any extra accounts are ignored].
 
 ::: details `rs-disassembly.s` (core Fibonacci logic highlighted)
 
@@ -168,3 +169,4 @@ assembly:
 [sbpf calling convention]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#registers
 [the program's return value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/interpreter.rs#L574
 [handles account parsing automatically]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/entrypoint/mod.rs#L172-L191
+[past which any extra accounts are ignored]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/entrypoint/mod.rs#L162-L163
