@@ -1,2 +1,2 @@
-!deploy/fibonacci-keypair.json
 deploy/*
+!deploy/fibonacci-keypair.json
