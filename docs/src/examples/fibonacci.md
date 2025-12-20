@@ -131,7 +131,7 @@ maximum number of accounts, [past which any extra accounts are ignored].
 
 ::: details `rs-disassembly.s` (core Fibonacci logic highlighted)
 
-<<< ../../../examples/fibonacci/artifacts/rs-disassembly.s{43-58 asm:line-numbers}
+<<< ../../../examples/fibonacci/artifacts/rs-disassembly.s{36-49 asm:line-numbers}
 
 :::
 
