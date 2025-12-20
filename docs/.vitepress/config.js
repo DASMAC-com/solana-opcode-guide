@@ -3,6 +3,7 @@ export default {
   srcDir: "src",
   markdown: {
     lineNumbers: true,
+    math: true,
   },
   themeConfig: {
     sidebar: [
@@ -12,7 +13,10 @@ export default {
         collapsed: false,
         text: "Examples",
         link: "/examples/",
-        items: [{ text: "Memo", link: "/examples/memo" }],
+        items: [
+          { text: "Memo", link: "/examples/memo" },
+          { text: "Fibonacci", link: "/examples/fibonacci" },
+        ],
       },
       { text: "Resources", link: "/resources" },
     ],

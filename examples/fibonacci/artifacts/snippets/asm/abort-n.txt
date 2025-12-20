@@ -1,0 +1,3 @@
+abort_max_n:
+    mov32 r0, E_MAX_N
+    exit

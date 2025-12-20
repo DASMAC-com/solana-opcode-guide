@@ -1,0 +1,4 @@
+#[test]
+fn test_asm() {
+    test_fibonacci_program(ProgramLanguage::Assembly, true);
+}

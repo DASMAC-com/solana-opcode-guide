@@ -1,18 +1,19 @@
 [dependencies]
-cargo-manifest.workspace = true
 pinocchio.workspace = true
-regex.workspace = true
 
 [dev-dependencies]
 fib-rs.workspace = true
 mollusk-svm.workspace = true
 solana-sdk.workspace = true
+test-utils.path = "../utils/test-utils"
+
+[lib]
+crate-type = ["cdylib", "lib"]
 
 [lints]
 workspace = true
 
 [package]
 edition = "2021"
-name = "build-deps"
-publish = false
+name = "fibonacci"
 version = "0.1.0"

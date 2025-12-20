@@ -1,0 +1,5 @@
+#[test]
+fn test_max_fib_u32() {
+    assert!(fib(MAX_FIB_INDEX_U32) <= E_INDEX_TOO_BIG.into());
+    assert!(fib(MAX_FIB_INDEX_U32 + 1) > u32::MAX.into());
+}

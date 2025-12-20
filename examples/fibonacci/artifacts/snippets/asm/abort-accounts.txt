@@ -1,0 +1,3 @@
+abort_accounts:
+    mov32 r0, E_ACCOUNTS
+    exit

@@ -1,4 +1,6 @@
 use mollusk_svm::Mollusk;
+use solana_sdk::account::{Account, AccountSharedData};
+use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::{read_keypair_file, Keypair};
 use solana_sdk::signer::Signer;
@@ -50,4 +52,11 @@ pub fn setup_test(implementation: ProgramLanguage) -> TestSetup {
         program_id,
         mollusk,
     }
+}
+
+pub fn single_mock_account() -> ((Pubkey, Account), Vec<AccountMeta>) {
+    let mock_account_pubkey = Pubkey::new_unique();
+    let mock_account_data = AccountSharedData::default().into();
+    let accounts = vec![AccountMeta::new(mock_account_pubkey, false)];
+    ((mock_account_pubkey, mock_account_data), accounts)
 }

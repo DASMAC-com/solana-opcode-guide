@@ -71,8 +71,6 @@ repos:
     id: 'end-of-file-fixer'
   - files: 'cfg/dictionary.txt'
     id: 'file-contents-sorter'
-  - files: '\.gitignore$'
-    id: 'file-contents-sorter'
   - id: 'mixed-line-ending'
   - args:
     - '--autofix'

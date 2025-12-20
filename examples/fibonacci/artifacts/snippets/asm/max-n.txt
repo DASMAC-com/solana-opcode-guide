@@ -1,0 +1,13 @@
+entrypoint:
+    # Indexed load double word the number of accounts into r3, for use as a
+    # scratch register.
+    ldxdw r3, [r1 + NUM_ACCOUNTS_OFFSET]
+    # If number of accounts is nonzero, jump to abort_accounts. Note r4
+    # initially contains zero.
+    jne r3, r4, abort_accounts
+
+    # Indexed load single byte the sequence number into r8. Only check a single
+    # byte since MAX_N < 256.
+    ldxb r8, [r1 + INSTRUCTION_DATA_OFFSET]
+    # If sequence number > MAX_N, jump to exit with error code E_MAX_N.
+    jgt r8, MAX_N, abort_max_n

@@ -6,7 +6,9 @@ ebpf
 globl
 keypair
 lddw
+ldxb
 ldxdw
+mathjax
 rodata
 rustfilt
 sbpf

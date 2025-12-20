@@ -1,2 +1,2 @@
-!deploy/memo-keypair.json
 deploy/*
+!deploy/memo-keypair.json

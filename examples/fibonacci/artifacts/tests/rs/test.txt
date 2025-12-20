@@ -1,0 +1,4 @@
+#[test]
+fn test_rs() {
+    test_fibonacci_program(ProgramLanguage::Rust, false);
+}

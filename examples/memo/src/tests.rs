@@ -1,24 +1,19 @@
 use mollusk_svm::result::Check;
-use solana_sdk::account::AccountSharedData;
-use solana_sdk::instruction::{AccountMeta, Instruction};
+use solana_sdk::instruction::Instruction;
 use solana_sdk::program_error::ProgramError;
-use solana_sdk::pubkey::Pubkey;
-use test_utils::{setup_test, ProgramLanguage};
+use test_utils::{setup_test, single_mock_account, ProgramLanguage};
 
 #[test]
 fn test_asm_fail() {
     let setup = setup_test(ProgramLanguage::Assembly);
 
     // Create a mock account that will trigger an error when passed.
-    let mock_account_pubkey = Pubkey::new_unique();
-    let accounts = vec![AccountMeta::new(mock_account_pubkey, false)];
-    let instruction = Instruction::new_with_bytes(setup.program_id, b"Whoops", accounts.clone());
-    let mock_account_data = AccountSharedData::default();
+    let (account, accounts) = single_mock_account();
 
     // Verify that the instruction fails with the expected error code.
     setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &[(mock_account_pubkey, mock_account_data.into())],
+        &Instruction::new_with_bytes(setup.program_id, b"Whoops", accounts.clone()),
+        &[account],
         &[Check::err(ProgramError::Custom(accounts.len() as u32))],
     );
 }
