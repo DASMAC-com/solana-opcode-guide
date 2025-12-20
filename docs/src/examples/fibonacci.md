@@ -78,7 +78,11 @@ $n \leq 1$ and returning early if so:
 
 <<< ../../../examples/fibonacci/artifacts/snippets/asm/constants.txt{7 asm}
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/fibonacci/artifacts/snippets/asm/special-return.txt{7-15 asm}
+
+<!-- markdownlint-enable MD013 -->
 
 For $n > 1$, the program enters a loop that computes successive Fibonacci
 numbers using $F(n) = F(n-1) + F(n-2)$:
@@ -131,7 +135,11 @@ maximum number of accounts, [past which any extra accounts are ignored].
 
 ::: details `rs-disassembly.s` (core Fibonacci logic highlighted)
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/fibonacci/artifacts/rs-disassembly.s{36-49 asm:line-numbers}
+
+<!-- markdownlint-enable MD013 -->
 
 :::
 
@@ -158,15 +166,13 @@ assembly:
 
 :::
 
-[`lazy_program_entrypoint!`]: https://www.helius.dev/blog/pinocchio
 [call-preserved (callee-saved/non-volatile) registers]: https://en.wikipedia.org/wiki/X86_calling_conventions#Callee-saved_(non-volatile)_registers
 [custom program error code]: https://docs.rs/solana-program/latest/solana_program/program_error/enum.ProgramError.html#variant.Custom
-[deserializes the program input]: https://www.helius.dev/blog/pinocchio
 [fibonacci sequence]: https://en.wikipedia.org/wiki/Fibonacci_sequence
+[handles account parsing automatically]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/entrypoint/mod.rs#L172-L191
 [number of accounts in the input buffer]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L531
+[past which any extra accounts are ignored]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/entrypoint/mod.rs#L162-L163
 [pinocchio's `entrypoint!` macro]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/entrypoint.rs#L18-L23
 [return value of zero indicates success]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.SUCCESS.html
 [sbpf calling convention]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#registers
 [the program's return value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/interpreter.rs#L574
-[handles account parsing automatically]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/entrypoint/mod.rs#L172-L191
-[past which any extra accounts are ignored]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/entrypoint/mod.rs#L162-L163
