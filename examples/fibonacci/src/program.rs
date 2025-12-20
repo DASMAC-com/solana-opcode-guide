@@ -17,8 +17,8 @@ fn process_instruction(
     match n {
         0 => Ok(()),
         MAX_N_SPECIAL_CASE => Err(ProgramError::Custom(MAX_N_SPECIAL_CASE as u32)),
-        n if n <= MAX_N => Err(ProgramError::Custom(fib(n as u64))),
-        _ => Err(ProgramError::Custom(E_MAX_N)),
+        n if n > MAX_N => Err(ProgramError::Custom(E_MAX_N)),
+        _ => Err(ProgramError::Custom(fib(n as u64))),
     }
 }
 
