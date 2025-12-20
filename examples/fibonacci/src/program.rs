@@ -2,6 +2,7 @@ use pinocchio::{entrypoint, program_error::ProgramError, pubkey::Pubkey, Program
 
 const E_MAX_N: u32 = 0xfffffffe;
 const MAX_N: u8 = 47;
+const MAX_N_SPECIAL_CASE: u8 = 1;
 
 entrypoint!(process_instruction, 0);
 
@@ -15,7 +16,7 @@ fn process_instruction(
 
     match n {
         0 => Ok(()),
-        1 => Err(ProgramError::Custom(1)),
+        MAX_N_SPECIAL_CASE => Err(ProgramError::Custom(MAX_N_SPECIAL_CASE as u32)),
         n if n <= MAX_N => Err(ProgramError::Custom(fib(n as u64))),
         _ => Err(ProgramError::Custom(E_MAX_N)),
     }
