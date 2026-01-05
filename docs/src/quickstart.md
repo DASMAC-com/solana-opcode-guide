@@ -227,6 +227,7 @@ you to compare the two implementations side-by-side.
 > ```
 >
 > Or, for a specific example:
+>
 > ```sh:no-line-numbers
 > cargo run --bin build-examples -- --example hello-dasmac
 > ```
