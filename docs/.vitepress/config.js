@@ -19,6 +19,7 @@ export default {
         ],
       },
       { text: "Resources", link: "/resources" },
+      { text: "Opcodes", link: "/opcodes" },
     ],
   },
 };
