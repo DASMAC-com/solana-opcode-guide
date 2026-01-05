@@ -225,6 +225,11 @@ you to compare the two implementations side-by-side.
 > ```sh:no-line-numbers
 > cargo run --bin build-examples
 > ```
+>
+> Or, for a specific example:
+> ```sh:no-line-numbers
+> cargo run --bin build-examples -- --example hello-dasmac
+> ```
 
 ## :tada: Congratulations :tada:
 

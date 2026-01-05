@@ -21,6 +21,8 @@ const TOOLS_VERSION_DUMP: &str = "1.51";
 const TOOLS_VERSION_TEST: &str = "1.51";
 
 fn main() {
+    let single_example = parse_example_arg(&std::env::args().collect());
+
     let mut utils_path: Option<PathBuf> = None;
     let mut program_dependencies = HashSet::<String>::new();
     let mut dev_dependencies = HashSet::<String>::new();
@@ -39,7 +41,7 @@ fn main() {
             continue;
         } else if dir == "utils" {
             utils_path = Some(path.clone());
-        } else {
+        } else if single_example.is_none() || single_example.as_deref() == dir.to_str() {
             build_example(
                 &path,
                 &mut examples_keypair,
@@ -47,6 +49,11 @@ fn main() {
                 &mut program_dependencies,
             );
         }
+    }
+
+    // Skip workspace checks when building a single example.
+    if single_example.is_some() {
+        return;
     }
 
     // Run cargo fmt and clippy on the workspace.
@@ -60,6 +67,18 @@ fn main() {
     );
 
     check_dependencies(utils_path, program_dependencies, dev_dependencies);
+}
+
+fn parse_example_arg(args: &[String]) -> Option<String> {
+    let mut iter = args.iter().skip(1);
+    while let Some(arg) = iter.next() {
+        if arg == "--example" {
+            return iter.next().cloned();
+        } else if let Some(name) = arg.strip_prefix("--example=") {
+            return Some(name.to_string());
+        }
+    }
+    None
 }
 
 fn check_dependencies(
