@@ -127,7 +127,7 @@ Note the [compute unit] consumption for a successful log:
 
 ## :crab: Rust implementation
 
-The rust implementation similarly calls [the `pinocchio` version of `sol_log_`]
+The Rust implementation similarly calls [the `pinocchio` version of `sol_log_`]
 with the passed instruction data.
 
 <<< ../../../examples/memo/src/program.rs{12,16 rs:line-numbers}
