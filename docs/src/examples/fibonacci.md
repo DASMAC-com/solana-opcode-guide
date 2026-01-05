@@ -1,3 +1,5 @@
+<!-- cspell:word 7etsuo -->
+
 # Fibonacci
 
 <!--@include: ./disclaimer.md-->
@@ -168,7 +170,7 @@ assembly:
 
 > [!note]
 > The assembly file in this example was adapted from
-[an implementation by `7etsuo`].
+> [an implementation by `7etsuo`].
 
 [an implementation by `7etsuo`]: https://github.com/7etsuo/Learn-Solana-BPF-Assembly/blob/17eb280a9ca02132f40b3fb61be5e469670dd2d1/examples/solana-fibonacci-asm/src/fib/fib.s
 [call-preserved (callee-saved/non-volatile) registers]: https://en.wikipedia.org/wiki/X86_calling_conventions#Callee-saved_(non-volatile)_registers
