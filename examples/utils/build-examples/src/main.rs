@@ -21,7 +21,7 @@ const TOOLS_VERSION_DUMP: &str = "1.51";
 const TOOLS_VERSION_TEST: &str = "1.51";
 
 fn main() {
-    let single_example = parse_example_arg(&std::env::args().collect());
+    let single_example = parse_example_arg(&std::env::args().collect::<Vec<String>>());
 
     let mut utils_path: Option<PathBuf> = None;
     let mut program_dependencies = HashSet::<String>::new();
