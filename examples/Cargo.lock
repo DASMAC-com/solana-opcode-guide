@@ -3316,6 +3316,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "transfer"
+version = "0.1.0"
+dependencies = [
+ "mollusk-svm",
+ "pinocchio",
+ "solana-sdk",
+ "test-utils",
+]
+
+[[package]]
 name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -5,6 +5,7 @@ members = [
   "fibonacci",
   "hello-dasmac",
   "memo",
+  "transfer",
   "utils/build-examples",
   "utils/deps/build",
   "utils/deps/program"
