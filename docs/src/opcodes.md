@@ -23,11 +23,11 @@ example from this guide where it is used.
 
 <!-- markdownlint-enable MD013 -->
 
-[sbpf bytecode isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md
-[Rust implementation constant name]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
 [fibonacci]: examples/fibonacci
 [memo]: examples/memo
 [quickstart]: quickstart
+[rust implementation constant name]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
+[sbpf bytecode isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md
 [`0x07`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L130
 [`0x14`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L87
 [`0x18`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L222
