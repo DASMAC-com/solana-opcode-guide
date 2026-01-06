@@ -86,11 +86,7 @@ you to compare the two implementations side-by-side.
 
    ::: code-group
 
-   <!-- markdownlint-disable MD013 -->
-
    <<< ../../examples/hello-dasmac/src/hello-dasmac/hello-dasmac.s{asm}
-
-   <!-- markdownlint-enable MD013 -->
 
    <<< ../../examples/hello-dasmac/src/program.rs
 
