@@ -1,13 +1,13 @@
 # Opcodes
 
-| Opcode hex | Assembler mnemonic       | Opcode name   | Select example |
-| ---------- | ------------------------ | ------------- | -------------- |
-| [`0x07`]   | `add64 dst, imm`         | [`ADD64_IMM`] | [Memo]         |
-| [`0x18`]   | `lddw dst, imm`          | [`LD_DW_IMM`] | [Quickstart]   |
-| [`0x5d`]   | `jne dst, src, off`      | [`JNE_REG`]   | [Memo]         |
-| [`0x79`]   | `ldxdw dst, [src + off]` | [`LD_DW_REG`] | [Memo]         |
-| [`0x85`]   | `call imm`               | [`CALL_IMM`]  | [Quickstart]   |
-| [`0x95`]   | `exit`                   | [`EXIT`]      | [Quickstart]   |
+| Opcode hex | Opcode name   | Assembler mnemonic       | Select example |
+| ---------- | ------------- | ------------------------ | -------------- |
+| [`0x07`]   | [`ADD64_IMM`] | `add64 dst, imm`         | [Memo]         |
+| [`0x18`]   | [`LD_DW_IMM`] | `lddw dst, imm`          | [Quickstart]   |
+| [`0x5d`]   | [`JNE_REG`]   | `jne dst, src, off`      | [Memo]         |
+| [`0x79`]   | [`LD_DW_REG`] | `ldxdw dst, [src + off]` | [Memo]         |
+| [`0x85`]   | [`CALL_IMM`]  | `call imm`               | [Quickstart]   |
+| [`0x95`]   | [`EXIT`]      | `exit`                   | [Quickstart]   |
 
 [memo]: examples/memo
 [quickstart]: quickstart
