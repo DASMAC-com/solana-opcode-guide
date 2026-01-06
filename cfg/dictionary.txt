@@ -5,6 +5,8 @@ dasmac
 ebpf
 globl
 keypair
+lamport
+lamports
 lddw
 ldxb
 ldxdw

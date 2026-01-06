@@ -1,6 +1,7 @@
 .equ N_ACCOUNTS_OFFSET, 0
 .equ N_ACCOUNTS_EXPECTED, 3
 .equ E_N_ACCOUNTS, 1
+.equ NON_DUP_MAKER, 0xff
 
 .global entrypoint
 
