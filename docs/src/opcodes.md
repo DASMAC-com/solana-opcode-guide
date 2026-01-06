@@ -1,5 +1,7 @@
 # Opcodes
 
+<!-- markdownlint-disable MD013 -->
+
 | Opcode hex | Opcode name   | Assembler mnemonic                 | Select example |
 | ---------- | ------------- | ---------------------------------- | -------------- |
 | [`0x07`]   | [`ADD64_IMM`] | [`add64 dst, imm`][`0x07`]         | [Memo]         |
@@ -11,9 +13,11 @@
 | [`0x79`]   | [`LD_DW_REG`] | [`ldxdw dst, [src + off]`][`0x79`] | [Memo]         |
 | [`0x85`]   | [`CALL_IMM`]  | [`call imm`][`0x85`]               | [Quickstart]   |
 | [`0x95`]   | [`EXIT`]      | [`exit`][`0x95`]                   | [Quickstart]   |
-| [`0xb4`]   | [`MOV32_IMM`]  | [`mov32 dst, imm`][`0xb4`]        | [Fibonacci]    |
-| [`0xb7`]   | [`MOV64_IMM`]  | [`mov64 dst, imm`][`0xb7`]        | [Fibonacci]    |
-| [`0xbf`]   | [`MOV64_REG`]  | [`mov64 dst, src`][`0xbf`]        | [Fibonacci]    |
+| [`0xb4`]   | [`MOV32_IMM`] | [`mov32 dst, imm`][`0xb4`]         | [Fibonacci]    |
+| [`0xb7`]   | [`MOV64_IMM`] | [`mov64 dst, imm`][`0xb7`]         | [Fibonacci]    |
+| [`0xbf`]   | [`MOV64_REG`] | [`mov64 dst, src`][`0xbf`]         | [Fibonacci]    |
+
+<!-- markdownlint-enable MD013 -->
 
 [fibonacci]: examples/fibonacci
 [memo]: examples/memo
