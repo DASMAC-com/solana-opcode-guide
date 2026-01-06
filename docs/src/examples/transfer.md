@@ -22,18 +22,34 @@ Accounts in the [input buffer](memo) are [serialized with the following offsets]
 relative to the start of the account, assuming non-duplicate accounts without
 any account data:
 
-| Offset   | Length (bytes) | Description                |
-| -------- | -------------- | -------------------------- |
-| `0x0`    | 1              | [`NON_DUP_MARKER`]         |
-| `0x50`   | 8              | Lamports balance           |
-| `0x58`   | 8              | Length of account data     |
-| `0x60`   | 10240          | Account data + padding     |
-| `0x2860` | 8              | Account [rent epoch]       |
+<!-- markdownlint-disable MD013 -->
+
+| Offset (bytes) | Length (bytes) | Description                                 |
+| -------------- | -------------- | ------------------------------------------- |
+| 0              | 1              | [`NON_DUP_MARKER`]                          |
+| 1              | 1              | Is [signer]?                                |
+| 2              | 1              | Is [writable]?                              |
+| 3              | 1              | Is [executable][account structure]?         |
+| 4              | 4              | Padding                                     |
+| 8              | 32             | [Account pubkey]                            |
+| 40             | 32             | Account [owner][account structure]          |
+| 72             | 8              | [Lamports balance][account structure]       |
+| 80             | 8              | Length of account data                      |
+| 88             | 10240          | [Account data][account structure] + padding |
+| 10328          | 8              | Account [rent epoch][account structure]     |
+
+<!-- markdownlint-enable MD013 -->
 
 The account data padding length [is the sum of]:
 
 1. [`MAX_PERMITTED_DATA_INCREASE`].
 1. Additional padding to align the account data length [to an 8-byte boundary].
+
+Note however that [the system program] is a [builtin], which means that its
+[account data is its name], specifically `b"system_program"` (14 bytes) with two
+extra bytes of padding to align to an 8-byte boundary. This means that the
+`account data + padding` field of the system program is actually 10256 bytes
+long.
 
 ## :shield: Input validation
 
@@ -54,11 +70,17 @@ the [number of accounts in the input buffer](memo).
 
 :::
 
+[account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
+[account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
+[account structure]: https://solana.com/docs/core/accounts#account-structure
+[builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
 [cpi]: https://solana.com/docs/references/terminology#cross-program-invocation-cpi
 [is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
 [lamports]: https://solana.com/docs/references/terminology#lamport
-[rent epoch]: https://solana.com/docs/core/accounts#account-structure
 [serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
+[signer]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L78-L79
+[the system program]: https://solana.com/docs/core/programs#the-system-program
 [to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
+[writable]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L80-L81
 [`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
 [`non_dup_marker`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.NON_DUP_MARKER.html
