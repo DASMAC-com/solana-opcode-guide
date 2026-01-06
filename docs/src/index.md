@@ -74,7 +74,8 @@ up your environment and run a simple example. After that, simply follow the
 
 > [!tip]
 > Along the way see also the [resources](resources) page for a curated list of
-> resources to explore on your journey.
+> resources to explore on your journey, and the [opcodes](opcodes) page for a
+> reference table that links to select examples from this guide.
 
 [anchor]: https://www.anchor-lang.com/docs
 [assembler mnemonic]: https://en.wikipedia.org/wiki/Assembly_language#Opcode_mnemonics_and_extended_mnemonics
