@@ -1,10 +1,3 @@
-use mollusk_svm::result::Check;
-use solana_sdk::instruction::Instruction;
-use solana_sdk::program_error::ProgramError;
-use test_utils::{setup_test, ProgramLanguage};
-
-const E_N_ACCOUNTS: u32 = 1;
-
 #[test]
 fn test_asm() {
     let setup = setup_test(ProgramLanguage::Assembly);
