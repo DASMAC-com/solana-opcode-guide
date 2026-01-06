@@ -22,13 +22,13 @@ Accounts in the [input buffer](memo) are [serialized with the following offsets]
 relative to the start of the account, assuming non-duplicate accounts without
 any account data:
 
-| Offset | Size      | Description                |
-| ------ | --------- | -------------------------- |
-| `0x0`  | `1` byte  | [`NON_DUP_MARKER`]         |
-| `0x50` | `8` bytes | Lamports balance           |
-| `0x58` | `8` bytes | Length of account data (0) |
-| `0x60` | `10240` bytes | Account data + padding |
-| `0x2860` | `8` bytes | Account [rent epoch] |
+| Offset   | Length (bytes) | Description                |
+| -------- | -------------- | -------------------------- |
+| `0x0`    | 1              | [`NON_DUP_MARKER`]         |
+| `0x50`   | 8              | Lamports balance           |
+| `0x58`   | 8              | Length of account data     |
+| `0x60`   | 10240          | Account data + padding     |
+| `0x2860` | 8              | Account [rent epoch]       |
 
 The account data padding length [is the sum of]:
 
@@ -54,11 +54,11 @@ the [number of accounts in the input buffer](memo).
 
 :::
 
-[rent epoch]: https://solana.com/docs/core/accounts#account-structure
-[to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
-[is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
-[`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
-[serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
-[`NON_DUP_MARKER`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.NON_DUP_MARKER.html
 [cpi]: https://solana.com/docs/references/terminology#cross-program-invocation-cpi
+[is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
 [lamports]: https://solana.com/docs/references/terminology#lamport
+[rent epoch]: https://solana.com/docs/core/accounts#account-structure
+[serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
+[to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
+[`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
+[`non_dup_marker`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.NON_DUP_MARKER.html
