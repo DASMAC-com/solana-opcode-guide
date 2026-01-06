@@ -11,11 +11,11 @@ arithmetic.
 
 A transfer operation requires three accounts:
 
-| Account | Description                    |
-| ------- | ------------------------------ |
-| Source  | The account to transfer from   |
-| Destination | The account to transfer to |
-| System  | The System Program (for CPI)   |
+| Account   | Description                    |
+| --------- | ------------------------------ |
+| Sender    | The account to transfer from   |
+| Recipient | The account to transfer to     |
+| System    | The System Program (for [CPI]) |
 
 ## :shield: Input validation
 
@@ -36,4 +36,5 @@ the [number of accounts in the input buffer](memo).
 
 :::
 
+[cpi]: https://solana.com/docs/references/terminology#cross-program-invocation-cpi
 [lamports]: https://solana.com/docs/references/terminology#lamport
