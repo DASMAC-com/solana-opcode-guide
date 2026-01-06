@@ -10,11 +10,11 @@ requiring proper account validation, ownership checks, and Lamport arithmetic.
 
 A transfer operation requires three accounts:
 
-| Account   | Description                    |
-| --------- | ------------------------------ |
-| Sender    | The account to transfer from   |
-| Recipient | The account to transfer to     |
-| System    | The System Program (for [CPI]) |
+| Account   | Description                  |
+| --------- | ---------------------------- |
+| Sender    | The account to transfer from |
+| Recipient | The account to transfer to   |
+| System    | [System Program] (for [CPI]) |
 
 ## :world_map: Account layout background
 
@@ -45,10 +45,10 @@ The account data padding length [is the sum of]:
 1. [`MAX_PERMITTED_DATA_INCREASE`].
 1. Additional padding to align the account data length [to an 8-byte boundary].
 
-Note however that [the system program] is a [builtin], which means that its
+Note however that the [System Program] is a [builtin], which means that its
 [account data is its name], specifically `b"system_program"` (14 bytes) with two
 extra bytes of padding to align to an 8-byte boundary. This means that the
-`account data + padding` field of the system program is actually 10256 bytes
+`account data + padding` field of the System Program is actually 10256 bytes
 long.
 
 ## :shield: Input validation
@@ -79,7 +79,7 @@ the [number of accounts in the input buffer](memo).
 [lamports]: https://solana.com/docs/references/terminology#lamport
 [serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
 [signer]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L78-L79
-[the system program]: https://solana.com/docs/core/programs#the-system-program
+[system program]: https://solana.com/docs/core/programs#the-system-program
 [to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
 [writable]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L80-L81
 [`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
