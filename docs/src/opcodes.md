@@ -1,5 +1,9 @@
 # Opcodes
 
+This table links opcodes from the [SBPF bytecode ISA] with their corresponding
+[Rust implementation constant name]. Each opcode also has a link to a select
+example from this guide where it is used.
+
 <!-- markdownlint-disable MD013 -->
 
 | Opcode hex | Opcode name   | Assembler mnemonic                 | Select example |
@@ -19,6 +23,8 @@
 
 <!-- markdownlint-enable MD013 -->
 
+[sbpf bytecode isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md
+[Rust implementation constant name]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
 [fibonacci]: examples/fibonacci
 [memo]: examples/memo
 [quickstart]: quickstart
