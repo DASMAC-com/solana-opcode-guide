@@ -1,5 +1,7 @@
 export default {
   title: "Solana Opcode Guide",
+  description:
+    "Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)",
   srcDir: "src",
   markdown: {
     lineNumbers: true,
