@@ -14,6 +14,7 @@
 
 # Sender account.
 .equ SENDER_OFFSET, 8
+.equ SENDER_LAMPORTS_OFFSET, 50
 
 # Recipient account.
 .equ RECIPIENT_OFFSET, 10344
