@@ -1,20 +1,19 @@
 # Invalid number of accounts.
 .equ E_N_ACCOUNTS, 1
-# Recipient account is a duplicate.
-.equ E_DUPLICATE_ACCOUNT_RECIPIENT, 2
-# System program account is a duplicate.
-.equ E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM, 3
-# Invalid instruction data length.
-.equ E_INVALID_INSTRUCTION_DATA_LENGTH, 4
-# Sender has insufficient lamports.
-.equ E_INSUFFICIENT_LAMPORTS, 5
 # Sender data length is nonzero.
-.equ E_SENDER_DATA_LENGTH_NONZERO, 6
+.equ E_DATA_LENGTH_NONZERO_SENDER, 2
+# Recipient account is a duplicate.
+.equ E_DUPLICATE_ACCOUNT_RECIPIENT, 3
 # Recipient data length is nonzero.
-.equ E_RECIPIENT_DATA_LENGTH_NONZERO, 7
+.equ E_DATA_LENGTH_NONZERO_RECIPIENT, 4
+# System program account is a duplicate.
+.equ E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM, 5
+# Invalid instruction data length.
+.equ E_INVALID_INSTRUCTION_DATA_LENGTH, 6
+# Sender has insufficient lamports.
+.equ E_INSUFFICIENT_LAMPORTS, 7
 
-
-# Account positioning.
+# Account layout.
 .equ N_ACCOUNTS_OFFSET, 0
 .equ N_ACCOUNTS_EXPECTED, 3
 .equ NON_DUP_MARKER, 0xff
@@ -46,7 +45,7 @@ entrypoint:
 
     # Check sender data length.
     ldxdw r2, [r1 + SENDER_DATA_LENGTH_OFFSET]
-    jne r2, DATA_LENGTH_ZERO, e_sender_data_length_nonzero
+    jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_sender
 
     # Check recipient duplicacy.
     ldxb r2, [r1 + RECIPIENT_OFFSET]
@@ -54,7 +53,7 @@ entrypoint:
 
     # Check recipient data length.
     ldxdw r2, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
-    jne r2, DATA_LENGTH_ZERO, e_recipient_data_length_nonzero
+    jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_recipient
 
     # Check system account duplicacy.
     ldxb r2, [r1 + SYSTEM_PROGRAM_OFFSET]
@@ -69,10 +68,6 @@ entrypoint:
     ldxdw r2, [r1 + SENDER_LAMPORTS_OFFSET]
     jlt r2, r4, e_insufficient_lamports
 
-    exit
-
-e_n_accounts:
-    mov32 r0, E_N_ACCOUNTS
     exit
 
 e_duplicate_account_recipient:
@@ -91,10 +86,14 @@ e_insufficient_lamports:
     mov32 r0, E_INSUFFICIENT_LAMPORTS
     exit
 
-e_sender_data_length_nonzero:
-    mov32 r0, E_SENDER_DATA_LENGTH_NONZERO
+e_n_accounts:
+    mov32 r0, E_N_ACCOUNTS
     exit
 
-e_recipient_data_length_nonzero:
-    mov32 r0, E_RECIPIENT_DATA_LENGTH_NONZERO
+e_data_length_nonzero_recipient:
+    mov32 r0, E_DATA_LENGTH_NONZERO_RECIPIENT
+    exit
+
+e_data_length_nonzero_sender:
+    mov32 r0, E_DATA_LENGTH_NONZERO_SENDER
     exit
