@@ -63,11 +63,11 @@ fn test_asm() {
             E_SENDER_DATA_LENGTH_NONZERO,
         ))],
     );
+    sender_account.data = vec![];
+    accounts[AccountPosition::Sender as usize].1 = sender_account.clone();
 
     // Check duplicate recipient account.
-    sender_account.data = vec![];
     instruction.accounts[AccountPosition::Recipient as usize] = sender_meta.clone();
-    accounts[AccountPosition::Sender as usize] = (sender_pubkey, sender_account.clone());
     accounts[AccountPosition::Recipient as usize] = (sender_pubkey, sender_account.clone());
     setup.mollusk.process_and_validate_instruction(
         &instruction,
@@ -76,10 +76,10 @@ fn test_asm() {
             E_DUPLICATE_ACCOUNT_RECIPIENT,
         ))],
     );
-
-    // Check nonzero recipient data length.
     recipient_account.data = vec![0];
     instruction.accounts[AccountPosition::Recipient as usize] = recipient_meta.clone();
+
+    // Check nonzero recipient data length.
     accounts[AccountPosition::Recipient as usize] = (recipient_pubkey, recipient_account.clone());
     setup.mollusk.process_and_validate_instruction(
         &instruction,
@@ -88,11 +88,11 @@ fn test_asm() {
             E_RECIPIENT_DATA_LENGTH_NONZERO,
         ))],
     );
+    recipient_account.data = vec![];
+    accounts[AccountPosition::Recipient as usize].1 = recipient_account.clone();
 
     // Check duplicate system program account.
-    recipient_account.data = vec![];
     instruction.accounts[AccountPosition::SystemProgram as usize] = recipient_meta.clone();
-    accounts[AccountPosition::Recipient as usize] = (recipient_pubkey, recipient_account.clone());
     accounts[AccountPosition::SystemProgram as usize] =
         (recipient_pubkey, recipient_account.clone());
     setup.mollusk.process_and_validate_instruction(
@@ -102,14 +102,10 @@ fn test_asm() {
             E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM,
         ))],
     );
+    instruction.accounts[AccountPosition::SystemProgram as usize] = system_meta.clone();
+    accounts[AccountPosition::SystemProgram as usize] = (system_program, system_account.clone());
 
     // Check invalid instruction data length.
-    instruction.accounts = vec![sender_meta, recipient_meta, system_meta];
-    accounts = vec![
-        (sender_pubkey, sender_account.clone()),
-        (recipient_pubkey, recipient_account.clone()),
-        (system_program, system_account.clone()),
-    ];
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
