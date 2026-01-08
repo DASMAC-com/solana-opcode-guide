@@ -4,7 +4,7 @@ use solana_sdk::account::Account;
 use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
-use std::mem::size_of;
+use std::mem::{offset_of, size_of};
 use test_utils::{setup_test, ProgramLanguage};
 
 const E_N_ACCOUNTS: u32 = 1;
@@ -90,11 +90,11 @@ fn test_asm() {
 
 #[test]
 fn test_offsets() {
-    const SENDER_OFFSET: usize = 8;
     const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
 
     #[allow(dead_code)]
-    struct StandardAccount {
+    #[repr(C)]
+    struct AccountLayout<const PADDED_DATA_SIZE: usize> {
         non_dup_marker: u8,
         is_signer: u8,
         is_writable: u8,
@@ -104,32 +104,31 @@ fn test_offsets() {
         owner: [u8; 32],
         lamports: u64,
         data_length: u64,
-        data_padded: [u8; MAX_PERMITTED_DATA_INCREASE],
+        data_padded: [u8; PADDED_DATA_SIZE],
         rent_epoch: u64,
     }
 
-    #[allow(dead_code)]
-    struct SystemProgramAccount {
-        non_dup_marker: u8,
-        is_signer: u8,
-        is_writable: u8,
-        is_executable: u8,
-        padding: [u8; 4],
-        pubkey: [u8; 32],
-        owner: [u8; 32],
-        lamports: u64,
-        data_length: u64,
-        data_padded: [u8; MAX_PERMITTED_DATA_INCREASE + 16],
-        rent_epoch: u64,
-    }
+    type StandardAccount = AccountLayout<MAX_PERMITTED_DATA_INCREASE>;
+    type SystemProgramAccount = AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + 16 }>;
 
+    // Sender.
+    const SENDER_OFFSET: usize = 8;
+    const SENDER_LAMPORTS_OFFSET: usize = 80;
+
+    // Recipient.
     const RECIPIENT_OFFSET: usize = 10344;
 
+    // System program.
     const SYSTEM_PROGRAM_OFFSET: usize = 20680;
 
+    // Instruction data.
     const INSTRUCTION_DATA_LENGTH_OFFSET: usize = 31032;
     const INSTRUCTION_DATA_OFFSET: usize = 31040;
 
+    assert_eq!(
+        SENDER_LAMPORTS_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, lamports),
+    );
     assert_eq!(
         RECIPIENT_OFFSET,
         SENDER_OFFSET + size_of::<StandardAccount>()
