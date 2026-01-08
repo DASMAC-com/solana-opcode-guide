@@ -1,15 +1,69 @@
 use mollusk_svm::program;
 use mollusk_svm::result::Check;
-use solana_sdk::instruction::Instruction;
+use solana_sdk::account::Account;
+use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
+use solana_sdk::pubkey::Pubkey;
 use std::mem::size_of;
-use test_utils::{setup_test, single_mock_account, ProgramLanguage};
+use test_utils::{setup_test, ProgramLanguage};
 
-const E_DUPLICATE_ACCOUNTS: u32 = 2;
+const E_N_ACCOUNTS: u32 = 1;
+const E_DUPLICATE_ACCOUNT_RECIPIENT: u32 = 2;
+const E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM: u32 = 3;
 
 #[test]
 fn test_asm() {
     let setup = setup_test(ProgramLanguage::Assembly);
+
+    // Set up accounts.
+    let (system_program, system_account) = program::keyed_account_for_system_program();
+    let system_meta = AccountMeta::new_readonly(system_program, false);
+    let sender_pubkey = Pubkey::new_unique();
+    let sender_meta = AccountMeta::new(sender_pubkey, true);
+    let sender_account = Account::new(0, 0, &system_program);
+    let recipient_pubkey = Pubkey::new_unique();
+    let recipient_meta = AccountMeta::new(recipient_pubkey, false);
+    let recipient_account = Account::new(0, 0, &system_program);
+
+    // Check no accounts passed.
+    let mut instruction = Instruction::new_with_bytes(setup.program_id, &[], vec![]);
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &[],
+        &[Check::err(ProgramError::Custom(E_N_ACCOUNTS))],
+    );
+
+    // Check duplicate recipient account.
+    instruction.accounts = vec![
+        sender_meta.clone(),
+        sender_meta.clone(),
+        system_meta.clone(),
+    ];
+    let mut accounts = vec![
+        (sender_pubkey, sender_account.clone()),
+        (sender_pubkey, sender_account.clone()),
+        (system_program, system_account.clone()),
+    ];
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_DUPLICATE_ACCOUNT_RECIPIENT,
+        ))],
+    );
+
+    // Check duplicate system program account.
+    instruction.accounts[1] = recipient_meta.clone();
+    instruction.accounts[2] = sender_meta.clone();
+    accounts[1] = (recipient_pubkey, recipient_account.clone());
+    accounts[2] = (sender_pubkey, sender_account.clone());
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM,
+        ))],
+    );
 }
 
 #[test]
