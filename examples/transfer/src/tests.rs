@@ -8,12 +8,12 @@ use std::mem::{offset_of, size_of};
 use test_utils::{setup_test, ProgramLanguage};
 
 const E_N_ACCOUNTS: u32 = 1;
-const E_DUPLICATE_ACCOUNT_RECIPIENT: u32 = 2;
-const E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM: u32 = 3;
-const E_INVALID_INSTRUCTION_DATA_LENGTH: u32 = 4;
-const E_INSUFFICIENT_LAMPORTS: u32 = 5;
-const E_SENDER_DATA_LENGTH_NONZERO: u32 = 6;
-const E_RECIPIENT_DATA_LENGTH_NONZERO: u32 = 7;
+const E_DATA_LENGTH_NONZERO_SENDER: u32 = 2;
+const E_DUPLICATE_ACCOUNT_RECIPIENT: u32 = 3;
+const E_DATA_LENGTH_NONZERO_RECIPIENT: u32 = 4;
+const E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM: u32 = 5;
+const E_INVALID_INSTRUCTION_DATA_LENGTH: u32 = 6;
+const E_INSUFFICIENT_LAMPORTS: u32 = 7;
 
 enum AccountPosition {
     Sender = 0,
@@ -60,7 +60,7 @@ fn test_asm() {
         &instruction,
         &accounts,
         &[Check::err(ProgramError::Custom(
-            E_SENDER_DATA_LENGTH_NONZERO,
+            E_DATA_LENGTH_NONZERO_SENDER,
         ))],
     );
     sender_account.data = vec![];
@@ -85,7 +85,7 @@ fn test_asm() {
         &instruction,
         &accounts,
         &[Check::err(ProgramError::Custom(
-            E_RECIPIENT_DATA_LENGTH_NONZERO,
+            E_DATA_LENGTH_NONZERO_RECIPIENT,
         ))],
     );
     recipient_account.data = vec![];
