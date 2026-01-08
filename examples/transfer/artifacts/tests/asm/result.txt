@@ -2,3 +2,12 @@ test tests::test_asm ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 4 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 6 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 8 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x3
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 10 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x4
