@@ -1,5 +1,9 @@
-.equ E_N_ACCOUNTS, 1 # Invalid number of accounts.
-.equ E_DUPLICATE_ACCOUNTS, 2 # Duplicate accounts passed.
+# Invalid number of accounts.
+.equ E_N_ACCOUNTS, 1
+# Recipient account is a duplicate.
+.equ E_DUPLICATE_ACCOUNT_RECIPIENT, 2
+# System program account is a duplicate.
+.equ E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM, 3
 
 # Account positioning.
 .equ N_ACCOUNTS_OFFSET, 0
@@ -27,9 +31,9 @@ entrypoint:
 
     # Check duplicate accounts.
     ldxb r2, [r1 + RECIPIENT_OFFSET]
-    jne r2, NON_DUP_MARKER, e_duplicate_accounts
+    jne r2, NON_DUP_MARKER, e_duplicate_account_recipient
     ldxb r2, [r1 + SYSTEM_PROGRAM_OFFSET]
-    jne r2, NON_DUP_MARKER, e_duplicate_accounts
+    jne r2, NON_DUP_MARKER, e_duplicate_account_system_program
 
     exit
 
@@ -37,6 +41,10 @@ e_n_accounts:
     mov32 r0, E_N_ACCOUNTS
     exit
 
-e_duplicate_accounts:
-    mov32 r0, E_DUPLICATE_ACCOUNTS
+e_duplicate_account_recipient:
+    mov32 r0, E_DUPLICATE_ACCOUNT_RECIPIENT
+    exit
+
+e_duplicate_account_system_program:
+    mov32 r0, E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM
     exit
