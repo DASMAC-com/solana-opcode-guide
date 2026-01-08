@@ -71,6 +71,7 @@ fn test_offsets() {
     const SENDER_OFFSET: usize = 8;
     const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
 
+    #[allow(dead_code)]
     struct StandardAccount {
         non_dup_marker: u8,
         is_signer: u8,
@@ -85,6 +86,7 @@ fn test_offsets() {
         rent_epoch: u64,
     }
 
+    #[allow(dead_code)]
     struct SystemProgramAccount {
         non_dup_marker: u8,
         is_signer: u8,
