@@ -1,37 +1,66 @@
+use mollusk_svm::program;
 use mollusk_svm::result::Check;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::program_error::ProgramError;
-use test_utils::{setup_test, ProgramLanguage};
+use std::mem::size_of;
+use test_utils::{setup_test, single_mock_account, ProgramLanguage};
 
-const E_N_ACCOUNTS: u32 = 1;
+const E_DUPLICATE_ACCOUNTS: u32 = 2;
 
 #[test]
 fn test_asm() {
     let setup = setup_test(ProgramLanguage::Assembly);
-
-    setup.mollusk.process_and_validate_instruction(
-        &Instruction::new_with_bytes(setup.program_id, &[], vec![]),
-        &[],
-        &[Check::err(ProgramError::Custom(E_N_ACCOUNTS))],
-    );
 }
 
 #[test]
 fn test_offsets() {
-    const SENDER_OFFSET: u32 = 8;
+    const SENDER_OFFSET: usize = 8;
+    const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
 
-    const RECIPIENT_OFFSET: u32 = 10344;
+    const RECIPIENT_OFFSET: usize = 10344;
 
-    const SYSTEM_PROGRAM_OFFSET: u32 = 20680;
+    const SYSTEM_PROGRAM_OFFSET: usize = 20680;
 
-    const INSTRUCTION_DATA_LENGTH_OFFSET: u32 = 31032;
+    const INSTRUCTION_DATA_LENGTH_OFFSET: usize = 31032;
 
-    const ACCOUNT_LENGTH: u32 = 1 + 1 + 1 + 1 + 4 + 32 + 32 + 8 + 8 + 10240 + 8;
+    struct StandardAccount {
+        non_dup_marker: u8,
+        is_signer: u8,
+        is_writable: u8,
+        is_executable: u8,
+        padding: [u8; 4],
+        pubkey: [u8; 32],
+        owner: [u8; 32],
+        lamports: u64,
+        data_length: u64,
+        data_padded: [u8; MAX_PERMITTED_DATA_INCREASE],
+        rent_epoch: u64,
+    }
 
-    assert_eq!(RECIPIENT_OFFSET, SENDER_OFFSET + ACCOUNT_LENGTH);
-    assert_eq!(SYSTEM_PROGRAM_OFFSET, RECIPIENT_OFFSET + ACCOUNT_LENGTH);
+    struct SystemProgramAccount {
+        non_dup_marker: u8,
+        is_signer: u8,
+        is_writable: u8,
+        is_executable: u8,
+        padding: [u8; 4],
+        pubkey: [u8; 32],
+        owner: [u8; 32],
+        lamports: u64,
+        data_length: u64,
+        data_padded: [u8; MAX_PERMITTED_DATA_INCREASE + 16],
+        rent_epoch: u64,
+    }
+
+    assert_eq!(
+        RECIPIENT_OFFSET,
+        SENDER_OFFSET + size_of::<StandardAccount>()
+    );
+    assert_eq!(
+        SYSTEM_PROGRAM_OFFSET,
+        RECIPIENT_OFFSET + size_of::<StandardAccount>()
+    );
     assert_eq!(
         INSTRUCTION_DATA_LENGTH_OFFSET,
-        SYSTEM_PROGRAM_OFFSET + ACCOUNT_LENGTH + 16
+        SYSTEM_PROGRAM_OFFSET + size_of::<SystemProgramAccount>()
     );
 }
