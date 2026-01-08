@@ -11,6 +11,9 @@ const E_N_ACCOUNTS: u32 = 1;
 const E_DUPLICATE_ACCOUNT_RECIPIENT: u32 = 2;
 const E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM: u32 = 3;
 const E_INVALID_INSTRUCTION_DATA_LENGTH: u32 = 4;
+const E_INSUFFICIENT_LAMPORTS: u32 = 5;
+
+const TRANSFER_AMOUNT: u64 = 10;
 
 #[test]
 fn test_asm() {
@@ -85,6 +88,14 @@ fn test_asm() {
         &[Check::err(ProgramError::Custom(
             E_INVALID_INSTRUCTION_DATA_LENGTH,
         ))],
+    );
+
+    // Check insufficient lamports.
+    instruction.data = TRANSFER_AMOUNT.to_le_bytes().to_vec();
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
     );
 }
 
