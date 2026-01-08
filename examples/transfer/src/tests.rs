@@ -10,6 +10,7 @@ use test_utils::{setup_test, ProgramLanguage};
 const E_N_ACCOUNTS: u32 = 1;
 const E_DUPLICATE_ACCOUNT_RECIPIENT: u32 = 2;
 const E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM: u32 = 3;
+const E_INVALID_INSTRUCTION_DATA_LENGTH: u32 = 4;
 
 #[test]
 fn test_asm() {
@@ -53,15 +54,36 @@ fn test_asm() {
     );
 
     // Check duplicate system program account.
-    instruction.accounts[1] = recipient_meta.clone();
-    instruction.accounts[2] = sender_meta.clone();
-    accounts[1] = (recipient_pubkey, recipient_account.clone());
-    accounts[2] = (sender_pubkey, sender_account.clone());
+    instruction.accounts = vec![
+        sender_meta.clone(),
+        recipient_meta.clone(),
+        sender_meta.clone(),
+    ];
+    accounts = vec![
+        (sender_pubkey, sender_account.clone()),
+        (recipient_pubkey, recipient_account.clone()),
+        (system_program, system_account.clone()),
+    ];
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
         &[Check::err(ProgramError::Custom(
             E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM,
+        ))],
+    );
+
+    // Check invalid instruction data length.
+    instruction.accounts = vec![sender_meta, recipient_meta, system_meta];
+    accounts = vec![
+        (sender_pubkey, sender_account.clone()),
+        (recipient_pubkey, recipient_account.clone()),
+        (system_program, system_account.clone()),
+    ];
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_INVALID_INSTRUCTION_DATA_LENGTH,
         ))],
     );
 }
@@ -106,6 +128,7 @@ fn test_offsets() {
     const SYSTEM_PROGRAM_OFFSET: usize = 20680;
 
     const INSTRUCTION_DATA_LENGTH_OFFSET: usize = 31032;
+    const INSTRUCTION_DATA_OFFSET: usize = 31040;
 
     assert_eq!(
         RECIPIENT_OFFSET,
@@ -118,5 +141,9 @@ fn test_offsets() {
     assert_eq!(
         INSTRUCTION_DATA_LENGTH_OFFSET,
         SYSTEM_PROGRAM_OFFSET + size_of::<SystemProgramAccount>()
+    );
+    assert_eq!(
+        INSTRUCTION_DATA_OFFSET,
+        INSTRUCTION_DATA_LENGTH_OFFSET + size_of::<u64>(),
     );
 }
