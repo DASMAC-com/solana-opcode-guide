@@ -8,18 +8,26 @@
 .equ E_INVALID_INSTRUCTION_DATA_LENGTH, 4
 # Sender has insufficient lamports.
 .equ E_INSUFFICIENT_LAMPORTS, 5
+# Sender data length is nonzero.
+.equ E_SENDER_DATA_LENGTH_NONZERO, 6
+# Recipient data length is nonzero.
+.equ E_RECIPIENT_DATA_LENGTH_NONZERO, 7
+
 
 # Account positioning.
 .equ N_ACCOUNTS_OFFSET, 0
 .equ N_ACCOUNTS_EXPECTED, 3
 .equ NON_DUP_MARKER, 0xff
+.equ DATA_LENGTH_ZERO, 0
 
 # Sender account.
 .equ SENDER_OFFSET, 8
 .equ SENDER_LAMPORTS_OFFSET, 50
+.equ SENDER_DATA_LENGTH_OFFSET, 88
 
 # Recipient account.
 .equ RECIPIENT_OFFSET, 10344
+.equ RECIPIENT_DATA_LENGTH_OFFSET, 10424
 
 # System program account.
 .equ SYSTEM_PROGRAM_OFFSET, 20680
@@ -32,23 +40,32 @@
 .global entrypoint
 
 entrypoint:
-    # Load number of accounts into r2, check is as expected.
+    # Check number of accounts.
     ldxdw r2, [r1 + N_ACCOUNTS_OFFSET]
     jne r2, N_ACCOUNTS_EXPECTED, e_n_accounts
 
-    # Check duplicate accounts by loading non-dup marker field into r2.
+    # Check sender data length.
+    ldxdw r2, [r1 + SENDER_DATA_LENGTH_OFFSET]
+    jne r2, DATA_LENGTH_ZERO, e_sender_data_length_nonzero
+
+    # Check recipient duplicacy.
     ldxb r2, [r1 + RECIPIENT_OFFSET]
     jne r2, NON_DUP_MARKER, e_duplicate_account_recipient
+
+    # Check recipient data length.
+    ldxdw r2, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
+    jne r2, DATA_LENGTH_ZERO, e_recipient_data_length_nonzero
+
+    # Check system account duplicacy.
     ldxb r2, [r1 + SYSTEM_PROGRAM_OFFSET]
     jne r2, NON_DUP_MARKER, e_duplicate_account_system_program
 
-    # Check instruction data length, storing transfer amount in r4.
+    # Check instruction data length.
     ldxdw r4, [r1 + INSTRUCTION_DATA_LENGTH_OFFSET]
     jne r4, INSTRUCTION_DATA_LENGTH_EXPECTED, e_invalid_instruction_data_length
-    ldxdw r4, [r1 + INSTRUCTION_DATA_OFFSET]
 
-    # Verify sender has at least as many lamports as they are trying to send,
-    # storying their lamport balance in r2.
+    # Verify sender has at least as many lamports as they are trying to send.
+    ldxdw r4, [r1 + INSTRUCTION_DATA_OFFSET]
     ldxdw r2, [r1 + SENDER_LAMPORTS_OFFSET]
     jlt r2, r4, e_insufficient_lamports
 
@@ -72,4 +89,12 @@ e_invalid_instruction_data_length:
 
 e_insufficient_lamports:
     mov32 r0, E_INSUFFICIENT_LAMPORTS
+    exit
+
+e_sender_data_length_nonzero:
+    mov32 r0, E_SENDER_DATA_LENGTH_NONZERO
+    exit
+
+e_recipient_data_length_nonzero:
+    mov32 r0, E_RECIPIENT_DATA_LENGTH_NONZERO
     exit
