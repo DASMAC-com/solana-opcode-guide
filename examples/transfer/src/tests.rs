@@ -71,12 +71,6 @@ fn test_offsets() {
     const SENDER_OFFSET: usize = 8;
     const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
 
-    const RECIPIENT_OFFSET: usize = 10344;
-
-    const SYSTEM_PROGRAM_OFFSET: usize = 20680;
-
-    const INSTRUCTION_DATA_LENGTH_OFFSET: usize = 31032;
-
     struct StandardAccount {
         non_dup_marker: u8,
         is_signer: u8,
@@ -104,6 +98,12 @@ fn test_offsets() {
         data_padded: [u8; MAX_PERMITTED_DATA_INCREASE + 16],
         rent_epoch: u64,
     }
+
+    const RECIPIENT_OFFSET: usize = 10344;
+
+    const SYSTEM_PROGRAM_OFFSET: usize = 20680;
+
+    const INSTRUCTION_DATA_LENGTH_OFFSET: usize = 31032;
 
     assert_eq!(
         RECIPIENT_OFFSET,
