@@ -40,15 +40,36 @@ fn test_asm() {
     );
 
     // Check duplicate system program account.
-    instruction.accounts[1] = recipient_meta.clone();
-    instruction.accounts[2] = system_meta.clone();
-    accounts[1] = (recipient_pubkey, recipient_account.clone());
-    accounts[2] = (system_program, system_account.clone());
+    instruction.accounts = vec![
+        sender_meta.clone(),
+        recipient_meta.clone(),
+        sender_meta.clone(),
+    ];
+    accounts = vec![
+        (sender_pubkey, sender_account.clone()),
+        (recipient_pubkey, recipient_account.clone()),
+        (system_program, system_account.clone()),
+    ];
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
         &[Check::err(ProgramError::Custom(
             E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM,
+        ))],
+    );
+
+    // Check invalid instruction data length.
+    instruction.accounts = vec![sender_meta, recipient_meta, system_meta];
+    accounts = vec![
+        (sender_pubkey, sender_account.clone()),
+        (recipient_pubkey, recipient_account.clone()),
+        (system_program, system_account.clone()),
+    ];
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_INVALID_INSTRUCTION_DATA_LENGTH,
         ))],
     );
 }
