@@ -14,7 +14,7 @@ A transfer operation requires three accounts:
 | --------- | ---------------------------- |
 | Sender    | The account to transfer from |
 | Recipient | The account to transfer to   |
-| System    | [System Program] (for [CPI]) |
+| System    | [System Program] (for [CPI](#transfer-cpi)) |
 
 ## :world_map: Account layout background
 
@@ -68,6 +68,21 @@ place in a specific order:
 
 <<< ../../../examples/transfer/artifacts/snippets/asm/accounts.txt{4-30 asm}
 
+## :outbox_tray: Transfer CPI
+
+The [System Program] is responsible for transferring Lamports between accounts,
+and is invoked internally in this example using a [CPI] via the
+[`sol_invoke_signed_c` syscall], which accepts the following parameters:
+
+| Register | Description              |
+| -------- | ------------------------ |
+| `r1`     | Instruction data pointer |
+| `r2`     | Account infos pointer    |
+| `r3`     | Account infos length     |
+| `r4`     | [Signer seeds] pointer   |
+| `r5`     | [Signer seeds] count     |
+
+
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`
@@ -80,11 +95,13 @@ place in a specific order:
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
+[signer seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
+[`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
 [account structure]: https://solana.com/docs/core/accounts#account-structure
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
-[cpi]: https://solana.com/docs/references/terminology#cross-program-invocation-cpi
+[cpi]: https://solana.com/docs/core/cpi
 [is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
 [lamports]: https://solana.com/docs/references/terminology#lamport
 [serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559

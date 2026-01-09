@@ -10,7 +10,7 @@
 .equ E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM, 5
 # Invalid instruction data length.
 .equ E_INSTRUCTION_DATA_LENGTH, 6
-# Sender has insufficient lamports.
+# Sender has insufficient Lamports.
 .equ E_INSUFFICIENT_LAMPORTS, 7
 
 # Account layout.
@@ -67,9 +67,9 @@ entrypoint:
     ldxdw r4, [r1 + INSTRUCTION_DATA_LENGTH_OFFSET]
     jne r4, INSTRUCTION_DATA_LENGTH_EXPECTED, e_instruction_data_length
 
-    # Verify sender has at least as many lamports as they are trying to
+    # Verify sender has at least as many Lamports as they are trying to
     # send. Technically this could be done after checking the number of
-    # accounts since lamports balance comes before account data length, but
+    # accounts since Lamports balance comes before account data length, but
     # in the happy path both checks need to be done anyways and it is
     # cleaner to do all layout validation first.
     ldxdw r4, [r1 + INSTRUCTION_DATA_OFFSET]
