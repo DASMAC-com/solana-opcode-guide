@@ -86,7 +86,13 @@ and is invoked internally in this example using a [CPI] via the
 | `r4`     | [Signer seeds] pointer   |
 | `r5`     | [Signer seeds] count     |
 
-[transfer instruction data]
+The [transfer instruction data] is [encoded via `bincode`], which uses
+[`u32` enum variants] such that the transfer instruction data contains:
+
+| Offset (bytes) | Length (bytes) | Description                               |
+| -------------- | -------------- | ----------------------------------------- |
+| 0              | 4              | Transfer instruction [enum variant] (`2`) |
+| 4              | 8              | Amount of Lamports to send                |
 
 ## :white_check_mark: All tests
 
@@ -100,12 +106,13 @@ and is invoked internally in this example using a [CPI] via the
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
-[transfer instruction data]: https://docs.rs/solana-system-interface/latest/solana_system_interface/instruction/enum.SystemInstruction.html#variant.Transfer
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
 [account structure]: https://solana.com/docs/core/accounts#account-structure
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
 [cpi]: https://solana.com/docs/core/cpi
+[encoded via `bincode`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L822
+[enum variant]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L82
 [is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
 [lamports]: https://solana.com/docs/references/terminology#lamport
 [serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
@@ -113,8 +120,10 @@ and is invoked internally in this example using a [CPI] via the
 [signer seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
 [system program]: https://solana.com/docs/core/programs#the-system-program
 [to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
+[transfer instruction data]: https://docs.rs/solana-system-interface/latest/solana_system_interface/instruction/enum.SystemInstruction.html#variant.Transfer
 [writable]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L80-L81
 [`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
 [`non_dup_marker`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.NON_DUP_MARKER.html
 [`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b7ac3d80da4400abff283fb0e68927c3c68a24d9/examples/sbpf-asm-cpi/src/sbpf-asm-cpi/sbpf-asm-cpi.s
 [`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
+[`u32` enum variants]: https://sr.ht/~stygianentity/bincode/#why-does-bincode-not-respect-coderepru8code
