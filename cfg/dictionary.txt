@@ -11,6 +11,7 @@ lddw
 ldxb
 ldxdw
 mathjax
+repr
 rodata
 rustfilt
 sbpf
@@ -18,4 +19,5 @@ sbpfv
 solana
 syscall
 syscalls
+usize
 vitepress
