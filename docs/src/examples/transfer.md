@@ -10,10 +10,10 @@ requiring proper account validation, ownership checks, and Lamport arithmetic.
 
 A transfer operation requires three accounts:
 
-| Account   | Description                  |
-| --------- | ---------------------------- |
-| Sender    | The account to transfer from |
-| Recipient | The account to transfer to   |
+| Account   | Description                                 |
+| --------- | ------------------------------------------- |
+| Sender    | The account to transfer from                |
+| Recipient | The account to transfer to                  |
 | System    | [System Program] (for [CPI](#transfer-cpi)) |
 
 ## :world_map: Account layout background
@@ -55,7 +55,11 @@ long.
 
 Assembly offsets are validated in Rust using struct operations:
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/transfer/artifacts/snippets/asm/offsets.txt{1-11 asm} [Assembly]
+
+<!-- markdownlint-enable MD013 -->
 
 ::: details `test_offsets`
 
@@ -68,7 +72,7 @@ place in a specific order:
 
 <<< ../../../examples/transfer/artifacts/snippets/asm/accounts.txt{4-30 asm}
 
-## :outbox_tray: Transfer CPI
+## :outbox_tray: Transfer CPI {#transfer-cpi}
 
 The [System Program] is responsible for transferring Lamports between accounts,
 and is invoked internally in this example using a [CPI] via the
@@ -82,7 +86,6 @@ and is invoked internally in this example using a [CPI] via the
 | `r4`     | [Signer seeds] pointer   |
 | `r5`     | [Signer seeds] count     |
 
-
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`
@@ -95,8 +98,6 @@ and is invoked internally in this example using a [CPI] via the
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
-[signer seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
-[`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
 [account structure]: https://solana.com/docs/core/accounts#account-structure
@@ -106,9 +107,11 @@ and is invoked internally in this example using a [CPI] via the
 [lamports]: https://solana.com/docs/references/terminology#lamport
 [serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
 [signer]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L78-L79
+[signer seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
 [system program]: https://solana.com/docs/core/programs#the-system-program
 [to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
 [writable]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L80-L81
 [`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
 [`non_dup_marker`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.NON_DUP_MARKER.html
 [`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b7ac3d80da4400abff283fb0e68927c3c68a24d9/examples/sbpf-asm-cpi/src/sbpf-asm-cpi/sbpf-asm-cpi.s
+[`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
