@@ -51,19 +51,21 @@ extra bytes of padding to align to an 8-byte boundary. This means that the
 `account data + padding` field of the System Program is actually 10256 bytes
 long.
 
-Offsets are validated in Rust, and defined as constants in the assembly file:
+## :shield: Account validation
+
+Assembly offsets are validated in Rust using struct operations.
 
 ::: details Offset implementations
 
 ::: code-group
-
-<<< ../../../examples/transfer/artifacts/tests/offsets/test.txt{rs} [Rust test]
 
 <!-- markdownlint-disable MD013 -->
 
 <<< ../../../examples/transfer/artifacts/snippets/asm/offsets.txt{1-16 asm} [Assembly]
 
 <!-- markdownlint-enable MD013 -->
+
+<<< ../../../examples/transfer/artifacts/tests/offsets/test.txt{rs} [Rust validation]
 
 :::
 
