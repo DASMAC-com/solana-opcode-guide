@@ -24,9 +24,11 @@ fn test_offsets() {
     // Sender.
     const SENDER_OFFSET: usize = 8;
     const SENDER_LAMPORTS_OFFSET: usize = 80;
+    const SENDER_DATA_LENGTH_OFFSET: usize = 88;
 
     // Recipient.
     const RECIPIENT_OFFSET: usize = 10344;
+    const RECIPIENT_DATA_LENGTH_OFFSET: usize = 10424;
 
     // System program.
     const SYSTEM_PROGRAM_OFFSET: usize = 20680;
@@ -40,8 +42,16 @@ fn test_offsets() {
         SENDER_OFFSET + offset_of!(StandardAccount, lamports),
     );
     assert_eq!(
+        SENDER_DATA_LENGTH_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, data_length),
+    );
+    assert_eq!(
         RECIPIENT_OFFSET,
         SENDER_OFFSET + size_of::<StandardAccount>()
+    );
+    assert_eq!(
+        RECIPIENT_DATA_LENGTH_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, data_length),
     );
     assert_eq!(
         SYSTEM_PROGRAM_OFFSET,

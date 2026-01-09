@@ -7,10 +7,9 @@ fn test_asm() {
     let system_meta = AccountMeta::new_readonly(system_program, false);
     let sender_pubkey = Pubkey::new_unique();
     let sender_meta = AccountMeta::new(sender_pubkey, true);
-    let sender_account = Account::new(0, 0, &system_program);
     let recipient_pubkey = Pubkey::new_unique();
     let recipient_meta = AccountMeta::new(recipient_pubkey, false);
-    let recipient_account = Account::new(0, 0, &system_program);
+    let mut recipient_account = Account::new(0, 0, &system_program);
 
     // Check no accounts passed.
     let mut instruction = Instruction::new_with_bytes(setup.program_id, &[], vec![]);
@@ -20,17 +19,31 @@ fn test_asm() {
         &[Check::err(ProgramError::Custom(E_N_ACCOUNTS))],
     );
 
-    // Check duplicate recipient account.
+    // Check nonzero sender data length.
+    let mut sender_account = Account::new(0, 1, &system_program);
     instruction.accounts = vec![
         sender_meta.clone(),
-        sender_meta.clone(),
+        recipient_meta.clone(),
         system_meta.clone(),
     ];
     let mut accounts = vec![
         (sender_pubkey, sender_account.clone()),
-        (sender_pubkey, sender_account.clone()),
+        (recipient_pubkey, recipient_account.clone()),
         (system_program, system_account.clone()),
     ];
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_DATA_LENGTH_NONZERO_SENDER,
+        ))],
+    );
+    sender_account.data = vec![];
+    accounts[AccountPosition::Sender as usize].1 = sender_account.clone();
+
+    // Check duplicate recipient account.
+    instruction.accounts[AccountPosition::Recipient as usize] = sender_meta.clone();
+    accounts[AccountPosition::Recipient as usize] = (sender_pubkey, sender_account.clone());
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
@@ -38,18 +51,25 @@ fn test_asm() {
             E_DUPLICATE_ACCOUNT_RECIPIENT,
         ))],
     );
+    recipient_account.data = vec![0];
+    instruction.accounts[AccountPosition::Recipient as usize] = recipient_meta.clone();
+
+    // Check nonzero recipient data length.
+    accounts[AccountPosition::Recipient as usize] = (recipient_pubkey, recipient_account.clone());
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_DATA_LENGTH_NONZERO_RECIPIENT,
+        ))],
+    );
+    recipient_account.data = vec![];
+    accounts[AccountPosition::Recipient as usize].1 = recipient_account.clone();
 
     // Check duplicate system program account.
-    instruction.accounts = vec![
-        sender_meta.clone(),
-        recipient_meta.clone(),
-        sender_meta.clone(),
-    ];
-    accounts = vec![
-        (sender_pubkey, sender_account.clone()),
-        (recipient_pubkey, recipient_account.clone()),
-        (system_program, system_account.clone()),
-    ];
+    instruction.accounts[AccountPosition::SystemProgram as usize] = recipient_meta.clone();
+    accounts[AccountPosition::SystemProgram as usize] =
+        (recipient_pubkey, recipient_account.clone());
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
@@ -57,19 +77,23 @@ fn test_asm() {
             E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM,
         ))],
     );
+    instruction.accounts[AccountPosition::SystemProgram as usize] = system_meta.clone();
+    accounts[AccountPosition::SystemProgram as usize] = (system_program, system_account.clone());
 
     // Check invalid instruction data length.
-    instruction.accounts = vec![sender_meta, recipient_meta, system_meta];
-    accounts = vec![
-        (sender_pubkey, sender_account.clone()),
-        (recipient_pubkey, recipient_account.clone()),
-        (system_program, system_account.clone()),
-    ];
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
         &[Check::err(ProgramError::Custom(
             E_INVALID_INSTRUCTION_DATA_LENGTH,
         ))],
+    );
+
+    // Check insufficient lamports.
+    instruction.data = TRANSFER_AMOUNT.to_le_bytes().to_vec();
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
     );
 }

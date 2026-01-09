@@ -21,7 +21,7 @@
 
 # Sender account.
 .equ SENDER_OFFSET, 8
-.equ SENDER_LAMPORTS_OFFSET, 50
+.equ SENDER_LAMPORTS_OFFSET, 80
 .equ SENDER_DATA_LENGTH_OFFSET, 88
 
 # Recipient account.

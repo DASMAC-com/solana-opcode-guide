@@ -11,7 +11,7 @@ ELF Header
   Version                           0x1
   Entry point address               0x40
   Start of program headers          64 (bytes into file)
-  Start of section headers          224 (bytes into file)
+  Start of section headers          320 (bytes into file)
   Flags                             0x0
   Size of this header               64 (bytes)
   Size of program headers           56 (bytes)
@@ -19,13 +19,13 @@ ELF Header
   Size of section headers           64 (bytes)
   Number of section headers         3
   Section header string table index 2
-There are 3 section headers, starting at offset 0xe0
+There are 3 section headers, starting at offset 0x140
 
 Section Headers
   [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
-  [ 1] .text             PROGBITS        0000000000000040 000040 000090 00  AX  0   0  4
-  [ 2] .s                STRTAB          0000000000000000 0000d0 00000a 00      0   0  1
+  [ 1] .text             PROGBITS        0000000000000040 000040 0000f0 00  AX  0   0  4
+  [ 2] .s                STRTAB          0000000000000000 000130 00000a 00      0   0  1
 Key to Flags
   W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
   L (link order), O (extra OS processing required), G (group), T (TLS),
@@ -47,20 +47,32 @@ Disassembly of section .text
 
 0000000000000040 <.text>
        8	79 12 00 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x0)
-       9	55 02 08 00 03 00 00 00	if r2 != 0x3 goto +0x8 <.text+0x50>
-      10	71 12 68 28 00 00 00 00	r2 = *(u8 *)(r1 + 0x2868)
-      11	55 02 08 00 ff 00 00 00	if r2 != 0xff goto +0x8 <.text+0x60>
-      12	71 12 c8 50 00 00 00 00	r2 = *(u8 *)(r1 + 0x50c8)
-      13	55 02 08 00 ff 00 00 00	if r2 != 0xff goto +0x8 <.text+0x70>
-      14	79 14 38 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7938)
-      15	55 04 08 00 08 00 00 00	if r4 != 0x8 goto +0x8 <.text+0x80>
-      16	79 14 40 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7940)
-      17	95 00 00 00 00 00 00 00	exit
-      18	b4 00 00 00 01 00 00 00	w0 = 0x1
-      19	95 00 00 00 00 00 00 00	exit
-      20	b4 00 00 00 02 00 00 00	w0 = 0x2
-      21	95 00 00 00 00 00 00 00	exit
-      22	b4 00 00 00 03 00 00 00	w0 = 0x3
+       9	55 02 16 00 03 00 00 00	if r2 != 0x3 goto +0x16 <.text+0xc0>
+      10	79 12 58 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x58)
+      11	55 02 18 00 00 00 00 00	if r2 != 0x0 goto +0x18 <.text+0xe0>
+      12	71 12 68 28 00 00 00 00	r2 = *(u8 *)(r1 + 0x2868)
+      13	55 02 0a 00 ff 00 00 00	if r2 != 0xff goto +0xa <.text+0x80>
+      14	79 12 b8 28 00 00 00 00	r2 = *(u64 *)(r1 + 0x28b8)
+      15	55 02 12 00 00 00 00 00	if r2 != 0x0 goto +0x12 <.text+0xd0>
+      16	71 12 c8 50 00 00 00 00	r2 = *(u8 *)(r1 + 0x50c8)
+      17	55 02 08 00 ff 00 00 00	if r2 != 0xff goto +0x8 <.text+0x90>
+      18	79 14 38 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7938)
+      19	55 04 08 00 08 00 00 00	if r4 != 0x8 goto +0x8 <.text+0xa0>
+      20	79 14 40 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7940)
+      21	79 12 32 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x32)
+      22	ad 42 07 00 00 00 00 00	if r2 < r4 goto +0x7 <.text+0xb0>
       23	95 00 00 00 00 00 00 00	exit
-      24	b4 00 00 00 04 00 00 00	w0 = 0x4
+      24	b4 00 00 00 03 00 00 00	w0 = 0x3
       25	95 00 00 00 00 00 00 00	exit
+      26	b4 00 00 00 05 00 00 00	w0 = 0x5
+      27	95 00 00 00 00 00 00 00	exit
+      28	b4 00 00 00 06 00 00 00	w0 = 0x6
+      29	95 00 00 00 00 00 00 00	exit
+      30	b4 00 00 00 07 00 00 00	w0 = 0x7
+      31	95 00 00 00 00 00 00 00	exit
+      32	b4 00 00 00 01 00 00 00	w0 = 0x1
+      33	95 00 00 00 00 00 00 00	exit
+      34	b4 00 00 00 04 00 00 00	w0 = 0x4
+      35	95 00 00 00 00 00 00 00	exit
+      36	b4 00 00 00 02 00 00 00	w0 = 0x2
+      37	95 00 00 00 00 00 00 00	exit
