@@ -84,9 +84,7 @@ fn test_asm() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            E_INVALID_INSTRUCTION_DATA_LENGTH,
-        ))],
+        &[Check::err(ProgramError::Custom(E_INSTRUCTION_DATA_LENGTH))],
     );
 
     // Check insufficient lamports.
