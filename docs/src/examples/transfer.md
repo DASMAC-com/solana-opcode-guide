@@ -51,14 +51,28 @@ extra bytes of padding to align to an 8-byte boundary. This means that the
 `account data + padding` field of the System Program is actually 10256 bytes
 long.
 
-## :shield: Input validation
+Offsets are validated in Rust, and defined as constants in the assembly file:
 
-The program first validates that exactly 3 accounts are passed by checking
-the [number of accounts in the input buffer](memo).
+::: details Offset implementations
 
-::: details Full program
+::: code-group
 
-<<< ../../../examples/transfer/src/transfer/transfer.s{asm}
+<<< ../../../examples/transfer/artifacts/tests/offsets/test.txt{rs} [Rust test]
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/transfer/artifacts/snippets/asm/offsets.txt{1-16 asm} [Assembly]
+
+<!-- markdownlint-enable MD013 -->
+
+:::
+
+Due to the order of account field layout, account layout input validation takes
+place in a specific order:
+
+::: details Account validation
+
+<<< ../../../examples/transfer/artifacts/snippets/asm/accounts.txt{4-30 asm}
 
 :::
 
@@ -66,7 +80,7 @@ the [number of accounts in the input buffer](memo).
 
 ::: details `tests.rs`
 
-<<< ../../../examples/transfer/src/tests.rs{rs:line-numbers}
+<<< ../../../examples/transfer/src/tests.rs
 
 :::
 

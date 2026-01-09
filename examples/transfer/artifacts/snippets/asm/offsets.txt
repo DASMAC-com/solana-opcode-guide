@@ -1,0 +1,20 @@
+# Sender account.
+.equ SENDER_OFFSET, 8
+.equ SENDER_LAMPORTS_OFFSET, 80
+.equ SENDER_DATA_LENGTH_OFFSET, 88
+
+# Recipient account.
+.equ RECIPIENT_OFFSET, 10344
+.equ RECIPIENT_DATA_LENGTH_OFFSET, 10424
+
+# System program account.
+.equ SYSTEM_PROGRAM_OFFSET, 20680
+
+# Transfer amount.
+.equ INSTRUCTION_DATA_LENGTH_OFFSET, 31032
+.equ INSTRUCTION_DATA_LENGTH_EXPECTED, 8
+.equ INSTRUCTION_DATA_OFFSET, 31040
+
+.global entrypoint
+
+entrypoint:
