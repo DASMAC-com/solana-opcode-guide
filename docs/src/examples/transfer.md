@@ -86,6 +86,8 @@ and is invoked internally in this example using a [CPI] via the
 | `r4`     | [Signer seeds] pointer   |
 | `r5`     | [Signer seeds] count     |
 
+[transfer instruction data]
+
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`
@@ -98,6 +100,7 @@ and is invoked internally in this example using a [CPI] via the
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
+[transfer instruction data]: https://docs.rs/solana-system-interface/latest/solana_system_interface/instruction/enum.SystemInstruction.html#variant.Transfer
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
 [account structure]: https://solana.com/docs/core/accounts#account-structure
