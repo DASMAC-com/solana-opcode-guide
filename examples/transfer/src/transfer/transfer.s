@@ -9,7 +9,7 @@
 # System program account is a duplicate.
 .equ E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM, 5
 # Invalid instruction data length.
-.equ E_INVALID_INSTRUCTION_DATA_LENGTH, 6
+.equ E_INSTRUCTION_DATA_LENGTH, 6
 # Sender has insufficient lamports.
 .equ E_INSUFFICIENT_LAMPORTS, 7
 
@@ -48,8 +48,8 @@ entrypoint:
     ldxdw r2, [r1 + SENDER_DATA_LENGTH_OFFSET]
     jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_sender
 
-    # Check if the recipient account is a duplicate, since duplicate accounts
-    # have different field layouts.
+    # Check if the recipient account is a duplicate, since duplicate
+    # accounts have different field layouts.
     ldxb r2, [r1 + RECIPIENT_OFFSET]
     jne r2, NON_DUP_MARKER, e_duplicate_account_recipient
 
@@ -58,20 +58,20 @@ entrypoint:
     ldxdw r2, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
     jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_recipient
 
-    # Check if the System Account is a duplicate, since duplicate accounts have
-    # different field layouts.
+    # Check if the System Account is a duplicate, since duplicate accounts
+    # have different field layouts.
     ldxb r2, [r1 + SYSTEM_PROGRAM_OFFSET]
     jne r2, NON_DUP_MARKER, e_duplicate_account_system_program
 
     # Check instruction data length.
     ldxdw r4, [r1 + INSTRUCTION_DATA_LENGTH_OFFSET]
-    jne r4, INSTRUCTION_DATA_LENGTH_EXPECTED, e_invalid_instruction_data_length
+    jne r4, INSTRUCTION_DATA_LENGTH_EXPECTED, e_instruction_data_length
 
-    # Verify sender has at least as many lamports as they are trying to send.
-    # Technically this could be done after checking the number of accounts
-    # since lamports balance comes before account data length, but in the happy
-    # path both checks need to be done anyways and it is cleaner to do all
-    # layout validation first.
+    # Verify sender has at least as many lamports as they are trying to
+    # send. Technically this could be done after checking the number of
+    # accounts since lamports balance comes before account data length, but
+    # in the happy path both checks need to be done anyways and it is
+    # cleaner to do all layout validation first.
     ldxdw r4, [r1 + INSTRUCTION_DATA_OFFSET]
     ldxdw r2, [r1 + SENDER_LAMPORTS_OFFSET]
     jlt r2, r4, e_insufficient_lamports
@@ -86,8 +86,8 @@ e_duplicate_account_system_program:
     mov32 r0, E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM
     exit
 
-e_invalid_instruction_data_length:
-    mov32 r0, E_INVALID_INSTRUCTION_DATA_LENGTH
+e_instruction_data_length:
+    mov32 r0, E_INSTRUCTION_DATA_LENGTH
     exit
 
 e_insufficient_lamports:

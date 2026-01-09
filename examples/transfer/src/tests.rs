@@ -12,7 +12,7 @@ const E_DATA_LENGTH_NONZERO_SENDER: u32 = 2;
 const E_DUPLICATE_ACCOUNT_RECIPIENT: u32 = 3;
 const E_DATA_LENGTH_NONZERO_RECIPIENT: u32 = 4;
 const E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM: u32 = 5;
-const E_INVALID_INSTRUCTION_DATA_LENGTH: u32 = 6;
+const E_INSTRUCTION_DATA_LENGTH: u32 = 6;
 const E_INSUFFICIENT_LAMPORTS: u32 = 7;
 
 enum AccountPosition {
@@ -109,9 +109,7 @@ fn test_asm() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            E_INVALID_INSTRUCTION_DATA_LENGTH,
-        ))],
+        &[Check::err(ProgramError::Custom(E_INSTRUCTION_DATA_LENGTH))],
     );
 
     // Check insufficient lamports.
