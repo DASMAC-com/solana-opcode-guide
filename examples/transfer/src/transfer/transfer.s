@@ -31,10 +31,12 @@
 # System program account.
 .equ SYSTEM_PROGRAM_OFFSET, 20680
 
-# Transfer instruction.
+# Transfer input.
 .equ INSTRUCTION_DATA_LENGTH_OFFSET, 31032
 .equ INSTRUCTION_DATA_LENGTH_EXPECTED, 8
 .equ INSTRUCTION_DATA_OFFSET, 31040
+
+# Transfer CPI.
 .equ INSTRUCTION_DISCRIMINATOR, 2
 
 .global entrypoint
