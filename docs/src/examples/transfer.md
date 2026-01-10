@@ -48,7 +48,7 @@ The account data padding length [is the sum of]:
 Note however that the [System Program] is a [builtin], which means that its
 [account data is its name], specifically `b"system_program"` (14 bytes) with two
 extra bytes of padding to align to an 8-byte boundary. This means that the
-`account data + padding` field of the System Program is actually 10256 bytes
+`account data + padding` portion of the System Program is actually 10256 bytes
 long.
 
 ## :shield: Account validation
@@ -67,8 +67,8 @@ Assembly offsets are validated in Rust using struct operations:
 
 :::
 
-Due to the order of account field layout, account layout input validation takes
-place in a specific order:
+Due to the account layout order, account layout input validation takes place in
+a specific sequence:
 
 <<< ../../../examples/transfer/artifacts/snippets/asm/accounts.txt{4-30 asm}
 
@@ -78,21 +78,34 @@ The [System Program] is responsible for transferring Lamports between accounts,
 and is invoked internally in this example using a [CPI] via the
 [`sol_invoke_signed_c` syscall], which accepts the following parameters:
 
-| Register | Description              |
-| -------- | ------------------------ |
-| `r1`     | Instruction data pointer |
-| `r2`     | Account infos pointer    |
-| `r3`     | Account infos length     |
-| `r4`     | [Signer seeds] pointer   |
-| `r5`     | [Signer seeds] count     |
+| Register | Description                  |
+| -------- | ---------------------------- |
+| `r1`     | [Instruction] pointer        |
+| `r2`     | [Account info] array pointer |
+| `r3`     | [Account info] array length  |
+| `r4`     | [Signer seed] array pointer  |
+| `r5`     | [Signer seed] array length   |
 
-The [transfer instruction data] is [encoded via `bincode`], which uses
-[`u32` enum variants] such that the transfer instruction data contains:
+1. The [instruction] contains the following layout:
 
-| Offset (bytes) | Length (bytes) | Description                               |
-| -------------- | -------------- | ----------------------------------------- |
-| 0              | 4              | Transfer instruction [enum variant] (`2`) |
-| 4              | 8              | Amount of Lamports to send                |
+    | Offset (bytes) | Length (bytes) | Description                          |
+    | -------------- | -------------- | ------------------------------------ |
+    | 0              | 8              | Program ID ([System Program] pubkey) |
+    | 8              | 8              | [Account metadata] array pointer     |
+    | 16             | 8              | [Account metadata] array length      |
+    | 24             | 8              | [Transfer instruction data] pointer  |
+    | 32             | 8              | [Transfer instruction data] length   |
+
+   1. The [transfer instruction data] is [encoded via `bincode`], which uses
+    [`u32` enum variants] such that the transfer instruction data has the following
+    layout:
+
+        | Offset (bytes) | Length (bytes) | Description                               |
+        | -------------- | -------------- | ----------------------------------------- |
+        | 0              | 4              | Transfer instruction [enum variant] (`2`) |
+        | 8              | 8              | Amount of Lamports to send                |
+
+In this example, no signer seeds are required due to the lack of a [PDA signer].
 
 ## :white_check_mark: All tests
 
@@ -107,17 +120,21 @@ The [transfer instruction data] is [encoded via `bincode`], which uses
 > [`sbpf` example].
 
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
+[account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
+[account metadata]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L81-L88
 [account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
 [account structure]: https://solana.com/docs/core/accounts#account-structure
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
 [cpi]: https://solana.com/docs/core/cpi
 [encoded via `bincode`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L822
 [enum variant]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L82
+[instruction]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L70-L79
 [is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
 [lamports]: https://solana.com/docs/references/terminology#lamport
+[pda signer]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
 [serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
 [signer]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L78-L79
-[signer seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
+[signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L105-L111
 [system program]: https://solana.com/docs/core/programs#the-system-program
 [to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
 [transfer instruction data]: https://docs.rs/solana-system-interface/latest/solana_system_interface/instruction/enum.SystemInstruction.html#variant.Transfer
