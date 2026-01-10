@@ -51,7 +51,7 @@ extra bytes of padding to align to an 8-byte boundary. This means that the
 `account data + padding` portion of the System Program is actually 10256 bytes
 long.
 
-## :shield: Account validation
+## :shield: Input validation
 
 Assembly offsets are validated in Rust using struct operations:
 
@@ -67,10 +67,14 @@ Assembly offsets are validated in Rust using struct operations:
 
 :::
 
-Due to the account layout order, account layout input validation takes place in
-a specific sequence:
+Due to the account layout order, account layout validation takes place in
+a specific sequence, before the final Lamport balance check:
 
-<<< ../../../examples/transfer/artifacts/snippets/asm/accounts.txt{4-30 asm}
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/transfer/artifacts/snippets/asm/input-validation.txt{4-30 asm}
+
+<!-- markdownlint-enable MD013 -->
 
 ## :outbox_tray: Transfer CPI layout {#transfer-cpi}
 
