@@ -151,6 +151,10 @@ CPI offsets are validated in Rust using struct operations:
 
 :::
 
+## :books: Stack background
+
+[CPI processor checks] rely on [inner alignment checks].
+
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`
@@ -163,6 +167,8 @@ CPI offsets are validated in Rust using struct operations:
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
+[inner alignment checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/memory.rs#L39-L56
+[CPI processor checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L829-L854
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
 [account metadata]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L81-L88

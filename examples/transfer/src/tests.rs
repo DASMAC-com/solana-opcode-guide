@@ -203,7 +203,6 @@ fn test_input_offsets() {
 #[test]
 fn test_cpi_offsets() {
     #[repr(C)]
-    /// Not exported by Agave.
     struct SolInstruction {
         program_id_addr: u64,
         accounts_addr: u64,
@@ -213,15 +212,14 @@ fn test_cpi_offsets() {
     }
 
     #[repr(C)]
-    /// Not exported by Agave.
     struct SolAccountMeta {
         pubkey_addr: u64,
         is_writable: bool,
         is_signer: bool,
+        padding: [u8; 6],
     }
 
     #[repr(C)]
-    /// Not exported by Agave.
     struct SolAccountInfo {
         key_addr: u64,
         lamports_addr: u64,
@@ -232,6 +230,7 @@ fn test_cpi_offsets() {
         is_signer: bool,
         is_writable: bool,
         executable: bool,
+        padding: [u8; 5],
     }
 
     // CPI instruction offsets.
@@ -292,6 +291,7 @@ fn test_cpi_offsets() {
         CPI_ACCT_META_IS_SIGNER_OFFSET,
         offset_of!(SolAccountMeta, is_signer)
     );
+    assert!(size_of::<SolAccountMeta>().is_multiple_of(8));
 
     // CPI account info checks.
     assert_eq!(
@@ -330,4 +330,5 @@ fn test_cpi_offsets() {
         CPI_ACCT_INFO_EXECUTABLE_OFFSET,
         offset_of!(SolAccountInfo, executable)
     );
+    assert!(size_of::<SolAccountMeta>().is_multiple_of(8));
 }
