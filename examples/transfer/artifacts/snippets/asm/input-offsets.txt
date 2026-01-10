@@ -1,3 +1,9 @@
+# Account layout.
+.equ N_ACCOUNTS_OFFSET, 0
+.equ N_ACCOUNTS_EXPECTED, 3
+.equ NON_DUP_MARKER, 0xff
+.equ DATA_LENGTH_ZERO, 0
+
 # Sender account.
 .equ SENDER_OFFSET, 8
 .equ SENDER_LAMPORTS_OFFSET, 80
@@ -10,10 +16,12 @@
 # System program account.
 .equ SYSTEM_PROGRAM_OFFSET, 20680
 
-# Transfer instruction.
+# Transfer input.
 .equ INSTRUCTION_DATA_LENGTH_OFFSET, 31032
 .equ INSTRUCTION_DATA_LENGTH_EXPECTED, 8
 .equ INSTRUCTION_DATA_OFFSET, 31040
+
+# Transfer CPI.
 .equ INSTRUCTION_DISCRIMINATOR, 2
 
 .global entrypoint

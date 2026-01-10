@@ -53,11 +53,11 @@ long.
 
 ## :shield: Input validation
 
-Assembly offsets are validated in Rust using struct operations:
+Input offsets are validated in Rust using struct operations:
 
 <!-- markdownlint-disable MD013 -->
 
-<<< ../../../examples/transfer/artifacts/snippets/asm/offsets.txt{1-11 asm} [Assembly]
+<<< ../../../examples/transfer/artifacts/snippets/asm/input-offsets.txt{1-22 asm} [Assembly]
 
 <!-- markdownlint-enable MD013 -->
 
