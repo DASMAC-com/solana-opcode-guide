@@ -72,7 +72,7 @@ a specific sequence:
 
 <<< ../../../examples/transfer/artifacts/snippets/asm/accounts.txt{4-30 asm}
 
-## :outbox_tray: Transfer CPI {#transfer-cpi}
+## :outbox_tray: Transfer CPI layout {#transfer-cpi}
 
 The [System Program] is responsible for transferring Lamports between accounts,
 and is invoked internally in this example using a [CPI] via the
@@ -86,24 +86,56 @@ and is invoked internally in this example using a [CPI] via the
 | `r4`     | [Signer seed] array pointer  |
 | `r5`     | [Signer seed] array length   |
 
-1. The [instruction] contains the following layout:
+The [instruction] layout is as follows:
 
-    | Offset (bytes) | Length (bytes) | Description                          |
-    | -------------- | -------------- | ------------------------------------ |
-    | 0              | 8              | Program ID ([System Program] pubkey) |
-    | 8              | 8              | [Account metadata] array pointer     |
-    | 16             | 8              | [Account metadata] array length      |
-    | 24             | 8              | [Transfer instruction data] pointer  |
-    | 32             | 8              | [Transfer instruction data] length   |
+> | Offset (bytes) | Length (bytes) | Description                          |
+> | -------------- | -------------- | ------------------------------------ |
+> | 0              | 8              | Program ID ([System Program] pubkey) |
+> | 8              | 8              | [Account metadata] array pointer     |
+> | 16             | 8              | [Account metadata] array length      |
+> | 24             | 8              | [Transfer instruction data] pointer  |
+> | 32             | 8              | [Transfer instruction data] length   |
+>
+> Each element in the [account metadata] array has the following layout:
+>
+> > | Offset (bytes) | Length (bytes) | Description             |
+> > | -------------- | -------------- | ----------------------- |
+> > | 0              | 8              | Account pubkey pointer  |
+> > | 8              | 1              | Is [writable]?          |
+> > | 9              | 1              | Is [signer]?            |
+> > | 10             | 6              | [C-style array padding] |
+>
+> The [transfer instruction data] is [encoded via `bincode`], which uses
+> [`u32` enum variants] such that the transfer instruction data layout is as
+> follows:
+>
+> <!-- markdownlint-disable MD013 -->
+>
+> > | Offset (bytes) | Length (bytes) | Description                               |
+> > | -------------- | -------------- | ----------------------------------------- |
+> > | 0              | 4              | Transfer instruction [enum variant] (`2`) |
+> > | 8              | 8              | Amount of Lamports to send                |
 
-   1. The [transfer instruction data] is [encoded via `bincode`], which uses
-    [`u32` enum variants] such that the transfer instruction data has the following
-    layout:
+<!-- markdownlint-enable MD013 -->
 
-        | Offset (bytes) | Length (bytes) | Description                               |
-        | -------------- | -------------- | ----------------------------------------- |
-        | 0              | 4              | Transfer instruction [enum variant] (`2`) |
-        | 8              | 8              | Amount of Lamports to send                |
+Each [account info] element has the following layout:
+
+<!-- markdownlint-disable MD013 -->
+
+> | Offset (bytes) | Length (bytes) | Description                                      |
+> | -------------- | -------------- | ------------------------------------------------ |
+> | 0              | 8              | [Account pubkey] pointer                         |
+> | 8              | 8              | [Lamports balance][account structure] pointer    |
+> | 16             | 8              | [Account data][account structure] length         |
+> | 24             | 8              | [Account data][account structure] pointer        |
+> | 32             | 8              | [Account owner][account structure] pointer       |
+> | 40             | 8              | [Account rent epoch][account structure]          |
+> | 48             | 1              | Is [signer]?                                     |
+> | 49             | 1              | Is [writable]?                                   |
+> | 50             | 1              | Is [executable][account structure]?              |
+> | 51             | 5              | [C-style array padding]                          |
+
+<!-- markdownlint-enable MD013 -->
 
 In this example, no signer seeds are required due to the lack of a [PDA signer].
 
@@ -125,6 +157,7 @@ In this example, no signer seeds are required due to the lack of a [PDA signer].
 [account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
 [account structure]: https://solana.com/docs/core/accounts#account-structure
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
+[c-style array padding]: https://doc.rust-lang.org/reference/type-layout.html#reprc-unions
 [cpi]: https://solana.com/docs/core/cpi
 [encoded via `bincode`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L822
 [enum variant]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L82
