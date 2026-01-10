@@ -7,7 +7,7 @@
 ## :world_map: Memory map background
 
 The [SBPF instruction set architecture] defines 12 registers, including
-10 general-purpose registers `r0` through `r9`. At the start of program
+10 general-purpose registers `r0` through `r9`. At the start of instruction
 execution, `r1` [is initialized to] the [input buffer address `MM_INPUT_START`],
 corresponding to one of [several runtime memory map regions].
 
@@ -18,7 +18,13 @@ corresponding to one of [several runtime memory map regions].
 1. [The length of instruction data as a `u64`]
 1. [The instruction data itself]
 
-Hence for a transaction that accepts no accounts and includes a memo string to
+> [!tip]
+> A new virtual memory map is created for [every instruction] *and* for every
+> [instance] of a [CPI] (which contains an
+> [inner call to an instruction processor] whose [own inner call] generates
+> [a fresh memory map]).
+
+Hence for an instruction that accepts no accounts and includes a memo string to
 print, the input buffer layout is as follows:
 
 | Offset | Size      | Description                |
@@ -152,18 +158,24 @@ Notably, however, it introduces [compute unit] overhead:
 > [!note]
 > The assembly file in this example was adapted from [a Helius Blog post]
 
+[a fresh memory map]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/invoke_context.rs#L555-L556
 [a helius blog post]: https://www.helius.dev/blog/sbpf-assembly
 [a return value of 0]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1557-L1560
 [a sequence of serialized accounts]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L532-L566
 [all 64 register bits]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#registers
 [all registers are initialized to zero in a new virtual machine instance]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/src/vm.rs#L317
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
+[cpi]: https://solana.com/docs/core/cpi
+[every instruction]: https://github.com/anza-xyz/agave/blob/v3.1.5/programs/bpf_loader/src/lib.rs#L1512
 [frame pointer register (`r10`)]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.FRAME_PTR_REG.html
 [immediate modification]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/src/vm.rs#L318
 [immediate value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md#instruction-layout
+[inner call to an instruction processor]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L882
 [input buffer address `mm_input_start`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MM_INPUT_START.html
+[instance]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L802
 [is considered the return value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/interpreter.rs#L574
 [is initialized to]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1523
+[own inner call]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/invoke_context.rs#L484
 [pre-execution modifications to `r1` and optionally `r2`]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1523-L1528
 [sbpf instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
 [several runtime memory map regions]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/ebpf.rs#L37-L51

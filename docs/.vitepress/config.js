@@ -32,6 +32,7 @@ export default {
         items: [
           { text: "Memo", link: "/examples/memo" },
           { text: "Fibonacci", link: "/examples/fibonacci" },
+          { text: "Transfer", link: "/examples/transfer" },
         ],
       },
       { text: "Resources", link: "/resources" },
