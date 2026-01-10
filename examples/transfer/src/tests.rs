@@ -203,6 +203,7 @@ fn test_input_offsets() {
 #[test]
 fn test_cpi_offsets() {
     #[repr(C)]
+    /// Not exported by Agave.
     struct SolInstruction {
         program_id_addr: u64,
         accounts_addr: u64,
@@ -212,6 +213,7 @@ fn test_cpi_offsets() {
     }
 
     #[repr(C)]
+    /// Not exported by Agave.
     struct SolAccountMeta {
         pubkey_addr: u64,
         is_writable: bool,
@@ -219,6 +221,7 @@ fn test_cpi_offsets() {
     }
 
     #[repr(C)]
+    /// Not exported by Agave.
     struct SolAccountInfo {
         key_addr: u64,
         lamports_addr: u64,
