@@ -61,9 +61,9 @@ Assembly offsets are validated in Rust using struct operations:
 
 <!-- markdownlint-enable MD013 -->
 
-::: details `test_offsets`
+::: details `test_account_offsets`
 
-<<< ../../../examples/transfer/artifacts/tests/offsets/test.txt{rs}
+<<< ../../../examples/transfer/artifacts/tests/account_offsets/test.txt{rs}
 
 :::
 

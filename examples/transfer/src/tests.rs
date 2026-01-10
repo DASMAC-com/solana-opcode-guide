@@ -132,7 +132,7 @@ fn test_asm() {
 }
 
 #[test]
-fn test_offsets() {
+fn test_account_offsets() {
     const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
 
     #[allow(dead_code)]
