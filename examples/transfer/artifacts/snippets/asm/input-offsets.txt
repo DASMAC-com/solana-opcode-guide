@@ -21,9 +21,6 @@
 .equ INSTRUCTION_DATA_LENGTH_EXPECTED, 8
 .equ INSTRUCTION_DATA_OFFSET, 31040
 
-# Transfer CPI.
-.equ INSTRUCTION_DISCRIMINATOR, 2
-
 .global entrypoint
 
 entrypoint:

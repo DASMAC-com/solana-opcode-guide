@@ -61,9 +61,9 @@ Input offsets are validated in Rust using struct operations:
 
 <!-- markdownlint-enable MD013 -->
 
-::: details `test_account_offsets`
+::: details `test_input_offsets`
 
-<<< ../../../examples/transfer/artifacts/tests/account_offsets/test.txt{rs}
+<<< ../../../examples/transfer/artifacts/tests/input_offsets/test.txt{rs}
 
 :::
 
@@ -142,6 +142,14 @@ Each [account info] element has the following layout:
 <!-- markdownlint-enable MD013 -->
 
 In this example, no signer seeds are required due to the lack of a [PDA signer].
+
+CPI offsets are validated in Rust using struct operations:
+
+::: details `test_cpi_offsets`
+
+<<< ../../../examples/transfer/artifacts/tests/cpi_offsets/test.txt{rs}
+
+:::
 
 ## :white_check_mark: All tests
 

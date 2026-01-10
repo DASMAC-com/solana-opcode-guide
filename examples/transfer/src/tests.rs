@@ -132,7 +132,7 @@ fn test_asm() {
 }
 
 #[test]
-fn test_account_offsets() {
+fn test_input_offsets() {
     const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
 
     #[allow(dead_code)]
@@ -197,5 +197,134 @@ fn test_account_offsets() {
     assert_eq!(
         INSTRUCTION_DATA_OFFSET,
         INSTRUCTION_DATA_LENGTH_OFFSET + size_of::<u64>(),
+    );
+}
+
+#[test]
+fn test_cpi_offsets() {
+    #[repr(C)]
+    struct SolInstruction {
+        program_id_addr: u64,
+        accounts_addr: u64,
+        accounts_len: u64,
+        data_addr: u64,
+        data_len: u64,
+    }
+
+    #[repr(C)]
+    struct SolAccountMeta {
+        pubkey_addr: u64,
+        is_writable: bool,
+        is_signer: bool,
+    }
+
+    #[repr(C)]
+    struct SolAccountInfo {
+        key_addr: u64,
+        lamports_addr: u64,
+        data_len: u64,
+        data_addr: u64,
+        owner_addr: u64,
+        rent_epoch: u64,
+        is_signer: bool,
+        is_writable: bool,
+        executable: bool,
+    }
+
+    // CPI instruction.
+    const CPI_INSN_PROGRAM_ID_OFFSET: usize = 0;
+    const CPI_INSN_ACCOUNTS_ADDR_OFFSET: usize = 8;
+    const CPI_INSN_ACCOUNTS_LEN_OFFSET: usize = 16;
+    const CPI_INSN_DATA_ADDR_OFFSET: usize = 24;
+    const CPI_INSN_DATA_LEN_OFFSET: usize = 32;
+
+    // CPI account meta.
+    const CPI_ACCT_META_PUBKEY_ADDR_OFFSET: usize = 0;
+    const CPI_ACCT_META_IS_WRITABLE_OFFSET: usize = 8;
+    const CPI_ACCT_META_IS_SIGNER_OFFSET: usize = 9;
+
+    // CPI account info.
+    const CPI_ACCT_INFO_KEY_ADDR_OFFSET: usize = 0;
+    const CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET: usize = 8;
+    const CPI_ACCT_INFO_DATA_LEN_OFFSET: usize = 16;
+    const CPI_ACCT_INFO_DATA_ADDR_OFFSET: usize = 24;
+    const CPI_ACCT_INFO_OWNER_ADDR_OFFSET: usize = 32;
+    const CPI_ACCT_INFO_RENT_EPOCH_OFFSET: usize = 40;
+    const CPI_ACCT_INFO_IS_SIGNER_OFFSET: usize = 48;
+    const CPI_ACCT_INFO_IS_WRITABLE_OFFSET: usize = 49;
+    const CPI_ACCT_INFO_EXECUTABLE_OFFSET: usize = 50;
+
+    // CPI instruction checks.
+    assert_eq!(
+        CPI_INSN_PROGRAM_ID_OFFSET,
+        offset_of!(SolInstruction, program_id_addr)
+    );
+    assert_eq!(
+        CPI_INSN_ACCOUNTS_ADDR_OFFSET,
+        offset_of!(SolInstruction, accounts_addr)
+    );
+    assert_eq!(
+        CPI_INSN_ACCOUNTS_LEN_OFFSET,
+        offset_of!(SolInstruction, accounts_len)
+    );
+    assert_eq!(
+        CPI_INSN_DATA_ADDR_OFFSET,
+        offset_of!(SolInstruction, data_addr)
+    );
+    assert_eq!(
+        CPI_INSN_DATA_LEN_OFFSET,
+        offset_of!(SolInstruction, data_len)
+    );
+
+    // CPI account meta checks.
+    assert_eq!(
+        CPI_ACCT_META_PUBKEY_ADDR_OFFSET,
+        offset_of!(SolAccountMeta, pubkey_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_META_IS_WRITABLE_OFFSET,
+        offset_of!(SolAccountMeta, is_writable)
+    );
+    assert_eq!(
+        CPI_ACCT_META_IS_SIGNER_OFFSET,
+        offset_of!(SolAccountMeta, is_signer)
+    );
+
+    // CPI account info checks.
+    assert_eq!(
+        CPI_ACCT_INFO_KEY_ADDR_OFFSET,
+        offset_of!(SolAccountInfo, key_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET,
+        offset_of!(SolAccountInfo, lamports_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_DATA_LEN_OFFSET,
+        offset_of!(SolAccountInfo, data_len)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_DATA_ADDR_OFFSET,
+        offset_of!(SolAccountInfo, data_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_OWNER_ADDR_OFFSET,
+        offset_of!(SolAccountInfo, owner_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_RENT_EPOCH_OFFSET,
+        offset_of!(SolAccountInfo, rent_epoch)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_IS_SIGNER_OFFSET,
+        offset_of!(SolAccountInfo, is_signer)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_IS_WRITABLE_OFFSET,
+        offset_of!(SolAccountInfo, is_writable)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_EXECUTABLE_OFFSET,
+        offset_of!(SolAccountInfo, executable)
     );
 }
