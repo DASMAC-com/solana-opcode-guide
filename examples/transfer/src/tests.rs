@@ -231,19 +231,19 @@ fn test_cpi_offsets() {
         executable: bool,
     }
 
-    // CPI instruction.
+    // CPI instruction offsets.
     const CPI_INSN_PROGRAM_ID_OFFSET: usize = 0;
     const CPI_INSN_ACCOUNTS_ADDR_OFFSET: usize = 8;
     const CPI_INSN_ACCOUNTS_LEN_OFFSET: usize = 16;
     const CPI_INSN_DATA_ADDR_OFFSET: usize = 24;
     const CPI_INSN_DATA_LEN_OFFSET: usize = 32;
 
-    // CPI account meta.
+    // CPI account meta offsets.
     const CPI_ACCT_META_PUBKEY_ADDR_OFFSET: usize = 0;
     const CPI_ACCT_META_IS_WRITABLE_OFFSET: usize = 8;
     const CPI_ACCT_META_IS_SIGNER_OFFSET: usize = 9;
 
-    // CPI account info.
+    // CPI account info offsets.
     const CPI_ACCT_INFO_KEY_ADDR_OFFSET: usize = 0;
     const CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET: usize = 8;
     const CPI_ACCT_INFO_DATA_LEN_OFFSET: usize = 16;
