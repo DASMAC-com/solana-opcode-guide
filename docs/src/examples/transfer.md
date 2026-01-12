@@ -97,22 +97,22 @@ and is invoked internally in this example using a [CPI] via the
 
 The [instruction] layout is as follows:
 
-> | Offset (bytes) | Length (bytes) | Description                          |
-> | -------------- | -------------- | ------------------------------------ |
-> | 0              | 8              | Program ID ([System Program] pubkey) |
-> | 8              | 8              | [Account metadata] array pointer     |
-> | 16             | 8              | [Account metadata] array length      |
-> | 24             | 8              | [Transfer instruction data] pointer  |
-> | 32             | 8              | [Transfer instruction data] length   |
+> | Offset (bytes) | Length (bytes) | Description                            |
+> | -------------- | -------------- | -------------------------------------- |
+> | 0              | 8              | Program ID ([System Program] pointer ) |
+> | 8              | 8              | [Account metadata] array pointer       |
+> | 16             | 8              | [Account metadata] array length        |
+> | 24             | 8              | [Transfer instruction data] pointer    |
+> | 32             | 8              | [Transfer instruction data] length     |
 >
 > Each element in the [account metadata] array has the following layout:
 >
-> > | Offset (bytes) | Length (bytes) | Description             |
-> > | -------------- | -------------- | ----------------------- |
-> > | 0              | 8              | Account pubkey pointer  |
-> > | 8              | 1              | Is [writable]?          |
-> > | 9              | 1              | Is [signer]?            |
-> > | 10             | 6              | [C-style array padding] |
+> > | Offset (bytes) | Length (bytes) | Description              |
+> > | -------------- | -------------- | ------------------------ |
+> > | 0              | 8              | [Account pubkey] pointer |
+> > | 8              | 1              | Is [writable]?           |
+> > | 9              | 1              | Is [signer]?             |
+> > | 10             | 6              | [C-style array padding]  |
 >
 > The [transfer instruction data] is [encoded via `bincode`], which uses
 > [`u32` enum variants] such that the transfer instruction data layout is as
@@ -164,7 +164,14 @@ Since the data required by the CPI is too wide to fit in one of the
 Moreover, since [CPI processor checks] rely on [inner alignment checks], any
 data allocated on the stack must be aligned to at least an 8-byte boundary since
 the largest primitive data type used across the [instruction],
-[account metadata], and [account info] data structures is a `u64` pointer.
+[account metadata], and [account info] data structures is a `u64` pointer:
+
+| `r10` Offset | Length | Description                                        |
+| ------------ | ------ | -------------------------------------------------- |
+| 200          | 40     | [Instruction]                                      |
+| 160          | 16     | Encoded [transfer instruction data] (with padding) |
+| 144          | 32     | [Account metadata] array (2 accounts)              |
+| 112          | 112    | [Account info] array (2 accounts)                  |
 
 ## :white_check_mark: All tests
 
