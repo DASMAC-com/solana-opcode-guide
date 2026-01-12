@@ -158,7 +158,13 @@ CPI offsets are validated in Rust using struct operations:
 
 ## :books: Stack background
 
-[CPI processor checks] rely on [inner alignment checks].
+Since the data required by the CPI is too wide to fit in one of the
+[64-bit general purpose registers][isa], it must be allocated within a
+[stack frame], which is [4096 bytes] wide and [pointed to by `r10`][isa].
+Moreover, since [CPI processor checks] rely on [inner alignment checks], any
+data allocated on the stack must be aligned to at least an 8-byte boundary since
+the largest primitive data type used across the [instruction],
+[account metadata], and [account info] data structures is a `u64` pointer.
 
 ## :white_check_mark: All tests
 
@@ -172,6 +178,9 @@ CPI offsets are validated in Rust using struct operations:
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
+[4096 bytes]: https://docs.rs/solana-program-runtime/3.1.6/solana_program_runtime/execution_budget/constant.STACK_FRAME_SIZE.html
+[stack frame]: https://en.wikipedia.org/wiki/Call_stack#Stack_and_frame_pointers
+[isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md#registers
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
 [account metadata]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L81-L88
