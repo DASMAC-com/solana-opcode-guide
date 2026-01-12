@@ -4,6 +4,7 @@ clippy
 dasmac
 ebpf
 globl
+insn
 keypair
 lamport
 lamports

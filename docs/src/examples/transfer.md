@@ -179,8 +179,6 @@ the largest primitive data type used across the [instruction],
 > [`sbpf` example].
 
 [4096 bytes]: https://docs.rs/solana-program-runtime/3.1.6/solana_program_runtime/execution_budget/constant.STACK_FRAME_SIZE.html
-[stack frame]: https://en.wikipedia.org/wiki/Call_stack#Stack_and_frame_pointers
-[isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md#registers
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
 [account metadata]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L81-L88
@@ -196,12 +194,14 @@ the largest primitive data type used across the [instruction],
 [inner alignment checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/memory.rs#L39-L56
 [instruction]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L70-L79
 [is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
+[isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md#registers
 [lamports]: https://solana.com/docs/references/terminology#lamport
 [original account data length]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L231-L235
 [pda signer]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
 [serialized]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
 [signer]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L78-L79
 [signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L105-L111
+[stack frame]: https://en.wikipedia.org/wiki/Call_stack#Stack_and_frame_pointers
 [system program]: https://solana.com/docs/core/programs#the-system-program
 [to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
 [transfer instruction data]: https://docs.rs/solana-system-interface/latest/solana_system_interface/instruction/enum.SystemInstruction.html#variant.Transfer
