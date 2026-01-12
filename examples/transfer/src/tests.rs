@@ -23,6 +23,7 @@ enum AccountPosition {
 
 const TRANSFER_AMOUNT: u64 = 10;
 const COMPUTE_UNIT_OVERHEAD: u64 = 10_000;
+const ALIGNMENT: usize = 8;
 
 #[test]
 fn test_asm() {
@@ -233,6 +234,13 @@ fn test_cpi_offsets() {
         padding: [u8; 5],
     }
 
+    #[repr(C)]
+    struct InstructionData {
+        discriminant: [u8; 4],
+        amount: [u8; 8],
+        padding: [u8; 4],
+    }
+
     // CPI instruction offsets.
     const CPI_INSN_PROGRAM_ID_OFFSET: usize = 0;
     const CPI_INSN_ACCOUNTS_ADDR_OFFSET: usize = 8;
@@ -255,6 +263,12 @@ fn test_cpi_offsets() {
     const CPI_ACCT_INFO_IS_SIGNER_OFFSET: usize = 48;
     const CPI_ACCT_INFO_IS_WRITABLE_OFFSET: usize = 49;
     const CPI_ACCT_INFO_EXECUTABLE_OFFSET: usize = 50;
+
+    // Stack offsets.
+    const STACK_ACCT_INFOS_OFFSET: usize = 112;
+    const STACK_ACCT_METAS_OFFSET: usize = 144;
+    const STACK_INSN_DATA_OFFSET: usize = 160;
+    const STACK_INSN_OFFSET: usize = 200;
 
     // CPI instruction checks.
     assert_eq!(
@@ -291,7 +305,7 @@ fn test_cpi_offsets() {
         CPI_ACCT_META_IS_SIGNER_OFFSET,
         offset_of!(SolAccountMeta, is_signer)
     );
-    assert!(size_of::<SolAccountMeta>().is_multiple_of(8));
+    assert!(size_of::<SolAccountMeta>().is_multiple_of(ALIGNMENT));
 
     // CPI account info checks.
     assert_eq!(
@@ -330,5 +344,24 @@ fn test_cpi_offsets() {
         CPI_ACCT_INFO_EXECUTABLE_OFFSET,
         offset_of!(SolAccountInfo, executable)
     );
-    assert!(size_of::<SolAccountMeta>().is_multiple_of(8));
+    assert!(size_of::<SolAccountMeta>().is_multiple_of(ALIGNMENT));
+
+    // Stack offset checks.
+    assert_eq!(STACK_ACCT_INFOS_OFFSET, 2 * size_of::<SolAccountInfo>());
+    assert_eq!(
+        STACK_ACCT_METAS_OFFSET,
+        STACK_ACCT_INFOS_OFFSET + 2 * size_of::<SolAccountMeta>()
+    );
+    assert_eq!(
+        STACK_INSN_DATA_OFFSET,
+        STACK_ACCT_METAS_OFFSET + size_of::<InstructionData>()
+    );
+    assert_eq!(
+        STACK_INSN_OFFSET,
+        STACK_INSN_DATA_OFFSET + size_of::<SolInstruction>()
+    );
+    assert!(STACK_ACCT_INFOS_OFFSET.is_multiple_of(ALIGNMENT));
+    assert!(STACK_ACCT_METAS_OFFSET.is_multiple_of(ALIGNMENT));
+    assert!(STACK_INSN_DATA_OFFSET.is_multiple_of(ALIGNMENT));
+    assert!(STACK_INSN_OFFSET.is_multiple_of(ALIGNMENT));
 }

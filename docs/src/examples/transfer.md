@@ -148,16 +148,6 @@ Each [account info] element has the following layout:
 
 In this example, no signer seeds are required due to the lack of a [PDA signer].
 
-CPI offsets are validated in Rust using struct operations:
-
-::: details `test_cpi_offsets`
-
-<<< ../../../examples/transfer/artifacts/tests/cpi_offsets/test.txt{rs}
-
-:::
-
-## :books: Stack background
-
 Since the data required by the CPI is too wide to fit in one of the
 [64-bit general purpose registers][isa], it must be allocated within a
 [stack frame], which is [4096 bytes] wide and [pointed to by `r10`][isa].
@@ -172,6 +162,14 @@ the largest primitive data type used across the [instruction],
 | 160          | 16     | Encoded [transfer instruction data] (with padding) |
 | 144          | 32     | [Account metadata] array (2 accounts)              |
 | 112          | 112    | [Account info] array (2 accounts)                  |
+
+CPI offsets are validated in Rust using struct operations:
+
+::: details `test_cpi_offsets`
+
+<<< ../../../examples/transfer/artifacts/tests/cpi_offsets/test.txt{rs}
+
+:::
 
 ## :white_check_mark: All tests
 
