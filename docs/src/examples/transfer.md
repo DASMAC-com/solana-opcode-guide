@@ -24,20 +24,20 @@ non-duplicate accounts without any account data:
 
 <!-- markdownlint-disable MD013 -->
 
-| Offset (bytes) | Length (bytes) | Description                                 |
-| -------------- | -------------- | ------------------------------------------- |
-| 0              | 1              | [`NON_DUP_MARKER`]                          |
-| 1              | 1              | Is [signer]?                                |
-| 2              | 1              | Is [writable]?                              |
-| 3              | 1              | Is [executable][account structure]?         |
-| 4              | 4              | [Original account data length]              |
-| 8              | 32             | [Account pubkey]                            |
-| 40             | 32             | Account [owner][account structure]          |
-| 72             | 8              | [Lamports balance][account structure]       |
-| 80             | 8              | [Account data][account structure] length    |
-| 88             | 0              | [Account data][account structure] (none)    |
-| 88             | 10240          | Account data padding                        |
-| 10328          | 8              | Account [rent epoch][account structure]     |
+| Offset (bytes) | Length (bytes) | Description                              |
+| -------------- | -------------- | ---------------------------------------- |
+| 0              | 1              | [`NON_DUP_MARKER`]                       |
+| 1              | 1              | Is [signer]?                             |
+| 2              | 1              | Is [writable]?                           |
+| 3              | 1              | Is [executable][account structure]?      |
+| 4              | 4              | [Original account data length]           |
+| 8              | 32             | [Account pubkey]                         |
+| 40             | 32             | Account [owner][account structure]       |
+| 72             | 8              | [Lamports balance][account structure]    |
+| 80             | 8              | [Account data][account structure] length |
+| 88             | 0              | [Account data][account structure] (none) |
+| 88             | 10240          | Account data padding                     |
+| 10328          | 8              | Account [rent epoch][account structure]  |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -50,11 +50,11 @@ Note however that the [System Program] is a [builtin], which means that its
 [account data is its name], specifically `b"system_program"` (14 bytes). This
 means that the System Program has the following:
 
-| Offset (bytes) | Length (bytes) | Description                                 |
-| -------------- | -------------- | ------------------------------------------- |
-| 88             | 14             | [Account data][account structure]           |
-| 102            | 10242          | Account data padding                        |
-| 10344          | 8              | Account [rent epoch][account structure]     |
+| Offset (bytes) | Length (bytes) | Description                             |
+| -------------- | -------------- | --------------------------------------- |
+| 88             | 14             | [Account data][account structure]       |
+| 102            | 10242          | Account data padding                    |
+| 10344          | 8              | Account [rent epoch][account structure] |
 
 ## :shield: Input validation
 
@@ -131,18 +131,18 @@ Each [account info] element has the following layout:
 
 <!-- markdownlint-disable MD013 -->
 
-> | Offset (bytes) | Length (bytes) | Description                                      |
-> | -------------- | -------------- | ------------------------------------------------ |
-> | 0              | 8              | [Account pubkey] pointer                         |
-> | 8              | 8              | [Lamports balance][account structure] pointer    |
-> | 16             | 8              | [Account data][account structure] length         |
-> | 24             | 8              | [Account data][account structure] pointer        |
-> | 32             | 8              | [Account owner][account structure] pointer       |
-> | 40             | 8              | [Account rent epoch][account structure]          |
-> | 48             | 1              | Is [signer]?                                     |
-> | 49             | 1              | Is [writable]?                                   |
-> | 50             | 1              | Is [executable][account structure]?              |
-> | 51             | 5              | [C-style array padding]                          |
+> | Offset (bytes) | Length (bytes) | Description                                   |
+> | -------------- | -------------- | --------------------------------------------- |
+> | 0              | 8              | [Account pubkey] pointer                      |
+> | 8              | 8              | [Lamports balance][account structure] pointer |
+> | 16             | 8              | [Account data][account structure] length      |
+> | 24             | 8              | [Account data][account structure] pointer     |
+> | 32             | 8              | [Account owner][account structure] pointer    |
+> | 40             | 8              | [Account rent epoch][account structure]       |
+> | 48             | 1              | Is [signer]?                                  |
+> | 49             | 1              | Is [writable]?                                |
+> | 50             | 1              | Is [executable][account structure]?           |
+> | 51             | 5              | [C-style array padding]                       |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -172,8 +172,6 @@ CPI offsets are validated in Rust using struct operations:
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
-[inner alignment checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/memory.rs#L39-L56
-[CPI processor checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L829-L854
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
 [account metadata]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L81-L88
@@ -182,12 +180,15 @@ CPI offsets are validated in Rust using struct operations:
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
 [c-style array padding]: https://doc.rust-lang.org/reference/type-layout.html#reprc-unions
 [cpi]: https://solana.com/docs/core/cpi
+[cpi processor checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L829-L854
 [deserialized]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L597-L659
 [encoded via `bincode`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L822
 [enum variant]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L82
+[inner alignment checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/memory.rs#L39-L56
 [instruction]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L70-L79
 [is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
 [lamports]: https://solana.com/docs/references/terminology#lamport
+[original account data length]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L231-L235
 [pda signer]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
 [serialized]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
 [signer]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L78-L79
@@ -201,4 +202,3 @@ CPI offsets are validated in Rust using struct operations:
 [`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b7ac3d80da4400abff283fb0e68927c3c68a24d9/examples/sbpf-asm-cpi/src/sbpf-asm-cpi/sbpf-asm-cpi.s
 [`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
 [`u32` enum variants]: https://sr.ht/~stygianentity/bincode/#why-does-bincode-not-respect-coderepru8code
-[Original account data length]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L231-L235
