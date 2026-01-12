@@ -18,9 +18,9 @@ A transfer operation requires three accounts:
 
 ## :world_map: Account layout background
 
-Accounts in the [input buffer](memo) are [serialized with the following offsets]
-relative to the start of the account, assuming non-duplicate accounts without
-any account data:
+Accounts in the [input buffer](memo) are [serialized] and [deserialized] with
+the following offsets relative to the start of the account, assuming
+non-duplicate accounts without any account data:
 
 <!-- markdownlint-disable MD013 -->
 
@@ -30,12 +30,13 @@ any account data:
 | 1              | 1              | Is [signer]?                                |
 | 2              | 1              | Is [writable]?                              |
 | 3              | 1              | Is [executable][account structure]?         |
-| 4              | 4              | Padding                                     |
+| 4              | 4              | [Original account data length]              |
 | 8              | 32             | [Account pubkey]                            |
 | 40             | 32             | Account [owner][account structure]          |
 | 72             | 8              | [Lamports balance][account structure]       |
-| 80             | 8              | Length of account data                      |
-| 88             | 10240          | [Account data][account structure] + padding |
+| 80             | 8              | [Account data][account structure] length    |
+| 88             | 0              | [Account data][account structure] (none)    |
+| 88             | 10240          | Account data padding                        |
 | 10328          | 8              | Account [rent epoch][account structure]     |
 
 <!-- markdownlint-enable MD013 -->
@@ -46,10 +47,14 @@ The account data padding length [is the sum of]:
 1. Additional padding to align the account data length [to an 8-byte boundary].
 
 Note however that the [System Program] is a [builtin], which means that its
-[account data is its name], specifically `b"system_program"` (14 bytes) with two
-extra bytes of padding to align to an 8-byte boundary. This means that the
-`account data + padding` portion of the System Program is actually 10256 bytes
-long.
+[account data is its name], specifically `b"system_program"` (14 bytes). This
+means that the System Program has the following:
+
+| Offset (bytes) | Length (bytes) | Description                                 |
+| -------------- | -------------- | ------------------------------------------- |
+| 88             | 14             | [Account data][account structure]           |
+| 102            | 10242          | Account data padding                        |
+| 10344          | 8              | Account [rent epoch][account structure]     |
 
 ## :shield: Input validation
 
@@ -177,13 +182,14 @@ CPI offsets are validated in Rust using struct operations:
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
 [c-style array padding]: https://doc.rust-lang.org/reference/type-layout.html#reprc-unions
 [cpi]: https://solana.com/docs/core/cpi
+[deserialized]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L597-L659
 [encoded via `bincode`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L822
 [enum variant]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L82
 [instruction]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L70-L79
 [is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
 [lamports]: https://solana.com/docs/references/terminology#lamport
 [pda signer]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
-[serialized with the following offsets]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
+[serialized]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
 [signer]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L78-L79
 [signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L105-L111
 [system program]: https://solana.com/docs/core/programs#the-system-program
@@ -195,3 +201,4 @@ CPI offsets are validated in Rust using struct operations:
 [`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b7ac3d80da4400abff283fb0e68927c3c68a24d9/examples/sbpf-asm-cpi/src/sbpf-asm-cpi/sbpf-asm-cpi.s
 [`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
 [`u32` enum variants]: https://sr.ht/~stygianentity/bincode/#why-does-bincode-not-respect-coderepru8code
+[Original account data length]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L231-L235
