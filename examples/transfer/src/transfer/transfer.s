@@ -191,7 +191,8 @@ entrypoint:
     add64 r3, CPI_ACCT_INFO_SIZE_OF # Step to next array element.
     ldxb r4, [r1 + RECIPIENT_IS_SIGNER_OFFSET]
     stxb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], r4
-    stxb [r2 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], r4
+    stxb [r3 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], r4
+    ldxb r4, [r1 + RECIPIENT_IS_WRITABLE_OFFSET]
     stxb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], r4
     stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_OFFSET], r4
     ldxb r4, [r1 + RECIPIENT_IS_EXECUTABLE_OFFSET]
@@ -200,7 +201,7 @@ entrypoint:
     stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_OFFSET], r4
     ldxdw r4, [r1 + RECIPIENT_RENT_EPOCH_OFFSET]
     stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_OFFSET], r4
-    # Begin stepping through pointer fields.
+    mov64 r4, r1 # Begin stepping through pointer fields.
     add64 r4, RECIPIENT_PUBKEY_OFFSET # Step to pubkey field pointer.
     stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r4
     stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_OFFSET], r4
@@ -214,9 +215,9 @@ entrypoint:
     # Invoke CPI
     mov64 r1, r9 # Instruction.
     mov64 r2, r6 # Account infos.
-    mov64 r3, CPI_ACCOUNTS_LEN
-    mov64 r3, 0 # No signer seeds.
+    mov64 r3, CPI_ACCOUNTS_LEN # Number of account infos.
     mov64 r4, 0 # No signer seeds.
+    mov64 r5, 0 # No signer seeds.
     call sol_invoke_signed_c
 
     exit
