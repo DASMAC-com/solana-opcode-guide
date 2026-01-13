@@ -12,12 +12,16 @@ lddw
 ldxb
 ldxdw
 mathjax
+metas
 repr
 rodata
 rustfilt
 sbpf
 sbpfv
 solana
+stxb
+stxdw
+stxw
 syscall
 syscalls
 usize
