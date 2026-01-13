@@ -20,3 +20,14 @@ test tests::test_asm ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 17 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x7
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program consumption: 1399809 units remaining
+[ ... DEBUG ... ] Unknown program 11111111111111111111111111111111
+[ ... DEBUG ... ] Program DASMAC... consumed 1192 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: An account required by the instruction is missing
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program consumption: 1399809 units remaining
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1343 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success

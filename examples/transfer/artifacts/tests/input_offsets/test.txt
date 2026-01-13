@@ -9,7 +9,7 @@ fn test_input_offsets() {
         is_signer: u8,
         is_writable: u8,
         is_executable: u8,
-        padding: [u8; 4],
+        original_data_len: [u8; 4],
         pubkey: [u8; 32],
         owner: [u8; 32],
         lamports: u64,
@@ -23,20 +23,44 @@ fn test_input_offsets() {
 
     // Sender.
     const SENDER_OFFSET: usize = 8;
+    const SENDER_PUBKEY_OFFSET: usize = 16;
+    const SENDER_IS_SIGNER_OFFSET: usize = 9;
+    const SENDER_IS_WRITABLE_OFFSET: usize = 10;
+    const SENDER_IS_EXECUTABLE_OFFSET: usize = 11;
     const SENDER_LAMPORTS_OFFSET: usize = 80;
     const SENDER_DATA_LENGTH_OFFSET: usize = 88;
+    const SENDER_RENT_EPOCH_OFFSET: usize = 10336;
 
     // Recipient.
     const RECIPIENT_OFFSET: usize = 10344;
+    const RECIPIENT_PUBKEY_OFFSET: usize = 10352;
+    const RECIPIENT_IS_SIGNER_OFFSET: usize = 10345;
+    const RECIPIENT_IS_WRITABLE_OFFSET: usize = 10346;
+    const RECIPIENT_IS_EXECUTABLE_OFFSET: usize = 10347;
     const RECIPIENT_DATA_LENGTH_OFFSET: usize = 10424;
+    const RECIPIENT_RENT_EPOCH_OFFSET: usize = 20672;
 
     // System program.
     const SYSTEM_PROGRAM_OFFSET: usize = 20680;
+    const SYSTEM_PROGRAM_PUBKEY_OFFSET: usize = 20688;
 
     // Instruction data.
     const INSTRUCTION_DATA_LENGTH_OFFSET: usize = 31032;
     const INSTRUCTION_DATA_OFFSET: usize = 31040;
 
+    // Sender checks.
+    assert_eq!(
+        SENDER_IS_SIGNER_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, is_signer),
+    );
+    assert_eq!(
+        SENDER_IS_WRITABLE_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, is_writable),
+    );
+    assert_eq!(
+        SENDER_IS_EXECUTABLE_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, is_executable),
+    );
     assert_eq!(
         SENDER_LAMPORTS_OFFSET,
         SENDER_OFFSET + offset_of!(StandardAccount, lamports),
@@ -46,6 +70,16 @@ fn test_input_offsets() {
         SENDER_OFFSET + offset_of!(StandardAccount, data_length),
     );
     assert_eq!(
+        SENDER_PUBKEY_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, pubkey),
+    );
+    assert_eq!(
+        SENDER_RENT_EPOCH_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, rent_epoch),
+    );
+
+    // Recipient checks.
+    assert_eq!(
         RECIPIENT_OFFSET,
         SENDER_OFFSET + size_of::<StandardAccount>()
     );
@@ -54,8 +88,34 @@ fn test_input_offsets() {
         RECIPIENT_OFFSET + offset_of!(StandardAccount, data_length),
     );
     assert_eq!(
+        RECIPIENT_PUBKEY_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, pubkey),
+    );
+    assert_eq!(
+        RECIPIENT_IS_SIGNER_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, is_signer),
+    );
+    assert_eq!(
+        RECIPIENT_IS_WRITABLE_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, is_writable),
+    );
+    assert_eq!(
+        RECIPIENT_IS_EXECUTABLE_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, is_executable),
+    );
+    assert_eq!(
+        RECIPIENT_RENT_EPOCH_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, rent_epoch),
+    );
+
+    // System program checks.
+    assert_eq!(
         SYSTEM_PROGRAM_OFFSET,
         RECIPIENT_OFFSET + size_of::<StandardAccount>()
+    );
+    assert_eq!(
+        SYSTEM_PROGRAM_PUBKEY_OFFSET,
+        SYSTEM_PROGRAM_OFFSET + offset_of!(SystemProgramAccount, pubkey),
     );
     assert_eq!(
         INSTRUCTION_DATA_LENGTH_OFFSET,

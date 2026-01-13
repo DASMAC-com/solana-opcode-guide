@@ -9,70 +9,184 @@ ELF Header
   Type                              DYN (Shared object file)
   Machine                           EM_BPF
   Version                           0x1
-  Entry point address               0x40
+  Entry point address               0xE8
   Start of program headers          64 (bytes into file)
-  Start of section headers          320 (bytes into file)
+  Start of section headers          1480 (bytes into file)
   Flags                             0x0
   Size of this header               64 (bytes)
   Size of program headers           56 (bytes)
-  Number of program headers         0
+  Number of program headers         3
   Size of section headers           64 (bytes)
-  Number of section headers         3
-  Section header string table index 2
-There are 3 section headers, starting at offset 0x140
+  Number of section headers         7
+  Section header string table index 6
+There are 7 section headers, starting at offset 0x5c8
 
 Section Headers
   [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
-  [ 1] .text             PROGBITS        0000000000000040 000040 0000f0 00  AX  0   0  4
-  [ 2] .s                STRTAB          0000000000000000 000130 00000a 00      0   0  1
+  [ 1] .text             PROGBITS        00000000000000e8 0000e8 000358 00  AX  0   0  4
+  [ 2] .dynamic          DYNAMIC         0000000000000440 000440 0000a0 10  WA  4   0  8
+  [ 3] .dynsym           DYNSYM          00000000000004e0 0004e0 000060 18   A  4   1  8
+  [ 4] .dynstr           STRTAB          0000000000000540 000540 000038 00   A  0   0  1
+  [ 5] .rel.dyn          REL             0000000000000578 000578 000020 10   A  3   0  8
+  [ 6] .s                STRTAB          0000000000000000 000598 00002c 00      0   0  1
 Key to Flags
   W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
   L (link order), O (extra OS processing required), G (group), T (TLS),
   C (compressed), x (unknown), o (OS specific), E (exclude),
   R (retain), p (processor specific)
 
-There are no program headers in this file.
+Elf file type is DYN (Shared object file)
+Entry point 0xe8
+There are 3 program headers, starting at offset 64
+
+Program Headers
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x0000e8 0x00000000000000e8 0x00000000000000e8 0x000358 0x000358 R E 0x1000
+  LOAD           0x0004e0 0x00000000000004e0 0x00000000000004e0 0x0000b8 0x0000b8 R   0x1000
+  DYNAMIC        0x000440 0x0000000000000440 0x0000000000000440 0x0000a0 0x0000a0 RW  0x8
 
  Section to Segment mapping
   Segment Sections...
-   None   .text .s 
+   00     .text 
+   01     .dynsym .dynstr .rel.dyn 
+   02     .dynamic 
+   None   .s 
+Dynamic section at offset 0x440 contains 10 entries
+  Tag                Type      Name/Value
+  0x000000000000001e (FLAGS)   TEXTREL 
+  0x0000000000000011 (REL)     0x578
+  0x0000000000000012 (RELSZ)   32 (bytes)
+  0x0000000000000013 (RELENT)  16 (bytes)
+  0x0000000000000006 (SYMTAB)  0x4e0
+  0x000000000000000b (SYMENT)  24 (bytes)
+  0x0000000000000005 (STRTAB)  0x540
+  0x000000000000000a (STRSZ)   56 (bytes)
+  0x0000000000000016 (TEXTREL) 0x0
+  0x0000000000000000 (NULL)    0x0
 
-There are no relocations in this file.
+Relocation section '.rel.dyn' at offset 0x578 contains 2 entries
+    Offset             Info             Type               Symbol's Value  Symbol's Name
+00000000000003b8  000000030000000a R_BPF_64_32            0000000000000000 sol_log_compute_units_
+00000000000003c0  000000020000000a R_BPF_64_32            0000000000000000 sol_invoke_signed_c
+
+Symbol table '.dynsym' contains 4 entries
+   Num    Value          Size Type    Bind   Vis       Ndx Name
+     0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND 
+     1 00000000000000e8     0 NOTYPE  GLOBAL DEFAULT     1 entrypoint
+     2 0000000000000000     0 NOTYPE  GLOBAL DEFAULT   UND sol_invoke_signed_c
+     3 0000000000000000     0 NOTYPE  GLOBAL DEFAULT   UND sol_log_compute_units_
 There are no section groups in this file.
 
 transfer.so	file format elf64-bpf
 
 Disassembly of section .text
 
-0000000000000040 <.text>
-       8	79 12 00 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x0)
-       9	55 02 16 00 03 00 00 00	if r2 != 0x3 goto +0x16 <.text+0xc0>
-      10	79 12 58 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x58)
-      11	55 02 18 00 00 00 00 00	if r2 != 0x0 goto +0x18 <.text+0xe0>
-      12	71 12 68 28 00 00 00 00	r2 = *(u8 *)(r1 + 0x2868)
-      13	55 02 0a 00 ff 00 00 00	if r2 != 0xff goto +0xa <.text+0x80>
-      14	79 12 b8 28 00 00 00 00	r2 = *(u64 *)(r1 + 0x28b8)
-      15	55 02 12 00 00 00 00 00	if r2 != 0x0 goto +0x12 <.text+0xd0>
-      16	71 12 c8 50 00 00 00 00	r2 = *(u8 *)(r1 + 0x50c8)
-      17	55 02 08 00 ff 00 00 00	if r2 != 0xff goto +0x8 <.text+0x90>
-      18	79 14 38 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7938)
-      19	55 04 08 00 08 00 00 00	if r4 != 0x8 goto +0x8 <.text+0xa0>
-      20	79 14 40 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7940)
-      21	79 12 50 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x50)
-      22	ad 42 07 00 00 00 00 00	if r2 < r4 goto +0x7 <.text+0xb0>
-      23	95 00 00 00 00 00 00 00	exit
-      24	b4 00 00 00 03 00 00 00	w0 = 0x3
-      25	95 00 00 00 00 00 00 00	exit
-      26	b4 00 00 00 05 00 00 00	w0 = 0x5
-      27	95 00 00 00 00 00 00 00	exit
-      28	b4 00 00 00 06 00 00 00	w0 = 0x6
-      29	95 00 00 00 00 00 00 00	exit
-      30	b4 00 00 00 07 00 00 00	w0 = 0x7
-      31	95 00 00 00 00 00 00 00	exit
-      32	b4 00 00 00 01 00 00 00	w0 = 0x1
-      33	95 00 00 00 00 00 00 00	exit
-      34	b4 00 00 00 04 00 00 00	w0 = 0x4
-      35	95 00 00 00 00 00 00 00	exit
-      36	b4 00 00 00 02 00 00 00	w0 = 0x2
-      37	95 00 00 00 00 00 00 00	exit
+00000000000000e8 <entrypoint>
+      29	79 12 00 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x0)
+      30	55 02 63 00 03 00 00 00	if r2 != 0x3 goto +0x63 <entrypoint+0x328>
+      31	79 12 58 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x58)
+      32	55 02 65 00 00 00 00 00	if r2 != 0x0 goto +0x65 <entrypoint+0x348>
+      33	71 12 68 28 00 00 00 00	r2 = *(u8 *)(r1 + 0x2868)
+      34	55 02 57 00 ff 00 00 00	if r2 != 0xff goto +0x57 <entrypoint+0x2e8>
+      35	79 12 b8 28 00 00 00 00	r2 = *(u64 *)(r1 + 0x28b8)
+      36	55 02 5f 00 00 00 00 00	if r2 != 0x0 goto +0x5f <entrypoint+0x338>
+      37	71 12 c8 50 00 00 00 00	r2 = *(u8 *)(r1 + 0x50c8)
+      38	55 02 55 00 ff 00 00 00	if r2 != 0xff goto +0x55 <entrypoint+0x2f8>
+      39	79 14 38 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7938)
+      40	55 04 55 00 08 00 00 00	if r4 != 0x8 goto +0x55 <entrypoint+0x308>
+      41	79 14 40 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7940)
+      42	79 12 50 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x50)
+      43	ad 42 54 00 00 00 00 00	if r2 < r4 goto +0x54 <entrypoint+0x318>
+      44	bf a9 00 00 00 00 00 00	r9 = r10
+      45	17 09 00 00 c8 00 00 00	r9 -= 0xc8
+      46	bf a8 00 00 00 00 00 00	r8 = r10
+      47	17 08 00 00 a0 00 00 00	r8 -= 0xa0
+      48	bf a7 00 00 00 00 00 00	r7 = r10
+      49	17 07 00 00 90 00 00 00	r7 -= 0x90
+      50	bf a6 00 00 00 00 00 00	r6 = r10
+      51	17 06 00 00 70 00 00 00	r6 -= 0x70
+      52	bf 92 00 00 00 00 00 00	r2 = r9
+      53	bf a3 00 00 00 00 00 00	r3 = r10
+      54	17 03 00 00 e8 00 00 00	r3 -= 0xe8
+      55	7b 32 00 00 00 00 00 00	*(u64 *)(r2 + 0x0) = r3
+      56	bf 73 00 00 00 00 00 00	r3 = r7
+      57	7b 32 08 00 00 00 00 00	*(u64 *)(r2 + 0x8) = r3
+      58	7a 02 10 00 02 00 00 00	*(u64 *)(r2 + 0x10) = 0x2
+      59	bf 83 00 00 00 00 00 00	r3 = r8
+      60	7b 32 18 00 00 00 00 00	*(u64 *)(r2 + 0x18) = r3
+      61	7a 02 20 00 0c 00 00 00	*(u64 *)(r2 + 0x20) = 0xc
+      62	bf 82 00 00 00 00 00 00	r2 = r8
+      63	b4 03 00 00 02 00 00 00	w3 = 0x2
+      64	63 32 00 00 00 00 00 00	*(u32 *)(r2 + 0x0) = r3
+      65	7b 42 04 00 00 00 00 00	*(u64 *)(r2 + 0x4) = r4
+      66	bf 72 00 00 00 00 00 00	r2 = r7
+      67	bf 63 00 00 00 00 00 00	r3 = r6
+      68	71 14 09 00 00 00 00 00	r4 = *(u8 *)(r1 + 0x9)
+      69	73 42 09 00 00 00 00 00	*(u8 *)(r2 + 0x9) = r4
+      70	73 43 30 00 00 00 00 00	*(u8 *)(r3 + 0x30) = r4
+      71	71 14 0a 00 00 00 00 00	r4 = *(u8 *)(r1 + 0xa)
+      72	73 42 08 00 00 00 00 00	*(u8 *)(r2 + 0x8) = r4
+      73	73 43 31 00 00 00 00 00	*(u8 *)(r3 + 0x31) = r4
+      74	71 14 0b 00 00 00 00 00	r4 = *(u8 *)(r1 + 0xb)
+      75	73 43 32 00 00 00 00 00	*(u8 *)(r3 + 0x32) = r4
+      76	79 14 58 00 00 00 00 00	r4 = *(u64 *)(r1 + 0x58)
+      77	7b 43 10 00 00 00 00 00	*(u64 *)(r3 + 0x10) = r4
+      78	79 14 60 28 00 00 00 00	r4 = *(u64 *)(r1 + 0x2860)
+      79	7b 43 28 00 00 00 00 00	*(u64 *)(r3 + 0x28) = r4
+      80	bf 14 00 00 00 00 00 00	r4 = r1
+      81	07 04 00 00 10 00 00 00	r4 += 0x10
+      82	7b 42 00 00 00 00 00 00	*(u64 *)(r2 + 0x0) = r4
+      83	7b 43 00 00 00 00 00 00	*(u64 *)(r3 + 0x0) = r4
+      84	07 04 00 00 20 00 00 00	r4 += 0x20
+      85	7b 43 20 00 00 00 00 00	*(u64 *)(r3 + 0x20) = r4
+      86	07 04 00 00 20 00 00 00	r4 += 0x20
+      87	7b 43 08 00 00 00 00 00	*(u64 *)(r3 + 0x8) = r4
+      88	07 04 00 00 10 00 00 00	r4 += 0x10
+      89	7b 43 18 00 00 00 00 00	*(u64 *)(r3 + 0x18) = r4
+      90	07 02 00 00 10 00 00 00	r2 += 0x10
+      91	07 03 00 00 38 00 00 00	r3 += 0x38
+      92	71 14 69 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x2869)
+      93	73 42 09 00 00 00 00 00	*(u8 *)(r2 + 0x9) = r4
+      94	73 43 30 00 00 00 00 00	*(u8 *)(r3 + 0x30) = r4
+      95	71 14 6a 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x286a)
+      96	73 42 08 00 00 00 00 00	*(u8 *)(r2 + 0x8) = r4
+      97	73 43 31 00 00 00 00 00	*(u8 *)(r3 + 0x31) = r4
+      98	71 14 6b 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x286b)
+      99	73 43 32 00 00 00 00 00	*(u8 *)(r3 + 0x32) = r4
+     100	79 14 b8 28 00 00 00 00	r4 = *(u64 *)(r1 + 0x28b8)
+     101	7b 43 10 00 00 00 00 00	*(u64 *)(r3 + 0x10) = r4
+     102	79 14 c0 50 00 00 00 00	r4 = *(u64 *)(r1 + 0x50c0)
+     103	7b 43 28 00 00 00 00 00	*(u64 *)(r3 + 0x28) = r4
+     104	bf 14 00 00 00 00 00 00	r4 = r1
+     105	07 04 00 00 70 28 00 00	r4 += 0x2870
+     106	7b 42 00 00 00 00 00 00	*(u64 *)(r2 + 0x0) = r4
+     107	7b 43 00 00 00 00 00 00	*(u64 *)(r3 + 0x0) = r4
+     108	07 04 00 00 20 00 00 00	r4 += 0x20
+     109	7b 43 20 00 00 00 00 00	*(u64 *)(r3 + 0x20) = r4
+     110	07 04 00 00 20 00 00 00	r4 += 0x20
+     111	7b 43 08 00 00 00 00 00	*(u64 *)(r3 + 0x8) = r4
+     112	07 04 00 00 10 00 00 00	r4 += 0x10
+     113	7b 43 18 00 00 00 00 00	*(u64 *)(r3 + 0x18) = r4
+     114	bf 91 00 00 00 00 00 00	r1 = r9
+     115	bf 62 00 00 00 00 00 00	r2 = r6
+     116	b7 03 00 00 02 00 00 00	r3 = 0x2
+     117	b7 04 00 00 00 00 00 00	r4 = 0x0
+     118	b7 05 00 00 00 00 00 00	r5 = 0x0
+     119	85 10 00 00 ff ff ff ff	call -0x1
+     120	85 10 00 00 ff ff ff ff	call -0x1
+     121	95 00 00 00 00 00 00 00	exit
+     122	b4 00 00 00 03 00 00 00	w0 = 0x3
+     123	95 00 00 00 00 00 00 00	exit
+     124	b4 00 00 00 05 00 00 00	w0 = 0x5
+     125	95 00 00 00 00 00 00 00	exit
+     126	b4 00 00 00 06 00 00 00	w0 = 0x6
+     127	95 00 00 00 00 00 00 00	exit
+     128	b4 00 00 00 07 00 00 00	w0 = 0x7
+     129	95 00 00 00 00 00 00 00	exit
+     130	b4 00 00 00 01 00 00 00	w0 = 0x1
+     131	95 00 00 00 00 00 00 00	exit
+     132	b4 00 00 00 04 00 00 00	w0 = 0x4
+     133	95 00 00 00 00 00 00 00	exit
+     134	b4 00 00 00 02 00 00 00	w0 = 0x2
+     135	95 00 00 00 00 00 00 00	exit
