@@ -26,6 +26,11 @@
 .equ CPI_ACCT_META_IS_SIGNER_OFFSET, 9
 .equ CPI_ACCT_META_SIZE_OF, 16
 
+# CPI account meta offsets for recipient.
+.equ CPI_ACCT_META_PUBKEY_ADDR_RECIPIENT_OFFSET, 16
+.equ CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET, 24
+.equ CPI_ACCT_META_IS_SIGNER_RECIPIENT_OFFSET, 25
+
 # CPI account info offsets.
 .equ CPI_ACCT_INFO_KEY_ADDR_OFFSET, 0
 .equ CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET, 8
@@ -36,7 +41,18 @@
 .equ CPI_ACCT_INFO_IS_SIGNER_OFFSET, 48
 .equ CPI_ACCT_INFO_IS_WRITABLE_OFFSET, 49
 .equ CPI_ACCT_INFO_EXECUTABLE_OFFSET, 50
-.equ CPI_ACCT_INFO_SIZE_OF, 56;
+.equ CPI_ACCT_INFO_SIZE_OF, 56
+
+# CPI account info offsets for recipient.
+.equ CPI_ACCT_INFO_KEY_ADDR_RECIPIENT_OFFSET, 56
+.equ CPI_ACCT_INFO_LAMPORTS_ADDR_RECIPIENT_OFFSET, 64
+.equ CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET, 72
+.equ CPI_ACCT_INFO_DATA_ADDR_RECIPIENT_OFFSET, 80
+.equ CPI_ACCT_INFO_OWNER_ADDR_RECIPIENT_OFFSET, 88
+.equ CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET, 96
+.equ CPI_ACCT_INFO_IS_SIGNER_RECIPIENT_OFFSET, 104
+.equ CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET, 105
+.equ CPI_ACCT_INFO_EXECUTABLE_RECIPIENT_OFFSET, 106
 
 # CPI instruction data offsets.
 .equ CPI_INSN_DATA_VARIANT_OFFSET, 0
@@ -192,9 +208,8 @@ entrypoint:
     stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
 
     # Repeat for recipient account, but start by stepping through pointer
-    # fields as an optimization.
-
-    # Optimize out two CUs by eliminating the following:
+    # fields as an optimization. Optimize out two CUs by eliminating the
+    # following:
     # ```
     # add64 r2, CPI_ACCT_META_SIZE_OF # Step to next array element.
     # add64 r3, CPI_ACCT_INFO_SIZE_OF # Step to next array element.
@@ -209,30 +224,30 @@ entrypoint:
     # mov64 r4, r1
     # add64 r4, RECIPIENT_PUBKEY_OFFSET
     # ```
-    # with:
+    # with the following line, which uses a single known relative offset,
+    # to continue stepping through successive pointers.
     add64 r4, RECIPIENT_PUBKEY_OFFSET_RELATIVE_TO_SENDER_DATA_OFFSET
-
-    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r4
-    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_OFFSET], r4
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_RECIPIENT_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_RECIPIENT_OFFSET], r4
     add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
-    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_RECIPIENT_OFFSET], r4
     add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
-    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_RECIPIENT_OFFSET], r4
     add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
-    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_RECIPIENT_OFFSET], r4
     # Copy individual fields.
     ldxb r4, [r1 + RECIPIENT_IS_SIGNER_OFFSET]
-    stxb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], r4
-    stxb [r3 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], r4
+    stxb [r2 + CPI_ACCT_META_IS_SIGNER_RECIPIENT_OFFSET], r4
+    stxb [r3 + CPI_ACCT_INFO_IS_SIGNER_RECIPIENT_OFFSET], r4
     ldxb r4, [r1 + RECIPIENT_IS_WRITABLE_OFFSET]
-    stxb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], r4
-    stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_OFFSET], r4
+    stxb [r2 + CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET], r4
+    stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET], r4
     ldxb r4, [r1 + RECIPIENT_IS_EXECUTABLE_OFFSET]
-    stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_OFFSET], r4
+    stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_RECIPIENT_OFFSET], r4
     ldxdw r4, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
-    stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET], r4
     ldxdw r4, [r1 + RECIPIENT_RENT_EPOCH_OFFSET]
-    stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET], r4
 
     # Invoke CPI.
     mov64 r1, r9 # Instruction.
