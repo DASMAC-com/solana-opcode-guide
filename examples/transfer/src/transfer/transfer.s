@@ -217,7 +217,7 @@ entrypoint:
     # in lieu of using account meta and account info offsets specifically
     # for the recipient account. Specifically, replace any `CPI_..._OFFSET`
     # values from the sender account parsing block with corresponding
-    # `CPI_..._SENDER_OFFSET` values.
+    # `CPI_..._RECIPIENT_OFFSET` values.
 
     # Optimize out one CU by replacing the following:
     # ```
@@ -254,9 +254,15 @@ entrypoint:
     mov64 r2, r6 # Account infos.
     mov64 r3, CPI_ACCOUNTS_LEN # Number of account infos.
     mov64 r4, 0 # No signer seeds.
-    mov64 r5, 0 # No signer seeds.
-    call sol_log_compute_units_ # For demonstration purposes.
+    # Optimize out 1 CU by eliminating the following:
+    # ```
+    # mov64 r5, 0 # No signer seeds.
+    # ```
+    # Since r5 is initialized to zero and is not used in this example.
+    call sol_log_compute_units_ # For determining cost of CU log syscall.
+    call sol_log_compute_units_ # For determining cost of CPI syscall.
     call sol_invoke_signed_c
+    call sol_log_compute_units_ # For determining cost of CPI syscall.
 
     exit
 
