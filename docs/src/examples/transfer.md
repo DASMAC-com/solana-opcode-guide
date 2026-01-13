@@ -32,7 +32,7 @@ non-duplicate accounts without any account data:
 | 3              | 1              | Is [executable][account structure]?      |
 | 4              | 4              | [Original account data length]           |
 | 8              | 32             | [Account pubkey]                         |
-| 40             | 32             | Account [owner][account structure]       |
+| 40             | 32             | [Account owner][account structure]       |
 | 72             | 8              | [Lamports balance][account structure]    |
 | 80             | 8              | [Account data][account structure] length |
 | 88             | 0              | [Account data][account structure] (none) |

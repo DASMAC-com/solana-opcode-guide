@@ -36,6 +36,7 @@
 .equ CPI_ACCT_INFO_IS_SIGNER_OFFSET, 48
 .equ CPI_ACCT_INFO_IS_WRITABLE_OFFSET, 49
 .equ CPI_ACCT_INFO_EXECUTABLE_OFFSET, 50
+.equ CPI_ACCT_INFO_SIZE_OF, 56;
 
 # CPI instruction data offsets.
 .equ CPI_INSN_DATA_VARIANT_OFFSET, 0
@@ -76,7 +77,9 @@
 .equ RECIPIENT_PUBKEY_OFFSET, 10352
 .equ RECIPIENT_IS_SIGNER_OFFSET, 10345
 .equ RECIPIENT_IS_WRITABLE_OFFSET, 10346
+.equ RECIPIENT_IS_EXECUTABLE_OFFSET, 10347
 .equ RECIPIENT_DATA_LENGTH_OFFSET, 10424
+.equ RECIPIENT_RENT_EPOCH_OFFSET, 20672
 
 # System program account.
 .equ SYSTEM_PROGRAM_OFFSET, 20680
@@ -156,7 +159,8 @@ entrypoint:
     stxdw [r2 + CPI_INSN_DATA_AMOUNT_OFFSET], r4
 
     # Parse sender account from input buffer into CPI metadata and info.
-    # Start with fields that are copied, then step through pointers.
+    # Start with 1-byte fields that are copied, then 8-byte fields that are
+    # copied, then step through 8-byte pointers.
     mov64 r2, r7 # Account metadata array pointer.
     mov64 r3, r6 # Account info array pointer.
     ldxb r4, [r1 + SENDER_IS_SIGNER_OFFSET]
@@ -172,7 +176,7 @@ entrypoint:
     ldxdw r4, [r1 + SENDER_RENT_EPOCH_OFFSET]
     stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_OFFSET], r4
     mov64 r4, r1 # Begin stepping through pointer fields.
-    add64 r4, SENDER_PUBKEY_OFFSET # Step to sender pubkey field pointer.
+    add64 r4, SENDER_PUBKEY_OFFSET # Step to pubkey field pointer.
     stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r4
     stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_OFFSET], r4
     add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
@@ -181,6 +185,39 @@ entrypoint:
     stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET], r4
     add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
     stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
+
+    # Repeat for recipient account.
+    add64 r2, CPI_ACCT_META_SIZE_OF # Step to next array element.
+    add64 r3, CPI_ACCT_INFO_SIZE_OF # Step to next array element.
+    ldxb r4, [r1 + RECIPIENT_IS_SIGNER_OFFSET]
+    stxb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], r4
+    stxb [r2 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], r4
+    stxb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], r4
+    stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_OFFSET], r4
+    ldxb r4, [r1 + RECIPIENT_IS_EXECUTABLE_OFFSET]
+    stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_OFFSET], r4
+    ldxdw r4, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
+    stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_OFFSET], r4
+    ldxdw r4, [r1 + RECIPIENT_RENT_EPOCH_OFFSET]
+    stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_OFFSET], r4
+    # Begin stepping through pointer fields.
+    add64 r4, RECIPIENT_PUBKEY_OFFSET # Step to pubkey field pointer.
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
+    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
+    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET], r4
+    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
+    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
+
+    # Invoke CPI
+    mov64 r1, r9 # Instruction.
+    mov64 r2, r6 # Account infos.
+    mov64 r3, CPI_ACCOUNTS_LEN
+    mov64 r3, 0 # No signer seeds.
+    mov64 r4, 0 # No signer seeds.
+    call sol_invoke_signed_c
 
     exit
 

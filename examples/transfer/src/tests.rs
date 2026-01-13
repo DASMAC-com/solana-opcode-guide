@@ -170,7 +170,9 @@ fn test_input_offsets() {
     const RECIPIENT_PUBKEY_OFFSET: usize = 10352;
     const RECIPIENT_IS_SIGNER_OFFSET: usize = 10345;
     const RECIPIENT_IS_WRITABLE_OFFSET: usize = 10346;
+    const RECIPIENT_IS_EXECUTABLE_OFFSET: usize = 10347;
     const RECIPIENT_DATA_LENGTH_OFFSET: usize = 10424;
+    const RECIPIENT_RENT_EPOCH_OFFSET: usize = 20672;
 
     // System program.
     const SYSTEM_PROGRAM_OFFSET: usize = 20680;
@@ -230,6 +232,14 @@ fn test_input_offsets() {
     assert_eq!(
         RECIPIENT_IS_WRITABLE_OFFSET,
         RECIPIENT_OFFSET + offset_of!(StandardAccount, is_writable),
+    );
+    assert_eq!(
+        RECIPIENT_IS_EXECUTABLE_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, is_executable),
+    );
+    assert_eq!(
+        RECIPIENT_RENT_EPOCH_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, rent_epoch),
     );
 
     // System program checks.
@@ -314,6 +324,7 @@ fn test_cpi_offsets() {
     const CPI_ACCT_INFO_IS_SIGNER_OFFSET: usize = 48;
     const CPI_ACCT_INFO_IS_WRITABLE_OFFSET: usize = 49;
     const CPI_ACCT_INFO_EXECUTABLE_OFFSET: usize = 50;
+    const CPI_ACCT_INFO_SIZE_OF: usize = 56;
 
     // CPI instruction data offsets.
     const CPI_INSN_DATA_VARIANT_OFFSET: usize = 0;
@@ -401,6 +412,7 @@ fn test_cpi_offsets() {
         CPI_ACCT_INFO_EXECUTABLE_OFFSET,
         offset_of!(SolAccountInfo, executable)
     );
+    assert_eq!(CPI_ACCT_INFO_SIZE_OF, size_of::<SolAccountInfo>());
     assert!(size_of::<SolAccountMeta>().is_multiple_of(ALIGNMENT));
 
     // CPI instruction data checks.
