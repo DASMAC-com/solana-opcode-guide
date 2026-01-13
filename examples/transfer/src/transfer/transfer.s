@@ -193,8 +193,16 @@ entrypoint:
 
     # Repeat for recipient account, but start by stepping through pointer
     # fields as an optimization.
-    add64 r2, CPI_ACCT_META_SIZE_OF # Step to next array element.
-    add64 r3, CPI_ACCT_INFO_SIZE_OF # Step to next array element.
+
+    # Optimize out two CUs by eliminating the following:
+    # ```
+    # add64 r2, CPI_ACCT_META_SIZE_OF # Step to next array element.
+    # add64 r3, CPI_ACCT_INFO_SIZE_OF # Step to next array element.
+    # ```
+    # in lieu of using account meta and account info offsets specifically
+    # for the recipient account. Specifically, replace any `CPI_..._OFFSET`
+    # values from the sender account parsing block with corresponding
+    # `CPI_..._SENDER_OFFSET` values.
 
     # Optimize out one CU by replacing the following:
     # ```
