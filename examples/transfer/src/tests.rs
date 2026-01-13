@@ -130,6 +130,17 @@ fn test_asm() {
         &accounts,
         &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
     );
+
+    // Check happy path.
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &happy_path_accounts,
+        &[Check::account(
+            &happy_path_instruction.accounts[AccountPosition::Recipient as usize].pubkey,
+        )
+        .lamports(TRANSFER_AMOUNT)
+        .build()],
+    );
 }
 
 #[test]
