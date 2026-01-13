@@ -147,12 +147,12 @@ entrypoint:
     stxdw [r2 + CPI_INSN_PROGRAM_ID_ADDR_OFFSET], r3
     mov64 r3, r7 # Load pointer to CPI instruction account metas on stack.
     stxdw [r2 + CPI_INSN_ACCOUNTS_ADDR_OFFSET], r3
-    lddw r3, CPI_ACCOUNTS_LEN
-    stxdw [r2 + CPI_INSN_ACCOUNTS_LEN_OFFSET], r3
+    # Accounts length fits in 32-bit immediate.
+    stdw [r2 + CPI_INSN_ACCOUNTS_LEN_OFFSET], CPI_ACCOUNTS_LEN
     mov64 r3, r8 # Load pointer to CPI instruction data on stack.
     stxdw [r2 + CPI_INSN_DATA_ADDR_OFFSET], r3
-    lddw r3, CPI_INSN_DATA_LEN
-    stxdw [r2 + CPI_INSN_DATA_LEN_OFFSET], r3
+    # Instruction data length fits in 32-bit immediate.
+    stdw [r2 + CPI_INSN_DATA_LEN_OFFSET], CPI_INSN_DATA_LEN
 
     # Set up instruction data.
     mov64 r2, r8

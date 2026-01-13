@@ -135,11 +135,14 @@ fn test_asm() {
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &happy_path_accounts,
-        &[Check::account(
-            &happy_path_instruction.accounts[AccountPosition::Recipient as usize].pubkey,
-        )
-        .lamports(TRANSFER_AMOUNT)
-        .build()],
+        &[
+            Check::success(),
+            Check::account(
+                &happy_path_instruction.accounts[AccountPosition::Recipient as usize].pubkey,
+            )
+            .lamports(TRANSFER_AMOUNT)
+            .build(),
+        ],
     );
 }
 
