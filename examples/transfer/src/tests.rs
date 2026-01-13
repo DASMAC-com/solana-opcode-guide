@@ -160,8 +160,10 @@ fn test_input_offsets() {
     const SENDER_PUBKEY_OFFSET: usize = 16;
     const SENDER_IS_SIGNER_OFFSET: usize = 9;
     const SENDER_IS_WRITABLE_OFFSET: usize = 10;
+    const SENDER_IS_EXECUTABLE_OFFSET: usize = 11;
     const SENDER_LAMPORTS_OFFSET: usize = 80;
     const SENDER_DATA_LENGTH_OFFSET: usize = 88;
+    const SENDER_RENT_EPOCH_OFFSET: usize = 10336;
 
     // Recipient.
     const RECIPIENT_OFFSET: usize = 10344;
@@ -188,6 +190,10 @@ fn test_input_offsets() {
         SENDER_OFFSET + offset_of!(StandardAccount, is_writable),
     );
     assert_eq!(
+        SENDER_IS_EXECUTABLE_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, is_executable),
+    );
+    assert_eq!(
         SENDER_LAMPORTS_OFFSET,
         SENDER_OFFSET + offset_of!(StandardAccount, lamports),
     );
@@ -198,6 +204,10 @@ fn test_input_offsets() {
     assert_eq!(
         SENDER_PUBKEY_OFFSET,
         SENDER_OFFSET + offset_of!(StandardAccount, pubkey),
+    );
+    assert_eq!(
+        SENDER_RENT_EPOCH_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, rent_epoch),
     );
 
     // Recipient checks.
