@@ -14,7 +14,7 @@
 .equ E_INSUFFICIENT_LAMPORTS, 7
 
 # CPI instruction offsets.
-.equ CPI_INSN_PROGRAM_ID_OFFSET, 0
+.equ CPI_INSN_PROGRAM_ID_ADDR_OFFSET, 0
 .equ CPI_INSN_ACCOUNTS_ADDR_OFFSET, 8
 .equ CPI_INSN_ACCOUNTS_LEN_OFFSET, 16
 .equ CPI_INSN_DATA_ADDR_OFFSET, 24
@@ -24,6 +24,7 @@
 .equ CPI_ACCT_META_PUBKEY_ADDR_OFFSET, 0
 .equ CPI_ACCT_META_IS_WRITABLE_OFFSET, 8
 .equ CPI_ACCT_META_IS_SIGNER_OFFSET, 9
+.equ CPI_ACCT_META_SIZE_OF, 16
 
 # CPI account info offsets.
 .equ CPI_ACCT_INFO_KEY_ADDR_OFFSET, 0
@@ -36,8 +37,20 @@
 .equ CPI_ACCT_INFO_IS_WRITABLE_OFFSET, 49
 .equ CPI_ACCT_INFO_EXECUTABLE_OFFSET, 50
 
-# CPI instruction data.
-.equ INSTRUCTION_DISCRIMINATOR, 2
+# CPI instruction data offsets.
+.equ CPI_INSN_DATA_VARIANT_OFFSET, 0
+.equ CPI_INSN_DATA_AMOUNT_OFFSET, 4
+.equ CPI_INSN_DATA_LEN, 12
+
+# CPI general constants.
+.equ CPI_INSN_DATA_VARIANT, 2
+.equ CPI_ACCOUNTS_LEN, 2
+
+# Stack offsets.
+.equ STACK_INSN_OFFSET, 200
+.equ STACK_INSN_DATA_OFFSET, 160
+.equ STACK_ACCT_METAS_OFFSET, 144
+.equ STACK_ACCT_INFOS_OFFSET, 112
 
 # Account layout.
 .equ N_ACCOUNTS_OFFSET, 0
@@ -47,15 +60,22 @@
 
 # Sender account.
 .equ SENDER_OFFSET, 8
+.equ SENDER_IS_SIGNER_OFFSET, 9
+.equ SENDER_IS_WRITABLE_OFFSET, 10
+.equ SENDER_PUBKEY_OFFSET, 16
 .equ SENDER_LAMPORTS_OFFSET, 80
 .equ SENDER_DATA_LENGTH_OFFSET, 88
 
 # Recipient account.
 .equ RECIPIENT_OFFSET, 10344
+.equ RECIPIENT_PUBKEY_OFFSET, 10352
+.equ RECIPIENT_IS_SIGNER_OFFSET, 10345
+.equ RECIPIENT_IS_WRITABLE_OFFSET, 10346
 .equ RECIPIENT_DATA_LENGTH_OFFSET, 10424
 
 # System program account.
 .equ SYSTEM_PROGRAM_OFFSET, 20680
+.equ SYSTEM_PROGRAM_PUBKEY_OFFSET, 20688
 
 # Transfer input.
 .equ INSTRUCTION_DATA_LENGTH_OFFSET, 31032
@@ -101,6 +121,57 @@ entrypoint:
     ldxdw r4, [r1 + INSTRUCTION_DATA_OFFSET]
     ldxdw r2, [r1 + SENDER_LAMPORTS_OFFSET]
     jlt r2, r4, e_insufficient_lamports
+
+    # Allocate CPI data regions on stack.
+    mov64 r9, r10
+    sub64 r9, STACK_INSN_OFFSET
+    mov64 r8, r10
+    sub64 r8, STACK_INSN_DATA_OFFSET
+    mov64 r7, r10
+    mov64 r7, STACK_ACCT_METAS_OFFSET
+    mov64 r6, r10
+    mov64 r6, STACK_ACCT_INFOS_OFFSET
+
+    # Set up instruction.
+    mov64 r2, r10
+    mov64 r3, r1
+    add64 r3, SYSTEM_PROGRAM_PUBKEY_OFFSET
+    stxdw [r2 + CPI_INSN_PROGRAM_ID_ADDR_OFFSET], r3
+    mov64 r3, r7
+    stxdw [r2 + CPI_INSN_ACCOUNTS_ADDR_OFFSET], r3
+    stxdw [r2 + CPI_INSN_ACCOUNTS_LEN_OFFSET], CPI_ACCOUNTS_LEN
+    mov64 r3, r8
+    stxdw [r2 + CPI_INSN_DATA_ADDR_OFFSET], r3
+    stxdw [r2 + CPI_INSN_DATA_LEN_OFFSET], CPI_INSN_DATA_LEN
+
+    # Set up instruction data.
+    mov64 r2, r8
+    mov32 r3, CPI_INSN_DATA_VARIANT
+    stxw [r2 + CPI_INSN_DATA_VARIANT_OFFSET], r3
+    stxdw [r2 + CPI_INSN_DATA_AMOUNT_OFFSET], r4
+
+    # Set up sender account metadata.
+    mov64 r2, r7
+    mov64 r3, r1
+    add64 r3, SENDER_PUBKEY_OFFSET
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r3
+    ldxb r3, [r1 + SENDER_IS_WRITABLE_OFFSET]
+    stxb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], r3
+    ldxb r3, [r1 + SENDER_IS_SIGNER_OFFSET]
+    stxb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], r3
+
+    # Set up recipient account metadata.
+    add64 r2, CPI_ACCT_META_SIZE_OF
+    mov64 r3, r1
+    add64 r3, RECIPIENT_PUBKEY_OFFSET
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r3
+    ldxb r3, [r1 + RECIPIENT_IS_WRITABLE_OFFSET]
+    stxb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], r3
+    ldxb r3, [r1 + RECIPIENT_IS_SIGNER_OFFSET]
+    stxb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], r3
+
+    # Set up sender account info.
+
 
     exit
 

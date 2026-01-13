@@ -143,7 +143,7 @@ fn test_input_offsets() {
         is_signer: u8,
         is_writable: u8,
         is_executable: u8,
-        padding: [u8; 4],
+        original_data_len: [u8; 4],
         pubkey: [u8; 32],
         owner: [u8; 32],
         lamports: u64,
@@ -157,20 +157,36 @@ fn test_input_offsets() {
 
     // Sender.
     const SENDER_OFFSET: usize = 8;
+    const SENDER_PUBKEY_OFFSET: usize = 16;
+    const SENDER_IS_SIGNER_OFFSET: usize = 9;
+    const SENDER_IS_WRITABLE_OFFSET: usize = 10;
     const SENDER_LAMPORTS_OFFSET: usize = 80;
     const SENDER_DATA_LENGTH_OFFSET: usize = 88;
 
     // Recipient.
     const RECIPIENT_OFFSET: usize = 10344;
+    const RECIPIENT_PUBKEY_OFFSET: usize = 10352;
+    const RECIPIENT_IS_SIGNER_OFFSET: usize = 10345;
+    const RECIPIENT_IS_WRITABLE_OFFSET: usize = 10346;
     const RECIPIENT_DATA_LENGTH_OFFSET: usize = 10424;
 
     // System program.
     const SYSTEM_PROGRAM_OFFSET: usize = 20680;
+    const SYSTEM_PROGRAM_PUBKEY_OFFSET: usize = 20688;
 
     // Instruction data.
     const INSTRUCTION_DATA_LENGTH_OFFSET: usize = 31032;
     const INSTRUCTION_DATA_OFFSET: usize = 31040;
 
+    // Sender checks.
+    assert_eq!(
+        SENDER_IS_SIGNER_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, is_signer),
+    );
+    assert_eq!(
+        SENDER_IS_WRITABLE_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, is_writable),
+    );
     assert_eq!(
         SENDER_LAMPORTS_OFFSET,
         SENDER_OFFSET + offset_of!(StandardAccount, lamports),
@@ -180,6 +196,12 @@ fn test_input_offsets() {
         SENDER_OFFSET + offset_of!(StandardAccount, data_length),
     );
     assert_eq!(
+        SENDER_PUBKEY_OFFSET,
+        SENDER_OFFSET + offset_of!(StandardAccount, pubkey),
+    );
+
+    // Recipient checks.
+    assert_eq!(
         RECIPIENT_OFFSET,
         SENDER_OFFSET + size_of::<StandardAccount>()
     );
@@ -188,8 +210,26 @@ fn test_input_offsets() {
         RECIPIENT_OFFSET + offset_of!(StandardAccount, data_length),
     );
     assert_eq!(
+        RECIPIENT_PUBKEY_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, pubkey),
+    );
+    assert_eq!(
+        RECIPIENT_IS_SIGNER_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, is_signer),
+    );
+    assert_eq!(
+        RECIPIENT_IS_WRITABLE_OFFSET,
+        RECIPIENT_OFFSET + offset_of!(StandardAccount, is_writable),
+    );
+
+    // System program checks.
+    assert_eq!(
         SYSTEM_PROGRAM_OFFSET,
         RECIPIENT_OFFSET + size_of::<StandardAccount>()
+    );
+    assert_eq!(
+        SYSTEM_PROGRAM_PUBKEY_OFFSET,
+        SYSTEM_PROGRAM_OFFSET + offset_of!(SystemProgramAccount, pubkey),
     );
     assert_eq!(
         INSTRUCTION_DATA_LENGTH_OFFSET,
@@ -236,13 +276,13 @@ fn test_cpi_offsets() {
 
     #[repr(C)]
     struct InstructionData {
-        discriminant: [u8; 4],
+        variant: [u8; 4],
         amount: [u8; 8],
         padding: [u8; 4],
     }
 
     // CPI instruction offsets.
-    const CPI_INSN_PROGRAM_ID_OFFSET: usize = 0;
+    const CPI_INSN_PROGRAM_ID_ADDR_OFFSET: usize = 0;
     const CPI_INSN_ACCOUNTS_ADDR_OFFSET: usize = 8;
     const CPI_INSN_ACCOUNTS_LEN_OFFSET: usize = 16;
     const CPI_INSN_DATA_ADDR_OFFSET: usize = 24;
@@ -252,6 +292,7 @@ fn test_cpi_offsets() {
     const CPI_ACCT_META_PUBKEY_ADDR_OFFSET: usize = 0;
     const CPI_ACCT_META_IS_WRITABLE_OFFSET: usize = 8;
     const CPI_ACCT_META_IS_SIGNER_OFFSET: usize = 9;
+    const CPI_ACCT_META_SIZE_OF: usize = 16;
 
     // CPI account info offsets.
     const CPI_ACCT_INFO_KEY_ADDR_OFFSET: usize = 0;
@@ -264,15 +305,20 @@ fn test_cpi_offsets() {
     const CPI_ACCT_INFO_IS_WRITABLE_OFFSET: usize = 49;
     const CPI_ACCT_INFO_EXECUTABLE_OFFSET: usize = 50;
 
+    // CPI instruction data offsets.
+    const CPI_INSN_DATA_VARIANT_OFFSET: usize = 0;
+    const CPI_INSN_DATA_AMOUNT_OFFSET: usize = 4;
+    const CPI_INSN_DATA_LEN: usize = 12;
+
     // Stack offsets.
-    const STACK_ACCT_INFOS_OFFSET: usize = 112;
-    const STACK_ACCT_METAS_OFFSET: usize = 144;
-    const STACK_INSN_DATA_OFFSET: usize = 160;
     const STACK_INSN_OFFSET: usize = 200;
+    const STACK_INSN_DATA_OFFSET: usize = 160;
+    const STACK_ACCT_METAS_OFFSET: usize = 144;
+    const STACK_ACCT_INFOS_OFFSET: usize = 112;
 
     // CPI instruction checks.
     assert_eq!(
-        CPI_INSN_PROGRAM_ID_OFFSET,
+        CPI_INSN_PROGRAM_ID_ADDR_OFFSET,
         offset_of!(SolInstruction, program_id_addr)
     );
     assert_eq!(
@@ -306,6 +352,7 @@ fn test_cpi_offsets() {
         offset_of!(SolAccountMeta, is_signer)
     );
     assert!(size_of::<SolAccountMeta>().is_multiple_of(ALIGNMENT));
+    assert_eq!(CPI_ACCT_META_SIZE_OF, size_of::<SolAccountMeta>());
 
     // CPI account info checks.
     assert_eq!(
@@ -345,6 +392,18 @@ fn test_cpi_offsets() {
         offset_of!(SolAccountInfo, executable)
     );
     assert!(size_of::<SolAccountMeta>().is_multiple_of(ALIGNMENT));
+
+    // CPI instruction data checks.
+    assert_eq!(
+        CPI_INSN_DATA_VARIANT_OFFSET,
+        offset_of!(InstructionData, variant)
+    );
+    assert_eq!(
+        CPI_INSN_DATA_AMOUNT_OFFSET,
+        offset_of!(InstructionData, amount)
+    );
+    assert!(size_of::<InstructionData>().is_multiple_of(ALIGNMENT));
+    assert_eq!(CPI_INSN_DATA_LEN, size_of::<u32>() + size_of::<u64>(),);
 
     // Stack offset checks.
     assert_eq!(STACK_ACCT_INFOS_OFFSET, 2 * size_of::<SolAccountInfo>());
