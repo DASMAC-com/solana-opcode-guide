@@ -48,6 +48,7 @@
 .equ CPI_ACCOUNTS_LEN, 2
 
 # Stack offsets.
+.equ STACK_SYSTEM_PROGRAM_PUBKEY_OFFSET, 232
 .equ STACK_INSN_OFFSET, 200
 .equ STACK_INSN_DATA_OFFSET, 160
 .equ STACK_ACCT_METAS_OFFSET, 144
@@ -142,8 +143,9 @@ entrypoint:
 
     # Set up instruction.
     mov64 r2, r9 # Load pointer to CPI instruction on stack.
-    mov64 r3, r1 # Load pointer to input buffer.
-    add64 r3, SYSTEM_PROGRAM_PUBKEY_OFFSET
+    mov64 r3, r10 # Get stack frame pointer.
+    # Point to known zeroes, rather than trust user passed System Program.
+    sub64 r3, STACK_SYSTEM_PROGRAM_PUBKEY_OFFSET
     stxdw [r2 + CPI_INSN_PROGRAM_ID_ADDR_OFFSET], r3
     mov64 r3, r7 # Load pointer to CPI instruction account metas on stack.
     stxdw [r2 + CPI_INSN_ACCOUNTS_ADDR_OFFSET], r3
@@ -214,7 +216,7 @@ entrypoint:
     add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
     stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
 
-    # Invoke CPI
+    # Invoke CPI.
     mov64 r1, r9 # Instruction.
     mov64 r2, r6 # Account infos.
     mov64 r3, CPI_ACCOUNTS_LEN # Number of account infos.

@@ -26,6 +26,12 @@ const COMPUTE_UNIT_OVERHEAD: u64 = 10_000;
 const ALIGNMENT: usize = 8;
 
 #[test]
+fn test_system_program_pubkey() {
+    let (pubkey, _) = program::keyed_account_for_system_program();
+    assert_eq!(pubkey.to_bytes(), [0u8; 32]);
+}
+
+#[test]
 fn test_asm() {
     let setup = setup_test(ProgramLanguage::Assembly);
 
