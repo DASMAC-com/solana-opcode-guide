@@ -137,6 +137,22 @@ fn test_asm() {
         &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
     );
 
+    // Check invalid System Program account.
+    let mock_pubkey = Pubkey::new_unique();
+    assert_ne!(
+        mock_pubkey,
+        happy_path_instruction.accounts[AccountPosition::SystemProgram as usize].pubkey
+    );
+    accounts = happy_path_accounts.clone();
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountPosition::SystemProgram as usize].pubkey = mock_pubkey;
+    accounts[AccountPosition::SystemProgram as usize].0 = mock_pubkey;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::NotEnoughAccountKeys)],
+    );
+
     // Check happy path.
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
