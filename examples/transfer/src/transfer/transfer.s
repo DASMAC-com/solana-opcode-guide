@@ -222,6 +222,7 @@ entrypoint:
     mov64 r3, CPI_ACCOUNTS_LEN # Number of account infos.
     mov64 r4, 0 # No signer seeds.
     mov64 r5, 0 # No signer seeds.
+    call sol_log_compute_units_ # For demonstration purposes.
     call sol_invoke_signed_c
 
     exit
