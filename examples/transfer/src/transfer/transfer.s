@@ -136,9 +136,9 @@ entrypoint:
     mov64 r8, r10
     sub64 r8, STACK_INSN_DATA_OFFSET
     mov64 r7, r10
-    mov64 r7, STACK_ACCT_METAS_OFFSET
+    sub64 r7, STACK_ACCT_METAS_OFFSET
     mov64 r6, r10
-    mov64 r6, STACK_ACCT_INFOS_OFFSET
+    sub64 r6, STACK_ACCT_INFOS_OFFSET
 
     # Set up instruction.
     mov64 r2, r9 # Load pointer to CPI instruction on stack.
