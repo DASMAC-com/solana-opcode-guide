@@ -81,6 +81,7 @@
 .equ RECIPIENT_IS_EXECUTABLE_OFFSET, 10347
 .equ RECIPIENT_DATA_LENGTH_OFFSET, 10424
 .equ RECIPIENT_RENT_EPOCH_OFFSET, 20672
+.equ RECIPIENT_PUBKEY_OFFSET_RELATIVE_TO_SENDER_DATA_OFFSET, 10256
 
 # System program account.
 .equ SYSTEM_PROGRAM_OFFSET, 20680
@@ -157,7 +158,7 @@ entrypoint:
     stdw [r2 + CPI_INSN_DATA_LEN_OFFSET], CPI_INSN_DATA_LEN
 
     # Set up instruction data.
-    mov64 r2, r8
+    mov64 r2, r8 # Pointer to instruction data on stack.
     mov32 r3, CPI_INSN_DATA_VARIANT
     stxw [r2 + CPI_INSN_DATA_VARIANT_OFFSET], r3
     stxdw [r2 + CPI_INSN_DATA_AMOUNT_OFFSET], r4
@@ -190,9 +191,28 @@ entrypoint:
     add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
     stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
 
-    # Repeat for recipient account.
+    # Repeat for recipient account, but start by stepping through pointer
+    # fields as an optimization.
     add64 r2, CPI_ACCT_META_SIZE_OF # Step to next array element.
     add64 r3, CPI_ACCT_INFO_SIZE_OF # Step to next array element.
+
+    # Optimize out one CU by replacing the following:
+    # ```
+    # mov64 r4, r1
+    # add64 r4, RECIPIENT_PUBKEY_OFFSET
+    # ```
+    # with:
+    add64 r4, RECIPIENT_PUBKEY_OFFSET_RELATIVE_TO_SENDER_DATA_OFFSET
+
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
+    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
+    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET], r4
+    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
+    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
+    # Copy individual fields.
     ldxb r4, [r1 + RECIPIENT_IS_SIGNER_OFFSET]
     stxb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], r4
     stxb [r3 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], r4
@@ -205,16 +225,6 @@ entrypoint:
     stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_OFFSET], r4
     ldxdw r4, [r1 + RECIPIENT_RENT_EPOCH_OFFSET]
     stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_OFFSET], r4
-    mov64 r4, r1 # Begin stepping through pointer fields.
-    add64 r4, RECIPIENT_PUBKEY_OFFSET # Step to pubkey field pointer.
-    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r4
-    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_OFFSET], r4
-    add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
-    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_OFFSET], r4
-    add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
-    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET], r4
-    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
-    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
 
     # Invoke CPI.
     mov64 r1, r9 # Instruction.
