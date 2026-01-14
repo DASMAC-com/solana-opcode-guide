@@ -51,6 +51,11 @@ fn test_cpi_offsets() {
     const CPI_ACCT_META_IS_SIGNER_OFFSET: usize = 9;
     const CPI_ACCT_META_SIZE_OF: usize = 16;
 
+    // CPI account meta offsets for recipient.
+    const CPI_ACCT_META_PUBKEY_ADDR_RECIPIENT_OFFSET: usize = 16;
+    const CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET: usize = 24;
+    const CPI_ACCT_META_IS_SIGNER_RECIPIENT_OFFSET: usize = 25;
+
     // CPI account info offsets.
     const CPI_ACCT_INFO_KEY_ADDR_OFFSET: usize = 0;
     const CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET: usize = 8;
@@ -62,6 +67,17 @@ fn test_cpi_offsets() {
     const CPI_ACCT_INFO_IS_WRITABLE_OFFSET: usize = 49;
     const CPI_ACCT_INFO_EXECUTABLE_OFFSET: usize = 50;
     const CPI_ACCT_INFO_SIZE_OF: usize = 56;
+
+    // CPI account info offsets for recipient.
+    const CPI_ACCT_INFO_KEY_ADDR_RECIPIENT_OFFSET: usize = 56;
+    const CPI_ACCT_INFO_LAMPORTS_ADDR_RECIPIENT_OFFSET: usize = 64;
+    const CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET: usize = 72;
+    const CPI_ACCT_INFO_DATA_ADDR_RECIPIENT_OFFSET: usize = 80;
+    const CPI_ACCT_INFO_OWNER_ADDR_RECIPIENT_OFFSET: usize = 88;
+    const CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET: usize = 96;
+    const CPI_ACCT_INFO_IS_SIGNER_RECIPIENT_OFFSET: usize = 104;
+    const CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET: usize = 105;
+    const CPI_ACCT_INFO_EXECUTABLE_RECIPIENT_OFFSET: usize = 106;
 
     // CPI instruction data offsets.
     const CPI_INSN_DATA_VARIANT_OFFSET: usize = 0;
@@ -112,6 +128,20 @@ fn test_cpi_offsets() {
     assert!(size_of::<SolAccountMeta>().is_multiple_of(ALIGNMENT));
     assert_eq!(CPI_ACCT_META_SIZE_OF, size_of::<SolAccountMeta>());
 
+    // CPI account meta checks for recipient.
+    assert_eq!(
+        CPI_ACCT_META_PUBKEY_ADDR_RECIPIENT_OFFSET,
+        CPI_ACCT_META_SIZE_OF + offset_of!(SolAccountMeta, pubkey_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET,
+        CPI_ACCT_META_SIZE_OF + offset_of!(SolAccountMeta, is_writable)
+    );
+    assert_eq!(
+        CPI_ACCT_META_IS_SIGNER_RECIPIENT_OFFSET,
+        CPI_ACCT_META_SIZE_OF + offset_of!(SolAccountMeta, is_signer)
+    );
+
     // CPI account info checks.
     assert_eq!(
         CPI_ACCT_INFO_KEY_ADDR_OFFSET,
@@ -151,6 +181,44 @@ fn test_cpi_offsets() {
     );
     assert_eq!(CPI_ACCT_INFO_SIZE_OF, size_of::<SolAccountInfo>());
     assert!(size_of::<SolAccountMeta>().is_multiple_of(ALIGNMENT));
+
+    // CPI account info checks for recipient.
+    assert_eq!(
+        CPI_ACCT_INFO_KEY_ADDR_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, key_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_LAMPORTS_ADDR_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, lamports_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, data_len)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_DATA_ADDR_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, data_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_OWNER_ADDR_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, owner_addr)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, rent_epoch)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_IS_SIGNER_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, is_signer)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, is_writable)
+    );
+    assert_eq!(
+        CPI_ACCT_INFO_EXECUTABLE_RECIPIENT_OFFSET,
+        CPI_ACCT_INFO_SIZE_OF + offset_of!(SolAccountInfo, executable)
+    );
 
     // CPI instruction data checks.
     assert_eq!(

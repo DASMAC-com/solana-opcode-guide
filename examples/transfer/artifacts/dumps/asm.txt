@@ -11,7 +11,7 @@ ELF Header
   Version                           0x1
   Entry point address               0xE8
   Start of program headers          64 (bytes into file)
-  Start of section headers          1488 (bytes into file)
+  Start of section headers          1496 (bytes into file)
   Flags                             0x0
   Size of this header               64 (bytes)
   Size of program headers           56 (bytes)
@@ -19,17 +19,17 @@ ELF Header
   Size of section headers           64 (bytes)
   Number of section headers         7
   Section header string table index 6
-There are 7 section headers, starting at offset 0x5d0
+There are 7 section headers, starting at offset 0x5d8
 
 Section Headers
   [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
-  [ 1] .text             PROGBITS        00000000000000e8 0000e8 000360 00  AX  0   0  4
-  [ 2] .dynamic          DYNAMIC         0000000000000448 000448 0000a0 10  WA  4   0  8
-  [ 3] .dynsym           DYNSYM          00000000000004e8 0004e8 000060 18   A  4   1  8
-  [ 4] .dynstr           STRTAB          0000000000000548 000548 000038 00   A  0   0  1
-  [ 5] .rel.dyn          REL             0000000000000580 000580 000020 10   A  3   0  8
-  [ 6] .s                STRTAB          0000000000000000 0005a0 00002c 00      0   0  1
+  [ 1] .text             PROGBITS        00000000000000e8 0000e8 000348 00  AX  0   0  4
+  [ 2] .dynamic          DYNAMIC         0000000000000430 000430 0000a0 10  WA  4   0  8
+  [ 3] .dynsym           DYNSYM          00000000000004d0 0004d0 000060 18   A  4   1  8
+  [ 4] .dynstr           STRTAB          0000000000000530 000530 000038 00   A  0   0  1
+  [ 5] .rel.dyn          REL             0000000000000568 000568 000040 10   A  3   0  8
+  [ 6] .s                STRTAB          0000000000000000 0005a8 00002c 00      0   0  1
 Key to Flags
   W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
   L (link order), O (extra OS processing required), G (group), T (TLS),
@@ -42,9 +42,9 @@ There are 3 program headers, starting at offset 64
 
 Program Headers
   Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
-  LOAD           0x0000e8 0x00000000000000e8 0x00000000000000e8 0x000360 0x000360 R E 0x1000
-  LOAD           0x0004e8 0x00000000000004e8 0x00000000000004e8 0x0000b8 0x0000b8 R   0x1000
-  DYNAMIC        0x000448 0x0000000000000448 0x0000000000000448 0x0000a0 0x0000a0 RW  0x8
+  LOAD           0x0000e8 0x00000000000000e8 0x00000000000000e8 0x000348 0x000348 R E 0x1000
+  LOAD           0x0004d0 0x00000000000004d0 0x00000000000004d0 0x0000d8 0x0000d8 R   0x1000
+  DYNAMIC        0x000430 0x0000000000000430 0x0000000000000430 0x0000a0 0x0000a0 RW  0x8
 
  Section to Segment mapping
   Segment Sections...
@@ -52,23 +52,25 @@ Program Headers
    01     .dynsym .dynstr .rel.dyn 
    02     .dynamic 
    None   .s 
-Dynamic section at offset 0x448 contains 10 entries
+Dynamic section at offset 0x430 contains 10 entries
   Tag                Type      Name/Value
   0x000000000000001e (FLAGS)   TEXTREL 
-  0x0000000000000011 (REL)     0x580
-  0x0000000000000012 (RELSZ)   32 (bytes)
+  0x0000000000000011 (REL)     0x568
+  0x0000000000000012 (RELSZ)   64 (bytes)
   0x0000000000000013 (RELENT)  16 (bytes)
-  0x0000000000000006 (SYMTAB)  0x4e8
+  0x0000000000000006 (SYMTAB)  0x4d0
   0x000000000000000b (SYMENT)  24 (bytes)
-  0x0000000000000005 (STRTAB)  0x548
+  0x0000000000000005 (STRTAB)  0x530
   0x000000000000000a (STRSZ)   56 (bytes)
   0x0000000000000016 (TEXTREL) 0x0
   0x0000000000000000 (NULL)    0x0
 
-Relocation section '.rel.dyn' at offset 0x580 contains 2 entries
+Relocation section '.rel.dyn' at offset 0x568 contains 4 entries
     Offset             Info             Type               Symbol's Value  Symbol's Name
-00000000000003b8  000000030000000a R_BPF_64_32            0000000000000000 sol_log_compute_units_
-00000000000003c0  000000020000000a R_BPF_64_32            0000000000000000 sol_invoke_signed_c
+0000000000000398  000000030000000a R_BPF_64_32            0000000000000000 sol_log_compute_units_
+00000000000003a0  000000030000000a R_BPF_64_32            0000000000000000 sol_log_compute_units_
+00000000000003a8  000000020000000a R_BPF_64_32            0000000000000000 sol_invoke_signed_c
+00000000000003b0  000000030000000a R_BPF_64_32            0000000000000000 sol_log_compute_units_
 
 Symbol table '.dynsym' contains 4 entries
    Num    Value          Size Type    Bind   Vis       Ndx Name
@@ -84,20 +86,20 @@ Disassembly of section .text
 
 00000000000000e8 <entrypoint>
       29	79 12 00 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x0)
-      30	55 02 64 00 03 00 00 00	if r2 != 0x3 goto +0x64 <entrypoint+0x330>
+      30	55 02 61 00 03 00 00 00	if r2 != 0x3 goto +0x61 <entrypoint+0x318>
       31	79 12 58 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x58)
-      32	55 02 66 00 00 00 00 00	if r2 != 0x0 goto +0x66 <entrypoint+0x350>
+      32	55 02 63 00 00 00 00 00	if r2 != 0x0 goto +0x63 <entrypoint+0x338>
       33	71 12 68 28 00 00 00 00	r2 = *(u8 *)(r1 + 0x2868)
-      34	55 02 58 00 ff 00 00 00	if r2 != 0xff goto +0x58 <entrypoint+0x2f0>
+      34	55 02 55 00 ff 00 00 00	if r2 != 0xff goto +0x55 <entrypoint+0x2d8>
       35	79 12 b8 28 00 00 00 00	r2 = *(u64 *)(r1 + 0x28b8)
-      36	55 02 60 00 00 00 00 00	if r2 != 0x0 goto +0x60 <entrypoint+0x340>
+      36	55 02 5d 00 00 00 00 00	if r2 != 0x0 goto +0x5d <entrypoint+0x328>
       37	71 12 c8 50 00 00 00 00	r2 = *(u8 *)(r1 + 0x50c8)
-      38	55 02 56 00 ff 00 00 00	if r2 != 0xff goto +0x56 <entrypoint+0x300>
+      38	55 02 53 00 ff 00 00 00	if r2 != 0xff goto +0x53 <entrypoint+0x2e8>
       39	79 14 38 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7938)
-      40	55 04 56 00 08 00 00 00	if r4 != 0x8 goto +0x56 <entrypoint+0x310>
+      40	55 04 53 00 08 00 00 00	if r4 != 0x8 goto +0x53 <entrypoint+0x2f8>
       41	79 14 40 79 00 00 00 00	r4 = *(u64 *)(r1 + 0x7940)
       42	79 12 50 00 00 00 00 00	r2 = *(u64 *)(r1 + 0x50)
-      43	ad 42 55 00 00 00 00 00	if r2 < r4 goto +0x55 <entrypoint+0x320>
+      43	ad 42 52 00 00 00 00 00	if r2 < r4 goto +0x52 <entrypoint+0x308>
       44	bf a9 00 00 00 00 00 00	r9 = r10
       45	17 09 00 00 c8 00 00 00	r9 -= 0xc8
       46	bf a8 00 00 00 00 00 00	r8 = r10
@@ -144,50 +146,47 @@ Disassembly of section .text
       87	7b 43 08 00 00 00 00 00	*(u64 *)(r3 + 0x8) = r4
       88	07 04 00 00 10 00 00 00	r4 += 0x10
       89	7b 43 18 00 00 00 00 00	*(u64 *)(r3 + 0x18) = r4
-      90	07 02 00 00 10 00 00 00	r2 += 0x10
-      91	07 03 00 00 38 00 00 00	r3 += 0x38
-      92	07 04 00 00 10 28 00 00	r4 += 0x2810
-      93	7b 42 00 00 00 00 00 00	*(u64 *)(r2 + 0x0) = r4
-      94	7b 43 00 00 00 00 00 00	*(u64 *)(r3 + 0x0) = r4
+      90	07 04 00 00 10 28 00 00	r4 += 0x2810
+      91	7b 42 10 00 00 00 00 00	*(u64 *)(r2 + 0x10) = r4
+      92	7b 43 38 00 00 00 00 00	*(u64 *)(r3 + 0x38) = r4
+      93	07 04 00 00 20 00 00 00	r4 += 0x20
+      94	7b 43 58 00 00 00 00 00	*(u64 *)(r3 + 0x58) = r4
       95	07 04 00 00 20 00 00 00	r4 += 0x20
-      96	7b 43 20 00 00 00 00 00	*(u64 *)(r3 + 0x20) = r4
-      97	07 04 00 00 20 00 00 00	r4 += 0x20
-      98	7b 43 08 00 00 00 00 00	*(u64 *)(r3 + 0x8) = r4
-      99	07 04 00 00 10 00 00 00	r4 += 0x10
-     100	7b 43 18 00 00 00 00 00	*(u64 *)(r3 + 0x18) = r4
-     101	71 14 69 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x2869)
-     102	73 42 09 00 00 00 00 00	*(u8 *)(r2 + 0x9) = r4
-     103	73 43 30 00 00 00 00 00	*(u8 *)(r3 + 0x30) = r4
-     104	71 14 6a 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x286a)
-     105	73 42 08 00 00 00 00 00	*(u8 *)(r2 + 0x8) = r4
-     106	73 43 31 00 00 00 00 00	*(u8 *)(r3 + 0x31) = r4
-     107	71 14 6b 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x286b)
-     108	73 43 32 00 00 00 00 00	*(u8 *)(r3 + 0x32) = r4
-     109	79 14 b8 28 00 00 00 00	r4 = *(u64 *)(r1 + 0x28b8)
-     110	7b 43 10 00 00 00 00 00	*(u64 *)(r3 + 0x10) = r4
-     111	79 14 c0 50 00 00 00 00	r4 = *(u64 *)(r1 + 0x50c0)
-     112	7b 43 28 00 00 00 00 00	*(u64 *)(r3 + 0x28) = r4
-     113	bf 16 00 00 00 00 00 00	r6 = r1
-     114	bf 91 00 00 00 00 00 00	r1 = r9
-     115	bf 62 00 00 00 00 00 00	r2 = r6
-     116	b7 03 00 00 02 00 00 00	r3 = 0x2
-     117	b7 04 00 00 00 00 00 00	r4 = 0x0
-     118	b7 05 00 00 00 00 00 00	r5 = 0x0
-     119	85 10 00 00 ff ff ff ff	call -0x1
-     120	85 10 00 00 ff ff ff ff	call -0x1
-     121	bf 61 00 00 00 00 00 00	r1 = r6
-     122	95 00 00 00 00 00 00 00	exit
-     123	b4 00 00 00 03 00 00 00	w0 = 0x3
-     124	95 00 00 00 00 00 00 00	exit
-     125	b4 00 00 00 05 00 00 00	w0 = 0x5
-     126	95 00 00 00 00 00 00 00	exit
-     127	b4 00 00 00 06 00 00 00	w0 = 0x6
-     128	95 00 00 00 00 00 00 00	exit
-     129	b4 00 00 00 07 00 00 00	w0 = 0x7
-     130	95 00 00 00 00 00 00 00	exit
-     131	b4 00 00 00 01 00 00 00	w0 = 0x1
-     132	95 00 00 00 00 00 00 00	exit
-     133	b4 00 00 00 04 00 00 00	w0 = 0x4
-     134	95 00 00 00 00 00 00 00	exit
-     135	b4 00 00 00 02 00 00 00	w0 = 0x2
-     136	95 00 00 00 00 00 00 00	exit
+      96	7b 43 40 00 00 00 00 00	*(u64 *)(r3 + 0x40) = r4
+      97	07 04 00 00 10 00 00 00	r4 += 0x10
+      98	7b 43 50 00 00 00 00 00	*(u64 *)(r3 + 0x50) = r4
+      99	71 14 69 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x2869)
+     100	73 42 19 00 00 00 00 00	*(u8 *)(r2 + 0x19) = r4
+     101	73 43 68 00 00 00 00 00	*(u8 *)(r3 + 0x68) = r4
+     102	71 14 6a 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x286a)
+     103	73 42 18 00 00 00 00 00	*(u8 *)(r2 + 0x18) = r4
+     104	73 43 69 00 00 00 00 00	*(u8 *)(r3 + 0x69) = r4
+     105	71 14 6b 28 00 00 00 00	r4 = *(u8 *)(r1 + 0x286b)
+     106	73 43 6a 00 00 00 00 00	*(u8 *)(r3 + 0x6a) = r4
+     107	79 14 b8 28 00 00 00 00	r4 = *(u64 *)(r1 + 0x28b8)
+     108	7b 43 48 00 00 00 00 00	*(u64 *)(r3 + 0x48) = r4
+     109	79 14 c0 50 00 00 00 00	r4 = *(u64 *)(r1 + 0x50c0)
+     110	7b 43 60 00 00 00 00 00	*(u64 *)(r3 + 0x60) = r4
+     111	bf 91 00 00 00 00 00 00	r1 = r9
+     112	bf 62 00 00 00 00 00 00	r2 = r6
+     113	b7 03 00 00 02 00 00 00	r3 = 0x2
+     114	b7 04 00 00 00 00 00 00	r4 = 0x0
+     115	85 10 00 00 ff ff ff ff	call -0x1
+     116	85 10 00 00 ff ff ff ff	call -0x1
+     117	85 10 00 00 ff ff ff ff	call -0x1
+     118	85 10 00 00 ff ff ff ff	call -0x1
+     119	95 00 00 00 00 00 00 00	exit
+     120	b4 00 00 00 03 00 00 00	w0 = 0x3
+     121	95 00 00 00 00 00 00 00	exit
+     122	b4 00 00 00 05 00 00 00	w0 = 0x5
+     123	95 00 00 00 00 00 00 00	exit
+     124	b4 00 00 00 06 00 00 00	w0 = 0x6
+     125	95 00 00 00 00 00 00 00	exit
+     126	b4 00 00 00 07 00 00 00	w0 = 0x7
+     127	95 00 00 00 00 00 00 00	exit
+     128	b4 00 00 00 01 00 00 00	w0 = 0x1
+     129	95 00 00 00 00 00 00 00	exit
+     130	b4 00 00 00 04 00 00 00	w0 = 0x4
+     131	95 00 00 00 00 00 00 00	exit
+     132	b4 00 00 00 02 00 00 00	w0 = 0x2
+     133	95 00 00 00 00 00 00 00	exit
