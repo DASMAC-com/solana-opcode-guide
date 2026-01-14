@@ -131,7 +131,10 @@ entrypoint:
     jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_recipient
 
     # Check if the System Account is a duplicate, since duplicate accounts
-    # have different field layouts.
+    # have different field layouts. The check for account data length
+    # is omitted for the System Program because if a caller passes an
+    # account that is not the System Account, the CPI will fail during
+    # program ID checks.
     ldxb r2, [r1 + SYSTEM_PROGRAM_OFFSET]
     jne r2, NON_DUP_MARKER, e_duplicate_account_system_program
 
@@ -192,8 +195,13 @@ entrypoint:
     stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_OFFSET], r4
     ldxb r4, [r1 + SENDER_IS_EXECUTABLE_OFFSET]
     stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_OFFSET], r4
-    ldxdw r4, [r1 + SENDER_DATA_LENGTH_OFFSET]
-    stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_OFFSET], r4
+    # Optimize out two CUs by simply omitting these lines, which aren't
+    # necessary since data length has been verified as zero and the stack
+    # is initially zeroed out.
+    # ```
+    # ldxdw r4, [r1 + SENDER_DATA_LENGTH_OFFSET]
+    # stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_OFFSET], r4
+    # ```
     ldxdw r4, [r1 + SENDER_RENT_EPOCH_OFFSET]
     stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_OFFSET], r4
     mov64 r4, r1 # Begin stepping through pointer fields.
@@ -244,8 +252,13 @@ entrypoint:
     stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET], r4
     ldxb r4, [r1 + RECIPIENT_IS_EXECUTABLE_OFFSET]
     stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_RECIPIENT_OFFSET], r4
-    ldxdw r4, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
-    stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET], r4
+    # Optimize out two CUs by simply omitting these lines, which aren't
+    # necessary since data length has been verified as zero and the stack
+    # is initially zeroed out.
+    # ```
+    # ldxdw r4, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
+    # stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET], r4
+    # ```
     ldxdw r4, [r1 + RECIPIENT_RENT_EPOCH_OFFSET]
     stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET], r4
 
