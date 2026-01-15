@@ -272,10 +272,7 @@ entrypoint:
     # mov64 r5, 0 # No signer seeds.
     # ```
     # Since r5 is initialized to zero and is not used in this example.
-    call sol_log_compute_units_ # For determining cost of CU log syscall.
-    call sol_log_compute_units_ # For determining cost of CPI syscall.
     call sol_invoke_signed_c
-    call sol_log_compute_units_ # For determining cost of CPI syscall.
 
     exit
 
