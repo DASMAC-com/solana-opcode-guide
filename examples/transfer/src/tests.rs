@@ -1,7 +1,7 @@
 use mollusk_svm::program;
 use mollusk_svm::result::Check;
 use solana_sdk::account::Account;
-use solana_sdk::instruction::{AccountMeta, Instruction};
+use solana_sdk::instruction::{AccountMeta, Instruction, InstructionError};
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use std::mem::{offset_of, size_of};
@@ -151,6 +151,70 @@ fn test_asm() {
         &instruction,
         &accounts,
         &[Check::err(ProgramError::NotEnoughAccountKeys)],
+    );
+
+    // Check sender is not signer.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountPosition::Sender as usize].is_signer = false;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::instruction_err(
+            InstructionError::PrivilegeEscalation,
+        )],
+    );
+
+    // Check sender is not writable.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountPosition::Sender as usize].is_writable = false;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::instruction_err(
+            InstructionError::PrivilegeEscalation,
+        )],
+    );
+
+    // Check sender is executable.
+    accounts = happy_path_accounts.clone();
+    accounts[AccountPosition::Sender as usize].1.executable = true;
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::instruction_err(
+            InstructionError::UnbalancedInstruction,
+        )],
+    );
+
+    // Check recipient is signer.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountPosition::Recipient as usize].is_signer = true;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::success()],
+    );
+
+    // Check recipient is not writable.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountPosition::Recipient as usize].is_writable = false;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::instruction_err(
+            InstructionError::PrivilegeEscalation,
+        )],
+    );
+
+    // Check recipient is executable.
+    accounts = happy_path_accounts.clone();
+    accounts[AccountPosition::Recipient as usize].1.executable = true;
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::instruction_err(
+            InstructionError::ExternalAccountLamportSpend,
+        )],
     );
 
     // Check happy path.

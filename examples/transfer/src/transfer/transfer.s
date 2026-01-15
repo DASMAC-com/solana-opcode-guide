@@ -264,7 +264,8 @@ entrypoint:
 
     # Copy individual fields, optimizing out 5 CUs by simply omitting the
     # following, which are validated by CPI anyways and since the stack
-    # initializes to zero
+    # initializes to zero. Note that it doesn't actually matter if the
+    # recipient is a signer or not.
     # ```
     # ldxb r4, [r1 + RECIPIENT_IS_SIGNER_OFFSET]
     # stxb [r2 + CPI_ACCT_META_IS_SIGNER_RECIPIENT_OFFSET], r4
