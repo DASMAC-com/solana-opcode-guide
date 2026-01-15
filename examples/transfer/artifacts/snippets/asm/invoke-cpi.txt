@@ -1,0 +1,15 @@
+    stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET], r4
+
+    # Invoke CPI.
+    mov64 r1, r9 # Instruction.
+    mov64 r2, r6 # Account infos.
+    mov64 r3, CPI_ACCOUNTS_LEN # Number of account infos.
+    mov64 r4, 0 # No signer seeds.
+    # Optimize out 1 CU by eliminating the following:
+    # ```
+    # mov64 r5, 0 # No signer seeds.
+    # ```
+    # Since r5 is initialized to zero and is not used in this example.
+    call sol_invoke_signed_c
+
+    exit

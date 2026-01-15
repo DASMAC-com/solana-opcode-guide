@@ -171,6 +171,44 @@ CPI offsets are validated in Rust using struct operations:
 
 :::
 
+## :wrench: Optimized CPI construction
+
+CPI data regions are first allocated on the stack using the calculated offsets:
+
+<<< ../../../examples/transfer/artifacts/snippets/asm/stack-allocations.txt{3-11 asm}
+
+Instruction data is then populated, leveraging
+[zero-initialized stack memory] to encode the [System Program] pubkey rather
+than load it from the passed account:
+
+> [!tip]
+> The [System Program] pubkey is `111111...` in [base58], which is all zeros in
+> binary.
+
+<<< ../../../examples/transfer/artifacts/snippets/asm/instruction-allocation.txt{3-22 asm}
+
+[Account information](#account-layout-background) is then copied into the
+[account metadata] and [account info] arrays, with optimizations that leverage
+the zero-initialized stack memory and known offsets:
+
+::: details Account transcription
+
+<<< ../../../examples/transfer/artifacts/snippets/asm/account-population.txt{3-110 asm}
+
+:::
+
+Finally, the CPI is invoked, leveraging the
+[zero-initialized `r5` memory](memo#error-checking) for another optimization
+since no [signer seeds][pda signer] are required:
+
+<<< ../../../examples/transfer/artifacts/snippets/asm/invoke-cpi.txt{3-13 asm}
+
+::: details Full program
+
+<<< ../../../examples/transfer/src/transfer/transfer.s{asm}
+
+:::
+
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`
@@ -183,6 +221,7 @@ CPI offsets are validated in Rust using struct operations:
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
+[zero-initialized stack memory]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/mem_pool.rs#L68-L70
 [4096 bytes]: https://docs.rs/solana-program-runtime/3.1.6/solana_program_runtime/execution_budget/constant.STACK_FRAME_SIZE.html
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
@@ -216,3 +255,4 @@ CPI offsets are validated in Rust using struct operations:
 [`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b7ac3d80da4400abff283fb0e68927c3c68a24d9/examples/sbpf-asm-cpi/src/sbpf-asm-cpi/sbpf-asm-cpi.s
 [`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
 [`u32` enum variants]: https://sr.ht/~stygianentity/bincode/#why-does-bincode-not-respect-coderepru8code
+[base58]: https://solana.com/docs/core/accounts#account-address
