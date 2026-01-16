@@ -267,20 +267,19 @@ the program itself is only consuming 74 CUs aside from the unavoidable CPI cost.
 > [`sbpf` example].
 
 [150 compute units]: https://docs.rs/solana-system-program/3.1.6/solana_system_program/system_processor/constant.DEFAULT_COMPUTE_UNITS.html
-[account data]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L370-L374
-[Account infos]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L973-L980
-[Account metas]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L690-L695
-[instruction data]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L682-L684
-[base cost]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/execution_budget.rs#L20-L31
-[bytes per unit cost]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/execution_budget.rs#L205
 [4096 bytes]: https://docs.rs/solana-program-runtime/3.1.6/solana_program_runtime/execution_budget/constant.STACK_FRAME_SIZE.html
+[account data]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L370-L374
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
+[account infos]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L973-L980
 [account metadata]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L81-L88
+[account metas]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L690-L695
 [account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
 [account structure]: https://solana.com/docs/core/accounts#account-structure
+[base cost]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/execution_budget.rs#L20-L31
 [base58]: https://solana.com/docs/core/accounts#account-address
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
+[bytes per unit cost]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/execution_budget.rs#L205
 [c-style array padding]: https://doc.rust-lang.org/reference/type-layout.html#reprc-unions
 [compute units]: https://solana.com/docs/references/terminology#compute-units
 [cpi]: https://solana.com/docs/core/cpi
@@ -290,6 +289,7 @@ the program itself is only consuming 74 CUs aside from the unavoidable CPI cost.
 [enum variant]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L82
 [inner alignment checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/memory.rs#L39-L56
 [instruction]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L70-L79
+[instruction data]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L682-L684
 [is the sum of]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L509-L511
 [isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md#registers
 [lamports]: https://solana.com/docs/references/terminology#lamport

@@ -3,6 +3,7 @@ cdylib
 clippy
 dasmac
 ebpf
+fuelpump
 globl
 insn
 keypair
