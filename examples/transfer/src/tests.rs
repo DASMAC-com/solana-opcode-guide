@@ -24,6 +24,7 @@ enum AccountIndex {
 const TRANSFER_AMOUNT: u64 = 10;
 const COMPUTE_UNIT_OVERHEAD: u64 = 10_000;
 const EXPECTED_ASM_COMPUTE_UNITS: u64 = 1170;
+const EXPECTED_RS_COMPUTE_UNITS: u64 = 1229;
 const ALIGNMENT: usize = 8;
 
 fn happy_path_setup(program_id: Pubkey) -> (Instruction, Vec<(Pubkey, Account)>) {
@@ -242,60 +243,59 @@ fn test_rs() {
     let setup = setup_test(ProgramLanguage::Rust);
     let (happy_path_instruction, happy_path_accounts) = happy_path_setup(setup.program_id);
 
-    //    // Check no accounts passed.
-    //    let mut instruction = happy_path_instruction.clone();
-    //    instruction.accounts.clear();
-    //    setup.mollusk.process_and_validate_instruction(
-    //        &instruction,
-    //        &[],
-    //        &[Check::err(ProgramError::Custom(E_N_ACCOUNTS))],
-    //    );
+    // Check no accounts passed.
+    let mut instruction = happy_path_instruction.clone();
+    instruction.accounts.clear();
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &[],
+        &[Check::err(ProgramError::Custom(E_N_ACCOUNTS))],
+    );
 
-    //    // Check nonzero sender data length.
-    //    let mut accounts = happy_path_accounts.clone();
-    //    accounts[AccountIndex::Sender as usize].1.data = vec![0];
-    //    setup.mollusk.process_and_validate_instruction(
-    //        &happy_path_instruction,
-    //        &accounts,
-    //        &[Check::err(ProgramError::Custom(
-    //            E_DATA_LENGTH_NONZERO_SENDER,
-    //        ))],
-    //    );
+    // Check nonzero sender data length.
+    let mut accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Sender as usize].1.data = vec![0];
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::err(ProgramError::InvalidArgument)],
+    );
 
-    //    // Check nonzero recipient data length.
-    //    accounts = happy_path_accounts.clone();
-    //    accounts[AccountIndex::Recipient as usize].1.data = vec![0];
-    //    setup.mollusk.process_and_validate_instruction(
-    //        &happy_path_instruction,
-    //        &accounts,
-    //        &[Check::err(ProgramError::Custom(
-    //            E_DATA_LENGTH_NONZERO_RECIPIENT,
-    //        ))],
-    //    );
+    // Check nonzero recipient data length.
+    accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Recipient as usize].1.data = vec![0];
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::success()],
+    );
 
-    //    // Check invalid instruction data length.
-    //    instruction = happy_path_instruction.clone();
-    //    instruction.data.clear();
-    //    setup.mollusk.process_and_validate_instruction(
-    //        &instruction,
-    //        &happy_path_accounts,
-    //        &[Check::err(ProgramError::Custom(E_INSTRUCTION_DATA_LENGTH))],
-    //    );
+    // Check invalid instruction data length.
+    instruction = happy_path_instruction.clone();
+    instruction.data.clear();
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::err(ProgramError::Custom(E_INSTRUCTION_DATA_LENGTH))],
+    );
 
-    //    // Check insufficient Lamports.
-    //    accounts = happy_path_accounts.clone();
-    //    accounts[AccountIndex::Sender as usize].1.lamports = TRANSFER_AMOUNT - 1;
-    //    setup.mollusk.process_and_validate_instruction(
-    //        &happy_path_instruction,
-    //        &accounts,
-    //        &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
-    //    );
+    // Check insufficient Lamports.
+    accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Sender as usize].1.lamports = TRANSFER_AMOUNT - 1;
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
+    );
 
     // Check happy path and print compute units for comparison.
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &happy_path_accounts,
-        &[Check::success()],
+        &[
+            Check::success(),
+            Check::compute_units(EXPECTED_RS_COMPUTE_UNITS),
+        ],
     );
 }
 
