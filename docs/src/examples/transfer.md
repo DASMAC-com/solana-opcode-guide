@@ -60,15 +60,15 @@ means that the System Program has the following:
 
 Input offsets are validated in Rust using struct operations:
 
+::: code-group
+
 <!-- markdownlint-disable MD013 -->
 
-<<< ../../../examples/transfer/artifacts/snippets/asm/input-offsets.txt{1-22 asm} [Assembly]
+<<< ../../../examples/transfer/artifacts/snippets/asm/input-offsets.txt{1-39 asm} [Assembly]
 
 <!-- markdownlint-enable MD013 -->
 
-::: details `test_input_offsets`
-
-<<< ../../../examples/transfer/artifacts/tests/input_offsets/test.txt{rs}
+<<< ../../../examples/transfer/artifacts/tests/input_offsets/test.txt{rs} [Rust]
 
 :::
 
@@ -77,7 +77,7 @@ a specific sequence, before the final Lamport balance check:
 
 <!-- markdownlint-disable MD013 -->
 
-<<< ../../../examples/transfer/artifacts/snippets/asm/input-validation.txt{4-30 asm}
+<<< ../../../examples/transfer/artifacts/snippets/asm/input-validation.txt{4-33 asm}
 
 <!-- markdownlint-enable MD013 -->
 
@@ -163,15 +163,22 @@ the largest primitive data type used across the [instruction],
 | 144          | 32     | [Account metadata] array (2 accounts)              |
 | 112          | 112    | [Account info] array (2 accounts)                  |
 
-CPI offsets are validated in Rust using struct operations:
+Stack CPI offsets are validated in Rust using struct operations:
 
-::: details `test_cpi_offsets`
+> [!tip]
+> The additional `SYSTEM_PROGRAM_PUBKEY_OFFSET` constant is used to
+> reference the [System Program] pubkey within the [instruction] structure; see
+> below for details.
 
-<<< ../../../examples/transfer/artifacts/tests/cpi_offsets/test.txt{rs}
+::: code-group
+
+<<< ../../../examples/transfer/artifacts/snippets/asm/stack-offsets.txt{asm} [Assembly]
+
+<<< ../../../examples/transfer/artifacts/tests/cpi_offsets/test.txt{rs} [Rust]
 
 :::
 
-## :wrench: Optimized CPI construction
+## :wrench: CPI construction
 
 CPI data regions are first allocated on the stack using the calculated offsets:
 
