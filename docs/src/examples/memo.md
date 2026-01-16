@@ -19,7 +19,7 @@ corresponding to one of [several runtime memory map regions].
 1. [The instruction data itself].
 
 > [!tip]
-> A new virtual memory map is created for [every instruction] *and* for every
+> A new virtual memory map is created for [every instruction] _and_ for every
 > [instance] of a [CPI] (which contains an
 > [inner call to an instruction processor] whose [own inner call] generates
 > [a fresh memory map]).
