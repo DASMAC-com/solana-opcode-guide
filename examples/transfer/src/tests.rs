@@ -27,7 +27,7 @@ const EXPECTED_ASM_COMPUTE_UNITS: u64 = 1170;
 const EXPECTED_RS_COMPUTE_UNITS: u64 = 1229;
 const ALIGNMENT: usize = 8;
 
-fn happy_path_checks(instruction: &Instruction, expected_compute_units: u64) -> Vec<Check> {
+fn happy_path_checks(instruction: &Instruction, expected_compute_units: u64) -> Vec<Check<'_>> {
     vec![
         Check::success(),
         Check::account(&instruction.accounts[AccountIndex::Recipient as usize].pubkey)
@@ -263,26 +263,24 @@ fn test_rs() {
         &[Check::err(ProgramError::InvalidArgument)],
     );
 
-    /*
-    // Check duplicate recipient account.
+    // Check duplicate recipient account: just transfers Lamports back to sender.
     instruction = happy_path_instruction.clone();
     instruction.accounts[AccountIndex::Recipient as usize] =
         happy_path_instruction.accounts[AccountIndex::Sender as usize].clone();
     accounts = happy_path_accounts.clone();
     accounts[AccountIndex::Recipient as usize] =
         happy_path_accounts[AccountIndex::Sender as usize].clone();
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &happy_path_checks(&happy_path_instruction, EXPECTED_RS_COMPUTE_UNITS),
-    );
+    setup
+        .mollusk
+        .process_and_validate_instruction(&instruction, &accounts, &[Check::success()]);
+
     // Check nonzero recipient data length.
     accounts = happy_path_accounts.clone();
     accounts[AccountIndex::Recipient as usize].1.data = vec![0];
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &accounts,
-        &[Check::success()],
+        &happy_path_checks(&happy_path_instruction, EXPECTED_RS_COMPUTE_UNITS),
     );
 
     // Check duplicate system program account.
@@ -295,11 +293,8 @@ fn test_rs() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM,
-        ))],
+        &[Check::err(ProgramError::NotEnoughAccountKeys)],
     );
-     */
 
     // Check invalid instruction data length.
     instruction = happy_path_instruction.clone();
@@ -319,7 +314,6 @@ fn test_rs() {
         &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
     );
 
-    /*
     // Check invalid System Program account.
     let mock_pubkey = Pubkey::new_unique();
     assert_ne!(
@@ -399,7 +393,6 @@ fn test_rs() {
             InstructionError::ExternalAccountLamportSpend,
         )],
     );
-     */
 
     // Check happy path.
     setup.mollusk.process_and_validate_instruction(
