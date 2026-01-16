@@ -4,17 +4,14 @@ use pinocchio::{
     cpi::invoke,
     entrypoint,
     instruction::{AccountMeta, Instruction},
+    no_allocator, nostd_panic_handler,
     program_error::ProgramError,
     pubkey::Pubkey,
     ProgramResult,
 };
 
-/// System program transfer instruction variant.
-const SYSTEM_PROGRAM_TRANSFER: u32 = 2;
-
-/// System program ID (all zeros).
+const SYSTEM_PROGRAM_TRANSFER_DISCRIMINANT: u32 = 2;
 const SYSTEM_PROGRAM_ID: Pubkey = [0u8; 32];
-
 const N_CPI_ACCOUNTS: usize = 2;
 const N_INSTRUCTION_ACCOUNTS: usize = 3;
 
@@ -30,6 +27,7 @@ enum AccountIndex {
 }
 
 entrypoint!(process_instruction, N_INSTRUCTION_ACCOUNTS);
+nostd_panic_handler!();
 
 fn process_instruction(
     _program_id: &Pubkey,
@@ -57,21 +55,31 @@ fn process_instruction(
         return Err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS));
     }
 
-    // Build CPI instruction data: [variant (4 bytes), amount (8 bytes)].
-    let mut cpi_data = [0u8; CPI_DATA_SIZE];
-    cpi_data[0..size_of::<u32>()].copy_from_slice(&SYSTEM_PROGRAM_TRANSFER.to_le_bytes());
-    cpi_data[size_of::<u32>()..CPI_DATA_SIZE].copy_from_slice(&amount.to_le_bytes());
-
-    // Build account metas for CPI.
-    let account_metas = [
-        AccountMeta::writable_signer(sender.key()),
-        AccountMeta::writable(recipient.key()),
-    ];
+    // Build CPI instruction data.
+    let mut cpi_data = core::mem::MaybeUninit::<[u8; CPI_DATA_SIZE]>::uninit();
+    // SAFETY: Sources are aligned, initialized, and valid.
+    let cpi_data = unsafe {
+        let ptr = cpi_data.as_mut_ptr() as *mut u8;
+        core::ptr::copy_nonoverlapping(
+            SYSTEM_PROGRAM_TRANSFER_DISCRIMINANT.to_le_bytes().as_ptr(),
+            ptr,
+            size_of::<u32>(),
+        );
+        core::ptr::copy_nonoverlapping(
+            amount.to_le_bytes().as_ptr(),
+            ptr.add(size_of::<u32>()),
+            size_of::<u64>(),
+        );
+        cpi_data.assume_init()
+    };
 
     // Build CPI instruction.
     let instruction = Instruction {
         program_id: &SYSTEM_PROGRAM_ID,
-        accounts: &account_metas,
+        accounts: &[
+            AccountMeta::writable_signer(sender.key()),
+            AccountMeta::writable(recipient.key()),
+        ],
         data: &cpi_data,
     };
 
