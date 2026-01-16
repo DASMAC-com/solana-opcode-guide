@@ -235,11 +235,15 @@ since no [signer seeds][pda signer] are required:
 ## :fuelpump: Compute unit analysis
 
 The final happy path check in the `test_asm` test consumes 1224 [compute units],
-though the vast majority of it is consumed by the CPI itself:
+though the vast majority of it is consumed by the CPI itself.
 
-::: details `test_asm` results
+::: details `test_asm`
 
-<<< ../../../examples/transfer/artifacts/tests/asm/result.txt{54-58}
+::: code-group
+
+<<< ../../../examples/transfer/artifacts/tests/asm/test.txt{rs} [Test]
+
+<<< ../../../examples/transfer/artifacts/tests/asm/result.txt{54-58} [Output]
 
 :::
 
