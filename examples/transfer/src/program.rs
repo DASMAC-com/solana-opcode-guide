@@ -2,9 +2,8 @@ use core::mem::size_of;
 use pinocchio::{
     account_info::AccountInfo,
     cpi::invoke,
-    entrypoint,
     instruction::{AccountMeta, Instruction},
-    no_allocator, nostd_panic_handler,
+    no_allocator, nostd_panic_handler, program_entrypoint,
     program_error::ProgramError,
     pubkey::Pubkey,
     ProgramResult,
@@ -21,34 +20,27 @@ const E_INSUFFICIENT_LAMPORTS: u32 = 7;
 
 const CPI_DATA_SIZE: usize = size_of::<u32>() + size_of::<u64>();
 
-enum AccountIndex {
-    Sender = 0,
-    Recipient = 1,
-}
-
-entrypoint!(process_instruction, N_INSTRUCTION_ACCOUNTS);
+program_entrypoint!(process_instruction, N_INSTRUCTION_ACCOUNTS);
 nostd_panic_handler!();
+no_allocator!();
 
 fn process_instruction(
     _program_id: &Pubkey,
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    // Validate accounts length.
-    if accounts.len() != N_INSTRUCTION_ACCOUNTS {
+    let [sender, recipient, _system_program] = accounts else {
         return Err(ProgramError::Custom(E_N_ACCOUNTS));
-    }
-
-    // Parse accounts.
-    let sender = &accounts[AccountIndex::Sender as usize];
-    let recipient = &accounts[AccountIndex::Recipient as usize];
+    };
 
     // Parse transfer amount.
-    let amount = u64::from_le_bytes(
-        instruction_data
-            .try_into()
-            .map_err(|_| ProgramError::Custom(E_INSTRUCTION_DATA_LENGTH))?,
-    );
+    if instruction_data.len() != size_of::<u64>() {
+        return Err(ProgramError::Custom(E_INSTRUCTION_DATA_LENGTH));
+    };
+    // SAFETY: instruction_data is validated to be the correct length.
+    let amount = unsafe {
+        u64::from_le_bytes(*(instruction_data.as_ptr() as *const [u8; size_of::<u64>()]))
+    };
 
     // Validate sender has sufficient Lamports.
     if sender.lamports() < amount {
