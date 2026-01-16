@@ -27,6 +27,16 @@ const EXPECTED_ASM_COMPUTE_UNITS: u64 = 1170;
 const EXPECTED_RS_COMPUTE_UNITS: u64 = 1229;
 const ALIGNMENT: usize = 8;
 
+fn happy_path_checks(instruction: &Instruction, expected_compute_units: u64) -> Vec<Check> {
+    vec![
+        Check::success(),
+        Check::account(&instruction.accounts[AccountIndex::Recipient as usize].pubkey)
+            .lamports(TRANSFER_AMOUNT)
+            .build(),
+        Check::compute_units(expected_compute_units),
+    ]
+}
+
 fn happy_path_setup(program_id: Pubkey) -> (Instruction, Vec<(Pubkey, Account)>) {
     let (system_program, system_account) = program::keyed_account_for_system_program();
     let instruction = Instruction::new_with_bytes(
@@ -226,15 +236,7 @@ fn test_asm() {
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &happy_path_accounts,
-        &[
-            Check::success(),
-            Check::account(
-                &happy_path_instruction.accounts[AccountIndex::Recipient as usize].pubkey,
-            )
-            .lamports(TRANSFER_AMOUNT)
-            .build(),
-            Check::compute_units(EXPECTED_ASM_COMPUTE_UNITS),
-        ],
+        &happy_path_checks(&happy_path_instruction, EXPECTED_ASM_COMPUTE_UNITS),
     );
 }
 
@@ -261,6 +263,19 @@ fn test_rs() {
         &[Check::err(ProgramError::InvalidArgument)],
     );
 
+    /*
+    // Check duplicate recipient account.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountIndex::Recipient as usize] =
+        happy_path_instruction.accounts[AccountIndex::Sender as usize].clone();
+    accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Recipient as usize] =
+        happy_path_accounts[AccountIndex::Sender as usize].clone();
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &happy_path_checks(&happy_path_instruction, EXPECTED_RS_COMPUTE_UNITS),
+    );
     // Check nonzero recipient data length.
     accounts = happy_path_accounts.clone();
     accounts[AccountIndex::Recipient as usize].1.data = vec![0];
@@ -269,6 +284,22 @@ fn test_rs() {
         &accounts,
         &[Check::success()],
     );
+
+    // Check duplicate system program account.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountIndex::SystemProgram as usize] =
+        happy_path_instruction.accounts[AccountIndex::Recipient as usize].clone();
+    accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::SystemProgram as usize] =
+        happy_path_accounts[AccountIndex::Recipient as usize].clone();
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM,
+        ))],
+    );
+     */
 
     // Check invalid instruction data length.
     instruction = happy_path_instruction.clone();
@@ -288,14 +319,93 @@ fn test_rs() {
         &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
     );
 
-    // Check happy path and print compute units for comparison.
+    /*
+    // Check invalid System Program account.
+    let mock_pubkey = Pubkey::new_unique();
+    assert_ne!(
+        mock_pubkey,
+        happy_path_instruction.accounts[AccountIndex::SystemProgram as usize].pubkey
+    );
+    accounts = happy_path_accounts.clone();
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountIndex::SystemProgram as usize].pubkey = mock_pubkey;
+    accounts[AccountIndex::SystemProgram as usize].0 = mock_pubkey;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::NotEnoughAccountKeys)],
+    );
+
+    // Check sender is not signer.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountIndex::Sender as usize].is_signer = false;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::instruction_err(
+            InstructionError::PrivilegeEscalation,
+        )],
+    );
+
+    // Check sender is not writable.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountIndex::Sender as usize].is_writable = false;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::instruction_err(
+            InstructionError::PrivilegeEscalation,
+        )],
+    );
+
+    // Check sender is executable.
+    accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Sender as usize].1.executable = true;
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::instruction_err(
+            InstructionError::UnbalancedInstruction,
+        )],
+    );
+
+    // Check recipient is signer.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountIndex::Recipient as usize].is_signer = true;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::success()],
+    );
+
+    // Check recipient is not writable.
+    instruction = happy_path_instruction.clone();
+    instruction.accounts[AccountIndex::Recipient as usize].is_writable = false;
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::instruction_err(
+            InstructionError::PrivilegeEscalation,
+        )],
+    );
+
+    // Check recipient is executable.
+    accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Recipient as usize].1.executable = true;
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::instruction_err(
+            InstructionError::ExternalAccountLamportSpend,
+        )],
+    );
+     */
+
+    // Check happy path.
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &happy_path_accounts,
-        &[
-            Check::success(),
-            Check::compute_units(EXPECTED_RS_COMPUTE_UNITS),
-        ],
+        &happy_path_checks(&happy_path_instruction, EXPECTED_RS_COMPUTE_UNITS),
     );
 }
 
