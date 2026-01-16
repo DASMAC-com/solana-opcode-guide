@@ -21,7 +21,10 @@ entrypoint:
     jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_recipient
 
     # Check if the System Account is a duplicate, since duplicate accounts
-    # have different field layouts.
+    # have different field layouts. The check for account data length
+    # is omitted for the System Program because if a caller passes an
+    # account that is not the System Account, the CPI will fail during
+    # program ID checks.
     ldxb r2, [r1 + SYSTEM_PROGRAM_OFFSET]
     jne r2, NON_DUP_MARKER, e_duplicate_account_system_program
 

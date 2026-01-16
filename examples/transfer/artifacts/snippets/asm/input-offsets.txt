@@ -6,6 +6,8 @@
 .equ PUBKEY_SIZE_OF, 32
 .equ U8_SIZE_OF, 8
 .equ U16_SIZE_OF, 16
+.equ BOOL_TRUE, 1
+.equ BOOL_FALSE, 0
 
 # Sender account.
 .equ SENDER_OFFSET, 8

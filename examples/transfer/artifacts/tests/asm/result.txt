@@ -21,16 +21,38 @@ test tests::test_asm ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 17 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x7
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program consumption: 1399813 units remaining
-[ ... DEBUG ... ] Program consumption: 1399712 units remaining
 [ ... DEBUG ... ] Unknown program 11111111111111111111111111111111
-[ ... DEBUG ... ] Program DASMAC... consumed 1289 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 1073 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: An account required by the instruction is missing
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program consumption: 1399813 units remaining
-[ ... DEBUG ... ] Program consumption: 1399712 units remaining
+[ ... DEBUG ... ] 11157t3sqMV725NVRLrVQbAu98Jjfk1uCKehJnXXQs's signer privilege escalated
+[ ... DEBUG ... ] Program DASMAC... consumed 1073 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: Cross-program invocation with unauthorized signer or writable account
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] 11157t3sqMV725NVRLrVQbAu98Jjfk1uCKehJnXXQs's writable privilege escalated
+[ ... DEBUG ... ] Program DASMAC... consumed 1073 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: Cross-program invocation with unauthorized signer or writable account
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 success
-[ ... DEBUG ... ] Program consumption: 1398460 units remaining
-[ ... DEBUG ... ] Program DASMAC... consumed 1541 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 1224 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1224 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] 1117mWrzzrZr312ebPDHu8tbfMwFNvCvMbr6WepCNG's writable privilege escalated
+[ ... DEBUG ... ] Program DASMAC... consumed 1073 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: Cross-program invocation with unauthorized signer or writable account
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1224 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: instruction spent from the balance of an account it does not own
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1224 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
