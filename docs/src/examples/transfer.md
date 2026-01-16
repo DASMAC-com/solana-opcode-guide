@@ -232,6 +232,23 @@ since no [signer seeds][pda signer] are required:
 
 :::
 
+## :fuelpump: Compute unit analysis
+
+The final happy path check in the `test_asm` test consumes 1224 [compute units],
+though the vast majority of it is consumed by the CPI itself:
+
+::: details `test_asm` results
+
+<<< ../../../examples/transfer/artifacts/tests/asm/result.txt{54-58}
+
+:::
+
+Specifically, each CPI invocation has a [base cost] of 946 CUs, and a 250
+[bytes per unit cost] individually assessed on [instruction data],
+[account metas], [account infos], and [account data]. In this example, all
+values besides the base cost truncate to zero since they are individually less
+than 250 bytes,
+
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`
@@ -244,6 +261,12 @@ since no [signer seeds][pda signer] are required:
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
+[account data]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L370-L374
+[Account infos]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L973-L980
+[Account metas]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L690-L695
+[instruction data]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L682-L684
+[base cost]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/execution_budget.rs#L20-L31
+[bytes per unit cost]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/execution_budget.rs#L205
 [4096 bytes]: https://docs.rs/solana-program-runtime/3.1.6/solana_program_runtime/execution_budget/constant.STACK_FRAME_SIZE.html
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
@@ -253,6 +276,7 @@ since no [signer seeds][pda signer] are required:
 [base58]: https://solana.com/docs/core/accounts#account-address
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
 [c-style array padding]: https://doc.rust-lang.org/reference/type-layout.html#reprc-unions
+[compute units]: https://solana.com/docs/references/terminology#compute-units
 [cpi]: https://solana.com/docs/core/cpi
 [cpi processor checks]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L829-L854
 [deserialized]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L597-L659
