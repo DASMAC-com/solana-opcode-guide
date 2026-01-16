@@ -24,7 +24,7 @@ export default {
   themeConfig: {
     editLink: {
       pattern:
-        "https://github.com/DASMAC-com/solana-opcode-guide/edit/main/docs/src/:path",
+        "https://github.com/DASMAC-com/solana-opcode-guide/blob/main/docs/src/:path",
       text: "Contribute to this page",
     },
     sidebar: [
