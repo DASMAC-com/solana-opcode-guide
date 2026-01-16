@@ -1,0 +1,112 @@
+    stxdw [r2 + CPI_INSN_DATA_AMOUNT_OFFSET], r4
+
+    # Parse sender account from input buffer into CPI metadata and info.
+    # Start with 1-byte fields that are copied, then 8-byte fields that are
+    # copied, then step through 8-byte pointers.
+    mov64 r2, r7 # Account metadata array pointer.
+    mov64 r3, r6 # Account info array pointer.
+
+    # Optimize out 2 CUs by replacing:
+    # ```
+    # ldxb r4, [r1 + SENDER_IS_SIGNER_OFFSET]
+    # stxb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], r4
+    # stxb [r3 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], r4
+    # ldxb r4, [r1 + SENDER_IS_WRITABLE_OFFSET]
+    # stxb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], r4
+    # stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_OFFSET], r4
+    # ```
+    # with the following, since the CPI call checks if the sender is both
+    # a signer and writable anyways:
+    stb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], BOOL_TRUE
+    stb [r3 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], BOOL_TRUE
+    stb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], BOOL_TRUE
+    stb [r3 + CPI_ACCT_INFO_IS_WRITABLE_OFFSET], BOOL_TRUE
+
+    # Optimize out 2 CUs by simply omitting the following, since the CPI
+    # checks anyways and the stack initializes to zero.
+    # ```
+    # ldxb r4, [r1 + SENDER_IS_EXECUTABLE_OFFSET]
+    # stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_OFFSET], r4
+    # ```
+
+    # Optimize out two CUs by simply omitting these lines, which aren't
+    # necessary since data length has been verified as zero and the stack
+    # is initially zeroed out.
+    # ```
+    # ldxdw r4, [r1 + SENDER_DATA_LENGTH_OFFSET]
+    # stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_OFFSET], r4
+    # ```
+    ldxdw r4, [r1 + SENDER_RENT_EPOCH_OFFSET]
+    stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_OFFSET], r4
+    mov64 r4, r1 # Begin stepping through pointer fields.
+    add64 r4, SENDER_PUBKEY_OFFSET # Step to pubkey field pointer.
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
+    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
+    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET], r4
+    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
+    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
+
+    # Repeat for recipient account, but start by stepping through pointer
+    # fields as an optimization. Optimize out two CUs by eliminating the
+    # following:
+    # ```
+    # add64 r2, CPI_ACCT_META_SIZE_OF # Step to next array element.
+    # add64 r3, CPI_ACCT_INFO_SIZE_OF # Step to next array element.
+    # ```
+    # in lieu of using account meta and account info offsets specifically
+    # for the recipient account. Specifically, replace any `CPI_..._OFFSET`
+    # values from the sender account parsing block with corresponding
+    # `CPI_..._RECIPIENT_OFFSET` values.
+
+    # Optimize out one CU by replacing the following:
+    # ```
+    # mov64 r4, r1
+    # add64 r4, RECIPIENT_PUBKEY_OFFSET
+    # ```
+    # with the following line, which uses a single known relative offset,
+    # to continue stepping through successive pointers.
+    add64 r4, RECIPIENT_PUBKEY_OFFSET_RELATIVE_TO_SENDER_DATA_OFFSET
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_RECIPIENT_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_RECIPIENT_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
+    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_RECIPIENT_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
+    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_RECIPIENT_OFFSET], r4
+    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
+    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_RECIPIENT_OFFSET], r4
+
+    # Copy individual fields, optimizing out 5 CUs by simply omitting the
+    # following, which are validated by CPI anyways and since the stack
+    # initializes to zero. Note that it doesn't actually matter if the
+    # recipient is a signer or not.
+    # ```
+    # ldxb r4, [r1 + RECIPIENT_IS_SIGNER_OFFSET]
+    # stxb [r2 + CPI_ACCT_META_IS_SIGNER_RECIPIENT_OFFSET], r4
+    # stxb [r3 + CPI_ACCT_INFO_IS_SIGNER_RECIPIENT_OFFSET], r4
+    # ldxb r4, [r1 + RECIPIENT_IS_EXECUTABLE_OFFSET]
+    # stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_RECIPIENT_OFFSET], r4
+    # ```
+    # Optimize out 1 CU by replacing the following:
+    # ```
+    # ldxb r4, [r1 + RECIPIENT_IS_WRITABLE_OFFSET]
+    # stxb [r2 + CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET], r4
+    # stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET], r4
+    # ```
+    # with:
+    stb [r2 + CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET], BOOL_TRUE
+    stb [r3 + CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET], BOOL_TRUE
+
+    # Optimize out two CUs by simply omitting these lines, which aren't
+    # necessary since data length has been verified as zero and the stack
+    # is initially zeroed out.
+    # ```
+    # ldxdw r4, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
+    # stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET], r4
+    # ```
+    ldxdw r4, [r1 + RECIPIENT_RENT_EPOCH_OFFSET]
+    stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET], r4
+
+    # Invoke CPI.

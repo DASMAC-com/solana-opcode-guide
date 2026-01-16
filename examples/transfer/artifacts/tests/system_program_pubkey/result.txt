@@ -1,0 +1,1 @@
+test tests::test_system_program_pubkey ... ok

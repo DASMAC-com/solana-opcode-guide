@@ -1,0 +1,24 @@
+    sub64 r6, STACK_ACCT_INFOS_OFFSET
+
+    # Set up instruction.
+    mov64 r2, r9 # Load pointer to CPI instruction on stack.
+    mov64 r3, r10 # Get stack frame pointer.
+    # Point to known zeroes, rather than trust user passed System Program.
+    sub64 r3, STACK_SYSTEM_PROGRAM_PUBKEY_OFFSET
+    stxdw [r2 + CPI_INSN_PROGRAM_ID_ADDR_OFFSET], r3
+    mov64 r3, r7 # Load pointer to CPI instruction account metas on stack.
+    stxdw [r2 + CPI_INSN_ACCOUNTS_ADDR_OFFSET], r3
+    # Accounts length fits in 32-bit immediate.
+    stdw [r2 + CPI_INSN_ACCOUNTS_LEN_OFFSET], CPI_ACCOUNTS_LEN
+    mov64 r3, r8 # Load pointer to CPI instruction data on stack.
+    stxdw [r2 + CPI_INSN_DATA_ADDR_OFFSET], r3
+    # Instruction data length fits in 32-bit immediate.
+    stdw [r2 + CPI_INSN_DATA_LEN_OFFSET], CPI_INSN_DATA_LEN
+
+    # Set up instruction data.
+    mov64 r2, r8 # Pointer to instruction data on stack.
+    mov32 r3, CPI_INSN_DATA_VARIANT
+    stxw [r2 + CPI_INSN_DATA_VARIANT_OFFSET], r3
+    stxdw [r2 + CPI_INSN_DATA_AMOUNT_OFFSET], r4
+
+    # Parse sender account from input buffer into CPI metadata and info.

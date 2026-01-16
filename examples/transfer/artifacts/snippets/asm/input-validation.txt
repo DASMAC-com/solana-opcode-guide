@@ -1,0 +1,42 @@
+.global entrypoint
+
+entrypoint:
+    # Check number of accounts.
+    ldxdw r2, [r1 + N_ACCOUNTS_OFFSET]
+    jne r2, N_ACCOUNTS_EXPECTED, e_n_accounts
+
+    # Check sender data length, since a nonzero length would invalidate
+    # subsequent offsets.
+    ldxdw r2, [r1 + SENDER_DATA_LENGTH_OFFSET]
+    jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_sender
+
+    # Check if the recipient account is a duplicate, since duplicate
+    # accounts have different field layouts.
+    ldxb r2, [r1 + RECIPIENT_OFFSET]
+    jne r2, NON_DUP_MARKER, e_duplicate_account_recipient
+
+    # Check recipient data length, since a nonzero length would invalidate
+    # subsequent offsets.
+    ldxdw r2, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
+    jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_recipient
+
+    # Check if the System Account is a duplicate, since duplicate accounts
+    # have different field layouts. The check for account data length
+    # is omitted for the System Program because if a caller passes an
+    # account that is not the System Account, the CPI will fail during
+    # program ID checks.
+    ldxb r2, [r1 + SYSTEM_PROGRAM_OFFSET]
+    jne r2, NON_DUP_MARKER, e_duplicate_account_system_program
+
+    # Check instruction data length.
+    ldxdw r4, [r1 + INSTRUCTION_DATA_LENGTH_OFFSET]
+    jne r4, INSTRUCTION_DATA_LENGTH_EXPECTED, e_instruction_data_length
+
+    # Verify sender has at least as many Lamports as they are trying to
+    # send. Technically this could be done after checking the number of
+    # accounts since Lamports balance comes before account data length, but
+    # in the happy path both checks need to be done anyways and it is
+    # cleaner to do all layout validation first.
+    ldxdw r4, [r1 + INSTRUCTION_DATA_OFFSET]
+    ldxdw r2, [r1 + SENDER_LAMPORTS_OFFSET]
+    jlt r2, r4, e_insufficient_lamports

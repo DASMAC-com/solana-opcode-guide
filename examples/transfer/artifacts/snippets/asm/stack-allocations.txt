@@ -1,0 +1,13 @@
+    jlt r2, r4, e_insufficient_lamports
+
+    # Allocate CPI data regions on stack.
+    mov64 r9, r10
+    sub64 r9, STACK_INSN_OFFSET
+    mov64 r8, r10
+    sub64 r8, STACK_INSN_DATA_OFFSET
+    mov64 r7, r10
+    sub64 r7, STACK_ACCT_METAS_OFFSET
+    mov64 r6, r10
+    sub64 r6, STACK_ACCT_INFOS_OFFSET
+
+    # Set up instruction.

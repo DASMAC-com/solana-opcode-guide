@@ -10,13 +10,20 @@ example from this guide where it is used.
 | ---------- | ------------- | ---------------------------------- | -------------- |
 | [`0x07`]   | [`ADD64_IMM`] | [`add64 dst, imm`][`0x07`]         | [Memo]         |
 | [`0x14`]   | [`SUB32_IMM`] | [`sub32 dst, imm`][`0x14`]         | [Fibonacci]    |
+| [`0x17`]   | [`SUB64_IMM`] | [`sub64 dst, imm`][`0x17`]         | [Transfer]     |
 | [`0x18`]   | [`LD_DW_IMM`] | [`lddw dst, imm`][`0x18`]          | [Quickstart]   |
 | [`0x25`]   | [`JGT_IMM`]   | [`jgt dst, imm, off`][`0x25`]      | [Fibonacci]    |
+| [`0x55`]   | [`JNE_IMM`]   | [`jne dst, imm, off`][`0x55`]      | [Transfer]     |
 | [`0x5d`]   | [`JNE_REG`]   | [`jne dst, src, off`][`0x5d`]      | [Memo]         |
+| [`0x63`]   | [`ST_W_REG`]  | [`stxw [dst + off], src`][`0x63`]  | [Transfer]     |
 | [`0x71`]   | [`LD_B_REG`]  | [`ldxb dst, [src + off]`][`0x71`]  | [Fibonacci]    |
+| [`0x72`]   | [`ST_B_IMM`]  | [`stb [dst + off], imm`][`0x72`]   | [Transfer]     |
 | [`0x79`]   | [`LD_DW_REG`] | [`ldxdw dst, [src + off]`][`0x79`] | [Memo]         |
+| [`0x7a`]   | [`ST_DW_IMM`] | [`stdw [dst + off], imm`][`0x7a`]  | [Transfer]     |
+| [`0x7b`]   | [`ST_DW_REG`] | [`stxdw [dst + off], src`][`0x7b`] | [Transfer]     |
 | [`0x85`]   | [`CALL_IMM`]  | [`call imm`][`0x85`]               | [Quickstart]   |
 | [`0x95`]   | [`EXIT`]      | [`exit`][`0x95`]                   | [Quickstart]   |
+| [`0xad`]   | [`JLT_REG`]   | [`jlt dst, src, off`][`0xad`]      | [Transfer]     |
 | [`0xb4`]   | [`MOV32_IMM`] | [`mov32 dst, imm`][`0xb4`]         | [Fibonacci]    |
 | [`0xb7`]   | [`MOV64_IMM`] | [`mov64 dst, imm`][`0xb7`]         | [Fibonacci]    |
 | [`0xbf`]   | [`MOV64_REG`] | [`mov64 dst, src`][`0xbf`]         | [Fibonacci]    |
@@ -28,15 +35,23 @@ example from this guide where it is used.
 [quickstart]: quickstart
 [rust implementation constant name]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
 [sbpf bytecode isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md
+[transfer]: examples/transfer
 [`0x07`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L130
 [`0x14`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L87
+[`0x17`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L132
 [`0x18`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L222
 [`0x25`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L278
+[`0x55`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L284
 [`0x5d`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L285
+[`0x63`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L246
 [`0x71`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L230
+[`0x72`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L239
 [`0x79`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L231
+[`0x7a`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L240
+[`0x7b`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L249
 [`0x85`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L290
 [`0x95`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L294
+[`0xad`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L299
 [`0xb4`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L117
 [`0xb7`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L161
 [`0xbf`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L162
@@ -44,6 +59,8 @@ example from this guide where it is used.
 [`call_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.CALL_IMM.html
 [`exit`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.EXIT.html
 [`jgt_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JGT_IMM.html
+[`jlt_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JLT_REG.html
+[`jne_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_IMM.html
 [`jne_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_REG.html
 [`ld_b_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_B_REG.html
 [`ld_dw_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_DW_IMM.html
@@ -51,4 +68,9 @@ example from this guide where it is used.
 [`mov32_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MOV32_IMM.html
 [`mov64_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MOV64_IMM.html
 [`mov64_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MOV64_REG.html
+[`st_b_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_B_IMM.html
+[`st_dw_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_DW_IMM.html
+[`st_dw_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_DW_REG.html
+[`st_w_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_W_REG.html
 [`sub32_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.SUB32_IMM.html
+[`sub64_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.SUB64_IMM.html

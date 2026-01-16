@@ -1,0 +1,336 @@
+# Invalid number of accounts.
+.equ E_N_ACCOUNTS, 1
+# Sender data length is nonzero.
+.equ E_DATA_LENGTH_NONZERO_SENDER, 2
+# Recipient account is a duplicate.
+.equ E_DUPLICATE_ACCOUNT_RECIPIENT, 3
+# Recipient data length is nonzero.
+.equ E_DATA_LENGTH_NONZERO_RECIPIENT, 4
+# System program account is a duplicate.
+.equ E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM, 5
+# Invalid instruction data length.
+.equ E_INSTRUCTION_DATA_LENGTH, 6
+# Sender has insufficient Lamports.
+.equ E_INSUFFICIENT_LAMPORTS, 7
+
+# Stack offsets.
+.equ STACK_SYSTEM_PROGRAM_PUBKEY_OFFSET, 232
+.equ STACK_INSN_OFFSET, 200
+.equ STACK_INSN_DATA_OFFSET, 160
+.equ STACK_ACCT_METAS_OFFSET, 144
+.equ STACK_ACCT_INFOS_OFFSET, 112
+
+# CPI instruction offsets.
+.equ CPI_INSN_PROGRAM_ID_ADDR_OFFSET, 0
+.equ CPI_INSN_ACCOUNTS_ADDR_OFFSET, 8
+.equ CPI_INSN_ACCOUNTS_LEN_OFFSET, 16
+.equ CPI_INSN_DATA_ADDR_OFFSET, 24
+.equ CPI_INSN_DATA_LEN_OFFSET, 32
+
+# CPI account meta offsets.
+.equ CPI_ACCT_META_PUBKEY_ADDR_OFFSET, 0
+.equ CPI_ACCT_META_IS_WRITABLE_OFFSET, 8
+.equ CPI_ACCT_META_IS_SIGNER_OFFSET, 9
+.equ CPI_ACCT_META_SIZE_OF, 16
+
+# CPI account meta offsets for recipient.
+.equ CPI_ACCT_META_PUBKEY_ADDR_RECIPIENT_OFFSET, 16
+.equ CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET, 24
+.equ CPI_ACCT_META_IS_SIGNER_RECIPIENT_OFFSET, 25
+
+# CPI account info offsets.
+.equ CPI_ACCT_INFO_KEY_ADDR_OFFSET, 0
+.equ CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET, 8
+.equ CPI_ACCT_INFO_DATA_LEN_OFFSET, 16
+.equ CPI_ACCT_INFO_DATA_ADDR_OFFSET, 24
+.equ CPI_ACCT_INFO_OWNER_ADDR_OFFSET, 32
+.equ CPI_ACCT_INFO_RENT_EPOCH_OFFSET, 40
+.equ CPI_ACCT_INFO_IS_SIGNER_OFFSET, 48
+.equ CPI_ACCT_INFO_IS_WRITABLE_OFFSET, 49
+.equ CPI_ACCT_INFO_EXECUTABLE_OFFSET, 50
+.equ CPI_ACCT_INFO_SIZE_OF, 56
+
+# CPI account info offsets for recipient.
+.equ CPI_ACCT_INFO_KEY_ADDR_RECIPIENT_OFFSET, 56
+.equ CPI_ACCT_INFO_LAMPORTS_ADDR_RECIPIENT_OFFSET, 64
+.equ CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET, 72
+.equ CPI_ACCT_INFO_DATA_ADDR_RECIPIENT_OFFSET, 80
+.equ CPI_ACCT_INFO_OWNER_ADDR_RECIPIENT_OFFSET, 88
+.equ CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET, 96
+.equ CPI_ACCT_INFO_IS_SIGNER_RECIPIENT_OFFSET, 104
+.equ CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET, 105
+.equ CPI_ACCT_INFO_EXECUTABLE_RECIPIENT_OFFSET, 106
+
+# CPI instruction data offsets.
+.equ CPI_INSN_DATA_VARIANT_OFFSET, 0
+.equ CPI_INSN_DATA_AMOUNT_OFFSET, 4
+.equ CPI_INSN_DATA_LEN, 12
+
+# CPI general constants.
+.equ CPI_INSN_DATA_VARIANT, 2
+.equ CPI_ACCOUNTS_LEN, 2
+
+# Account layout.
+.equ N_ACCOUNTS_OFFSET, 0
+.equ N_ACCOUNTS_EXPECTED, 3
+.equ NON_DUP_MARKER, 0xff
+.equ DATA_LENGTH_ZERO, 0
+.equ PUBKEY_SIZE_OF, 32
+.equ U8_SIZE_OF, 8
+.equ U16_SIZE_OF, 16
+.equ BOOL_TRUE, 1
+.equ BOOL_FALSE, 0
+
+# Sender account.
+.equ SENDER_OFFSET, 8
+.equ SENDER_IS_SIGNER_OFFSET, 9
+.equ SENDER_IS_WRITABLE_OFFSET, 10
+.equ SENDER_IS_EXECUTABLE_OFFSET, 11
+.equ SENDER_PUBKEY_OFFSET, 16
+.equ SENDER_LAMPORTS_OFFSET, 80
+.equ SENDER_DATA_LENGTH_OFFSET, 88
+.equ SENDER_RENT_EPOCH_OFFSET, 10336
+
+# Recipient account.
+.equ RECIPIENT_OFFSET, 10344
+.equ RECIPIENT_PUBKEY_OFFSET, 10352
+.equ RECIPIENT_IS_SIGNER_OFFSET, 10345
+.equ RECIPIENT_IS_WRITABLE_OFFSET, 10346
+.equ RECIPIENT_IS_EXECUTABLE_OFFSET, 10347
+.equ RECIPIENT_DATA_LENGTH_OFFSET, 10424
+.equ RECIPIENT_RENT_EPOCH_OFFSET, 20672
+.equ RECIPIENT_PUBKEY_OFFSET_RELATIVE_TO_SENDER_DATA_OFFSET, 10256
+
+# System program account.
+.equ SYSTEM_PROGRAM_OFFSET, 20680
+.equ SYSTEM_PROGRAM_PUBKEY_OFFSET, 20688
+
+# Transfer input.
+.equ INSTRUCTION_DATA_LENGTH_OFFSET, 31032
+.equ INSTRUCTION_DATA_LENGTH_EXPECTED, 8
+.equ INSTRUCTION_DATA_OFFSET, 31040
+
+.global entrypoint
+
+entrypoint:
+    # Check number of accounts.
+    ldxdw r2, [r1 + N_ACCOUNTS_OFFSET]
+    jne r2, N_ACCOUNTS_EXPECTED, e_n_accounts
+
+    # Check sender data length, since a nonzero length would invalidate
+    # subsequent offsets.
+    ldxdw r2, [r1 + SENDER_DATA_LENGTH_OFFSET]
+    jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_sender
+
+    # Check if the recipient account is a duplicate, since duplicate
+    # accounts have different field layouts.
+    ldxb r2, [r1 + RECIPIENT_OFFSET]
+    jne r2, NON_DUP_MARKER, e_duplicate_account_recipient
+
+    # Check recipient data length, since a nonzero length would invalidate
+    # subsequent offsets.
+    ldxdw r2, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
+    jne r2, DATA_LENGTH_ZERO, e_data_length_nonzero_recipient
+
+    # Check if the System Account is a duplicate, since duplicate accounts
+    # have different field layouts. The check for account data length
+    # is omitted for the System Program because if a caller passes an
+    # account that is not the System Account, the CPI will fail during
+    # program ID checks.
+    ldxb r2, [r1 + SYSTEM_PROGRAM_OFFSET]
+    jne r2, NON_DUP_MARKER, e_duplicate_account_system_program
+
+    # Check instruction data length.
+    ldxdw r4, [r1 + INSTRUCTION_DATA_LENGTH_OFFSET]
+    jne r4, INSTRUCTION_DATA_LENGTH_EXPECTED, e_instruction_data_length
+
+    # Verify sender has at least as many Lamports as they are trying to
+    # send. Technically this could be done after checking the number of
+    # accounts since Lamports balance comes before account data length, but
+    # in the happy path both checks need to be done anyways and it is
+    # cleaner to do all layout validation first.
+    ldxdw r4, [r1 + INSTRUCTION_DATA_OFFSET]
+    ldxdw r2, [r1 + SENDER_LAMPORTS_OFFSET]
+    jlt r2, r4, e_insufficient_lamports
+
+    # Allocate CPI data regions on stack.
+    mov64 r9, r10
+    sub64 r9, STACK_INSN_OFFSET
+    mov64 r8, r10
+    sub64 r8, STACK_INSN_DATA_OFFSET
+    mov64 r7, r10
+    sub64 r7, STACK_ACCT_METAS_OFFSET
+    mov64 r6, r10
+    sub64 r6, STACK_ACCT_INFOS_OFFSET
+
+    # Set up instruction.
+    mov64 r2, r9 # Load pointer to CPI instruction on stack.
+    mov64 r3, r10 # Get stack frame pointer.
+    # Point to known zeroes, rather than trust user passed System Program.
+    sub64 r3, STACK_SYSTEM_PROGRAM_PUBKEY_OFFSET
+    stxdw [r2 + CPI_INSN_PROGRAM_ID_ADDR_OFFSET], r3
+    mov64 r3, r7 # Load pointer to CPI instruction account metas on stack.
+    stxdw [r2 + CPI_INSN_ACCOUNTS_ADDR_OFFSET], r3
+    # Accounts length fits in 32-bit immediate.
+    stdw [r2 + CPI_INSN_ACCOUNTS_LEN_OFFSET], CPI_ACCOUNTS_LEN
+    mov64 r3, r8 # Load pointer to CPI instruction data on stack.
+    stxdw [r2 + CPI_INSN_DATA_ADDR_OFFSET], r3
+    # Instruction data length fits in 32-bit immediate.
+    stdw [r2 + CPI_INSN_DATA_LEN_OFFSET], CPI_INSN_DATA_LEN
+
+    # Set up instruction data.
+    mov64 r2, r8 # Pointer to instruction data on stack.
+    mov32 r3, CPI_INSN_DATA_VARIANT
+    stxw [r2 + CPI_INSN_DATA_VARIANT_OFFSET], r3
+    stxdw [r2 + CPI_INSN_DATA_AMOUNT_OFFSET], r4
+
+    # Parse sender account from input buffer into CPI metadata and info.
+    # Start with 1-byte fields that are copied, then 8-byte fields that are
+    # copied, then step through 8-byte pointers.
+    mov64 r2, r7 # Account metadata array pointer.
+    mov64 r3, r6 # Account info array pointer.
+
+    # Optimize out 2 CUs by replacing:
+    # ```
+    # ldxb r4, [r1 + SENDER_IS_SIGNER_OFFSET]
+    # stxb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], r4
+    # stxb [r3 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], r4
+    # ldxb r4, [r1 + SENDER_IS_WRITABLE_OFFSET]
+    # stxb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], r4
+    # stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_OFFSET], r4
+    # ```
+    # with the following, since the CPI call checks if the sender is both
+    # a signer and writable anyways:
+    stb [r2 + CPI_ACCT_META_IS_SIGNER_OFFSET], BOOL_TRUE
+    stb [r3 + CPI_ACCT_INFO_IS_SIGNER_OFFSET], BOOL_TRUE
+    stb [r2 + CPI_ACCT_META_IS_WRITABLE_OFFSET], BOOL_TRUE
+    stb [r3 + CPI_ACCT_INFO_IS_WRITABLE_OFFSET], BOOL_TRUE
+
+    # Optimize out 2 CUs by simply omitting the following, since the CPI
+    # checks anyways and the stack initializes to zero.
+    # ```
+    # ldxb r4, [r1 + SENDER_IS_EXECUTABLE_OFFSET]
+    # stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_OFFSET], r4
+    # ```
+
+    # Optimize out two CUs by simply omitting these lines, which aren't
+    # necessary since data length has been verified as zero and the stack
+    # is initially zeroed out.
+    # ```
+    # ldxdw r4, [r1 + SENDER_DATA_LENGTH_OFFSET]
+    # stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_OFFSET], r4
+    # ```
+    ldxdw r4, [r1 + SENDER_RENT_EPOCH_OFFSET]
+    stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_OFFSET], r4
+    mov64 r4, r1 # Begin stepping through pointer fields.
+    add64 r4, SENDER_PUBKEY_OFFSET # Step to pubkey field pointer.
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
+    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
+    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET], r4
+    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
+    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
+
+    # Repeat for recipient account, but start by stepping through pointer
+    # fields as an optimization. Optimize out two CUs by eliminating the
+    # following:
+    # ```
+    # add64 r2, CPI_ACCT_META_SIZE_OF # Step to next array element.
+    # add64 r3, CPI_ACCT_INFO_SIZE_OF # Step to next array element.
+    # ```
+    # in lieu of using account meta and account info offsets specifically
+    # for the recipient account. Specifically, replace any `CPI_..._OFFSET`
+    # values from the sender account parsing block with corresponding
+    # `CPI_..._RECIPIENT_OFFSET` values.
+
+    # Optimize out one CU by replacing the following:
+    # ```
+    # mov64 r4, r1
+    # add64 r4, RECIPIENT_PUBKEY_OFFSET
+    # ```
+    # with the following line, which uses a single known relative offset,
+    # to continue stepping through successive pointers.
+    add64 r4, RECIPIENT_PUBKEY_OFFSET_RELATIVE_TO_SENDER_DATA_OFFSET
+    stxdw [r2 + CPI_ACCT_META_PUBKEY_ADDR_RECIPIENT_OFFSET], r4
+    stxdw [r3 + CPI_ACCT_INFO_KEY_ADDR_RECIPIENT_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to owner field pointer.
+    stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_RECIPIENT_OFFSET], r4
+    add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
+    stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_RECIPIENT_OFFSET], r4
+    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
+    stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_RECIPIENT_OFFSET], r4
+
+    # Copy individual fields, optimizing out 5 CUs by simply omitting the
+    # following, which are validated by CPI anyways and since the stack
+    # initializes to zero. Note that it doesn't actually matter if the
+    # recipient is a signer or not.
+    # ```
+    # ldxb r4, [r1 + RECIPIENT_IS_SIGNER_OFFSET]
+    # stxb [r2 + CPI_ACCT_META_IS_SIGNER_RECIPIENT_OFFSET], r4
+    # stxb [r3 + CPI_ACCT_INFO_IS_SIGNER_RECIPIENT_OFFSET], r4
+    # ldxb r4, [r1 + RECIPIENT_IS_EXECUTABLE_OFFSET]
+    # stxb [r3 + CPI_ACCT_INFO_EXECUTABLE_RECIPIENT_OFFSET], r4
+    # ```
+    # Optimize out 1 CU by replacing the following:
+    # ```
+    # ldxb r4, [r1 + RECIPIENT_IS_WRITABLE_OFFSET]
+    # stxb [r2 + CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET], r4
+    # stxb [r3 + CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET], r4
+    # ```
+    # with:
+    stb [r2 + CPI_ACCT_META_IS_WRITABLE_RECIPIENT_OFFSET], BOOL_TRUE
+    stb [r3 + CPI_ACCT_INFO_IS_WRITABLE_RECIPIENT_OFFSET], BOOL_TRUE
+
+    # Optimize out two CUs by simply omitting these lines, which aren't
+    # necessary since data length has been verified as zero and the stack
+    # is initially zeroed out.
+    # ```
+    # ldxdw r4, [r1 + RECIPIENT_DATA_LENGTH_OFFSET]
+    # stxdw [r3 + CPI_ACCT_INFO_DATA_LEN_RECIPIENT_OFFSET], r4
+    # ```
+    ldxdw r4, [r1 + RECIPIENT_RENT_EPOCH_OFFSET]
+    stxdw [r3 + CPI_ACCT_INFO_RENT_EPOCH_RECIPIENT_OFFSET], r4
+
+    # Invoke CPI.
+    mov64 r1, r9 # Instruction.
+    mov64 r2, r6 # Account infos.
+    mov64 r3, CPI_ACCOUNTS_LEN # Number of account infos.
+    mov64 r4, 0 # No signer seeds.
+    # Optimize out 1 CU by eliminating the following:
+    # ```
+    # mov64 r5, 0 # No signer seeds.
+    # ```
+    # Since r5 is initialized to zero and is not used in this example.
+    call sol_invoke_signed_c
+
+    exit
+
+e_duplicate_account_recipient:
+    mov32 r0, E_DUPLICATE_ACCOUNT_RECIPIENT
+    exit
+
+e_duplicate_account_system_program:
+    mov32 r0, E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM
+    exit
+
+e_instruction_data_length:
+    mov32 r0, E_INSTRUCTION_DATA_LENGTH
+    exit
+
+e_insufficient_lamports:
+    mov32 r0, E_INSUFFICIENT_LAMPORTS
+    exit
+
+e_n_accounts:
+    mov32 r0, E_N_ACCOUNTS
+    exit
+
+e_data_length_nonzero_recipient:
+    mov32 r0, E_DATA_LENGTH_NONZERO_RECIPIENT
+    exit
+
+e_data_length_nonzero_sender:
+    mov32 r0, E_DATA_LENGTH_NONZERO_SENDER
+    exit
