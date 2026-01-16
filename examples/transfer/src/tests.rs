@@ -23,6 +23,7 @@ enum AccountIndex {
 
 const TRANSFER_AMOUNT: u64 = 10;
 const COMPUTE_UNIT_OVERHEAD: u64 = 10_000;
+const EXPECTED_ASM_COMPUTE_UNITS: u64 = 1224;
 const ALIGNMENT: usize = 8;
 
 #[test]
@@ -228,6 +229,7 @@ fn test_asm() {
             )
             .lamports(TRANSFER_AMOUNT)
             .build(),
+            Check::compute_units(EXPECTED_ASM_COMPUTE_UNITS),
         ],
     );
 }
