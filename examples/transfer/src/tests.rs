@@ -235,6 +235,104 @@ fn test_asm() {
 }
 
 #[test]
+fn test_rs() {
+    let setup = setup_test(ProgramLanguage::Rust);
+
+    // Set up happy path accounts and instruction data.
+    let (system_program, system_account) = program::keyed_account_for_system_program();
+    let happy_path_instruction = Instruction::new_with_bytes(
+        setup.program_id,
+        &TRANSFER_AMOUNT.to_le_bytes(),
+        vec![
+            AccountMeta::new(Pubkey::new_unique(), true),
+            AccountMeta::new(Pubkey::new_unique(), false),
+            AccountMeta::new_readonly(system_program, false),
+        ],
+    );
+    let happy_path_accounts = vec![
+        (
+            happy_path_instruction.accounts[AccountIndex::Sender as usize].pubkey,
+            Account::new(TRANSFER_AMOUNT + COMPUTE_UNIT_OVERHEAD, 0, &system_program),
+        ),
+        (
+            happy_path_instruction.accounts[AccountIndex::Recipient as usize].pubkey,
+            Account::new(0, 0, &system_program),
+        ),
+        (system_program, system_account.clone()),
+    ];
+
+    // Check no accounts passed.
+    let mut instruction = happy_path_instruction.clone();
+    instruction.accounts.clear();
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &[],
+        &[Check::err(ProgramError::Custom(E_N_ACCOUNTS))],
+    );
+
+    // Check nonzero sender data length.
+    let mut accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Sender as usize].1.data = vec![0];
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_DATA_LENGTH_NONZERO_SENDER,
+        ))],
+    );
+
+    // Check nonzero recipient data length.
+    accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Recipient as usize].1.data = vec![0];
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            E_DATA_LENGTH_NONZERO_RECIPIENT,
+        ))],
+    );
+
+    // Check invalid instruction data length.
+    instruction = happy_path_instruction.clone();
+    instruction.data.clear();
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &happy_path_accounts,
+        &[Check::err(ProgramError::Custom(E_INSTRUCTION_DATA_LENGTH))],
+    );
+
+    // Check insufficient Lamports.
+    accounts = happy_path_accounts.clone();
+    accounts[AccountIndex::Sender as usize].1.lamports = TRANSFER_AMOUNT - 1;
+    setup.mollusk.process_and_validate_instruction(
+        &happy_path_instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(E_INSUFFICIENT_LAMPORTS))],
+    );
+
+    // Check happy path and print compute units for comparison.
+    let result = setup
+        .mollusk
+        .process_instruction(&happy_path_instruction, &happy_path_accounts);
+    assert!(
+        result.program_result.is_ok(),
+        "Rust transfer failed: {:?}",
+        result.program_result
+    );
+    assert_eq!(
+        result
+            .get_account(&happy_path_instruction.accounts[AccountIndex::Recipient as usize].pubkey)
+            .unwrap()
+            .lamports,
+        TRANSFER_AMOUNT
+    );
+    println!(
+        "Rust implementation compute units: {} (assembly: {})",
+        result.compute_units_consumed, EXPECTED_ASM_COMPUTE_UNITS
+    );
+}
+
+#[test]
 fn test_input_offsets() {
     const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
 
