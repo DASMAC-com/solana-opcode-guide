@@ -15,7 +15,7 @@ const E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM: u32 = 5;
 const E_INSTRUCTION_DATA_LENGTH: u32 = 6;
 const E_INSUFFICIENT_LAMPORTS: u32 = 7;
 
-enum AccountPosition {
+enum AccountIndex {
     Sender = 0,
     Recipient = 1,
     SystemProgram = 2,
@@ -48,11 +48,11 @@ fn test_asm() {
     );
     let happy_path_accounts = vec![
         (
-            happy_path_instruction.accounts[AccountPosition::Sender as usize].pubkey,
+            happy_path_instruction.accounts[AccountIndex::Sender as usize].pubkey,
             Account::new(TRANSFER_AMOUNT + COMPUTE_UNIT_OVERHEAD, 0, &system_program),
         ),
         (
-            happy_path_instruction.accounts[AccountPosition::Recipient as usize].pubkey,
+            happy_path_instruction.accounts[AccountIndex::Recipient as usize].pubkey,
             Account::new(0, 0, &system_program),
         ),
         (system_program, system_account.clone()),
@@ -69,7 +69,7 @@ fn test_asm() {
 
     // Check nonzero sender data length.
     let mut accounts = happy_path_accounts.clone();
-    accounts[AccountPosition::Sender as usize].1.data = vec![0];
+    accounts[AccountIndex::Sender as usize].1.data = vec![0];
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &accounts,
@@ -80,11 +80,11 @@ fn test_asm() {
 
     // Check duplicate recipient account.
     instruction = happy_path_instruction.clone();
-    instruction.accounts[AccountPosition::Recipient as usize] =
-        happy_path_instruction.accounts[AccountPosition::Sender as usize].clone();
+    instruction.accounts[AccountIndex::Recipient as usize] =
+        happy_path_instruction.accounts[AccountIndex::Sender as usize].clone();
     accounts = happy_path_accounts.clone();
-    accounts[AccountPosition::Recipient as usize] =
-        happy_path_accounts[AccountPosition::Sender as usize].clone();
+    accounts[AccountIndex::Recipient as usize] =
+        happy_path_accounts[AccountIndex::Sender as usize].clone();
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
@@ -95,7 +95,7 @@ fn test_asm() {
 
     // Check nonzero recipient data length.
     accounts = happy_path_accounts.clone();
-    accounts[AccountPosition::Recipient as usize].1.data = vec![0];
+    accounts[AccountIndex::Recipient as usize].1.data = vec![0];
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &accounts,
@@ -106,11 +106,11 @@ fn test_asm() {
 
     // Check duplicate system program account.
     instruction = happy_path_instruction.clone();
-    instruction.accounts[AccountPosition::SystemProgram as usize] =
-        happy_path_instruction.accounts[AccountPosition::Recipient as usize].clone();
+    instruction.accounts[AccountIndex::SystemProgram as usize] =
+        happy_path_instruction.accounts[AccountIndex::Recipient as usize].clone();
     accounts = happy_path_accounts.clone();
-    accounts[AccountPosition::SystemProgram as usize] =
-        happy_path_accounts[AccountPosition::Recipient as usize].clone();
+    accounts[AccountIndex::SystemProgram as usize] =
+        happy_path_accounts[AccountIndex::Recipient as usize].clone();
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
@@ -130,7 +130,7 @@ fn test_asm() {
 
     // Check insufficient lamports.
     accounts = happy_path_accounts.clone();
-    accounts[AccountPosition::Sender as usize].1.lamports = TRANSFER_AMOUNT - 1;
+    accounts[AccountIndex::Sender as usize].1.lamports = TRANSFER_AMOUNT - 1;
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &accounts,
@@ -141,12 +141,12 @@ fn test_asm() {
     let mock_pubkey = Pubkey::new_unique();
     assert_ne!(
         mock_pubkey,
-        happy_path_instruction.accounts[AccountPosition::SystemProgram as usize].pubkey
+        happy_path_instruction.accounts[AccountIndex::SystemProgram as usize].pubkey
     );
     accounts = happy_path_accounts.clone();
     instruction = happy_path_instruction.clone();
-    instruction.accounts[AccountPosition::SystemProgram as usize].pubkey = mock_pubkey;
-    accounts[AccountPosition::SystemProgram as usize].0 = mock_pubkey;
+    instruction.accounts[AccountIndex::SystemProgram as usize].pubkey = mock_pubkey;
+    accounts[AccountIndex::SystemProgram as usize].0 = mock_pubkey;
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
@@ -155,7 +155,7 @@ fn test_asm() {
 
     // Check sender is not signer.
     instruction = happy_path_instruction.clone();
-    instruction.accounts[AccountPosition::Sender as usize].is_signer = false;
+    instruction.accounts[AccountIndex::Sender as usize].is_signer = false;
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &happy_path_accounts,
@@ -166,7 +166,7 @@ fn test_asm() {
 
     // Check sender is not writable.
     instruction = happy_path_instruction.clone();
-    instruction.accounts[AccountPosition::Sender as usize].is_writable = false;
+    instruction.accounts[AccountIndex::Sender as usize].is_writable = false;
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &happy_path_accounts,
@@ -177,7 +177,7 @@ fn test_asm() {
 
     // Check sender is executable.
     accounts = happy_path_accounts.clone();
-    accounts[AccountPosition::Sender as usize].1.executable = true;
+    accounts[AccountIndex::Sender as usize].1.executable = true;
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &accounts,
@@ -188,7 +188,7 @@ fn test_asm() {
 
     // Check recipient is signer.
     instruction = happy_path_instruction.clone();
-    instruction.accounts[AccountPosition::Recipient as usize].is_signer = true;
+    instruction.accounts[AccountIndex::Recipient as usize].is_signer = true;
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &happy_path_accounts,
@@ -197,7 +197,7 @@ fn test_asm() {
 
     // Check recipient is not writable.
     instruction = happy_path_instruction.clone();
-    instruction.accounts[AccountPosition::Recipient as usize].is_writable = false;
+    instruction.accounts[AccountIndex::Recipient as usize].is_writable = false;
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &happy_path_accounts,
@@ -208,7 +208,7 @@ fn test_asm() {
 
     // Check recipient is executable.
     accounts = happy_path_accounts.clone();
-    accounts[AccountPosition::Recipient as usize].1.executable = true;
+    accounts[AccountIndex::Recipient as usize].1.executable = true;
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &accounts,
@@ -224,7 +224,7 @@ fn test_asm() {
         &[
             Check::success(),
             Check::account(
-                &happy_path_instruction.accounts[AccountPosition::Recipient as usize].pubkey,
+                &happy_path_instruction.accounts[AccountIndex::Recipient as usize].pubkey,
             )
             .lamports(TRANSFER_AMOUNT)
             .build(),
