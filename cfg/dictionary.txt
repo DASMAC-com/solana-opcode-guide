@@ -19,6 +19,7 @@ rustfilt
 sbpf
 sbpfv
 solana
+stdw
 stxb
 stxdw
 stxw

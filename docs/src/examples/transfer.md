@@ -175,7 +175,11 @@ CPI offsets are validated in Rust using struct operations:
 
 CPI data regions are first allocated on the stack using the calculated offsets:
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/transfer/artifacts/snippets/asm/stack-allocations.txt{3-11 asm}
+
+<!-- markdownlint-enable MD013 -->
 
 Instruction data is then populated, leveraging
 [zero-initialized stack memory] to encode the [System Program] pubkey rather
@@ -185,7 +189,11 @@ than load it from the passed account:
 > The [System Program] pubkey is `111111...` in [base58], which is all zeros in
 > binary.
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/transfer/artifacts/snippets/asm/instruction-allocation.txt{3-22 asm}
+
+<!-- markdownlint-enable MD013 -->
 
 [Account information](#account-layout-background) is then copied into the
 [account metadata] and [account info] arrays, with optimizations that leverage
@@ -193,7 +201,11 @@ the zero-initialized stack memory and known offsets:
 
 ::: details Account transcription
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/transfer/artifacts/snippets/asm/account-population.txt{3-110 asm}
+
+<!-- markdownlint-enable MD013 -->
 
 :::
 
@@ -221,13 +233,13 @@ since no [signer seeds][pda signer] are required:
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
-[zero-initialized stack memory]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/mem_pool.rs#L68-L70
 [4096 bytes]: https://docs.rs/solana-program-runtime/3.1.6/solana_program_runtime/execution_budget/constant.STACK_FRAME_SIZE.html
 [account data is its name]: https://github.com/anza-xyz/agave/blob/v3.1.5/runtime/src/bank.rs#L5754
 [account info]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L90-L103
 [account metadata]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L81-L88
 [account pubkey]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/transaction_accounts.rs#L26
 [account structure]: https://solana.com/docs/core/accounts#account-structure
+[base58]: https://solana.com/docs/core/accounts#account-address
 [builtin]: https://github.com/anza-xyz/agave/blob/v3.1.5/builtins/src/lib.rs#L62-L68
 [c-style array padding]: https://doc.rust-lang.org/reference/type-layout.html#reprc-unions
 [cpi]: https://solana.com/docs/core/cpi
@@ -250,9 +262,9 @@ since no [signer seeds][pda signer] are required:
 [to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html
 [transfer instruction data]: https://docs.rs/solana-system-interface/latest/solana_system_interface/instruction/enum.SystemInstruction.html#variant.Transfer
 [writable]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L80-L81
+[zero-initialized stack memory]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/mem_pool.rs#L68-L70
 [`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
 [`non_dup_marker`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.NON_DUP_MARKER.html
 [`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b7ac3d80da4400abff283fb0e68927c3c68a24d9/examples/sbpf-asm-cpi/src/sbpf-asm-cpi/sbpf-asm-cpi.s
 [`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
 [`u32` enum variants]: https://sr.ht/~stygianentity/bincode/#why-does-bincode-not-respect-coderepru8code
-[base58]: https://solana.com/docs/core/accounts#account-address
