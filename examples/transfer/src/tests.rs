@@ -274,7 +274,7 @@ fn test_rs() {
         .mollusk
         .process_and_validate_instruction(&instruction, &accounts, &[Check::success()]);
 
-    // Check nonzero recipient data length.
+    // Check nonzero recipient data length: still parses and transfers Lamports.
     accounts = happy_path_accounts.clone();
     accounts[AccountIndex::Recipient as usize].1.data = vec![0];
     setup.mollusk.process_and_validate_instruction(
