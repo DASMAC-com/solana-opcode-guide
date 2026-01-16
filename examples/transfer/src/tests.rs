@@ -128,7 +128,7 @@ fn test_asm() {
         &[Check::err(ProgramError::Custom(E_INSTRUCTION_DATA_LENGTH))],
     );
 
-    // Check insufficient lamports.
+    // Check insufficient Lamports.
     accounts = happy_path_accounts.clone();
     accounts[AccountIndex::Sender as usize].1.lamports = TRANSFER_AMOUNT - 1;
     setup.mollusk.process_and_validate_instruction(

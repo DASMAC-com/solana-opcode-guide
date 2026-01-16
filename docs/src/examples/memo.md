@@ -13,10 +13,10 @@ corresponding to one of [several runtime memory map regions].
 
 [Within the input buffer], data is serialized in the following order:
 
-1. [The number of accounts as a `u64`]
-1. [A sequence of serialized accounts]
-1. [The length of instruction data as a `u64`]
-1. [The instruction data itself]
+1. [The number of accounts as a `u64`].
+1. [A sequence of serialized accounts].
+1. [The length of instruction data as a `u64`].
+1. [The instruction data itself].
 
 > [!tip]
 > A new virtual memory map is created for [every instruction] *and* for every
