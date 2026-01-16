@@ -11,7 +11,6 @@ use pinocchio::{
 
 const SYSTEM_PROGRAM_TRANSFER_DISCRIMINANT: u32 = 2;
 const SYSTEM_PROGRAM_ID: Pubkey = [0u8; 32];
-const N_CPI_ACCOUNTS: usize = 2;
 const N_INSTRUCTION_ACCOUNTS: usize = 3;
 
 const E_N_ACCOUNTS: u32 = 1;
@@ -76,5 +75,5 @@ fn process_instruction(
     };
 
     // Invoke the System Program transfer.
-    invoke::<N_CPI_ACCOUNTS>(&instruction, &[sender, recipient])
+    invoke(&instruction, &[sender, recipient])
 }
