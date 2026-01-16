@@ -16,7 +16,7 @@ A transfer operation requires three accounts:
 | Recipient | The account to transfer to                  |
 | System    | [System Program] (for [CPI](#transfer-cpi)) |
 
-## :world_map: Account layout background
+## :world_map: Account layout background {#account-layout-background}
 
 Accounts in the [input buffer](memo) are [serialized] and [deserialized] with
 the following offsets relative to the start of the account, assuming
