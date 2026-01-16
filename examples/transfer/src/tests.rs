@@ -26,6 +26,31 @@ const COMPUTE_UNIT_OVERHEAD: u64 = 10_000;
 const EXPECTED_ASM_COMPUTE_UNITS: u64 = 1170;
 const ALIGNMENT: usize = 8;
 
+fn happy_path_setup(program_id: Pubkey) -> (Instruction, Vec<(Pubkey, Account)>) {
+    let (system_program, system_account) = program::keyed_account_for_system_program();
+    let instruction = Instruction::new_with_bytes(
+        program_id,
+        &TRANSFER_AMOUNT.to_le_bytes(),
+        vec![
+            AccountMeta::new(Pubkey::new_unique(), true),
+            AccountMeta::new(Pubkey::new_unique(), false),
+            AccountMeta::new_readonly(system_program, false),
+        ],
+    );
+    let accounts = vec![
+        (
+            instruction.accounts[AccountIndex::Sender as usize].pubkey,
+            Account::new(TRANSFER_AMOUNT + COMPUTE_UNIT_OVERHEAD, 0, &system_program),
+        ),
+        (
+            instruction.accounts[AccountIndex::Recipient as usize].pubkey,
+            Account::new(0, 0, &system_program),
+        ),
+        (system_program, system_account),
+    ];
+    (instruction, accounts)
+}
+
 #[test]
 fn test_system_program_pubkey() {
     let (pubkey, _) = program::keyed_account_for_system_program();
@@ -35,29 +60,7 @@ fn test_system_program_pubkey() {
 #[test]
 fn test_asm() {
     let setup = setup_test(ProgramLanguage::Assembly);
-
-    // Set up happy path accounts and instruction data.
-    let (system_program, system_account) = program::keyed_account_for_system_program();
-    let happy_path_instruction = Instruction::new_with_bytes(
-        setup.program_id,
-        &TRANSFER_AMOUNT.to_le_bytes(),
-        vec![
-            AccountMeta::new(Pubkey::new_unique(), true),
-            AccountMeta::new(Pubkey::new_unique(), false),
-            AccountMeta::new_readonly(system_program, false),
-        ],
-    );
-    let happy_path_accounts = vec![
-        (
-            happy_path_instruction.accounts[AccountIndex::Sender as usize].pubkey,
-            Account::new(TRANSFER_AMOUNT + COMPUTE_UNIT_OVERHEAD, 0, &system_program),
-        ),
-        (
-            happy_path_instruction.accounts[AccountIndex::Recipient as usize].pubkey,
-            Account::new(0, 0, &system_program),
-        ),
-        (system_program, system_account.clone()),
-    ];
+    let (happy_path_instruction, happy_path_accounts) = happy_path_setup(setup.program_id);
 
     // Check no accounts passed.
     let mut instruction = happy_path_instruction.clone();
@@ -237,29 +240,7 @@ fn test_asm() {
 #[test]
 fn test_rs() {
     let setup = setup_test(ProgramLanguage::Rust);
-
-    // Set up happy path accounts and instruction data.
-    let (system_program, system_account) = program::keyed_account_for_system_program();
-    let happy_path_instruction = Instruction::new_with_bytes(
-        setup.program_id,
-        &TRANSFER_AMOUNT.to_le_bytes(),
-        vec![
-            AccountMeta::new(Pubkey::new_unique(), true),
-            AccountMeta::new(Pubkey::new_unique(), false),
-            AccountMeta::new_readonly(system_program, false),
-        ],
-    );
-    let happy_path_accounts = vec![
-        (
-            happy_path_instruction.accounts[AccountIndex::Sender as usize].pubkey,
-            Account::new(TRANSFER_AMOUNT + COMPUTE_UNIT_OVERHEAD, 0, &system_program),
-        ),
-        (
-            happy_path_instruction.accounts[AccountIndex::Recipient as usize].pubkey,
-            Account::new(0, 0, &system_program),
-        ),
-        (system_program, system_account.clone()),
-    ];
+    let (happy_path_instruction, happy_path_accounts) = happy_path_setup(setup.program_id);
 
     //    // Check no accounts passed.
     //    let mut instruction = happy_path_instruction.clone();
