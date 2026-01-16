@@ -172,7 +172,11 @@ Stack CPI offsets are validated in Rust using struct operations:
 
 ::: code-group
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/transfer/artifacts/snippets/asm/stack-offsets.txt{asm} [Assembly]
+
+<!-- markdownlint-enable MD013 -->
 
 <<< ../../../examples/transfer/artifacts/tests/cpi_offsets/test.txt{rs} [Rust]
 
