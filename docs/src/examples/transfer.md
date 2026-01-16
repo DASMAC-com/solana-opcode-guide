@@ -243,11 +243,16 @@ though the vast majority of it is consumed by the CPI itself:
 
 :::
 
-Specifically, each CPI invocation has a [base cost] of 946 CUs, and a 250
+Specifically, each CPI invocation has a [base cost] of 1000 CUs, and a 250
 [bytes per unit cost] individually assessed on [instruction data],
 [account metas], [account infos], and [account data]. In this example, all
 values besides the base cost truncate to zero since they are individually less
-than 250 bytes,
+than 250 bytes.
+
+But beyond this overhead, there is also the [150 Compute Units] consumed by the
+[System Program] itself to perform the Lamport transfer, leading to a total of
+`1000 + 150 = 1150` CUs consumed by the CPI transfer call alone. This means that
+the program itself is only consuming 74 CUs aside from the unavoidable CPI cost.
 
 ## :white_check_mark: All tests
 
@@ -261,6 +266,7 @@ than 250 bytes,
 > The assembly file and testing framework in this example were adapted from an
 > [`sbpf` example].
 
+[150 compute units]: https://docs.rs/solana-system-program/3.1.6/solana_system_program/system_processor/constant.DEFAULT_COMPUTE_UNITS.html
 [account data]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L370-L374
 [Account infos]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L973-L980
 [Account metas]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L690-L695
