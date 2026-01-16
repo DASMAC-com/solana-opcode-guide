@@ -234,7 +234,7 @@ since no [signer seeds][pda signer] are required:
 
 ## :fuelpump: Compute unit analysis
 
-The final happy path check in the `test_asm` test consumes 1224 [compute units],
+The final happy path check in the `test_asm` test consumes 1170 [compute units],
 though the vast majority of it is consumed by the CPI itself.
 
 ::: details `test_asm`
@@ -247,7 +247,7 @@ though the vast majority of it is consumed by the CPI itself.
 
 :::
 
-Specifically, each CPI invocation has a [base cost] of 1000 CUs, and a 250
+Specifically, each CPI invocation has a [base cost] of 946 CUs, and a 250
 [bytes per unit cost] individually assessed on [instruction data],
 [account metas], [account infos], and [account data]. In this example, all
 values besides the base cost truncate to zero since they are individually less
@@ -255,7 +255,7 @@ than 250 bytes.
 
 But beyond this overhead, there is also the [150 Compute Units] consumed by the
 [System Program] itself to perform the Lamport transfer, leading to a total of
-`1000 + 150 = 1150` CUs consumed by the CPI transfer call alone. This means that
+`946 + 150 = 1096` CUs consumed by the CPI transfer call alone. This means that
 the program itself is only consuming 74 CUs aside from the unavoidable CPI cost.
 
 ## :white_check_mark: All tests

@@ -195,6 +195,7 @@ fn test_asm() {
             )
             .lamports(TRANSFER_AMOUNT)
             .build(),
+            Check::compute_units(EXPECTED_ASM_COMPUTE_UNITS),
         ],
     );
 }
