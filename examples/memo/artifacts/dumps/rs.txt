@@ -61,9 +61,9 @@ There are no relocations in this file.
 Symbol table '.symtab' contains 42 entries
    Num    Value          Size Type    Bind   Vis       Ndx Name
      0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
-     1 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS memo.c1d460ab6ab12221-cgu.0
+     1 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS memo.1c594090d170b36d-cgu.0
      2 0000000100000000    14 OBJECT  LOCAL  DEFAULT     2 .L__unnamed_1
-     3 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS cyqf8di6f143la47ooxexn9ag
+     3 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS 9fi94hirky3to6q0086922k7i
      4 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS std.7568b6690e93a51f-cgu.0
      5 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS panic_abort.90abb13b511d24c8-cgu.0
      6 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS alloc.63143c6bdd2830dc-cgu.0

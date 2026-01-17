@@ -232,31 +232,81 @@ since no [signer seeds][pda signer] are required:
 
 :::
 
-## :fuelpump: Compute unit analysis
+## :crab: Rust implementation
 
-The final happy path check in the `test_asm` test consumes 1224 [compute units],
-though the vast majority of it is consumed by the CPI itself.
+The Rust implementation uses a similar flow to construct the CPI, but is absent
+some parsing checks that are handled internally by [`pinocchio`]:
 
-::: details `test_asm`
+::: details `program.rs`
 
-::: code-group
-
-<<< ../../../examples/transfer/artifacts/tests/asm/test.txt{rs} [Test]
-
-<<< ../../../examples/transfer/artifacts/tests/asm/result.txt{54-58} [Output]
+<<< ../../../examples/transfer/src/program.rs
 
 :::
 
-Specifically, each CPI invocation has a [base cost] of 1000 CUs, and a 250
-[bytes per unit cost] individually assessed on [instruction data],
-[account metas], [account infos], and [account data]. In this example, all
-values besides the base cost truncate to zero since they are individually less
-than 250 bytes.
+The parsing logic differences are demonstrated in corresponding test cases,
+where the Rust implementation parses anyways but typically still fails later:
 
-But beyond this overhead, there is also the [150 Compute Units] consumed by the
+<!-- markdownlint-disable MD013 -->
+
+| Test case                          | Assembly error code                  | Rust behavior                  |
+| ---------------------------------- | ------------------------------------ | ------------------------------ |
+| Nonzero sender data length         | `E_DATA_LENGTH_NONZERO_SENDER`       | Fails at [CPI] invocation time |
+| Duplicate recipient account        | `E_DUPLICATE_ACCOUNT_RECIPIENT`      | Sender sends Lamports to self  |
+| Nonzero recipient data length      | `E_DATA_LENGTH_NONZERO_RECIPIENT`    | Succeeds                       |
+| Duplicate [System Program] account | `E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM` | Fails at [CPI] invocation time |
+
+<!-- markdownlint-enable MD013 -->
+
+::: details Test cases
+
+::: code-group
+
+<<< ../../../examples/transfer/artifacts/tests/asm/test.txt{rs} [test_asm]
+
+<<< ../../../examples/transfer/artifacts/tests/rs/test.txt{rs} [test_rs]
+
+:::
+
+## :fuelpump: Compute unit analysis
+
+The final test case for both `test_asm` and `test_rs` performs a happy path
+test case to verify that a specified amount of Lamports are transferred to the
+recipient, with comparable total [compute units] consumed overall:
+
+| Implementation | Compute units consumed |
+| -------------- | ---------------------- |
+| Assembly       | 1170                   |
+| Rust           | 1232                   |
+
+::: details Test runs
+
+::: code-group
+
+<<< ../../../examples/transfer/artifacts/tests/asm/result.txt{54-58} [Assembly]
+
+<<< ../../../examples/transfer/artifacts/tests/rs/result.txt{62-66} [Rust]
+
+:::
+
+However, the vast majority of these totals are due to fixed [CPI] costs, which
+are incurred regardless of the implementation language used. Specifically, each
+CPI invocation has a [base cost] of 946 CUs, and a 250 [bytes per unit cost]
+individually assessed on [instruction data], [account metas], [account infos],
+and [account data]. In this example, all values besides the base cost truncate
+to zero since they are individually less than 250 bytes. Beyond this general
+CPI invocation cost, there is also the [150 Compute Units] consumed by the
 [System Program] itself to perform the Lamport transfer, leading to a total of
-`1000 + 150 = 1150` CUs consumed by the CPI transfer call alone. This means that
-the program itself is only consuming 74 CUs aside from the unavoidable CPI cost.
+`946 + 150 = 1096` CUs consumed by the CPI transfer call alone. Hence the
+differences between assembly and Rust implementations are more dramatic when
+isolated to non-CPI compute units:
+
+| Implementation | Non-CPI compute units |
+| -------------- | --------------------- |
+| Assembly       | 74                    |
+| Rust           | 136                   |
+
+That is, the Rust implementation consumes 62 more CUs for general program logic,
+some 84% overhead versus the assembly version.
 
 ## :white_check_mark: All tests
 
@@ -310,6 +360,7 @@ the program itself is only consuming 74 CUs aside from the unavoidable CPI cost.
 [zero-initialized stack memory]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/mem_pool.rs#L68-L70
 [`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
 [`non_dup_marker`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.NON_DUP_MARKER.html
+[`pinocchio`]: https://github.com/anza-xyz/pinocchio
 [`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b7ac3d80da4400abff283fb0e68927c3c68a24d9/examples/sbpf-asm-cpi/src/sbpf-asm-cpi/sbpf-asm-cpi.s
 [`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
 [`u32` enum variants]: https://sr.ht/~stygianentity/bincode/#why-does-bincode-not-respect-coderepru8code

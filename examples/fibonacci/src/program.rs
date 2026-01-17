@@ -1,15 +1,15 @@
-use pinocchio::{entrypoint, program_error::ProgramError, pubkey::Pubkey, ProgramResult};
+use pinocchio::{entrypoint, error::ProgramError, AccountView, Address, ProgramResult};
 
 const E_MAX_N: u32 = 0xfffffffe;
 const MAX_N: u8 = 47;
 const MAX_N_SPECIAL_CASE: u8 = 1;
 
-entrypoint!(process_instruction, 0);
+entrypoint!(process_instruction);
 
 #[cfg_attr(not(target_os = "solana"), allow(unused_variables))]
 fn process_instruction(
-    _program_id: &Pubkey,
-    _accounts: &[pinocchio::account_info::AccountInfo],
+    _program_id: &Address,
+    _accounts: &[AccountView],
     instruction_data: &[u8],
 ) -> ProgramResult {
     let n = instruction_data[0];
