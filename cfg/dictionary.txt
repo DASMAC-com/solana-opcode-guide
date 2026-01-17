@@ -14,6 +14,8 @@ ldxb
 ldxdw
 mathjax
 metas
+nonoverlapping
+nostd
 repr
 rodata
 rustfilt
@@ -26,5 +28,6 @@ stxdw
 stxw
 syscall
 syscalls
+uninit
 usize
 vitepress

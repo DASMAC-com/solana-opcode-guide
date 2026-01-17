@@ -232,6 +232,40 @@ since no [signer seeds][pda signer] are required:
 
 :::
 
+## :crab: Rust implementation
+
+The Rust implementation uses a similar flow to construct the CPI, but is absent
+some parsing checks that are handled internally by [`pinocchio`]:
+
+::: details `program.rs`
+
+<<< ../../../examples/transfer/src/program.rs
+
+:::
+
+The parsing logic differences are demonstrated in corresponding test cases:
+
+<!-- markdownlint-disable MD013 -->
+
+| Test case                          | Assembly error code                  | Rust behavior                  |
+| ---------------------------------- | ------------------------------------ | ------------------------------ |
+| Nonzero sender data length         | `E_DATA_LENGTH_NONZERO_SENDER`       | [`pinocchio`] throws error     |
+| Duplicate recipient account        | `E_DUPLICATE_ACCOUNT_RECIPIENT`      | Sender sends Lamports to self  |
+| Nonzero recipient data length      | `E_DATA_LENGTH_NONZERO_RECIPIENT`    | Parses anyways, succeeds       |
+| Duplicate [System Program] account | `E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM` | Fails at [CPI] invocation time |
+
+<!-- markdownlint-enable MD013 -->
+
+::: details Test cases
+
+::: code-group
+
+<<< ../../../examples/transfer/artifacts/tests/asm/test.txt{rs} [test_asm]
+
+<<< ../../../examples/transfer/artifacts/tests/rs/test.txt{rs} [test_rs]
+
+:::
+
 ## :fuelpump: Compute unit analysis
 
 The final happy path check in the `test_asm` test consumes 1170 [compute units],
@@ -310,6 +344,7 @@ the program itself is only consuming 74 CUs aside from the unavoidable CPI cost.
 [zero-initialized stack memory]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/mem_pool.rs#L68-L70
 [`max_permitted_data_increase`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.MAX_PERMITTED_DATA_INCREASE.html
 [`non_dup_marker`]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.NON_DUP_MARKER.html
+[`pinocchio`]: https://github.com/anza-xyz/pinocchio
 [`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b7ac3d80da4400abff283fb0e68927c3c68a24d9/examples/sbpf-asm-cpi/src/sbpf-asm-cpi/sbpf-asm-cpi.s
 [`sol_invoke_signed_c` syscall]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/define-syscall/src/definitions.rs#L6
 [`u32` enum variants]: https://sr.ht/~stygianentity/bincode/#why-does-bincode-not-respect-coderepru8code
