@@ -24,7 +24,7 @@ enum AccountIndex {
 const TRANSFER_AMOUNT: u64 = 10;
 const COMPUTE_UNIT_OVERHEAD: u64 = 10_000;
 const EXPECTED_ASM_COMPUTE_UNITS: u64 = 1170;
-const EXPECTED_RS_COMPUTE_UNITS: u64 = 1229;
+const EXPECTED_RS_COMPUTE_UNITS: u64 = 1232;
 const ALIGNMENT: usize = 8;
 
 fn happy_path_checks(instruction: &Instruction, expected_compute_units: u64) -> Vec<Check<'_>> {

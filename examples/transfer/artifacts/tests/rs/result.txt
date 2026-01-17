@@ -1,0 +1,66 @@
+test tests::test_rs ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 5 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Transfer: `from` must not carry data
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 failed: invalid program argument
+[ ... DEBUG ... ] Program DASMAC... consumed 1229 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: invalid program argument
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1233 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1232 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Unknown program 11111111111111111111111111111111
+[ ... DEBUG ... ] Program DASMAC... consumed 1081 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: An account required by the instruction is missing
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 39 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 43 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x7
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Unknown program 11111111111111111111111111111111
+[ ... DEBUG ... ] Program DASMAC... consumed 1079 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: An account required by the instruction is missing
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] 11157t3sqMV725NVRLrVQbAu98Jjfk1uCKehJnXXQs's signer privilege escalated
+[ ... DEBUG ... ] Program DASMAC... consumed 1080 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: Cross-program invocation with unauthorized signer or writable account
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] 11157t3sqMV725NVRLrVQbAu98Jjfk1uCKehJnXXQs's writable privilege escalated
+[ ... DEBUG ... ] Program DASMAC... consumed 1080 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: Cross-program invocation with unauthorized signer or writable account
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1231 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1231 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] 1117mWrzzrZr312ebPDHu8tbfMwFNvCvMbr6WepCNG's writable privilege escalated
+[ ... DEBUG ... ] Program DASMAC... consumed 1080 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: Cross-program invocation with unauthorized signer or writable account
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1231 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: instruction spent from the balance of an account it does not own
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1232 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success

@@ -1,6 +1,6 @@
 #[test]
-fn test_asm() {
-    let setup = setup_test(ProgramLanguage::Assembly);
+fn test_rs() {
+    let setup = setup_test(ProgramLanguage::Rust);
     let (happy_path_instruction, happy_path_accounts) = happy_path_setup(setup.program_id);
 
     // Check no accounts passed.
@@ -18,35 +18,27 @@ fn test_asm() {
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            E_DATA_LENGTH_NONZERO_SENDER,
-        ))],
+        &[Check::err(ProgramError::InvalidArgument)],
     );
 
-    // Check duplicate recipient account.
+    // Check duplicate recipient account: just transfers Lamports back to sender.
     instruction = happy_path_instruction.clone();
     instruction.accounts[AccountIndex::Recipient as usize] =
         happy_path_instruction.accounts[AccountIndex::Sender as usize].clone();
     accounts = happy_path_accounts.clone();
     accounts[AccountIndex::Recipient as usize] =
         happy_path_accounts[AccountIndex::Sender as usize].clone();
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[Check::err(ProgramError::Custom(
-            E_DUPLICATE_ACCOUNT_RECIPIENT,
-        ))],
-    );
+    setup
+        .mollusk
+        .process_and_validate_instruction(&instruction, &accounts, &[Check::success()]);
 
-    // Check nonzero recipient data length.
+    // Check nonzero recipient data length: still parses and transfers Lamports.
     accounts = happy_path_accounts.clone();
     accounts[AccountIndex::Recipient as usize].1.data = vec![0];
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            E_DATA_LENGTH_NONZERO_RECIPIENT,
-        ))],
+        &happy_path_checks(&happy_path_instruction, EXPECTED_RS_COMPUTE_UNITS),
     );
 
     // Check duplicate system program account.
@@ -59,9 +51,7 @@ fn test_asm() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM,
-        ))],
+        &[Check::err(ProgramError::NotEnoughAccountKeys)],
     );
 
     // Check invalid instruction data length.
@@ -166,6 +156,6 @@ fn test_asm() {
     setup.mollusk.process_and_validate_instruction(
         &happy_path_instruction,
         &happy_path_accounts,
-        &happy_path_checks(&happy_path_instruction, EXPECTED_ASM_COMPUTE_UNITS),
+        &happy_path_checks(&happy_path_instruction, EXPECTED_RS_COMPUTE_UNITS),
     );
 }

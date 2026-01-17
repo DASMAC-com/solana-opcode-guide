@@ -1,31 +1,28 @@
 use core::mem::size_of;
 use pinocchio::{
-    account_info::AccountInfo,
     cpi::invoke,
-    instruction::{AccountMeta, Instruction},
-    no_allocator, nostd_panic_handler, program_entrypoint,
-    program_error::ProgramError,
-    pubkey::Pubkey,
-    ProgramResult,
+    error::ProgramError,
+    instruction::{InstructionAccount, InstructionView},
+    no_allocator, nostd_panic_handler, program_entrypoint, AccountView, Address, ProgramResult,
 };
 
 const SYSTEM_PROGRAM_TRANSFER_DISCRIMINANT: u32 = 2;
-const SYSTEM_PROGRAM_ID: Pubkey = [0u8; 32];
-const N_INSTRUCTION_ACCOUNTS: usize = 3;
+const SYSTEM_PROGRAM_ID: Address = Address::new_from_array([0u8; 32]);
 
 const E_N_ACCOUNTS: u32 = 1;
 const E_INSTRUCTION_DATA_LENGTH: u32 = 6;
 const E_INSUFFICIENT_LAMPORTS: u32 = 7;
 
 const CPI_DATA_SIZE: usize = size_of::<u32>() + size_of::<u64>();
+const N_CPI_ACCOUNTS: usize = 2;
 
-program_entrypoint!(process_instruction, N_INSTRUCTION_ACCOUNTS);
+program_entrypoint!(process_instruction);
 nostd_panic_handler!();
 no_allocator!();
 
 fn process_instruction(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    _program_id: &Address,
+    accounts: &[AccountView],
     instruction_data: &[u8],
 ) -> ProgramResult {
     let [sender, recipient, _system_program] = accounts else {
@@ -65,12 +62,14 @@ fn process_instruction(
     };
 
     // Build CPI instruction.
-    let instruction = Instruction {
+    let instruction_accounts: [InstructionAccount; N_CPI_ACCOUNTS] = [
+        InstructionAccount::writable_signer(sender.address()),
+        InstructionAccount::writable(recipient.address()),
+    ];
+
+    let instruction = InstructionView {
         program_id: &SYSTEM_PROGRAM_ID,
-        accounts: &[
-            AccountMeta::writable_signer(sender.key()),
-            AccountMeta::writable(recipient.key()),
-        ],
+        accounts: &instruction_accounts,
         data: &cpi_data,
     };
 

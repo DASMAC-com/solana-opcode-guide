@@ -61,10 +61,10 @@ There are no relocations in this file.
 Symbol table '.symtab' contains 43 entries
    Num    Value          Size Type    Bind   Vis       Ndx Name
      0 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
-     1 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS hello_dasmac.8125ef642f86079a-cgu.0
+     1 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS hello_dasmac.3679fd791f0ca7ed-cgu.0
      2 0000000100000000    14 OBJECT  LOCAL  DEFAULT     2 .L__unnamed_1
      3 000000010000000e    14 OBJECT  LOCAL  DEFAULT     2 .L__unnamed_2
-     4 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS 3rkop1sv4pggn15fe45te8a2u
+     4 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS 7tr20hen6eqf8tvicupdsd2g4
      5 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS std.7568b6690e93a51f-cgu.0
      6 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS panic_abort.90abb13b511d24c8-cgu.0
      7 0000000000000000     0 FILE    LOCAL  DEFAULT   ABS alloc.63143c6bdd2830dc-cgu.0
