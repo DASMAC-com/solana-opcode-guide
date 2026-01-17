@@ -243,15 +243,16 @@ some parsing checks that are handled internally by [`pinocchio`]:
 
 :::
 
-The parsing logic differences are demonstrated in corresponding test cases:
+The parsing logic differences are demonstrated in corresponding test cases,
+where the Rust implementation parses anyways but typically still fails later:
 
 <!-- markdownlint-disable MD013 -->
 
 | Test case                          | Assembly error code                  | Rust behavior                  |
 | ---------------------------------- | ------------------------------------ | ------------------------------ |
-| Nonzero sender data length         | `E_DATA_LENGTH_NONZERO_SENDER`       | [`pinocchio`] throws error     |
+| Nonzero sender data length         | `E_DATA_LENGTH_NONZERO_SENDER`       | Fails at [CPI] invocation time |
 | Duplicate recipient account        | `E_DUPLICATE_ACCOUNT_RECIPIENT`      | Sender sends Lamports to self  |
-| Nonzero recipient data length      | `E_DATA_LENGTH_NONZERO_RECIPIENT`    | Parses anyways, succeeds       |
+| Nonzero recipient data length      | `E_DATA_LENGTH_NONZERO_RECIPIENT`    | Succeeds                       |
 | Duplicate [System Program] account | `E_DUPLICATE_ACCOUNT_SYSTEM_PROGRAM` | Fails at [CPI] invocation time |
 
 <!-- markdownlint-enable MD013 -->
@@ -268,29 +269,43 @@ The parsing logic differences are demonstrated in corresponding test cases:
 
 ## :fuelpump: Compute unit analysis
 
-The final happy path check in the `test_asm` test consumes 1170 [compute units],
-though the vast majority of it is consumed by the CPI itself.
+The final test case for both `test_asm` and `test_rs` performs a happy path
+test case to verify that a specified amount of Lamports are transferred to the
+recipient, with comparable total [compute units] consumed overall:
 
-::: details `test_asm`
+| Implementation | Compute units consumed |
+| -------------- | ---------------------- |
+| Assembly       | 1170                   |
+| Rust           | 1232                   |
+
+::: details Test runs
 
 ::: code-group
 
-<<< ../../../examples/transfer/artifacts/tests/asm/test.txt{rs} [Test]
+<<< ../../../examples/transfer/artifacts/tests/asm/result.txt{54-58} [Assembly]
 
-<<< ../../../examples/transfer/artifacts/tests/asm/result.txt{54-58} [Output]
+<<< ../../../examples/transfer/artifacts/tests/rs/result.txt{62-66} [Rust]
 
 :::
 
-Specifically, each CPI invocation has a [base cost] of 946 CUs, and a 250
+However, the vast majority of these totals are due to fixed [CPI] overhead,
+which is incurred regardless of the implementation language used. Specifically,
+each CPI invocation has a [base cost] of 946 CUs, and a 250
 [bytes per unit cost] individually assessed on [instruction data],
 [account metas], [account infos], and [account data]. In this example, all
 values besides the base cost truncate to zero since they are individually less
-than 250 bytes.
+than 250 bytes. Beyond this general CPI overhead, there is also the
+[150 Compute Units] consumed by the [System Program] itself to perform the
+Lamport transfer, leading to a total of `946 + 150 = 1096` CUs consumed by the
+CPI transfer call alone. Thus, the actual implementation overheads are:
 
-But beyond this overhead, there is also the [150 Compute Units] consumed by the
-[System Program] itself to perform the Lamport transfer, leading to a total of
-`946 + 150 = 1096` CUs consumed by the CPI transfer call alone. This means that
-the program itself is only consuming 74 CUs aside from the unavoidable CPI cost.
+| Implementation | Non-CPI compute units  |
+| -------------- | ---------------------- |
+| Assembly       | 74                     |
+| Rust           | 136                    |
+
+Hence the Rust implementation consumes 62 more CUs, some 84% more overhead than
+the assembly version.
 
 ## :white_check_mark: All tests
 
