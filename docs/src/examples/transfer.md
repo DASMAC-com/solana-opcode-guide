@@ -305,7 +305,7 @@ isolated to non-CPI compute units:
 | Assembly       | 74                    |
 | Rust           | 136                   |
 
-Hence the Rust implementation consumes 62 more CUs for general program logic,
+That is, the Rust implementation consumes 62 more CUs for general program logic,
 some 84% overhead versus the assembly version.
 
 ## :white_check_mark: All tests
