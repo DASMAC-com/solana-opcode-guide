@@ -288,24 +288,25 @@ recipient, with comparable total [compute units] consumed overall:
 
 :::
 
-However, the vast majority of these totals are due to fixed [CPI] overhead,
-which is incurred regardless of the implementation language used. Specifically,
-each CPI invocation has a [base cost] of 946 CUs, and a 250
-[bytes per unit cost] individually assessed on [instruction data],
-[account metas], [account infos], and [account data]. In this example, all
-values besides the base cost truncate to zero since they are individually less
-than 250 bytes. Beyond this general CPI overhead, there is also the
-[150 Compute Units] consumed by the [System Program] itself to perform the
-Lamport transfer, leading to a total of `946 + 150 = 1096` CUs consumed by the
-CPI transfer call alone. Thus, the actual implementation overheads are:
+However, the vast majority of these totals are due to fixed [CPI] costs, which
+are incurred regardless of the implementation language used. Specifically, each
+CPI invocation has a [base cost] of 946 CUs, and a 250 [bytes per unit cost]
+individually assessed on [instruction data], [account metas], [account infos],
+and [account data]. In this example, all values besides the base cost truncate
+to zero since they are individually less than 250 bytes. Beyond this general
+CPI invocation cost, there is also the [150 Compute Units] consumed by the
+[System Program] itself to perform the Lamport transfer, leading to a total of
+`946 + 150 = 1096` CUs consumed by the CPI transfer call alone. Hence the
+differences between assembly and Rust implementations are more dramatic when
+isolated to non-CPI compute units:
 
-| Implementation | Non-CPI compute units  |
-| -------------- | ---------------------- |
-| Assembly       | 74                     |
-| Rust           | 136                    |
+| Implementation | Non-CPI compute units |
+| -------------- | --------------------- |
+| Assembly       | 74                    |
+| Rust           | 136                   |
 
-Hence the Rust implementation consumes 62 more CUs, some 84% more overhead than
-the assembly version.
+Hence the Rust implementation consumes 62 more CUs for general program logic,
+some 84% overhead versus the assembly version.
 
 ## :white_check_mark: All tests
 
