@@ -139,7 +139,7 @@ maximum number of accounts, [past which any extra accounts are ignored].
 
 <!-- markdownlint-disable MD013 -->
 
-<<< ../../../examples/fibonacci/artifacts/rs-disassembly.s{36-49 asm:line-numbers}
+<<< ../../../examples/fibonacci/artifacts/rs-disassembly.s{43-56 asm:line-numbers}
 
 <!-- markdownlint-enable MD013 -->
 
