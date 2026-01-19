@@ -99,7 +99,7 @@ The [instruction] layout is as follows:
 
 > | Offset (bytes) | Length (bytes) | Description                            |
 > | -------------- | -------------- | -------------------------------------- |
-> | 0              | 8              | Program ID ([System Program] pointer ) |
+> | 0              | 8              | Program ID ([System Program] pointer) |
 > | 8              | 8              | [Account metadata] array pointer       |
 > | 16             | 8              | [Account metadata] array length        |
 > | 24             | 8              | [Transfer instruction data] pointer    |
