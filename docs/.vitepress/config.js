@@ -38,6 +38,7 @@ export default {
           { text: "Memo", link: "/examples/memo" },
           { text: "Fibonacci", link: "/examples/fibonacci" },
           { text: "Transfer", link: "/examples/transfer" },
+          { text: "Counter", link: "/examples/counter" },
         ],
       },
       { text: "Resources", link: "/resources" },

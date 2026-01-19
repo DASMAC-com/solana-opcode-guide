@@ -2,6 +2,7 @@
 
 [workspace]
 members = [
+  "counter",
   "fibonacci",
   "hello-dasmac",
   "memo",
