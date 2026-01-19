@@ -97,13 +97,13 @@ and is invoked internally in this example using a [CPI] via the
 
 The [instruction] layout is as follows:
 
-> | Offset (bytes) | Length (bytes) | Description                            |
-> | -------------- | -------------- | -------------------------------------- |
+> | Offset (bytes) | Length (bytes) | Description                           |
+> | -------------- | -------------- | ------------------------------------- |
 > | 0              | 8              | Program ID ([System Program] pointer) |
-> | 8              | 8              | [Account metadata] array pointer       |
-> | 16             | 8              | [Account metadata] array length        |
-> | 24             | 8              | [Transfer instruction data] pointer    |
-> | 32             | 8              | [Transfer instruction data] length     |
+> | 8              | 8              | [Account metadata] array pointer      |
+> | 16             | 8              | [Account metadata] array length       |
+> | 24             | 8              | [Transfer instruction data] pointer   |
+> | 32             | 8              | [Transfer instruction data] length    |
 >
 > Each element in the [account metadata] array has the following layout:
 >
