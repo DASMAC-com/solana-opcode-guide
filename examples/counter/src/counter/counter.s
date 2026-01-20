@@ -1,5 +1,6 @@
-# Account layout.
-.equ N_ACCOUNTS_OFFSET, 0
+# Miscellaneous constants.
+# Number of accounts in virtual memory map.
+.equ N_ACCOUNTS_OFF, 0
 
 .global entrypoint
 

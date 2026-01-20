@@ -1,52 +1,43 @@
-use std::collections::HashMap;
 use std::fs;
 
-/// Parses `.equ` constants from an assembly file.
-/// Returns a map of constant name to value.
-fn parse_asm_constants(path: &str) -> HashMap<String, u64> {
-    let content = fs::read_to_string(path).expect("Failed to read assembly file");
-    let mut constants = HashMap::new();
+struct Comment(&'static str);
 
-    for line in content.lines() {
-        let line = line.trim();
-        if line.starts_with(".equ ") {
-            // Format: .equ NAME, VALUE
-            let rest = &line[5..]; // Skip ".equ "
-            if let Some((name, value)) = rest.split_once(',') {
-                let name = name.trim().to_string();
-                let value = value.trim();
-                if let Ok(v) = value.parse::<u64>() {
-                    constants.insert(name, v);
-                } else if let Some(hex) = value.strip_prefix("0x") {
-                    if let Ok(v) = u64::from_str_radix(hex, 16) {
-                        constants.insert(name, v as u64);
-                    }
-                }
-            }
-        }
+impl Comment {
+    fn new(text: &'static str) -> Self {
+        assert!(!text.is_empty(), "Comment must not be empty");
+        assert!(text.ends_with('.'), "Comment must end with '.': {text}");
+        Self(text)
     }
 
-    constants
-}
-
-struct Constants {
-    groups: Vec<ConstantGroup>,
+    fn as_str(&self) -> &'static str {
+        self.0
+    }
 }
 
 struct ConstantGroup {
-    comment: &'static str,
+    comment: Comment,
     constants: Vec<Constant>,
     prefix: Option<&'static str>,
 }
 
-const OFFSET_SUFFIX: &str = "_OFFSET";
+impl ConstantGroup {
+    fn new(comment: &'static str, constants: Vec<Constant>) -> Self {
+        Self {
+            comment: Comment::new(comment),
+            constants,
+            prefix: None,
+        }
+    }
+}
+
+const OFFSET_SUFFIX: &str = "_OFF";
 
 struct Constant {
     name: &'static str,
     value: u64,
     is_offset: bool,
     is_hex: bool,
-    comment: &'static str,
+    comment: Comment,
 }
 
 impl Constant {
@@ -55,13 +46,12 @@ impl Constant {
             !name.ends_with(OFFSET_SUFFIX),
             "Non-offset constant name must not end with {OFFSET_SUFFIX}: {name}"
         );
-        assert!(!comment.is_empty(), "Comment must not be empty: {name}");
         Self {
             name,
             value,
             is_offset: false,
             is_hex: false,
-            comment,
+            comment: Comment::new(comment),
         }
     }
 
@@ -74,42 +64,76 @@ impl Constant {
             value <= i16::MAX as u64,
             "Offset value must fit in i16: {name} = {value}"
         );
-        assert!(!comment.is_empty(), "Comment must not be empty: {name}");
         Self {
             name,
             value,
             is_offset: true,
             is_hex: false,
-            comment,
+            comment: Comment::new(comment),
         }
+    }
+}
+struct Constants {
+    groups: Vec<ConstantGroup>,
+}
+
+const GLOBAL_ENTRYPOINT: &str = ".global entrypoint";
+
+impl Constants {
+    fn new(groups: Vec<ConstantGroup>) -> Self {
+        Self { groups }
+    }
+
+    fn to_asm(&self) -> String {
+        let mut output = String::new();
+        for (i, group) in self.groups.iter().enumerate() {
+            if i > 0 {
+                output.push('\n');
+            }
+            output.push_str(&format!("# {}\n", group.comment.as_str()));
+            for constant in &group.constants {
+                let value = if constant.is_hex {
+                    format!("0x{:x}", constant.value)
+                } else {
+                    constant.value.to_string()
+                };
+                let name = match group.prefix {
+                    Some(prefix) => format!("{}{}", prefix, constant.name),
+                    None => constant.name.to_string(),
+                };
+                output.push_str(&format!(
+                    "# {}\n.equ {}, {}\n",
+                    constant.comment.as_str(),
+                    name,
+                    value
+                ));
+            }
+        }
+        output
+    }
+
+    fn write_to_asm_file(&self, path: &str) {
+        let content = fs::read_to_string(path).expect("Failed to read assembly file");
+        let global_pos = content
+            .find(GLOBAL_ENTRYPOINT)
+            .expect("Could not find '.global entrypoint' in assembly file");
+        let after_global = &content[global_pos..];
+        let new_content = format!("{}\n{}", self.to_asm(), after_global);
+        fs::write(path, new_content).expect("Failed to write assembly file");
     }
 }
 
 #[test]
 fn test_constants() {
-    // Define expected constants and their values.
-    let expected: HashMap<&str, u64> = [("N_ACCOUNTS_OFFSET", 0)].into_iter().collect();
+    let constants = Constants::new(vec![ConstantGroup::new(
+        "Miscellaneous constants.",
+        vec![Constant::new_offset(
+            "N_ACCOUNTS_OFF",
+            0,
+            "Number of accounts in virtual memory map.",
+        )],
+    )]);
 
-    // Parse the assembly file.
     let asm_path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/counter/counter.s");
-    let actual = parse_asm_constants(asm_path);
-
-    // Verify all expected constants are present with correct values.
-    for (name, expected_value) in &expected {
-        let actual_value = actual
-            .get(*name)
-            .unwrap_or_else(|| panic!("Missing constant in assembly file: {name}"));
-        assert_eq!(
-            *actual_value, *expected_value,
-            "Constant {name} has wrong value: expected {expected_value}, got {actual_value}"
-        );
-    }
-
-    // Verify no extra constants are defined in the assembly file.
-    for name in actual.keys() {
-        assert!(
-            expected.contains_key(name.as_str()),
-            "Unexpected constant in assembly file: {name}. Add it to the expected constants or remove it from the assembly file."
-        );
-    }
+    constants.write_to_asm_file(asm_path);
 }
