@@ -10,7 +10,8 @@
 1. Init:
    1. Error if not 3 accounts
    1. [`sol_try_find_program_address`] returns address
-   1. [`CreateAccount`]
+   1. [`CreateAccount`] is like from the transfer example, but uses different
+      args.
    1. [`SIMD-0194`] took out 2x multiplier, then [`SIMD-0436`] made it lower
       value, but then superseded by [`SIMD-0437`] which hasn't landed
    1. So use [`DEFAULT_LAMPORTS_PER_BYTE`] and [`ACCOUNT_STORAGE_OVERHEAD`],
@@ -28,23 +29,26 @@
 
 [`sol_try_find_program_address`] implements [the following returns]:
 
-| Register | Success Value               | Failure Value |
+| Register | Success | Failure |
 | -------- | --------------------------- | ------------- |
 | `r0`     | 0                           | 1             |
-| `r4`     | Pointer to [PDA]            | Unchanged     |
-| `r5`     | Pointer to [bump seed][pda] | Unchanged     |
+| `r4`     | Pointer to [PDA]            | [Unchanged]   |
+| `r5`     | Pointer to [bump seed][pda] | [Unchanged]   |
 
-<!-- markdownlint-disable MD013 -->
+[`sol_create_program_address`] implements
+[the following returns][create_pda_returns]:
 
-[`sol_create_program_address`] implements [the following returns][create_pda_returns]:
-
-<!-- markdownlint-enable MD013 -->
-
-| Register | Success Value    | Failure Value |
+| Register | Success | Failure |
 | -------- | ---------------- | ------------- |
 | `r0`     | 0                | 1             |
-| `r4`     | Pointer to [PDA] | Unchanged     |
+| `r4`     | Pointer to [PDA] | [Unchanged]   |
 
+[`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct [in `r1`][`sol_get_rent_sysvar`].
+
+[unchanged]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L606-L612
+[`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
+[return value]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/sysvar_cache.rs#L156-L158
+[`sol_get_rent_sysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L135-L155
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
 [not yet activated]: https://github.com/anza-xyz/agave/wiki/Feature-Gate-Tracker-Schedule
