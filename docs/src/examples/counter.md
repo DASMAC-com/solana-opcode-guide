@@ -22,10 +22,12 @@
    1. [`sol_create_program_address`]
    1. Error if not there
    1. Error if more than two accounts
-1. Address compare
+1. Address compare/copy
    1. [`sol_memcmp`] is [subject to metering] that charges the larger of a
       [10 CU base cost], and a [per-byte cost of 250 CUs], with
       [`r4` set to 0 if both regions are equal]
+   1. [`sol_memcpy`] is same but no return value.
+   1. [Program ID serialization] at end of [input buffer](memo)
 
 [`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
 one [signer seeds] array pointing an array of two [signer seed] structures,
@@ -49,6 +51,8 @@ one containing the owner's pubkey and one containing the bump seed.
 
 [`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct [in `r1`][`sol_get_rent_sysvar`].
 
+[Program ID serialization]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/serialization.rs#L569
+[`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L56-L62
 [signer seeds]:  https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L64-L71
 [`MAX_SEED_LEN`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
