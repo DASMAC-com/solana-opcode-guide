@@ -30,8 +30,6 @@ impl ConstantGroup {
     }
 }
 
-const OFFSET_SUFFIX: &str = "_OFF";
-
 struct Constant {
     name: &'static str,
     value: u64,
@@ -41,10 +39,13 @@ struct Constant {
 }
 
 impl Constant {
+    const OFFSET_SUFFIX: &str = "_OFF";
+
     fn new(name: &'static str, value: u64, comment: &'static str) -> Self {
         assert!(
-            !name.ends_with(OFFSET_SUFFIX),
-            "Non-offset constant name must not end with {OFFSET_SUFFIX}: {name}"
+            !name.ends_with(Self::OFFSET_SUFFIX),
+            "Non-offset constant name must not end with {}: {name}",
+            Self::OFFSET_SUFFIX
         );
         Self {
             name,
@@ -57,8 +58,9 @@ impl Constant {
 
     fn new_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
         assert!(
-            name.ends_with(OFFSET_SUFFIX),
-            "Offset constant name must end with {OFFSET_SUFFIX}: {name}"
+            name.ends_with(Self::OFFSET_SUFFIX),
+            "Offset constant name must end with {}: {name}",
+            Self::OFFSET_SUFFIX
         );
         assert!(
             value <= i16::MAX as u64,
@@ -77,9 +79,9 @@ struct Constants {
     groups: Vec<ConstantGroup>,
 }
 
-const GLOBAL_ENTRYPOINT: &str = ".global entrypoint";
-
 impl Constants {
+    const GLOBAL_ENTRYPOINT: &str = ".global entrypoint";
+
     fn new(groups: Vec<ConstantGroup>) -> Self {
         Self { groups }
     }
@@ -115,7 +117,7 @@ impl Constants {
     fn write_to_asm_file(&self, path: &str) {
         let content = fs::read_to_string(path).expect("Failed to read assembly file");
         let global_pos = content
-            .find(GLOBAL_ENTRYPOINT)
+            .find(Self::GLOBAL_ENTRYPOINT)
             .expect("Could not find '.global entrypoint' in assembly file");
         let after_global = &content[global_pos..];
         let new_content = format!("{}\n{}", self.to_asm(), after_global);
