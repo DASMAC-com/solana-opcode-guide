@@ -146,7 +146,8 @@ Each [account info] element has the following layout:
 
 <!-- markdownlint-enable MD013 -->
 
-In this example, no signer seeds are required due to the lack of a [PDA signer].
+In this example, no [signer seeds][signer seed] are required due to the lack of
+a [PDA signer].
 
 Since the data required by the CPI is too wide to fit in one of the
 [64-bit general purpose registers][isa], it must be allocated within a
