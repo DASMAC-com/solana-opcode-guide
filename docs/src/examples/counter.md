@@ -2,13 +2,36 @@
 
 <!-- @include: ./disclaimer.md -->
 
-## Overview
+## Background
 
-1. Branch:
-   1. If 2 accounts, increment
-   1. If 3 accounts, initialize
+This example implements a simple on-chain counter program at a [PDA] account.
+The program supports two operations: initializing a user's counter, and
+incrementing a user's counter by a specified amount.
+
+## Entrypoint branching
+
+The number of accounts acts as a discriminator for the two operations:
+
+| Operation  | Number of accounts | Instruction data         |
+| ---------- | ------------------ | ------------------------ |
+| Initialize | 3                  | None                     |
+| Increment  | 2                  | Increment amount (`u64`) |
+
+Both operations require the user's account followed by the counter [PDA]
+account, but only the initialize operation also requires the
+[System Program](transfer) account in order to initialize the [PDA] account.
+Hence the entrypoint first checks the number of accounts passed in and branches
+accordingly, erroring out if the number of accounts is unexpected.
+
+<<< ../../../examples/counter/artifacts/snippets/asm/entrypoint.txt{asm}
+
+## Init operation
+
+## Increment operation
+
+## Links
+
 1. Init:
-   1. Error if not 3 accounts
    1. [`sol_try_find_program_address`] returns address
    1. [`CreateAccount`] is like from the transfer example, but uses different
       args.

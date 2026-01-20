@@ -14,11 +14,11 @@
 entrypoint:
     ldxdw r2, [r1 + N_ACCOUNTS_OFF] # Get n accounts from input buffer.
     jeq r2, N_ACCOUNTS_INCREMENT, increment # Fast path to cheap operation.
-    jeq r3, N_ACCOUNTS_INIT, init # Second priority, is expensive anyways.
+    jeq r3, N_ACCOUNTS_INIT, initialize # Low priority, expensive anyways.
     mov64 r0, E_N_ACCOUNTS # Else fail.
     exit
 
-init:
+initialize:
     exit
 
 increment:
