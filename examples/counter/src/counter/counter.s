@@ -1,0 +1,4 @@
+.global entrypoint
+
+entrypoint:
+    exit
