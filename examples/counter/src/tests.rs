@@ -1,4 +1,20 @@
+use mollusk_svm::program;
+use mollusk_svm::result::Check;
+use solana_sdk::instruction::{AccountMeta, Instruction, InstructionError};
+use solana_sdk::program_error::ProgramError;
 use test_utils::{setup_test, ProgramLanguage};
+
+#[test]
+fn test_asm_expected_failures() {
+    let setup = setup_test(ProgramLanguage::Assembly);
+    let (system_program, system_account) = program::keyed_account_for_system_program();
+
+    setup.mollusk.process_and_validate_instruction(
+        &Instruction::new_with_bytes(setup.program_id, &vec![], vec![]),
+        &[],
+        &[Check::err(ProgramError::Custom(E_N_ACCOUNTS))],
+    );
+}
 
 #[test]
 fn test_constants() {
