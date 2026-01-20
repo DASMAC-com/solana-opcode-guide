@@ -39,12 +39,50 @@ struct ConstantGroup {
     prefix: Option<&'static str>,
 }
 
+const OFFSET_SUFFIX: &str = "_OFFSET";
+
 struct Constant {
     name: &'static str,
     value: u64,
     is_offset: bool,
     is_hex: bool,
-    comment: Option<&'static str>,
+    comment: &'static str,
+}
+
+impl Constant {
+    fn new(name: &'static str, value: u64, comment: &'static str) -> Self {
+        assert!(
+            !name.ends_with(OFFSET_SUFFIX),
+            "Non-offset constant name must not end with {OFFSET_SUFFIX}: {name}"
+        );
+        assert!(!comment.is_empty(), "Comment must not be empty: {name}");
+        Self {
+            name,
+            value,
+            is_offset: false,
+            is_hex: false,
+            comment,
+        }
+    }
+
+    fn new_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
+        assert!(
+            name.ends_with(OFFSET_SUFFIX),
+            "Offset constant name must end with {OFFSET_SUFFIX}: {name}"
+        );
+        assert!(
+            value <= i16::MAX as u64,
+            "Offset value must fit in i16: {name} = {value}"
+        );
+        assert!(!comment.is_empty(), "Comment must not be empty: {name}");
+        Self {
+            name,
+            value,
+            is_offset: true,
+            is_hex: false,
+            comment,
+        }
+    }
 }
 
 #[test]
