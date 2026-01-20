@@ -88,16 +88,39 @@ fn test_constants() {
         }
     }
 
-    // Group of related constants.
-    struct ConstantGroup {
+    // Error code definition.
+    struct ErrorCode {
+        name: &'static str,
         comment: Comment,
-        constants: Vec<Constant>,
-        prefix: Option<&'static str>,
+    }
+
+    impl ErrorCode {
+        fn new(name: &'static str, comment: &'static str) -> Self {
+            Self {
+                name,
+                comment: Comment::new(comment),
+            }
+        }
+    }
+
+    // Group of related constants.
+    enum ConstantGroup {
+        // Standard group of constants with optional prefix.
+        Standard {
+            comment: Comment,
+            constants: Vec<Constant>,
+            prefix: Option<&'static str>,
+        },
+        // Error codes group where values are auto-incremented starting from 1.
+        ErrorCodes {
+            comment: Comment,
+            codes: Vec<ErrorCode>,
+        },
     }
 
     impl ConstantGroup {
         fn new(comment: &'static str) -> Self {
-            Self {
+            Self::Standard {
                 comment: Comment::new(comment),
                 constants: Vec::new(),
                 prefix: None,
@@ -105,16 +128,50 @@ fn test_constants() {
         }
 
         fn new_with_prefix(comment: &'static str, prefix: &'static str) -> Self {
-            Self {
+            Self::Standard {
                 comment: Comment::new(comment),
                 constants: Vec::new(),
                 prefix: Some(prefix),
             }
         }
 
+        fn new_error_codes(comment: &'static str) -> Self {
+            Self::ErrorCodes {
+                comment: Comment::new(comment),
+                codes: Vec::new(),
+            }
+        }
+
         fn push(mut self, constant: Constant) -> Self {
-            self.constants.push(constant);
+            match &mut self {
+                Self::Standard { constants, .. } => constants.push(constant),
+                Self::ErrorCodes { .. } => panic!("Use push_error for error code groups"),
+            }
             self
+        }
+
+        fn push_error(mut self, error: ErrorCode) -> Self {
+            match &mut self {
+                Self::Standard { .. } => panic!("Use push for standard groups"),
+                Self::ErrorCodes { codes, .. } => codes.push(error),
+            }
+            self
+        }
+
+        fn comment(&self) -> &Comment {
+            match self {
+                Self::Standard { comment, .. } => comment,
+                Self::ErrorCodes { comment, .. } => comment,
+            }
+        }
+
+        const ERROR_CODE_PREFIX: &str = "E_";
+
+        fn prefix(&self) -> Option<&'static str> {
+            match self {
+                Self::Standard { prefix, .. } => *prefix,
+                Self::ErrorCodes { .. } => Some(Self::ERROR_CODE_PREFIX),
+            }
         }
     }
 
@@ -137,24 +194,39 @@ fn test_constants() {
             let mut seen_prefixes: HashSet<Option<&str>> = HashSet::new();
             for group in &self.groups {
                 assert!(
-                    seen_prefixes.insert(group.prefix),
+                    seen_prefixes.insert(group.prefix()),
                     "Duplicate group prefix: {:?}",
-                    group.prefix
+                    group.prefix()
                 );
             }
 
             // Check for duplicate constant names (after applying prefix and suffix).
             let mut seen_names: HashSet<String> = HashSet::new();
             for group in &self.groups {
-                for constant in &group.constants {
-                    let name = match group.prefix {
-                        Some(prefix) => format!("{}{}", prefix, constant.asm_name()),
-                        None => constant.asm_name(),
-                    };
-                    assert!(
-                        seen_names.insert(name.clone()),
-                        "Duplicate constant name: {name}"
-                    );
+                match group {
+                    ConstantGroup::Standard {
+                        constants, prefix, ..
+                    } => {
+                        for constant in constants {
+                            let name = match prefix {
+                                Some(prefix) => format!("{}{}", prefix, constant.asm_name()),
+                                None => constant.asm_name(),
+                            };
+                            assert!(
+                                seen_names.insert(name.clone()),
+                                "Duplicate constant name: {name}"
+                            );
+                        }
+                    }
+                    ConstantGroup::ErrorCodes { codes, .. } => {
+                        for code in codes {
+                            let name = format!("{}{}", ConstantGroup::ERROR_CODE_PREFIX, code.name);
+                            assert!(
+                                seen_names.insert(name.clone()),
+                                "Duplicate constant name: {name}"
+                            );
+                        }
+                    }
                 }
             }
 
@@ -163,32 +235,63 @@ fn test_constants() {
                 if i > 0 {
                     output.push('\n');
                 }
-                output.push_str(&format!("# {}\n", group.comment.as_str()));
-                output.push_str(&format!("# {}\n", "-".repeat(group.comment.as_str().len())));
-                for constant in &group.constants {
-                    let value = if constant.is_hex {
-                        format!("0x{:x}", constant.value)
-                    } else {
-                        constant.value.to_string()
-                    };
-                    let name = match group.prefix {
-                        Some(prefix) => format!("{}{}", prefix, constant.asm_name()),
-                        None => constant.asm_name(),
-                    };
-                    // Try inline comment: ".equ NAME, VALUE # Comment."
-                    let inline =
-                        format!(".equ {}, {} # {}", name, value, constant.comment.as_str());
-                    if inline.len() <= LINE_LENGTH {
-                        output.push_str(&inline);
-                        output.push('\n');
-                    } else {
-                        // Comment on separate line.
-                        output.push_str(&format!(
-                            "# {}\n.equ {}, {}\n",
-                            constant.comment.as_str(),
-                            name,
-                            value
-                        ));
+                output.push_str(&format!("# {}\n", group.comment().as_str()));
+                output.push_str(&format!(
+                    "# {}\n",
+                    "-".repeat(group.comment().as_str().len())
+                ));
+
+                match group {
+                    ConstantGroup::Standard {
+                        constants, prefix, ..
+                    } => {
+                        for constant in constants {
+                            let value = if constant.is_hex {
+                                format!("0x{:x}", constant.value)
+                            } else {
+                                constant.value.to_string()
+                            };
+                            let name = match prefix {
+                                Some(prefix) => format!("{}{}", prefix, constant.asm_name()),
+                                None => constant.asm_name(),
+                            };
+                            // Try inline comment: ".equ NAME, VALUE # Comment."
+                            let inline =
+                                format!(".equ {}, {} # {}", name, value, constant.comment.as_str());
+                            if inline.len() <= LINE_LENGTH {
+                                output.push_str(&inline);
+                                output.push('\n');
+                            } else {
+                                // Comment on separate line.
+                                output.push_str(&format!(
+                                    "# {}\n.equ {}, {}\n",
+                                    constant.comment.as_str(),
+                                    name,
+                                    value
+                                ));
+                            }
+                        }
+                    }
+                    ConstantGroup::ErrorCodes { codes, .. } => {
+                        for (idx, code) in codes.iter().enumerate() {
+                            let value = 1 + idx as u64; // Error codes start at 1.
+                            let name = format!("{}{}", ConstantGroup::ERROR_CODE_PREFIX, code.name);
+                            // Try inline comment: ".equ NAME, VALUE # Comment."
+                            let inline =
+                                format!(".equ {}, {} # {}", name, value, code.comment.as_str());
+                            if inline.len() <= LINE_LENGTH {
+                                output.push_str(&inline);
+                                output.push('\n');
+                            } else {
+                                // Comment on separate line.
+                                output.push_str(&format!(
+                                    "# {}\n.equ {}, {}\n",
+                                    code.comment.as_str(),
+                                    name,
+                                    value
+                                ));
+                            }
+                        }
                     }
                 }
             }
