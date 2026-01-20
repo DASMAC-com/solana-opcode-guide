@@ -40,38 +40,43 @@ fn test_constants() {
     impl Constant {
         const OFFSET_SUFFIX: &str = "_OFF";
 
-        fn new(name: &'static str, value: u64, comment: &'static str) -> Self {
+        fn create(
+            name: &'static str,
+            value: u64,
+            is_offset: bool,
+            is_hex: bool,
+            comment: &'static str,
+        ) -> Self {
             assert!(
                 !name.ends_with(Self::OFFSET_SUFFIX),
-                "Non-offset constant name must not end with {}: {name}",
+                "Constant name must not end with {} (added automatically for offsets): {name}",
                 Self::OFFSET_SUFFIX
             );
+            if is_offset {
+                assert!(
+                    value <= i16::MAX as u64,
+                    "Offset value must fit in i16: {name} = {value}"
+                );
+            }
             Self {
                 name,
                 value,
-                is_offset: false,
-                is_hex: false,
+                is_offset,
+                is_hex,
                 comment: Comment::new(comment),
             }
         }
 
+        fn new(name: &'static str, value: u64, comment: &'static str) -> Self {
+            Self::create(name, value, false, false, comment)
+        }
+
+        fn new_hex(name: &'static str, value: u64, comment: &'static str) -> Self {
+            Self::create(name, value, false, true, comment)
+        }
+
         fn new_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
-            assert!(
-                !name.ends_with(Self::OFFSET_SUFFIX),
-                "Offset constant name must not end with {} (added automatically): {name}",
-                Self::OFFSET_SUFFIX
-            );
-            assert!(
-                value <= i16::MAX as u64,
-                "Offset value must fit in i16: {name} = {value}"
-            );
-            Self {
-                name,
-                value,
-                is_offset: true,
-                is_hex: false,
-                comment: Comment::new(comment),
-            }
+            Self::create(name, value, true, false, comment)
         }
 
         fn asm_name(&self) -> String {
@@ -202,9 +207,17 @@ fn test_constants() {
     }
 
     // Define constants.
-    let constants = Constants::new(vec![ConstantGroup::new("Miscellaneous constants.").push(
-        Constant::new_offset("N_ACCOUNTS", 0, "Number of accounts in virtual memory map."),
-    )]);
+    let constants = Constants::new(vec![ConstantGroup::new("Input memory map account layout.")
+        .push(Constant::new_offset(
+            "N_ACCOUNTS",
+            0,
+            "Number of accounts in virtual memory map.",
+        ))
+        .push(Constant::new_hex(
+            "NON_DUP_MARKER",
+            0xff,
+            "Flag that an account is not a duplicate.",
+        ))]);
 
     // Write to assembly file.
     let setup = setup_test(ProgramLanguage::Assembly);
