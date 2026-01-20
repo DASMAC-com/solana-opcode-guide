@@ -167,8 +167,6 @@ struct Constants {
 }
 
 impl Constants {
-    const GLOBAL_ENTRYPOINT: &str = ".global entrypoint";
-
     fn new() -> Self {
         Self { groups: Vec::new() }
     }
@@ -289,16 +287,6 @@ impl Constants {
         output
     }
 
-    fn write_to_asm_file(&self, path: &std::path::Path) {
-        let content = fs::read_to_string(path).expect("Failed to read assembly file");
-        let global_pos = content
-            .find(Self::GLOBAL_ENTRYPOINT)
-            .expect("Could not find '.global entrypoint' in assembly file");
-        let after_global = &content[global_pos..];
-        let new_content = format!("{}\n{}", self.to_asm(), after_global);
-        fs::write(path, new_content).expect("Failed to write assembly file");
-    }
-
     fn get(&self, name: &str) -> u64 {
         for group in &self.groups {
             match group {
@@ -382,11 +370,27 @@ fn constants() -> Constants {
 }
 
 #[test]
-fn test_write_constants() {
+fn test_asm_file_constants() {
+    const GLOBAL_ENTRYPOINT: &str = ".global entrypoint";
+
+    // Parse assembly file.
     let asm_path = setup_test(ProgramLanguage::Assembly)
         .asm_source_path
         .expect("Assembly source file not found");
-    constants().write_to_asm_file(&asm_path);
+    let content = fs::read_to_string(&asm_path).expect("Failed to read assembly file");
+    let global_pos = content
+        .find(GLOBAL_ENTRYPOINT)
+        .expect("Could not find '.global entrypoint' in assembly file");
+
+    // Overwrite assembly file with updated constants, asserting nothing changed.
+    let after_global = &content[global_pos..];
+    let new_content = format!("{}\n{}", constants().to_asm(), after_global);
+    let changed = new_content != content;
+    fs::write(&asm_path, new_content).expect("Failed to write assembly file");
+    assert!(
+        !changed,
+        "Assembly file constants were out of date and have been updated. Please re-run the test."
+    );
 }
 
 #[test]
