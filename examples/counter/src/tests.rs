@@ -217,6 +217,16 @@ fn test_constants() {
             "NON_DUP_MARKER",
             0xff,
             "Flag that an account is not a duplicate.",
+        ))
+        .push(Constant::new(
+            "N_ACCOUNTS_INCREMENT",
+            2,
+            "Number of accounts for increment operation.",
+        ))
+        .push(Constant::new(
+            "N_ACCOUNTS_INIT",
+            3,
+            "Number of accounts for init operation.",
         ))]);
 
     // Write to assembly file.
