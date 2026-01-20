@@ -1,7 +1,9 @@
 use mollusk_svm::program;
 use mollusk_svm::result::Check;
-use solana_sdk::instruction::{AccountMeta, Instruction, InstructionError};
+use solana_sdk::account::Account;
+use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
+use solana_sdk::pubkey::Pubkey;
 use std::fs;
 use test_utils::{setup_test, ProgramLanguage};
 
@@ -296,6 +298,34 @@ impl Constants {
         let new_content = format!("{}\n{}", self.to_asm(), after_global);
         fs::write(path, new_content).expect("Failed to write assembly file");
     }
+
+    fn get(&self, name: &str) -> u64 {
+        for group in &self.groups {
+            match group {
+                ConstantGroup::Standard {
+                    constants, prefix, ..
+                } => {
+                    for constant in constants {
+                        let full_name = match prefix {
+                            Some(p) => format!("{}{}", p, constant.asm_name()),
+                            None => constant.asm_name(),
+                        };
+                        if full_name == name {
+                            return constant.value;
+                        }
+                    }
+                }
+                ConstantGroup::ErrorCodes { codes, .. } => {
+                    for (idx, code) in codes.iter().enumerate() {
+                        if code.asm_name() == name {
+                            return (1 + idx) as u64;
+                        }
+                    }
+                }
+            }
+        }
+        panic!("Constant not found: {name}");
+    }
 }
 
 // Comment type with validation.
@@ -364,9 +394,25 @@ fn test_asm_expected_failures() {
     let setup = setup_test(ProgramLanguage::Assembly);
     let (system_program, system_account) = program::keyed_account_for_system_program();
 
+    // Check no accounts.
     setup.mollusk.process_and_validate_instruction(
-        &Instruction::new_with_bytes(setup.program_id, &vec![], vec![]),
+        &Instruction::new_with_bytes(setup.program_id, &[], vec![]),
         &[],
-        &[Check::err(ProgramError::Custom(E_N_ACCOUNTS))],
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_N_ACCOUNTS") as u32,
+        ))],
+    );
+
+    // Check too many accounts.
+    let n_accounts: usize = 4;
+    let account_metas = vec![AccountMeta::new_readonly(Pubkey::new_unique(), false); n_accounts];
+    let account_infos =
+        vec![(account_metas[0].pubkey, Account::new(0, 0, &system_program),); n_accounts];
+    setup.mollusk.process_and_validate_instruction(
+        &Instruction::new_with_bytes(setup.program_id, &[], account_metas),
+        &account_infos,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_N_ACCOUNTS") as u32,
+        ))],
     );
 }
