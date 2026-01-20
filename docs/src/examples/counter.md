@@ -31,16 +31,17 @@
 | Register | Success Value                          | Failure Value                     |
 |----------|----------------------------------------|-----------------------------------|
 | `r0`     | 0 | 1 |
-| `r4` | Pointer to address | Unchanged |
-| `r5` | Pointer to bump seed | Unchanged |
+| `r4` | Pointer to [PDA] | Unchanged |
+| `r5` | Pointer to [bump seed][pda] | Unchanged |
 
 [`sol_create_program_address`] implements [the following returns][create_pda_returns]:
 
 | Register | Success Value                          | Failure Value                     |
 |----------|----------------------------------------|-----------------------------------|
 | `r0`     | 0 | 1 |
-| `r4` | Pointer to address | Unchanged |
+| `r4` | Pointer to [PDA] | Unchanged |
 
+[pda]: https://solana.com/docs/core/pda
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
 [the following returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
 [`r4` set to 0 if both regions are equal]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L162-L173
