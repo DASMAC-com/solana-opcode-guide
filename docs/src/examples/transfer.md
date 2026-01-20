@@ -92,8 +92,8 @@ and is invoked internally in this example using a [CPI] via the
 | `r1`     | [Instruction] pointer        |
 | `r2`     | [Account info] array pointer |
 | `r3`     | [Account info] array length  |
-| `r4`     | [Signer seeds] array pointer  |
-| `r5`     | [Signer seeds] array length   |
+| `r4`     | [Signer seeds] array pointer |
+| `r5`     | [Signer seeds] array length  |
 
 The [instruction] layout is as follows:
 

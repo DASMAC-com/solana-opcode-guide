@@ -14,6 +14,7 @@ ldxb
 ldxdw
 mathjax
 memcmp
+memcpy
 metas
 nonoverlapping
 nostd
@@ -29,6 +30,7 @@ stxdw
 stxw
 syscall
 syscalls
+sysvar
 uninit
 usize
 vitepress
