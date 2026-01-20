@@ -29,6 +29,24 @@ fn parse_asm_constants(path: &str) -> HashMap<String, u64> {
     constants
 }
 
+struct Constants {
+    groups: Vec<ConstantGroup>,
+}
+
+struct ConstantGroup {
+    comment: &'static str,
+    constants: Vec<Constant>,
+    prefix: Option<&'static str>,
+}
+
+struct Constant {
+    name: &'static str,
+    value: u64,
+    is_offset: bool,
+    is_hex: bool,
+    comment: Option<&'static str>,
+}
+
 #[test]
 fn test_constants() {
     // Define expected constants and their values.
