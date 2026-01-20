@@ -27,13 +27,35 @@ accordingly, erroring out if the number of accounts is unexpected.
 
 ## Init operation
 
+Like in the [transfer example](transfer), the initialize operation uses a
+[System Program CPI](transfer#transfer-cpi) but with [`CreateAccount`]
+instruction data:
+
+| Size (bytes) | Description                                            |
+| ------------ | ------------------------------------------------------ |
+| 4            | [Enum variant](transfer#transfer-cpi) (`0`)            |
+| 8            | Lamports to transfer to new account                    |
+| 8            | Bytes to allocate for new account                      |
+| 32           | Owner program ID for new account (the counter program) |
+
+The [CPI](transfer#transfer-cpi) also requires an array of a single
+[`SolSignerSeeds`] structure pointing to an array of two [`SolSignerSeed`]
+structures, one containing the users's pubkey and one containing the
+[PDA bump seed][pda]. The PDA is itself derived via
+[`sol_try_find_program_address`], which [behaves as follows]:
+
+| Register | Success                                     | Failure     |
+| -------- | ------------------------------------------- | ----------- |
+| `r0`     | Set to 0                                    | Set to 1    |
+| `r4`     | Passed pointer filled with [PDA]            | [Unchanged] |
+| `r5`     | Passed pointer filled with [bump seed][pda] | [Unchanged] |
+
 ## Increment operation
 
 ## Links
 
 1. Init:
    1. [`sol_try_find_program_address`] returns address
-   1. [`CreateAccount`] is like from the transfer example, but uses different
       args.
    1. [`SIMD-0194`] took out 2x multiplier, then [`SIMD-0436`] made it lower
       value, but then superseded by [`SIMD-0437`] which hasn't landed
@@ -56,14 +78,6 @@ accordingly, erroring out if the number of accounts is unexpected.
 one [signer seeds] array pointing an array of two [signer seed] structures,
 one containing the owner's pubkey and one containing the bump seed.
 
-[`sol_try_find_program_address`] implements [the following returns]:
-
-| Register | Success                     | Failure     |
-| -------- | --------------------------- | ----------- |
-| `r0`     | 0                           | 1           |
-| `r4`     | Pointer to [PDA]            | [Unchanged] |
-| `r5`     | Pointer to [bump seed][pda] | [Unchanged] |
-
 [`sol_create_program_address`] implements
 [the following returns][create_pda_returns]:
 
@@ -75,6 +89,7 @@ one containing the owner's pubkey and one containing the bump seed.
 [`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct [in `r1`][`sol_get_rent_sysvar`].
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
+[behaves as follows]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
 [not yet activated]: https://github.com/anza-xyz/agave/wiki/Feature-Gate-Tracker-Schedule
 [pda]: https://solana.com/docs/core/pda
@@ -85,7 +100,6 @@ one containing the owner's pubkey and one containing the bump seed.
 [signer seeds]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L64-L71
 [soon-to-be-deprecated `rent::default`]: https://github.com/anza-xyz/solana-sdk/blob/rent@v3.1.0/rent/src/lib.rs#L108-L114
 [subject to metering]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L3-L10
-[the following returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
 [unchanged]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L606-L612
 [uses]: https://github.com/anza-xyz/mollusk/blob/0.10.0/harness/src/sysvar.rs#L37
 [`account_storage_overhead`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.ACCOUNT_STORAGE_OVERHEAD.html
@@ -99,6 +113,8 @@ one containing the owner's pubkey and one containing the bump seed.
 [`simd-0194`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0194-deprecate-rent-exemption-threshold.md
 [`simd-0436`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0436-reduce-rent-exempt-minimum-by-2x.md
 [`simd-0437`]: https://github.com/solana-foundation/solana-improvement-documents/pull/437
+[`solsignerseeds`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L55-L62
+[`solsignerseed`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L47-L53
 [`sol_create_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L64-L72
 [`sol_get_rent_sysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L135-L155
 [`sol_memcmp`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L67-L111

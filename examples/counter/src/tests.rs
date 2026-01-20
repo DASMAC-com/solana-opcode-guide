@@ -339,6 +339,75 @@ impl Comment {
 }
 
 fn constants() -> Constants {
+    #[repr(C)]
+    struct SolInstruction {
+        pub program_id_addr: u64,
+        pub accounts_addr: u64,
+        pub accounts_len: u64,
+        pub data_addr: u64,
+        pub data_len: u64,
+    }
+
+    #[repr(C)]
+    struct SolAccountMeta {
+        pub pubkey_addr: u64,
+        pub is_writable: bool,
+        pub is_signer: bool,
+    }
+
+    #[repr(C)]
+    struct CreateAccountInstructionData {
+        variant: u32,
+        lamports: u64,
+        space: u64,
+        owner: Pubkey,
+    }
+
+    #[repr(C)]
+    struct SolSignerSeed {
+        pub addr: u64,
+        pub len: u64,
+    }
+
+    #[repr(C)]
+    struct SolSignerSeeds {
+        pub addr: u64,
+        pub len: u64,
+    }
+
+    #[repr(C)]
+    struct SolAccountInfo {
+        pub key_addr: u64,
+        pub lamports_addr: u64,
+        pub data_len: u64,
+        pub data_addr: u64,
+        pub owner_addr: u64,
+        pub rent_epoch: u64,
+        pub is_signer: bool,
+        pub is_writable: bool,
+        pub executable: bool,
+    }
+
+    // Number of accounts for CPI create account instruction.
+    const N_ACCOUNTS_CPI: usize = 2;
+    // Number of signer seeds for PDA.
+    const N_SIGNER_SEEDS_PDA: usize = 2;
+    // Number of PDAs in CPI.
+    const N_PDAS: usize = 1;
+
+    #[repr(C)]
+    struct StackFrameInit {
+        instruction: SolInstruction,
+        instruction_data: CreateAccountInstructionData,
+        account_metas: [SolAccountMeta; N_ACCOUNTS_CPI],
+        account_infos: [SolAccountInfo; N_ACCOUNTS_CPI],
+        // User pubkey, then bump seed.
+        signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
+        signers_seeds: [SolSignerSeeds; N_PDAS],
+        pda: Pubkey,
+        bump_seed: u8,
+    }
+
     Constants::new()
         .push(
             ConstantGroup::new_error_codes()
