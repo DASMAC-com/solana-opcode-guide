@@ -27,6 +27,10 @@
       [10 CU base cost], and a [per-byte cost of 250 CUs], with
       [`r4` set to 0 if both regions are equal]
 
+[`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
+one [signer seeds] array pointing an array of two [signer seed] structures,
+one containing the owner's pubkey and one containing the bump seed.
+
 [`sol_try_find_program_address`] implements [the following returns]:
 
 | Register | Success | Failure |
@@ -45,6 +49,10 @@
 
 [`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct [in `r1`][`sol_get_rent_sysvar`].
 
+[signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L56-L62
+[signer seeds]:  https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L64-L71
+[`MAX_SEED_LEN`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
+[`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
 [unchanged]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L606-L612
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
 [return value]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/sysvar_cache.rs#L156-L158
