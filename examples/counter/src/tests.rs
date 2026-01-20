@@ -95,11 +95,17 @@ fn test_constants() {
     }
 
     impl ErrorCode {
+        const PREFIX: &str = "E_";
+
         fn new(name: &'static str, comment: &'static str) -> Self {
             Self {
                 name,
                 comment: Comment::new(comment),
             }
+        }
+
+        fn asm_name(&self) -> String {
+            format!("{}{}", Self::PREFIX, self.name)
         }
     }
 
@@ -135,9 +141,9 @@ fn test_constants() {
             }
         }
 
-        fn new_error_codes(comment: &'static str) -> Self {
+        fn new_error_codes() -> Self {
             Self::ErrorCodes {
-                comment: Comment::new(comment),
+                comment: Comment::new("Error codes."),
                 codes: Vec::new(),
             }
         }
@@ -165,12 +171,10 @@ fn test_constants() {
             }
         }
 
-        const ERROR_CODE_PREFIX: &str = "E_";
-
         fn prefix(&self) -> Option<&'static str> {
             match self {
                 Self::Standard { prefix, .. } => *prefix,
-                Self::ErrorCodes { .. } => Some(Self::ERROR_CODE_PREFIX),
+                Self::ErrorCodes { .. } => Some(ErrorCode::PREFIX),
             }
         }
     }
@@ -183,8 +187,13 @@ fn test_constants() {
     impl Constants {
         const GLOBAL_ENTRYPOINT: &str = ".global entrypoint";
 
-        fn new(groups: Vec<ConstantGroup>) -> Self {
-            Self { groups }
+        fn new() -> Self {
+            Self { groups: Vec::new() }
+        }
+
+        fn push(mut self, group: ConstantGroup) -> Self {
+            self.groups.push(group);
+            self
         }
 
         fn to_asm(&self) -> String {
@@ -220,10 +229,10 @@ fn test_constants() {
                     }
                     ConstantGroup::ErrorCodes { codes, .. } => {
                         for code in codes {
-                            let name = format!("{}{}", ConstantGroup::ERROR_CODE_PREFIX, code.name);
                             assert!(
-                                seen_names.insert(name.clone()),
-                                "Duplicate constant name: {name}"
+                                seen_names.insert(code.asm_name()),
+                                "Duplicate constant name: {}",
+                                code.asm_name()
                             );
                         }
                     }
@@ -275,7 +284,7 @@ fn test_constants() {
                     ConstantGroup::ErrorCodes { codes, .. } => {
                         for (idx, code) in codes.iter().enumerate() {
                             let value = 1 + idx as u64; // Error codes start at 1.
-                            let name = format!("{}{}", ConstantGroup::ERROR_CODE_PREFIX, code.name);
+                            let name = code.asm_name();
                             // Try inline comment: ".equ NAME, VALUE # Comment."
                             let inline =
                                 format!(".equ {}, {} # {}", name, value, code.comment.as_str());
@@ -310,27 +319,34 @@ fn test_constants() {
     }
 
     // Define constants.
-    let constants = Constants::new(vec![ConstantGroup::new("Input memory map account layout.")
-        .push(Constant::new_offset(
-            "N_ACCOUNTS",
-            0,
-            "Number of accounts in virtual memory map.",
-        ))
-        .push(Constant::new_hex(
-            "NON_DUP_MARKER",
-            0xff,
-            "Flag that an account is not a duplicate.",
-        ))
-        .push(Constant::new(
-            "N_ACCOUNTS_INCREMENT",
-            2,
-            "Number of accounts for increment operation.",
-        ))
-        .push(Constant::new(
-            "N_ACCOUNTS_INIT",
-            3,
-            "Number of accounts for init operation.",
-        ))]);
+    let constants = Constants::new()
+        .push(
+            ConstantGroup::new_error_codes()
+                .push_error(ErrorCode::new("N_ACCOUNTS", "Invalid number of accounts.")),
+        )
+        .push(
+            ConstantGroup::new("Input memory map account layout.")
+                .push(Constant::new_offset(
+                    "N_ACCOUNTS",
+                    0,
+                    "Number of accounts in virtual memory map.",
+                ))
+                .push(Constant::new_hex(
+                    "NON_DUP_MARKER",
+                    0xff,
+                    "Flag that an account is not a duplicate.",
+                ))
+                .push(Constant::new(
+                    "N_ACCOUNTS_INCREMENT",
+                    2,
+                    "Number of accounts for increment operation.",
+                ))
+                .push(Constant::new(
+                    "N_ACCOUNTS_INIT",
+                    3,
+                    "Number of accounts for init operation.",
+                )),
+        );
 
     // Write to assembly file.
     let setup = setup_test(ProgramLanguage::Assembly);
