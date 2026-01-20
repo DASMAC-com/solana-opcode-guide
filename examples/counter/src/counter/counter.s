@@ -12,8 +12,6 @@
 .global entrypoint
 
 entrypoint:
-    # Check number of accounts.
-    # -------------------------
     ldxdw r2, [r1 + N_ACCOUNTS_OFF] # Get n accounts from input buffer.
     jeq r2, N_ACCOUNTS_INCREMENT, increment # Fast path to cheap operation.
     jeq r3, N_ACCOUNTS_INIT, init # Second priority, is expensive anyways.
