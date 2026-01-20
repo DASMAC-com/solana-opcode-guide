@@ -1,14 +1,25 @@
+use test_utils::{setup_test, ProgramLanguage};
+
 #[test]
 fn test_constants() {
     use std::fs;
+
+    const LINE_LENGTH: usize = 75;
 
     // Comment type with validation.
     struct Comment(&'static str);
 
     impl Comment {
+        const MAX_LENGTH: usize = LINE_LENGTH - 2; // Account for "# " prefix.
+
         fn new(text: &'static str) -> Self {
             assert!(!text.is_empty(), "Comment must not be empty");
             assert!(text.ends_with('.'), "Comment must end with '.': {text}");
+            assert!(
+                text.len() <= Self::MAX_LENGTH,
+                "Comment must not exceed {} characters: {text}",
+                Self::MAX_LENGTH
+            );
             Self(text)
         }
 
@@ -46,8 +57,8 @@ fn test_constants() {
 
         fn new_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
             assert!(
-                name.ends_with(Self::OFFSET_SUFFIX),
-                "Offset constant name must end with {}: {name}",
+                !name.ends_with(Self::OFFSET_SUFFIX),
+                "Offset constant name must not end with {} (added automatically): {name}",
                 Self::OFFSET_SUFFIX
             );
             assert!(
@@ -62,6 +73,14 @@ fn test_constants() {
                 comment: Comment::new(comment),
             }
         }
+
+        fn asm_name(&self) -> String {
+            if self.is_offset {
+                format!("{}{}", self.name, Self::OFFSET_SUFFIX)
+            } else {
+                self.name.to_string()
+            }
+        }
     }
 
     // Group of related constants.
@@ -72,12 +91,25 @@ fn test_constants() {
     }
 
     impl ConstantGroup {
-        fn new(comment: &'static str, constants: Vec<Constant>) -> Self {
+        fn new(comment: &'static str) -> Self {
             Self {
                 comment: Comment::new(comment),
-                constants,
+                constants: Vec::new(),
                 prefix: None,
             }
+        }
+
+        fn new_with_prefix(comment: &'static str, prefix: &'static str) -> Self {
+            Self {
+                comment: Comment::new(comment),
+                constants: Vec::new(),
+                prefix: Some(prefix),
+            }
+        }
+
+        fn push(mut self, constant: Constant) -> Self {
+            self.constants.push(constant);
+            self
         }
     }
 
@@ -94,12 +126,40 @@ fn test_constants() {
         }
 
         fn to_asm(&self) -> String {
+            use std::collections::HashSet;
+
+            // Check for duplicate prefixes.
+            let mut seen_prefixes: HashSet<Option<&str>> = HashSet::new();
+            for group in &self.groups {
+                assert!(
+                    seen_prefixes.insert(group.prefix),
+                    "Duplicate group prefix: {:?}",
+                    group.prefix
+                );
+            }
+
+            // Check for duplicate constant names (after applying prefix and suffix).
+            let mut seen_names: HashSet<String> = HashSet::new();
+            for group in &self.groups {
+                for constant in &group.constants {
+                    let name = match group.prefix {
+                        Some(prefix) => format!("{}{}", prefix, constant.asm_name()),
+                        None => constant.asm_name(),
+                    };
+                    assert!(
+                        seen_names.insert(name.clone()),
+                        "Duplicate constant name: {name}"
+                    );
+                }
+            }
+
             let mut output = String::new();
             for (i, group) in self.groups.iter().enumerate() {
                 if i > 0 {
                     output.push('\n');
                 }
                 output.push_str(&format!("# {}\n", group.comment.as_str()));
+                output.push_str(&format!("# {}\n", "-".repeat(group.comment.as_str().len())));
                 for constant in &group.constants {
                     let value = if constant.is_hex {
                         format!("0x{:x}", constant.value)
@@ -107,21 +167,30 @@ fn test_constants() {
                         constant.value.to_string()
                     };
                     let name = match group.prefix {
-                        Some(prefix) => format!("{}{}", prefix, constant.name),
-                        None => constant.name.to_string(),
+                        Some(prefix) => format!("{}{}", prefix, constant.asm_name()),
+                        None => constant.asm_name(),
                     };
-                    output.push_str(&format!(
-                        "# {}\n.equ {}, {}\n",
-                        constant.comment.as_str(),
-                        name,
-                        value
-                    ));
+                    // Try inline comment: ".equ NAME, VALUE # Comment."
+                    let inline =
+                        format!(".equ {}, {} # {}", name, value, constant.comment.as_str());
+                    if inline.len() <= LINE_LENGTH {
+                        output.push_str(&inline);
+                        output.push('\n');
+                    } else {
+                        // Comment on separate line.
+                        output.push_str(&format!(
+                            "# {}\n.equ {}, {}\n",
+                            constant.comment.as_str(),
+                            name,
+                            value
+                        ));
+                    }
                 }
             }
             output
         }
 
-        fn write_to_asm_file(&self, path: &str) {
+        fn write_to_asm_file(&self, path: &std::path::Path) {
             let content = fs::read_to_string(path).expect("Failed to read assembly file");
             let global_pos = content
                 .find(Self::GLOBAL_ENTRYPOINT)
@@ -133,16 +202,14 @@ fn test_constants() {
     }
 
     // Define constants.
-    let constants = Constants::new(vec![ConstantGroup::new(
-        "Miscellaneous constants.",
-        vec![Constant::new_offset(
-            "N_ACCOUNTS_OFF",
-            0,
-            "Number of accounts in virtual memory map.",
-        )],
+    let constants = Constants::new(vec![ConstantGroup::new("Miscellaneous constants.").push(
+        Constant::new_offset("N_ACCOUNTS", 0, "Number of accounts in virtual memory map."),
     )]);
 
     // Write to assembly file.
-    let asm_path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/counter/counter.s");
-    constants.write_to_asm_file(asm_path);
+    let setup = setup_test(ProgramLanguage::Assembly);
+    let asm_path = setup
+        .asm_source_path
+        .expect("Assembly source file not found");
+    constants.write_to_asm_file(&asm_path);
 }
