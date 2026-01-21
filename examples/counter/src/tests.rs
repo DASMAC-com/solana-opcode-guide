@@ -433,7 +433,7 @@ fn constants() -> Constants {
         pubkey: [u8; 32],
         owner: [u8; 32],
         lamports: u64,
-        data_length: u64,
+        data_len: u64,
         data_padded: [u8; PADDED_DATA_SIZE],
         rent_epoch: u64,
     }
@@ -448,6 +448,14 @@ fn constants() -> Constants {
                 .push_error(ErrorCode::new(
                     "USER_DATA_LEN",
                     "User data length is nonzero.",
+                ))
+                .push_error(ErrorCode::new(
+                    "PDA_DATA_LEN",
+                    "PDA data length is nonzero.",
+                ))
+                .push_error(ErrorCode::new(
+                    "SYSTEM_PROGRAM_DATA_LEN",
+                    "System Program data length is nonzero.",
                 )),
         )
         .push(
@@ -462,10 +470,11 @@ fn constants() -> Constants {
                     0xff,
                     "Flag that an account is not a duplicate.",
                 ))
-                .push(Constant::new_hex(
-                    "DATA_LEN_ZERO",
-                    0,
-                    "Data length of zero.",
+                .push(Constant::new("DATA_LEN_ZERO", 0, "Data length of zero."))
+                .push(Constant::new(
+                    "DATA_LEN_SYSTEM_PROGRAM",
+                    "system_program".len() as u64,
+                    "Data length of System Program.",
                 ))
                 .push(Constant::new(
                     "N_ACCOUNTS_INCREMENT",
@@ -475,7 +484,7 @@ fn constants() -> Constants {
                 .push(Constant::new(
                     "N_ACCOUNTS_INIT",
                     3,
-                    "Number of accounts for init operation.",
+                    "Number of accounts for initialize operation.",
                 ))
                 .push(Constant::new_offset(
                     "USER",
@@ -483,11 +492,10 @@ fn constants() -> Constants {
                     "Serialized user account.",
                 ))
                 .push(Constant::new_offset(
-                    "USER_ORIGINAL_DATA_LEN",
-                    (offset_of!(MemoryMapInit, user)
-                        + offset_of!(StandardAccount, original_data_len))
+                    "USER_DATA_LEN",
+                    (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, data_len))
                         as u64,
-                    "User original data length.",
+                    "User data length.",
                 ))
                 .push(Constant::new_offset(
                     "USER_PUBKEY",
@@ -495,9 +503,15 @@ fn constants() -> Constants {
                     "User pubkey.",
                 ))
                 .push(Constant::new_offset(
-                    "USER_OWNER",
-                    (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, owner)) as u64,
-                    "User owner.",
+                    "PDA_DATA_LEN",
+                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, data_len)) as u64,
+                    "PDA data length.",
+                ))
+                .push(Constant::new_offset(
+                    "SYSTEM_PROGRAM_DATA_LEN",
+                    (offset_of!(MemoryMapInit, system_program)
+                        + offset_of!(SystemProgramAccount, data_len)) as u64,
+                    "System program data length.",
                 )),
         );
     constants.push(
@@ -622,29 +636,88 @@ fn happy_path_setup(
 }
 
 #[test]
-fn test_asm_expected_failures() {
-    let setup = setup_test(ProgramLanguage::Assembly);
-    let (system_program, system_account) = program::keyed_account_for_system_program();
+fn test_asm_no_accounts() {
+    let (setup, mut instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
-    // Check no accounts.
+    instruction.accounts.clear();
+    accounts.clear();
+
     setup.mollusk.process_and_validate_instruction(
-        &Instruction::new_with_bytes(setup.program_id, &[], vec![]),
-        &[],
+        &instruction,
+        &accounts,
         &[Check::err(ProgramError::Custom(
             constants().get("E_N_ACCOUNTS") as u32,
         ))],
     );
+}
 
-    // Check too many accounts.
-    let n_accounts: usize = 4;
-    let account_metas = vec![AccountMeta::new_readonly(Pubkey::new_unique(), false); n_accounts];
-    let account_infos =
-        vec![(account_metas[0].pubkey, Account::new(0, 0, &system_program),); n_accounts];
+#[test]
+fn test_asm_too_many_accounts() {
+    let (setup, mut instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    instruction
+        .accounts
+        .push(AccountMeta::new_readonly(Pubkey::new_unique(), false));
+    accounts.push((
+        instruction.accounts.last().unwrap().pubkey,
+        Account::default(),
+    ));
+
     setup.mollusk.process_and_validate_instruction(
-        &Instruction::new_with_bytes(setup.program_id, &[], account_metas),
-        &account_infos,
+        &instruction,
+        &accounts,
         &[Check::err(ProgramError::Custom(
             constants().get("E_N_ACCOUNTS") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_asm_initialize_user_data_len() {
+    let (setup, instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_USER_DATA_LEN") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_asm_initialize_pda_data_len() {
+    let (setup, instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_PDA_DATA_LEN") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_asm_initialize_system_program_data_len() {
+    let (setup, instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    accounts[AccountIndex::SystemProgram as usize].1.data = vec![1u8; 1];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
         ))],
     );
 }
