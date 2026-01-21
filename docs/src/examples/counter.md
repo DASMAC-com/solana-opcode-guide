@@ -55,9 +55,9 @@ Note that in addition to the allocated stack regions from the
 additional allocations:
 
 1. Array of two [`SolSignerSeed`]
+    1. User's pubkey (32 bytes)
+    1. Bump seed (1 byte)
 1. Array of one [`SolSignerSeeds`]
-1. [PDA]
-1. Bump seed
 
 ## Increment operation
 
@@ -72,6 +72,8 @@ additional allocations:
       yielding [`minimum_balance`]
    1. [Not yet activated] as of the time of this writing
    1. Testing framework [uses] the [soon-to-be-deprecated `Rent::default`]
+   1. [`create_account`] calls [`transfer`], which
+      [internally disallows account data]
 1. Increment:
    1. [`sol_create_program_address`]
    1. Error if not there
@@ -98,6 +100,9 @@ one containing the owner's pubkey and one containing the bump seed.
 [`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct
 [in `r1`][`sol_get_rent_sysvar`].
 
+[internally disallows account data]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L189-L192
+[`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
+[`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [behaves as follows]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834

@@ -410,14 +410,45 @@ fn constants() -> Constants {
         // User pubkey, then bump seed.
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
         signers_seeds: [SolSignerSeeds; N_PDAS],
-        pda: Pubkey,
-        bump_seed: u8,
     }
 
-    Constants::new()
+    #[repr(C)]
+    struct MemoryMapInit {
+        n_accounts: u64,
+        user: StandardAccount, // Must be empty, or CreateAccount will fail.
+        pda: StandardAccount,  // Must be empty, or CreateAccount will fail.
+        system_program: SystemProgramAccount,
+    }
+
+    const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct AccountLayout<const PADDED_DATA_SIZE: usize> {
+        non_dup_marker: u8,
+        is_signer: u8,
+        is_writable: u8,
+        is_executable: u8,
+        original_data_len: [u8; 4],
+        pubkey: [u8; 32],
+        owner: [u8; 32],
+        lamports: u64,
+        data_length: u64,
+        data_padded: [u8; PADDED_DATA_SIZE],
+        rent_epoch: u64,
+    }
+
+    type StandardAccount = AccountLayout<MAX_PERMITTED_DATA_INCREASE>;
+    type SystemProgramAccount = AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + 16 }>;
+
+    let constants = Constants::new()
         .push(
             ConstantGroup::new_error_codes()
-                .push_error(ErrorCode::new("N_ACCOUNTS", "Invalid number of accounts.")),
+                .push_error(ErrorCode::new("N_ACCOUNTS", "Invalid number of accounts."))
+                .push_error(ErrorCode::new(
+                    "USER_DATA_LEN",
+                    "User data length is nonzero.",
+                )),
         )
         .push(
             ConstantGroup::new("Input memory map account layout.")
@@ -431,6 +462,11 @@ fn constants() -> Constants {
                     0xff,
                     "Flag that an account is not a duplicate.",
                 ))
+                .push(Constant::new_hex(
+                    "DATA_LEN_ZERO",
+                    0,
+                    "Data length of zero.",
+                ))
                 .push(Constant::new(
                     "N_ACCOUNTS_INCREMENT",
                     2,
@@ -440,13 +476,32 @@ fn constants() -> Constants {
                     "N_ACCOUNTS_INIT",
                     3,
                     "Number of accounts for init operation.",
+                ))
+                .push(Constant::new_offset(
+                    "USER",
+                    offset_of!(MemoryMapInit, user) as u64,
+                    "Serialized user account.",
+                ))
+                .push(Constant::new_offset(
+                    "USER_ORIGINAL_DATA_LEN",
+                    (offset_of!(MemoryMapInit, user)
+                        + offset_of!(StandardAccount, original_data_len))
+                        as u64,
+                    "User original data length.",
+                ))
+                .push(Constant::new_offset(
+                    "USER_PUBKEY",
+                    (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, pubkey)) as u64,
+                    "User pubkey.",
+                ))
+                .push(Constant::new_offset(
+                    "USER_OWNER",
+                    (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, owner)) as u64,
+                    "User owner.",
                 )),
-        )
-        .push(
-            ConstantGroup::new_with_prefix(
-                "Stack frame layout for initialize operation.",
-                "STK_INIT_",
-            )
+        );
+    constants.push(
+        ConstantGroup::new_with_prefix("Stack frame layout for initialize operation.", "STK_INIT_")
             .push(Constant::new_offset(
                 "INSN",
                 (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction)) as u64,
@@ -478,18 +533,8 @@ fn constants() -> Constants {
                         + size_of::<SolSignerSeed>()
                         + offset_of!(SolSignerSeed, len))) as u64,
                 "Length of bump seed.",
-            ))
-            .push(Constant::new_offset(
-                "PDA",
-                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, pda))) as u64,
-                "PDA computed by syscall.",
-            ))
-            .push(Constant::new_offset(
-                "BUMP_SEED",
-                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, bump_seed))) as u64,
-                "PDA bump seed.",
             )),
-        )
+    )
 }
 
 #[test]
@@ -514,6 +559,66 @@ fn test_asm_file_constants() {
         !changed,
         "Assembly file constants were out of date and have been updated. Please re-run the test."
     );
+}
+
+const USER_STARTING_LAMPORTS: u64 = 10_000;
+
+enum Operation {
+    Initialize,
+    Increment,
+}
+
+enum AccountIndex {
+    User = 0,
+    Pda = 1,
+    SystemProgram = 2,
+}
+fn happy_path_setup(
+    program_language: ProgramLanguage,
+    operation: Operation,
+) -> (
+    test_utils::TestSetup,
+    Instruction,
+    Vec<(Pubkey, Account)>,
+    Vec<Check<'static>>,
+) {
+    let setup = setup_test(program_language);
+    let (system_program, system_account) = program::keyed_account_for_system_program();
+
+    let mut instruction = Instruction::new_with_bytes(
+        setup.program_id,
+        &[],
+        vec![
+            AccountMeta::new(Pubkey::new_unique(), true),
+            AccountMeta::new(Pubkey::new_unique(), false),
+        ],
+    );
+
+    let mut accounts = vec![
+        (
+            instruction.accounts[AccountIndex::User as usize].pubkey,
+            Account::new(USER_STARTING_LAMPORTS, 0, &system_program),
+        ),
+        (
+            instruction.accounts[AccountIndex::Pda as usize].pubkey,
+            Account::new(0, 0, &setup.program_id),
+        ),
+    ];
+
+    let mut checks = vec![Check::success()];
+
+    match operation {
+        Operation::Initialize => {
+            instruction
+                .accounts
+                .push(AccountMeta::new_readonly(system_program, false));
+            accounts.push((system_program, system_account));
+        }
+        Operation::Increment => {
+            // To be implemented.
+        }
+    }
+    (setup, instruction, accounts, checks)
 }
 
 #[test]
