@@ -2,9 +2,11 @@ use mollusk_svm::program;
 use mollusk_svm::result::Check;
 use solana_sdk::account::Account;
 use solana_sdk::instruction::{AccountMeta, Instruction};
+use solana_sdk::native_token::Sol;
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use std::fs;
+use std::mem::{offset_of, size_of};
 use test_utils::{setup_test, ProgramLanguage};
 
 /// In an assembly file.
@@ -341,51 +343,56 @@ impl Comment {
 fn constants() -> Constants {
     #[repr(C)]
     struct SolInstruction {
-        pub program_id_addr: u64,
-        pub accounts_addr: u64,
-        pub accounts_len: u64,
-        pub data_addr: u64,
-        pub data_len: u64,
+        program_id_addr: u64,
+        accounts_addr: u64,
+        accounts_len: u64,
+        data_addr: u64,
+        data_len: u64,
     }
 
     #[repr(C)]
     struct SolAccountMeta {
-        pub pubkey_addr: u64,
-        pub is_writable: bool,
-        pub is_signer: bool,
+        pubkey_addr: u64,
+        is_writable: bool,
+        is_signer: bool,
+        pad: [u8; 6],
     }
 
     #[repr(C)]
+    // Defined as bytes vectors so compiler doesn't align fields before end of struct during offset
+    // calculations.
     struct CreateAccountInstructionData {
-        variant: u32,
-        lamports: u64,
-        space: u64,
-        owner: Pubkey,
+        variant: [u8; size_of::<u32>()],
+        lamports: [u8; size_of::<u64>()],
+        space: [u8; size_of::<u64>()],
+        owner: [u8; size_of::<Pubkey>()],
+        pad: [u8; 4],
     }
 
     #[repr(C)]
     struct SolSignerSeed {
-        pub addr: u64,
-        pub len: u64,
+        addr: u64,
+        len: u64,
     }
 
     #[repr(C)]
     struct SolSignerSeeds {
-        pub addr: u64,
-        pub len: u64,
+        addr: u64,
+        len: u64,
     }
 
     #[repr(C)]
     struct SolAccountInfo {
-        pub key_addr: u64,
-        pub lamports_addr: u64,
-        pub data_len: u64,
-        pub data_addr: u64,
-        pub owner_addr: u64,
-        pub rent_epoch: u64,
-        pub is_signer: bool,
-        pub is_writable: bool,
-        pub executable: bool,
+        key_addr: u64,
+        lamports_addr: u64,
+        data_len: u64,
+        data_addr: u64,
+        owner_addr: u64,
+        rent_epoch: u64,
+        is_signer: bool,
+        is_writable: bool,
+        executable: bool,
+        pad: [u8; 5],
     }
 
     // Number of accounts for CPI create account instruction.
@@ -404,7 +411,6 @@ fn constants() -> Constants {
         // User pubkey, then bump seed.
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
         signers_seeds: [SolSignerSeeds; N_PDAS],
-        pda: Pubkey,
         bump_seed: u8,
     }
 
@@ -435,6 +441,49 @@ fn constants() -> Constants {
                     3,
                     "Number of accounts for init operation.",
                 )),
+        )
+        .push(
+            ConstantGroup::new_with_prefix(
+                "Stack frame layout for initialize operation.",
+                "STK_INIT_",
+            )
+            .push(Constant::new_offset(
+                "INSN",
+                (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction)) as u64,
+                "SolInstruction for CreateAccount CPI.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_1_ADDR",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, signer_seeds))) as u64,
+                "Pointer to user pubkey.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_1_LEN",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, signer_seeds) + offset_of!(SolSignerSeed, len)))
+                    as u64,
+                "Length of user pubkey.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_2_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, signer_seeds) + size_of::<SolSignerSeed>()))
+                    as u64,
+                "Pointer to bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_2_LEN",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, signer_seeds)
+                        + size_of::<SolSignerSeed>()
+                        + offset_of!(SolSignerSeed, len))) as u64,
+                "Length of bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "BUMP_SEED",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, bump_seed))) as u64,
+                "PDA bump seed.",
+            )),
         )
 }
 

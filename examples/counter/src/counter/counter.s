@@ -9,6 +9,15 @@
 .equ N_ACCOUNTS_INCREMENT, 2 # Number of accounts for increment operation.
 .equ N_ACCOUNTS_INIT, 3 # Number of accounts for init operation.
 
+# Stack frame layout for initialize operation.
+# --------------------------------------------
+.equ STK_INIT_INSN_OFF, 296 # SolInstruction for CreateAccount CPI.
+.equ STK_INIT_SEED_1_ADDR_OFF, 56 # Pointer to user pubkey.
+.equ STK_INIT_SEED_1_LEN_OFF, 48 # Length of user pubkey.
+.equ STK_INIT_SEED_2_ADDR_OFF, 40 # Pointer to bump seed.
+.equ STK_INIT_SEED_2_LEN_OFF, 32 # Length of bump seed.
+.equ STK_INIT_BUMP_SEED_OFF, 8 # PDA bump seed.
+
 .global entrypoint
 
 entrypoint:

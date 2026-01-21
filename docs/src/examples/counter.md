@@ -50,6 +50,14 @@ structures, one containing the users's pubkey and one containing the
 | `r4`     | Passed pointer filled with [PDA]            | [Unchanged] |
 | `r5`     | Passed pointer filled with [bump seed][pda] | [Unchanged] |
 
+Note that in addition to the allocated stack regions from the
+[transfer example](transfer#transfer-cpi), this example requires the following
+additional allocations:
+
+1. Array of two [`SolSignerSeed`]
+1. Array of one [`SolSignerSeeds`]
+1. Bump seed
+
 ## Increment operation
 
 ## Links
