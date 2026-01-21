@@ -18,6 +18,7 @@ memcpy
 metas
 nonoverlapping
 nostd
+pda
 repr
 rodata
 rustfilt

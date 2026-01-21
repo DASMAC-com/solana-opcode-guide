@@ -2,7 +2,6 @@ use mollusk_svm::program;
 use mollusk_svm::result::Check;
 use solana_sdk::account::Account;
 use solana_sdk::instruction::{AccountMeta, Instruction};
-use solana_sdk::native_token::Sol;
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use std::fs;
@@ -411,6 +410,7 @@ fn constants() -> Constants {
         // User pubkey, then bump seed.
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
         signers_seeds: [SolSignerSeeds; N_PDAS],
+        pda: Pubkey,
         bump_seed: u8,
     }
 
@@ -478,6 +478,11 @@ fn constants() -> Constants {
                         + size_of::<SolSignerSeed>()
                         + offset_of!(SolSignerSeed, len))) as u64,
                 "Length of bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "PDA",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, pda))) as u64,
+                "PDA computed by syscall.",
             ))
             .push(Constant::new_offset(
                 "BUMP_SEED",

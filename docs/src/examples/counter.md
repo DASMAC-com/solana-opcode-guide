@@ -56,6 +56,7 @@ additional allocations:
 
 1. Array of two [`SolSignerSeed`]
 1. Array of one [`SolSignerSeeds`]
+1. [PDA]
 1. Bump seed
 
 ## Increment operation
@@ -89,12 +90,13 @@ one containing the owner's pubkey and one containing the bump seed.
 [`sol_create_program_address`] implements
 [the following returns][create_pda_returns]:
 
-| Register | Success          | Failure     |
-| -------- | ---------------- | ----------- |
-| `r0`     | 0                | 1           |
-| `r4`     | Pointer to [PDA] | [Unchanged] |
+| Register | Success                          | Failure     |
+| -------- | -------------------------------- | ----------- |
+| `r0`     | 0                                | 1           |
+| `r4`     | Passed pointer filled with [PDA] | [Unchanged] |
 
-[`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct [in `r1`][`sol_get_rent_sysvar`].
+[`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct
+[in `r1`][`sol_get_rent_sysvar`].
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [behaves as follows]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
