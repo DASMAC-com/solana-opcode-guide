@@ -6,7 +6,13 @@
 
 This example implements a simple on-chain counter program at a [PDA] account.
 The program supports two operations: initializing a user's counter, and
-incrementing a user's counter by a specified amount.
+incrementing a user's counter by a specified amount. The counter [PDA] account
+stores the following data:
+
+| Size (bytes) | Description        |
+| ------------ | ------------------ |
+| 8            | Counter value (`u64`) |
+| 1            | [Bump seed][pda] (`u8`)   |
 
 All constants for this example are derived programmatically in Rust, then
 automatically inserted at the top of the assembly program file during a test:
@@ -114,11 +120,15 @@ the user's [pubkey]:
 | `r4`     | Pointer filled with [PDA] ([unchanged] on error)               |
 | `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)    |
 
+Notably, the [bump seed][pda] is temporarily stored on the
+[stack](transfer#transfer-cpi) instead of directly in the passed [PDA] account
+data, since the [`CreateAccount`] instruction [CPI processor exit routine] later
+[overwrites data] on account creation.
+
 <<< ../../../examples/counter/artifacts/snippets/asm/init-find-pda.txt{asm}
 
-Note that the initialize operation stack contains the same allocated regions as
-the [transfer example](transfer#transfer-cpi) plus the following additional
-regions:
+Hence the initialize operation stack contains the same allocated regions as the
+[transfer example](transfer#transfer-cpi) plus the following additional regions:
 
 | Size (bytes) | Description                                         |
 | ------------ | --------------------------------------------------- |
@@ -203,3 +213,5 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
+[cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
+[overwrites data]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L1248
