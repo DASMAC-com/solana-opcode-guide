@@ -66,7 +66,7 @@ number of accounts is unexpected.
 
 ## Initialize operation
 
-### CPI vs memory map
+### Layout background
 
 Like in the [transfer example](transfer), the initialize operation uses a
 [System Program CPI](transfer#transfer-cpi) but with [`CreateAccount`]
@@ -86,6 +86,21 @@ statically sized for the initialize operation, including the
 memory map checks at the start of the initialize operation:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-map-checks.txt{asm}
+
+The initialize operation stack contains the same allocated regions as the
+[transfer example](transfer#transfer-cpi) plus the following additional regions,
+described below:
+
+| Size (bytes) | Description                                                   |
+| ------------ | ------------------------------------------------------------- |
+| 16           | [`SolSignerSeed`] for user's [pubkey]                         |
+| 16           | [`SolSignerSeed`] for bump seed                               |
+| 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi)           |
+| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)            |
+| 24           | [`Rent`] from [`sol_get_rent_sysvar`]                         |
+| 4           | `i32` from [`sol_memcmp`] (`r4`)                              |
+| 4             | Padding to maintain 8-byte alignment                             |
+| 1            | [Bump seed][pda] from [`sol_try_find_program_address`] (`r5`) |
 
 ### Signer seeds
 
@@ -134,17 +149,6 @@ data, since the [`CreateAccount`] instruction [CPI processor exit routine] later
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-find-pda.txt{asm}
 
-Hence the initialize operation stack contains the same allocated regions as the
-[transfer example](transfer#transfer-cpi) plus the following additional regions:
-
-| Size (bytes) | Description                                                   |
-| ------------ | ------------------------------------------------------------- |
-| 16           | [`SolSignerSeed`] for user's [pubkey]                         |
-| 16           | [`SolSignerSeed`] for bump seed                               |
-| 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi)           |
-| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)            |
-| 1            | [Bump seed][pda] from [`sol_try_find_program_address`] (`r5`) |
-
 The computed [PDA] is then compared against the passed [PDA] account's
 [pubkey] using [`sol_memcmp`], which is [subject to metering] that charges the
 larger of a [10 CU base cost], and a [per-byte cost of 250 CUs]. The
@@ -169,7 +173,7 @@ relies on [`sol_get_rent_sysvar`] which has a [return value] of [`Rent`],
 written to the pointer passed [in `r1`][`sol_get_rent_sysvar`]. The resulting
 [`minimum_balance`] is then computed as product of:
 
-1. [`Rent.lamports_per_byte_year`][`Rent`] ([`DEFAULT_LAMPORTS_PER_BYTE`])
+1. [`Rent.lamports_per_byte_year`][`Rent`] ([`DEFAULT_LAMPORTS_PER_BYTE_YEAR`])
 1. [PDA] account data length (`9`) plus [`ACCOUNT_STORAGE_OVERHEAD`]
 
 > [!note]
@@ -223,7 +227,7 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`createaccount`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L88-L97
 [`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
 [`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
-[`default_lamports_per_byte`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.DEFAULT_LAMPORTS_PER_BYTE.html
+[`default_lamports_per_byte_year`]: https://docs.rs/solana-rent/3.0.0/solana_rent/constant.DEFAULT_LAMPORTS_PER_BYTE_YEAR.html
 [`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
 [`max_seed_len`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance

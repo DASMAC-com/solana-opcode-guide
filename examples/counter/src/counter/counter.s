@@ -14,8 +14,8 @@
 .equ SIZE_OF_PUBKEY, 32 # Size of Pubkey.
 .equ SIZE_OF_U8, 1 # Size of u8.
 
-# Input memory map layout.
-# ------------------------
+# Memory map layout.
+# ------------------
 .equ NON_DUP_MARKER, 0xff # Flag that an account is not a duplicate.
 .equ DATA_LEN_ZERO, 0 # Data length of zero.
 .equ DATA_LEN_SYSTEM_PROGRAM, 14 # Data length of System Program.
@@ -27,6 +27,8 @@
 .equ PDA_NON_DUP_MARKER_OFF, 10344 # PDA non-duplicate marker.
 .equ PDA_PUBKEY_OFF, 10352 # PDA pubkey.
 .equ PDA_DATA_LEN_OFF, 10424 # PDA data length.
+# PDA account data length plus account overhead.
+.equ PDA_DATA_WITH_ACCOUNT_OVERHEAD, 137
 .equ PDA_BUMP_SEED_OFF, 10440 # PDA bump seed.
 # System Program non-duplicate marker.
 .equ SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
@@ -35,12 +37,13 @@
 
 # Stack frame layout for initialize operation.
 # --------------------------------------------
-.equ STK_INIT_INSN_OFF, 336 # SolInstruction for CreateAccount CPI.
-.equ STK_INIT_SEED_0_ADDR_OFF, 96 # Pointer to user pubkey.
-.equ STK_INIT_SEED_0_LEN_OFF, 88 # Length of user pubkey.
-.equ STK_INIT_SEED_1_ADDR_OFF, 80 # Pointer to bump seed.
-.equ STK_INIT_SEED_1_LEN_OFF, 72 # Length of bump seed.
-.equ STK_INIT_PDA_OFF, 48 # PDA.
+.equ STK_INIT_INSN_OFF, 360 # SolInstruction for CreateAccount CPI.
+.equ STK_INIT_SEED_0_ADDR_OFF, 120 # Pointer to user pubkey.
+.equ STK_INIT_SEED_0_LEN_OFF, 112 # Length of user pubkey.
+.equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.
+.equ STK_INIT_SEED_1_LEN_OFF, 96 # Length of bump seed.
+.equ STK_INIT_PDA_OFF, 72 # PDA.
+.equ STK_INIT_RENT_OFF, 40 # Rent struct return.
 .equ STK_INIT_MEMCMP_RESULT_OFF, 16 # Compare result of sol_memcmp.
 .equ STK_INIT_BUMP_SEED_OFF, 8 # Bump seed.
 
@@ -110,13 +113,13 @@ initialize:
     mov64 r5, r10 # Get stack frame pointer.
     sub64 r5, STK_INIT_BUMP_SEED_OFF # Update to point to bump seed region.
     call sol_try_find_program_address # Find PDA.
-    mov64 r1, r9 # Restore input buffer pointer.
     # Skip check to error out if unable to derive a PDA (failure to derive
     # is practically impossible to test since odds of not finding bump seed
     # are astronomically low):
     # ```
     # jne r0, SUCCESS, e_unable_to_derive_pda
     # ```
+    mov64 r1, r9 # Restore input buffer pointer.
 
     # Compare computed PDA against passed account.
     # --------------------------------------------
@@ -128,12 +131,22 @@ initialize:
     mov64 r4, r10 # Get stack frame pointer.
     sub64 r4, STK_INIT_MEMCMP_RESULT_OFF # Update to point to result.
     call sol_memcmp_
-    mov64 r1, r9 # Restore input buffer pointer.
     ldxw r2, [r4 + NO_OFFSET] # Get compare result.
     jne r2, COMPARE_EQUAL, e_pda_mismatch # Error out if PDA mismatch.
+    # Skip input buffer restoration since next block overwrites r1:
+    # ```
+    # mov64 r1, r9 # Restore input buffer pointer.
+    # ```
 
     # Calculate Lamports required for new account.
     # --------------------------------------------
+    mov64 r1, r10 # Get stack frame pointer.
+    sub64 r1, STK_INIT_RENT_OFF # Update to point to Rent struct.
+    call sol_get_rent_sysvar # Get Rent struct.
+    ldxdw r2, [r1 + NO_OFFSET] # Get Lamports per byte field.
+    # Multiply by length of PDA account data plus account storage overhead.
+    mul64 r2, PDA_DATA_WITH_ACCOUNT_OVERHEAD
+    mov64 r0, r2
 
     exit
 

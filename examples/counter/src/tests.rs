@@ -32,7 +32,7 @@ fn test_asm_file_constants() {
     );
 }
 
-const USER_STARTING_LAMPORTS: u64 = 10_000;
+const USER_STARTING_LAMPORTS: u64 = 1_000_000;
 
 enum Operation {
     Initialize,

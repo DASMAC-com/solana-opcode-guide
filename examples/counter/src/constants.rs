@@ -19,6 +19,7 @@ pub fn constants() -> Constants {
     const SYSTEM_PROGRAM_DATA_LEN: usize = "system_program".len();
     const SYSTEM_PROGRAM_DATA_WITH_PAD_LEN: usize =
         SYSTEM_PROGRAM_DATA_LEN + (ALIGNMENT - SYSTEM_PROGRAM_DATA_LEN % ALIGNMENT) % ALIGNMENT;
+    const ACCOUNT_STORAGE_OVERHEAD: usize = 128;
 
     #[repr(C)]
     struct SolInstruction {
@@ -74,6 +75,14 @@ pub fn constants() -> Constants {
     }
 
     #[repr(C)]
+    struct Rent {
+        lamports_per_byte_year: u64,
+        exemption_threshold: f64,
+        burn_percent: u8,
+        pad: [u8; 7],
+    }
+
+    #[repr(C)]
     struct StackFrameInit {
         instruction: SolInstruction,
         instruction_data: CreateAccountInstructionData,
@@ -83,6 +92,7 @@ pub fn constants() -> Constants {
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
         signers_seeds: [SolSignerSeeds; N_PDAS],
         pda: Pubkey,
+        rent: Rent,
         memcmp_result: i32,
         pad: [u8; 4],
         bump_seed: u8,
@@ -167,7 +177,7 @@ pub fn constants() -> Constants {
                 .push(Constant::new("U8", size_of::<u8>() as u64, "Size of u8.")),
         )
         .push(
-            ConstantGroup::new("Input memory map layout.")
+            ConstantGroup::new("Memory map layout.")
                 .push(Constant::new_hex(
                     "NON_DUP_MARKER",
                     0xff,
@@ -220,6 +230,11 @@ pub fn constants() -> Constants {
                     "PDA_DATA_LEN",
                     (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, data_len)) as u64,
                     "PDA data length.",
+                ))
+                .push(Constant::new(
+                    "PDA_DATA_WITH_ACCOUNT_OVERHEAD",
+                    (size_of::<u64>() + size_of::<u8>() + ACCOUNT_STORAGE_OVERHEAD) as u64,
+                    "PDA account data length plus account overhead.",
                 ))
                 .push(Constant::new_offset(
                     "PDA_BUMP_SEED",
@@ -288,6 +303,11 @@ pub fn constants() -> Constants {
                 "PDA",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, pda))) as u64,
                 "PDA.",
+            ))
+            .push(Constant::new_offset(
+                "RENT",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, rent))) as u64,
+                "Rent struct return.",
             ))
             .push(Constant::new_offset(
                 "MEMCMP_RESULT",
