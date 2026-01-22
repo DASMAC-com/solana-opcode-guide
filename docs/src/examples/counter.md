@@ -65,6 +65,31 @@ following additional allocations:
 | 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)           |
 | 1            | [PDA] bump seed from [`sol_try_find_program_address`] (`r5`) |
 
+Constants including stack allocations are derived programmatically in Rust, then
+automatically inserted in the assembly program during a test:
+
+::: details Constants
+
+::: code-group
+
+<<< ../../../examples/counter/src/constants.rs [Rust derivations]
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/counter/artifacts/tests/asm_file_constants/test.txt{rs} [ASM file insertion]
+
+<!-- markdownlint-enable MD013 -->
+
+:::
+
+Notably, [`create_account`] calls [`transfer`], which
+[internally disallows account data] such that the entire [memory map](memo) is
+statically sized for the initialize operation, including the
+[Program ID serialization] at end of the [input buffer](memo). Hence the initial
+memory map checks at the start of the initialize operation:
+
+<<< ../../../examples/counter/artifacts/snippets/asm/init-map-checks.txt{asm}
+
 ## Increment operation
 
 ## Links
@@ -76,8 +101,6 @@ following additional allocations:
       yielding [`minimum_balance`]
    1. [Not yet activated] as of the time of this writing
    1. Testing framework [uses] the [soon-to-be-deprecated `Rent::default`]
-   1. [`create_account`] calls [`transfer`], which
-      [internally disallows account data]
 1. Increment:
    1. [`sol_create_program_address`]
    1. Error if not there
@@ -87,7 +110,6 @@ following additional allocations:
       [10 CU base cost], and a [per-byte cost of 250 CUs], with
       [`r4` set to 0 if both regions are equal]
    1. [`sol_memcpy`] is same but no return value.
-   1. [Program ID serialization] at end of [input buffer](memo)
 
 [`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
 one [signer seeds] array pointing an array of two [signer seed] structures,
