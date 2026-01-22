@@ -66,6 +66,8 @@ number of accounts is unexpected.
 
 ## Initialize operation
 
+### CPI vs memory map
+
 Like in the [transfer example](transfer), the initialize operation uses a
 [System Program CPI](transfer#transfer-cpi) but with [`CreateAccount`]
 instruction data:
@@ -84,6 +86,8 @@ statically sized for the initialize operation, including the
 memory map checks at the start of the initialize operation:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-map-checks.txt{asm}
+
+### Signer seeds
 
 Unlike in the [transfer CPI](transfer#transfer-cpi), the [`CreateAccount`]
 instruction [CPI](transfer#transfer-cpi) requires [signer seeds][pda-seeds]:
@@ -106,6 +110,8 @@ Hence after checking the input memory map, the [`SolSignerSeed`] structures are
 populated on the [stack](transfer#transfer-cpi):
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-seeds.txt{asm}
+
+### PDA checks
 
 The [PDA] and [bump seed][pda] are then computed by
 [`sol_try_find_program_address`], whose [implementation] similarly relies on a
@@ -155,23 +161,30 @@ equal:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-pda-compare.txt{asm}
 
+### Minimum balance
+
+The testing framework in this example [uses] the
+[soon-to-be-deprecated `Rent::default`] implementation, so the assembly program
+relies on [`sol_get_rent_sysvar`] which has a [return value] of [`Rent`],
+written to the pointer passed [in `r1`][`sol_get_rent_sysvar`]. The resulting
+[`minimum_balance`] is then computed as product of:
+
+1. [`Rent.lamports_per_byte_year`][`Rent`] ([`DEFAULT_LAMPORTS_PER_BYTE`])
+1. [PDA] account data length (`9`) plus [`ACCOUNT_STORAGE_OVERHEAD`]
+
+> [!note]
+> As of the time of this writing, [rent] is under active development:
+> [`SIMD-0194`], which has [not yet activated], is superseded by [`SIMD-0436`],
+> which is in turn superseded by [`SIMD-0437`].
+
 ## Increment operation
 
-## Links
-
-1. Init:
-   1. [`SIMD-0194`] took out 2x multiplier, then [`SIMD-0436`] made it lower
-      value, but then superseded by [`SIMD-0437`] which hasn't landed
-   1. So use [`DEFAULT_LAMPORTS_PER_BYTE`] and [`ACCOUNT_STORAGE_OVERHEAD`],
-      yielding [`minimum_balance`]
-   1. [Not yet activated] as of the time of this writing
-   1. Testing framework [uses] the [soon-to-be-deprecated `Rent::default`]
 1. Increment:
    1. [`sol_create_program_address`]
    1. Error if not there
    1. Error if more than two accounts
 1. Address compare/copy
-   1. [`sol_memcpy`] is same but no return value.
+   1. [`sol_memcpy`] is same gas as memcmp but no return value.
 
 [`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
 one [signer seeds] array pointing an array of two [signer seed] structures,
@@ -185,8 +198,6 @@ one containing the user's [pubkey] and one containing the bump seed.
 | `r0`     | 0                                | 1           |
 | `r4`     | Passed pointer filled with [PDA] | [Unchanged] |
 
-[`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct
-[in `r1`][`sol_get_rent_sysvar`].
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
@@ -229,3 +240,4 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
+[rent]: https://solana.com/docs/core/accounts#account-structure

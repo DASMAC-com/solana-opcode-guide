@@ -132,6 +132,9 @@ initialize:
     ldxw r2, [r4 + NO_OFFSET] # Get compare result.
     jne r2, COMPARE_EQUAL, e_pda_mismatch # Error out if PDA mismatch.
 
+    # Calculate Lamports required for new account.
+    # --------------------------------------------
+
     exit
 
 increment:

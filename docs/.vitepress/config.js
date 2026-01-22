@@ -22,6 +22,7 @@ export default {
     math: true,
   },
   themeConfig: {
+    outline: "deep",
     editLink: {
       pattern:
         "https://github.com/DASMAC-com/solana-opcode-guide/blob/main/docs/src/:path",
