@@ -8,8 +8,8 @@ This example implements a simple on-chain counter program at a [PDA] account.
 The program supports two operations: initializing a user's counter, and
 incrementing a user's counter by a specified amount.
 
-Notably, constants including stack allocations are derived programmatically in
-Rust, then automatically inserted in the assembly program during a test:
+All constants for this example are derived programmatically in Rust, then
+automatically inserted at the top of the assembly program file during a test:
 
 ::: details Constants
 
@@ -23,7 +23,13 @@ Rust, then automatically inserted in the assembly program during a test:
 
 <!-- markdownlint-enable MD013 -->
 
+<<< ../../../examples/counter/src/counter/counter.s{asm} [ASM program file]
+
 :::
+
+Importantly, this methodology strictly enforces [`i16` offset values] since, as
+of the time of this writing,
+[`sbpf` silently truncates offsets that are not `i16`].
 
 ## Entrypoint branching
 
@@ -34,11 +40,16 @@ The number of accounts acts as a discriminator for the two operations:
 | Initialize | 3                  | None                     |
 | Increment  | 2                  | Increment amount (`u64`) |
 
-Both operations require the user's account followed by the counter [PDA]
-account, but only the initialize operation also requires the
-[System Program](transfer) account in order to initialize the [PDA] account.
-Hence the entrypoint first checks the number of accounts passed in and branches
-accordingly, erroring out if the number of accounts is unexpected.
+| Account index | Description | Used for `initialize`? | Use for `increment`? |
+| ------------- | ----------- | --------------------------------- | --------------------- |
+| 0             | User's account          | Yes                   | Yes                   |
+| 1             | Counter [PDA] account   | Yes                   | Yes                   |
+| 2             | [System Program](transfer) account | Yes        | No                    |
+
+Only the initialize operation requires the [System Program](transfer) account in
+order to initialize the [PDA] account.  Hence the entrypoint first checks the
+number of accounts passed in and branches accordingly, erroring out if the
+number of accounts is unexpected.
 
 <<< ../../../examples/counter/artifacts/snippets/asm/entrypoint.txt{asm}
 
@@ -55,34 +66,6 @@ instruction data:
 | 8            | Bytes to allocate for new account                      |
 | 32           | Owner program ID for new account (the counter program) |
 
-The [CPI](transfer#transfer-cpi) also requires an array of a single
-[`SolSignerSeeds`] structure pointing to an array of two [`SolSignerSeed`]
-structures, one containing the users's pubkey and one containing the
-[PDA bump seed][pda]. The PDA is itself derived via
-[`sol_try_find_program_address`], which [behaves as follows] and similarly
-relies on the [`SolSignerSeed`] structure:
-
-| Register | Description                                                      |
-| -------- | ---------------------------------------------------------------- |
-| `r0`     | Return code: set to `0` on success, `1` on fail                  |
-| `r1`     | Pointer to array of user pubkey [`SolSignerSeed`] for derivation |
-| `r2`     | Number of elements in [`SolSignerSeed`] array (1)                |
-| `r3`     | [PDA] owning program ID (counter program ID)                     |
-| `r4`     | Pointer filled with [PDA] ([unchanged] on error)                 |
-| `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)      |
-
-In addition to the allocated stack regions from the
-[transfer example](transfer#transfer-cpi), the initialize operation requires the
-following additional allocations:
-
-| Size (bytes) | Description                                                  |
-| ------------ | ------------------------------------------------------------ |
-| 16           | [`SolSignerSeed`] for user's pubkey                          |
-| 16           | [`SolSignerSeed`] for bump seed                              |
-| 16           | [`SolSignerSeeds`] for [CPI](#transfer)                      |
-| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)           |
-| 1            | [PDA] bump seed from [`sol_try_find_program_address`] (`r5`) |
-
 Notably, [`create_account`] calls [`transfer`], which
 [internally disallows account data] such that the entire [memory map](memo) is
 statically sized for the initialize operation, including the
@@ -90,6 +73,50 @@ statically sized for the initialize operation, including the
 memory map checks at the start of the initialize operation:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-map-checks.txt{asm}
+
+Unlike in the [transfer CPI](transfer#transfer-cpi), the [`CreateAccount`]
+instruction [CPI](transfer#transfer-cpi) requires [signer seeds][pda-seeds]:
+
+| Register | Description |
+| -------- | ------------------------------------------------------ |
+| `r4`     | Pointer to array of [`SolSignerSeeds`]                 |
+| `r5`     | Number of elements in array (`1` in this example)      |
+
+There is only one [PDA signer][pda-seeds], such that the single
+[`SolSignerSeeds`] points to the following array of two [`SolSignerSeed`]
+structures:
+
+| Index | Description                          |
+| ----- | ------------------------------------ |
+| 0     | User's [pubkey]                        |
+| 1     | [PDA bump seed][pda]                           |
+
+Hence after checking the input memory map, the [`SolSignerSeed`] structures are
+populated on the [stack](transfer#transfer-cpi), which includes the same
+allocated regions as the [transfer example](transfer#transfer-cpi) plus the
+following additional regions:
+
+| Size (bytes) | Description                                                  |
+| ------------ | ------------------------------------------------------------ |
+| 16           | [`SolSignerSeed`] for user's [pubkey]                          |
+| 16           | [`SolSignerSeed`] for bump seed                              |
+| 16           | [`SolSignerSeeds`] for [CPI](#transfer)                      |
+| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)           |
+
+<<< ../../../examples/counter/artifacts/snippets/asm/init-seeds.txt{asm}
+
+The [PDA] and [bump seed][pda] are computed by [`sol_try_find_program_address`],
+whose [implementation] similarly relies on a [`SolSignerSeed`] array, in this
+case containing a single [`SolSignerSeed`] for the user's [pubkey]:
+
+| Register | Description                                                      |
+| -------- | ---------------------------------------------------------------- |
+| `r0`     | Return code: set to `0` on success, `1` on fail                  |
+| `r1`     | Pointer to array of [`SolSignerSeed`]  |
+| `r2`     | Number of elements in [`SolSignerSeed`] array (1 in this case)                |
+| `r3`     | [PDA] owning program ID (counter program ID)                     |
+| `r4`     | Pointer filled with [PDA] ([unchanged] on error)                 |
+| `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)      |
 
 ## Increment operation
 
@@ -114,7 +141,7 @@ memory map checks at the start of the initialize operation:
 
 [`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
 one [signer seeds] array pointing an array of two [signer seed] structures,
-one containing the owner's pubkey and one containing the bump seed.
+one containing the user's [pubkey] and one containing the bump seed.
 
 [`sol_create_program_address`] implements
 [the following returns][create_pda_returns]:
@@ -128,7 +155,7 @@ one containing the owner's pubkey and one containing the bump seed.
 [in `r1`][`sol_get_rent_sysvar`].
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
-[behaves as follows]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
+[implementation]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
 [internally disallows account data]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L189-L192
 [not yet activated]: https://github.com/anza-xyz/agave/wiki/Feature-Gate-Tracker-Schedule
@@ -162,3 +189,7 @@ one containing the owner's pubkey and one containing the bump seed.
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
+[`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
+[`sbpf` silently truncates offsets that are not `i16`]: https://github.com/blueshift-gg/sbpf/issues/97
+[pda-seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
+[pubkey]: https://solana.com/docs/core/accounts#public-key
