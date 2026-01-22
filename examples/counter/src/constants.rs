@@ -1,7 +1,243 @@
 use solana_sdk::pubkey::Pubkey;
 use std::mem::{offset_of, size_of};
 
-/// In an assembly file.
+pub fn constants() -> Constants {
+    #[repr(C)]
+    struct SolInstruction {
+        program_id_addr: u64,
+        accounts_addr: u64,
+        accounts_len: u64,
+        data_addr: u64,
+        data_len: u64,
+    }
+
+    #[repr(C)]
+    struct SolAccountMeta {
+        pubkey_addr: u64,
+        is_writable: bool,
+        is_signer: bool,
+        pad: [u8; 6],
+    }
+
+    #[repr(C)]
+    // Defined as bytes vectors so compiler doesn't align fields before end of struct during offset
+    // calculations.
+    struct CreateAccountInstructionData {
+        variant: [u8; size_of::<u32>()],
+        lamports: [u8; size_of::<u64>()],
+        space: [u8; size_of::<u64>()],
+        owner: [u8; size_of::<Pubkey>()],
+        pad: [u8; 4],
+    }
+
+    #[repr(C)]
+    struct SolSignerSeed {
+        addr: u64,
+        len: u64,
+    }
+
+    #[repr(C)]
+    struct SolSignerSeeds {
+        addr: u64,
+        len: u64,
+    }
+
+    #[repr(C)]
+    struct SolAccountInfo {
+        key_addr: u64,
+        lamports_addr: u64,
+        data_len: u64,
+        data_addr: u64,
+        owner_addr: u64,
+        rent_epoch: u64,
+        is_signer: bool,
+        is_writable: bool,
+        executable: bool,
+        pad: [u8; 5],
+    }
+
+    // Number of accounts for CPI create account instruction.
+    const N_ACCOUNTS_CPI: usize = 2;
+    // Number of signer seeds for PDA.
+    const N_SIGNER_SEEDS_PDA: usize = 2;
+    // Number of PDAs in CPI.
+    const N_PDAS: usize = 1;
+
+    #[repr(C)]
+    struct StackFrameInit {
+        instruction: SolInstruction,
+        instruction_data: CreateAccountInstructionData,
+        account_metas: [SolAccountMeta; N_ACCOUNTS_CPI],
+        account_infos: [SolAccountInfo; N_ACCOUNTS_CPI],
+        // User pubkey, then bump seed.
+        signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
+        signers_seeds: [SolSignerSeeds; N_PDAS],
+        pda: Pubkey,
+        bump_seed: u8,
+    }
+
+    #[repr(C)]
+    struct MemoryMapInit {
+        n_accounts: u64,
+        user: StandardAccount, // Must be empty, or CreateAccount will fail.
+        pda: StandardAccount,  // Must be empty, or CreateAccount will fail.
+        system_program: SystemProgramAccount,
+        program_id: Pubkey,
+    }
+
+    const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct AccountLayout<const PADDED_DATA_SIZE: usize> {
+        non_dup_marker: u8,
+        is_signer: u8,
+        is_writable: u8,
+        is_executable: u8,
+        original_data_len: [u8; 4],
+        pubkey: [u8; 32],
+        owner: [u8; 32],
+        lamports: u64,
+        data_len: u64,
+        data_padded: [u8; PADDED_DATA_SIZE],
+        rent_epoch: u64,
+    }
+
+    type StandardAccount = AccountLayout<MAX_PERMITTED_DATA_INCREASE>;
+    type SystemProgramAccount = AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + 16 }>;
+
+    let constants = Constants::new()
+        .push(
+            ConstantGroup::new_error_codes()
+                .push_error(ErrorCode::new("N_ACCOUNTS", "Invalid number of accounts."))
+                .push_error(ErrorCode::new(
+                    "USER_DATA_LEN",
+                    "User data length is nonzero.",
+                ))
+                .push_error(ErrorCode::new(
+                    "PDA_DATA_LEN",
+                    "PDA data length is nonzero.",
+                ))
+                .push_error(ErrorCode::new(
+                    "SYSTEM_PROGRAM_DATA_LEN",
+                    "System Program data length is nonzero.",
+                ))
+                .push_error(ErrorCode::new(
+                    "PDA_DUPLICATE",
+                    "PDA is a duplicate account.",
+                ))
+                .push_error(ErrorCode::new(
+                    "SYSTEM_PROGRAM_DUPLICATE",
+                    "System Program is a duplicate account.",
+                )),
+        )
+        .push(
+            ConstantGroup::new("Input memory map layout.")
+                .push(Constant::new_hex(
+                    "NON_DUP_MARKER",
+                    0xff,
+                    "Flag that an account is not a duplicate.",
+                ))
+                .push(Constant::new("DATA_LEN_ZERO", 0, "Data length of zero."))
+                .push(Constant::new(
+                    "DATA_LEN_SYSTEM_PROGRAM",
+                    "system_program".len() as u64,
+                    "Data length of System Program.",
+                ))
+                .push(Constant::new(
+                    "N_ACCOUNTS_INCREMENT",
+                    2,
+                    "Number of accounts for increment operation.",
+                ))
+                .push(Constant::new(
+                    "N_ACCOUNTS_INIT",
+                    3,
+                    "Number of accounts for initialize operation.",
+                ))
+                .push(Constant::new_offset(
+                    "N_ACCOUNTS",
+                    0,
+                    "Number of accounts in virtual memory map.",
+                ))
+                .push(Constant::new_offset(
+                    "USER_DATA_LEN",
+                    (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, data_len))
+                        as u64,
+                    "User data length.",
+                ))
+                .push(Constant::new_offset(
+                    "USER_PUBKEY",
+                    (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, pubkey)) as u64,
+                    "User pubkey.",
+                ))
+                .push(Constant::new_offset(
+                    "PDA_NON_DUP_MARKER",
+                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, non_dup_marker))
+                        as u64,
+                    "PDA non-duplicate marker.",
+                ))
+                .push(Constant::new_offset(
+                    "PDA_DATA_LEN",
+                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, data_len)) as u64,
+                    "PDA data length.",
+                ))
+                .push(Constant::new_offset(
+                    "SYSTEM_PROGRAM_NON_DUP_MARKER",
+                    (offset_of!(MemoryMapInit, system_program)
+                        + offset_of!(SystemProgramAccount, non_dup_marker))
+                        as u64,
+                    "System Program non-duplicate marker.",
+                ))
+                .push(Constant::new_offset(
+                    "SYSTEM_PROGRAM_DATA_LEN",
+                    (offset_of!(MemoryMapInit, system_program)
+                        + offset_of!(SystemProgramAccount, data_len)) as u64,
+                    "System program data length.",
+                )),
+        );
+    constants.push(
+        ConstantGroup::new_with_prefix("Stack frame layout for initialize operation.", "STK_INIT_")
+            .push(Constant::new_offset(
+                "INSN",
+                (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction)) as u64,
+                "SolInstruction for CreateAccount CPI.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_1_ADDR",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, signer_seeds))) as u64,
+                "Pointer to user pubkey.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_1_LEN",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, signer_seeds) + offset_of!(SolSignerSeed, len)))
+                    as u64,
+                "Length of user pubkey.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_2_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, signer_seeds) + size_of::<SolSignerSeed>()))
+                    as u64,
+                "Pointer to bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_2_LEN",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, signer_seeds)
+                        + size_of::<SolSignerSeed>()
+                        + offset_of!(SolSignerSeed, len))) as u64,
+                "Length of bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "PDA",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, pda))) as u64,
+                "PDA.",
+            )),
+    )
+}
+
+/// In an assembly file, for viewable render on docs site.
 pub const LINE_LENGTH: usize = 75;
 
 // Individual constant definition.
@@ -330,240 +566,4 @@ impl Comment {
     pub fn as_str(&self) -> &'static str {
         self.0
     }
-}
-
-pub fn constants() -> Constants {
-    #[repr(C)]
-    struct SolInstruction {
-        program_id_addr: u64,
-        accounts_addr: u64,
-        accounts_len: u64,
-        data_addr: u64,
-        data_len: u64,
-    }
-
-    #[repr(C)]
-    struct SolAccountMeta {
-        pubkey_addr: u64,
-        is_writable: bool,
-        is_signer: bool,
-        pad: [u8; 6],
-    }
-
-    #[repr(C)]
-    // Defined as bytes vectors so compiler doesn't align fields before end of struct during offset
-    // calculations.
-    struct CreateAccountInstructionData {
-        variant: [u8; size_of::<u32>()],
-        lamports: [u8; size_of::<u64>()],
-        space: [u8; size_of::<u64>()],
-        owner: [u8; size_of::<Pubkey>()],
-        pad: [u8; 4],
-    }
-
-    #[repr(C)]
-    struct SolSignerSeed {
-        addr: u64,
-        len: u64,
-    }
-
-    #[repr(C)]
-    struct SolSignerSeeds {
-        addr: u64,
-        len: u64,
-    }
-
-    #[repr(C)]
-    struct SolAccountInfo {
-        key_addr: u64,
-        lamports_addr: u64,
-        data_len: u64,
-        data_addr: u64,
-        owner_addr: u64,
-        rent_epoch: u64,
-        is_signer: bool,
-        is_writable: bool,
-        executable: bool,
-        pad: [u8; 5],
-    }
-
-    // Number of accounts for CPI create account instruction.
-    const N_ACCOUNTS_CPI: usize = 2;
-    // Number of signer seeds for PDA.
-    const N_SIGNER_SEEDS_PDA: usize = 2;
-    // Number of PDAs in CPI.
-    const N_PDAS: usize = 1;
-
-    #[repr(C)]
-    struct StackFrameInit {
-        instruction: SolInstruction,
-        instruction_data: CreateAccountInstructionData,
-        account_metas: [SolAccountMeta; N_ACCOUNTS_CPI],
-        account_infos: [SolAccountInfo; N_ACCOUNTS_CPI],
-        // User pubkey, then bump seed.
-        signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
-        signers_seeds: [SolSignerSeeds; N_PDAS],
-        pda: Pubkey,
-        bump_seed: u8,
-    }
-
-    #[repr(C)]
-    struct MemoryMapInit {
-        n_accounts: u64,
-        user: StandardAccount, // Must be empty, or CreateAccount will fail.
-        pda: StandardAccount,  // Must be empty, or CreateAccount will fail.
-        system_program: SystemProgramAccount,
-        program_id: Pubkey,
-    }
-
-    const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
-
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct AccountLayout<const PADDED_DATA_SIZE: usize> {
-        non_dup_marker: u8,
-        is_signer: u8,
-        is_writable: u8,
-        is_executable: u8,
-        original_data_len: [u8; 4],
-        pubkey: [u8; 32],
-        owner: [u8; 32],
-        lamports: u64,
-        data_len: u64,
-        data_padded: [u8; PADDED_DATA_SIZE],
-        rent_epoch: u64,
-    }
-
-    type StandardAccount = AccountLayout<MAX_PERMITTED_DATA_INCREASE>;
-    type SystemProgramAccount = AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + 16 }>;
-
-    let constants = Constants::new()
-        .push(
-            ConstantGroup::new_error_codes()
-                .push_error(ErrorCode::new("N_ACCOUNTS", "Invalid number of accounts."))
-                .push_error(ErrorCode::new(
-                    "USER_DATA_LEN",
-                    "User data length is nonzero.",
-                ))
-                .push_error(ErrorCode::new(
-                    "PDA_DATA_LEN",
-                    "PDA data length is nonzero.",
-                ))
-                .push_error(ErrorCode::new(
-                    "SYSTEM_PROGRAM_DATA_LEN",
-                    "System Program data length is nonzero.",
-                ))
-                .push_error(ErrorCode::new(
-                    "PDA_DUPLICATE",
-                    "PDA is a duplicate account.",
-                ))
-                .push_error(ErrorCode::new(
-                    "SYSTEM_PROGRAM_DUPLICATE",
-                    "System Program is a duplicate account.",
-                )),
-        )
-        .push(
-            ConstantGroup::new("Input memory map layout.")
-                .push(Constant::new_hex(
-                    "NON_DUP_MARKER",
-                    0xff,
-                    "Flag that an account is not a duplicate.",
-                ))
-                .push(Constant::new("DATA_LEN_ZERO", 0, "Data length of zero."))
-                .push(Constant::new(
-                    "DATA_LEN_SYSTEM_PROGRAM",
-                    "system_program".len() as u64,
-                    "Data length of System Program.",
-                ))
-                .push(Constant::new(
-                    "N_ACCOUNTS_INCREMENT",
-                    2,
-                    "Number of accounts for increment operation.",
-                ))
-                .push(Constant::new(
-                    "N_ACCOUNTS_INIT",
-                    3,
-                    "Number of accounts for initialize operation.",
-                ))
-                .push(Constant::new_offset(
-                    "N_ACCOUNTS",
-                    0,
-                    "Number of accounts in virtual memory map.",
-                ))
-                .push(Constant::new_offset(
-                    "USER_DATA_LEN",
-                    (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, data_len))
-                        as u64,
-                    "User data length.",
-                ))
-                .push(Constant::new_offset(
-                    "USER_PUBKEY",
-                    (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, pubkey)) as u64,
-                    "User pubkey.",
-                ))
-                .push(Constant::new_offset(
-                    "PDA_NON_DUP_MARKER",
-                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, non_dup_marker))
-                        as u64,
-                    "PDA non-duplicate marker.",
-                ))
-                .push(Constant::new_offset(
-                    "PDA_DATA_LEN",
-                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, data_len)) as u64,
-                    "PDA data length.",
-                ))
-                .push(Constant::new_offset(
-                    "SYSTEM_PROGRAM_NON_DUP_MARKER",
-                    (offset_of!(MemoryMapInit, system_program)
-                        + offset_of!(SystemProgramAccount, non_dup_marker))
-                        as u64,
-                    "System Program non-duplicate marker.",
-                ))
-                .push(Constant::new_offset(
-                    "SYSTEM_PROGRAM_DATA_LEN",
-                    (offset_of!(MemoryMapInit, system_program)
-                        + offset_of!(SystemProgramAccount, data_len)) as u64,
-                    "System program data length.",
-                )),
-        );
-    constants.push(
-        ConstantGroup::new_with_prefix("Stack frame layout for initialize operation.", "STK_INIT_")
-            .push(Constant::new_offset(
-                "INSN",
-                (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction)) as u64,
-                "SolInstruction for CreateAccount CPI.",
-            ))
-            .push(Constant::new_offset(
-                "SEED_1_ADDR",
-                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, signer_seeds))) as u64,
-                "Pointer to user pubkey.",
-            ))
-            .push(Constant::new_offset(
-                "SEED_1_LEN",
-                (size_of::<StackFrameInit>()
-                    - (offset_of!(StackFrameInit, signer_seeds) + offset_of!(SolSignerSeed, len)))
-                    as u64,
-                "Length of user pubkey.",
-            ))
-            .push(Constant::new_offset(
-                "SEED_2_ADDR",
-                (size_of::<StackFrameInit>()
-                    - (offset_of!(StackFrameInit, signer_seeds) + size_of::<SolSignerSeed>()))
-                    as u64,
-                "Pointer to bump seed.",
-            ))
-            .push(Constant::new_offset(
-                "SEED_2_LEN",
-                (size_of::<StackFrameInit>()
-                    - (offset_of!(StackFrameInit, signer_seeds)
-                        + size_of::<SolSignerSeed>()
-                        + offset_of!(SolSignerSeed, len))) as u64,
-                "Length of bump seed.",
-            ))
-            .push(Constant::new_offset(
-                "PDA",
-                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, pda))) as u64,
-                "PDA.",
-            )),
-    )
 }
