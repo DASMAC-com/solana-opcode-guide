@@ -61,7 +61,7 @@ following additional allocations:
 | ------------ | ------------------------------------------------------------ |
 | 16           | [`SolSignerSeed`] for user's pubkey                          |
 | 16           | [`SolSignerSeed`] for bump seed                              |
-| 16           | [`SolSignerSeeds`] for [CPI]                                 |
+| 16           | [`SolSignerSeeds`] for [CPI](#transfer)                      |
 | 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)           |
 | 1            | [PDA] bump seed from [`sol_try_find_program_address`] (`r5`) |
 
