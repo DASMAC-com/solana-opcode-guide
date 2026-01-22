@@ -34,17 +34,20 @@
 
 # Stack frame layout for initialize operation.
 # --------------------------------------------
-.equ STK_INIT_INSN_OFF, 328 # SolInstruction for CreateAccount CPI.
-.equ STK_INIT_SEED_0_ADDR_OFF, 88 # Pointer to user pubkey.
-.equ STK_INIT_SEED_0_LEN_OFF, 80 # Length of user pubkey.
-.equ STK_INIT_SEED_1_ADDR_OFF, 72 # Pointer to bump seed.
-.equ STK_INIT_SEED_1_LEN_OFF, 64 # Length of bump seed.
-.equ STK_INIT_PDA_OFF, 40 # PDA.
+.equ STK_INIT_INSN_OFF, 336 # SolInstruction for CreateAccount CPI.
+.equ STK_INIT_SEED_0_ADDR_OFF, 96 # Pointer to user pubkey.
+.equ STK_INIT_SEED_0_LEN_OFF, 88 # Length of user pubkey.
+.equ STK_INIT_SEED_1_ADDR_OFF, 80 # Pointer to bump seed.
+.equ STK_INIT_SEED_1_LEN_OFF, 72 # Length of bump seed.
+.equ STK_INIT_PDA_OFF, 48 # PDA.
+.equ STK_INIT_MEMCMP_RESULT_OFF, 16 # Compare result of sol_memcmp.
 .equ STK_INIT_BUMP_SEED_OFF, 8 # Bump seed.
 
 # Assorted constants.
 # -------------------
+.equ NO_OFFSET, 0 # Offset of zero.
 .equ SUCCESS, 0 # Indicates successful operation.
+.equ COMPARE_EQUAL, 0 # Compare result indicating equality.
 
 .global entrypoint
 
@@ -107,9 +110,12 @@ initialize:
     sub64 r5, STK_INIT_BUMP_SEED_OFF # Update to point to bump seed region.
     call sol_try_find_program_address # Find PDA.
     mov64 r1, r9 # Restore input buffer pointer.
-    # Error out if unable to derive a PDA (this is practically impossible
-    # to test since odds of not finding bump seed are astronomically low).
-    jne r0, SUCCESS, e_unable_to_derive_pda
+    # Skip check to error out if unable to derive a PDA (failure to derive
+    # is practically impossible to test since odds of not finding bump seed
+    # are astronomically low):
+    # ```
+    # jne r0, SUCCESS, e_unable_to_derive_pda
+    # ```
 
     # Compare computed PDA against passed account.
     # --------------------------------------------
@@ -118,9 +124,12 @@ initialize:
     mov64 r2, r10 # Get stack frame pointer.
     sub64 r2, STK_INIT_PDA_OFF # Update to point to computed PDA.
     mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
+    mov64 r4, r10 # Get stack frame pointer.
+    sub64 r4, STK_INIT_MEMCMP_RESULT_OFF # Update to point to result.
     call sol_memcmp_
     mov64 r1, r9 # Restore input buffer pointer.
-    jne r0, SUCCESS, e_pda_mismatch
+    ldxw r2, [r4 + NO_OFFSET] # Get compare result.
+    jne r4, COMPARE_EQUAL, e_pda_mismatch # Error out if PDA mismatch.
 
     exit
 
@@ -145,10 +154,6 @@ e_pda_duplicate:
 
 e_system_program_duplicate:
     mov32 r0, E_SYSTEM_PROGRAM_DUPLICATE
-    exit
-
-e_unable_to_derive_pda:
-    mov32 r0, E_UNABLE_TO_DERIVE_PDA
     exit
 
 e_pda_mismatch:

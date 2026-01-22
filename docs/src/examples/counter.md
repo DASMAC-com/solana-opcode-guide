@@ -117,8 +117,8 @@ the user's [pubkey]:
 | `r1`     | Pointer to array of [`SolSignerSeed`]                          |
 | `r2`     | Number of elements in [`SolSignerSeed`] array (1 in this case) |
 | `r3`     | [PDA] owning program ID (counter program ID)                   |
-| `r4`     | Pointer filled with [PDA] ([unchanged] on error)               |
-| `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)    |
+| `r4`     | Pointer to fill with [PDA] ([unchanged] on error)               |
+| `r5`     | Pointer to fill with [bump seed][pda] ([unchanged] on error)    |
 
 Notably, the [bump seed][pda] is temporarily stored on the
 [stack](transfer#transfer-cpi) instead of directly in the passed [PDA] account
@@ -136,7 +136,21 @@ Hence the initialize operation stack contains the same allocated regions as the
 | 16           | [`SolSignerSeed`] for bump seed                     |
 | 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi) |
 | 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)  |
-| 8            | [Bump seed][PDA] from [`sol_try_find_program_address`] (`r5`) |
+| 1            | [Bump seed][PDA] from [`sol_try_find_program_address`] (`r5`) |
+
+The computed [PDA] is then compared against the passed [PDA] account's
+[pubkey] using [`sol_memcmp`], which is [subject to metering] that charges the
+larger of a [10 CU base cost], and a [per-byte cost of 250 CUs]. The
+[inner compare function] compare result is `0i32` only if the two regions are
+equal:
+
+| Register | Description                                    |
+| -------- | ---------------------------------------------- |
+| `r0`     | Always returns 0                               |
+| `r1`     | Pointer to first region                        |
+| `r2`     | Pointer to second region                       |
+| `r3`     | Number of bytes to compare                     |
+| `r4`     | Pointer to fill with compare result (`i32`)    |
 
 ## Increment operation
 
@@ -154,9 +168,6 @@ Hence the initialize operation stack contains the same allocated regions as the
    1. Error if not there
    1. Error if more than two accounts
 1. Address compare/copy
-   1. [`sol_memcmp`] is [subject to metering] that charges the larger of a
-      [10 CU base cost], and a [per-byte cost of 250 CUs], with
-      [`r4` set to 0 if both regions are equal]
    1. [`sol_memcpy`] is same but no return value.
 
 [`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
@@ -199,7 +210,7 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
 [`max_seed_len`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance
-[`r4` set to 0 if both regions are equal]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L162-L173
+[inner compare function]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L162-L173
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
 [`sbpf` silently truncates offsets that are not `i16`]: https://github.com/blueshift-gg/sbpf/issues/97
 [`simd-0194`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0194-deprecate-rent-exemption-threshold.md

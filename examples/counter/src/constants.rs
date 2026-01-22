@@ -73,6 +73,8 @@ pub fn constants() -> Constants {
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
         signers_seeds: [SolSignerSeeds; N_PDAS],
         pda: Pubkey,
+        memcmp_result: i32,
+        pad: [u8; 4],
         bump_seed: u8,
     }
 
@@ -271,17 +273,29 @@ pub fn constants() -> Constants {
                 "PDA.",
             ))
             .push(Constant::new_offset(
+                "MEMCMP_RESULT",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, memcmp_result))) as u64,
+                "Compare result of sol_memcmp.",
+            ))
+            .push(Constant::new_offset(
                 "BUMP_SEED",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, bump_seed))) as u64,
                 "Bump seed.",
             )),
         )
         .push(
-            ConstantGroup::new("Assorted constants.").push(Constant::new(
-                "SUCCESS",
-                0,
-                "Indicates successful operation.",
-            )),
+            ConstantGroup::new("Assorted constants.")
+                .push(Constant::new("NO_OFFSET", 0, "Offset of zero."))
+                .push(Constant::new(
+                    "SUCCESS",
+                    0,
+                    "Indicates successful operation.",
+                ))
+                .push(Constant::new(
+                    "COMPARE_EQUAL",
+                    0,
+                    "Compare result indicating equality.",
+                )),
         )
 }
 
