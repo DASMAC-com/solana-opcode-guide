@@ -214,3 +214,17 @@ fn test_asm_system_program_duplicate() {
         ))],
     );
 }
+
+#[test]
+fn test_asm_unable_to_derive_pda() {
+    let (setup, mut instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_UNABLE_TO_DERIVE_PDA") as u32,
+        ))],
+    );
+}

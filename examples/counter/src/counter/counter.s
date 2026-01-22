@@ -108,10 +108,7 @@ initialize:
     # Error out if unable to derive a PDA.
     jne r0, SUCCESS, e_unable_to_derive_pda
 
-
-    # Abort if can't find PDA.
     # Abort if computed PDA mismatches passed PDA account.
-
     exit
 
 increment:
@@ -139,3 +136,4 @@ e_system_program_duplicate:
 
 e_unable_to_derive_pda:
     mov32 r0, E_UNABLE_TO_DERIVE_PDA
+    exit
