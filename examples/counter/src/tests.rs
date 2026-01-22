@@ -56,12 +56,16 @@ fn happy_path_setup(
     let setup = setup_test(program_language);
     let (system_program, system_account) = program::keyed_account_for_system_program();
 
+    let user_pubkey = Pubkey::new_unique();
+    let (pda_pubkey, _bump) =
+        Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
+
     let mut instruction = Instruction::new_with_bytes(
         setup.program_id,
         &[],
         vec![
-            AccountMeta::new(Pubkey::new_unique(), true),
-            AccountMeta::new(Pubkey::new_unique(), false),
+            AccountMeta::new(user_pubkey, true),
+            AccountMeta::new(pda_pubkey, false),
         ],
     );
 
@@ -216,9 +220,13 @@ fn test_asm_system_program_duplicate() {
 }
 
 #[test]
-fn test_asm_pda_mismatch() {
+fn test_asm_init_pda_mismatch() {
     let (setup, mut instruction, mut accounts, _checks) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    instruction.accounts[AccountIndex::Pda as usize].pubkey = Pubkey::new_unique();
+    accounts[AccountIndex::Pda as usize].0 =
+        instruction.accounts[AccountIndex::Pda as usize].pubkey;
 
     setup.mollusk.process_and_validate_instruction(
         &instruction,
@@ -227,4 +235,14 @@ fn test_asm_pda_mismatch() {
             constants().get("E_PDA_MISMATCH") as u32,
         ))],
     );
+}
+
+#[test]
+fn test_asm_init_happy_path() {
+    let (setup, mut instruction, mut accounts, checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    setup
+        .mollusk
+        .process_and_validate_instruction(&instruction, &accounts, &checks);
 }
