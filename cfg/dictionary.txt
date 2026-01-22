@@ -12,6 +12,7 @@ lamports
 lddw
 ldxb
 ldxdw
+ldxw
 mathjax
 memcmp
 memcpy

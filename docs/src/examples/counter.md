@@ -9,10 +9,10 @@ The program supports two operations: initializing a user's counter, and
 incrementing a user's counter by a specified amount. The counter [PDA] account
 stores the following data:
 
-| Size (bytes) | Description        |
-| ------------ | ------------------ |
-| 8            | Counter value (`u64`) |
-| 1            | [Bump seed][pda] (`u8`)   |
+| Size (bytes) | Description             |
+| ------------ | ----------------------- |
+| 8            | Counter value (`u64`)   |
+| 1            | [Bump seed][pda] (`u8`) |
 
 All constants for this example are derived programmatically in Rust, then
 automatically inserted at the top of the assembly program file during a test:
@@ -117,8 +117,8 @@ the user's [pubkey]:
 | `r1`     | Pointer to array of [`SolSignerSeed`]                          |
 | `r2`     | Number of elements in [`SolSignerSeed`] array (1 in this case) |
 | `r3`     | [PDA] owning program ID (counter program ID)                   |
-| `r4`     | Pointer to fill with [PDA] ([unchanged] on error)               |
-| `r5`     | Pointer to fill with [bump seed][pda] ([unchanged] on error)    |
+| `r4`     | Pointer to fill with [PDA] ([unchanged] on error)              |
+| `r5`     | Pointer to fill with [bump seed][pda] ([unchanged] on error)   |
 
 Notably, the [bump seed][pda] is temporarily stored on the
 [stack](transfer#transfer-cpi) instead of directly in the passed [PDA] account
@@ -130,13 +130,13 @@ data, since the [`CreateAccount`] instruction [CPI processor exit routine] later
 Hence the initialize operation stack contains the same allocated regions as the
 [transfer example](transfer#transfer-cpi) plus the following additional regions:
 
-| Size (bytes) | Description                                         |
-| ------------ | --------------------------------------------------- |
-| 16           | [`SolSignerSeed`] for user's [pubkey]               |
-| 16           | [`SolSignerSeed`] for bump seed                     |
-| 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi) |
-| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)  |
-| 1            | [Bump seed][PDA] from [`sol_try_find_program_address`] (`r5`) |
+| Size (bytes) | Description                                                   |
+| ------------ | ------------------------------------------------------------- |
+| 16           | [`SolSignerSeed`] for user's [pubkey]                         |
+| 16           | [`SolSignerSeed`] for bump seed                               |
+| 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi)           |
+| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)            |
+| 1            | [Bump seed][pda] from [`sol_try_find_program_address`] (`r5`) |
 
 The computed [PDA] is then compared against the passed [PDA] account's
 [pubkey] using [`sol_memcmp`], which is [subject to metering] that charges the
@@ -144,13 +144,13 @@ larger of a [10 CU base cost], and a [per-byte cost of 250 CUs]. The
 [inner compare function] compare result is `0i32` only if the two regions are
 equal:
 
-| Register | Description                                    |
-| -------- | ---------------------------------------------- |
-| `r0`     | Always returns 0                               |
-| `r1`     | Pointer to first region                        |
-| `r2`     | Pointer to second region                       |
-| `r3`     | Number of bytes to compare                     |
-| `r4`     | Pointer to fill with compare result (`i32`)    |
+| Register | Description                                 |
+| -------- | ------------------------------------------- |
+| `r0`     | Always returns 0                            |
+| `r1`     | Pointer to first region                     |
+| `r2`     | Pointer to second region                    |
+| `r3`     | Number of bytes to compare                  |
+| `r4`     | Pointer to fill with compare result (`i32`) |
 
 ## Increment operation
 
@@ -186,10 +186,13 @@ one containing the user's [pubkey] and one containing the bump seed.
 [in `r1`][`sol_get_rent_sysvar`].
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
+[cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
 [implementation]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
+[inner compare function]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L162-L173
 [internally disallows account data]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L189-L192
 [not yet activated]: https://github.com/anza-xyz/agave/wiki/Feature-Gate-Tracker-Schedule
+[overwrites data]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L1248
 [pda]: https://solana.com/docs/core/pda
 [pda-seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
 [per-byte cost of 250 cus]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L205
@@ -210,7 +213,6 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
 [`max_seed_len`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance
-[inner compare function]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L162-L173
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
 [`sbpf` silently truncates offsets that are not `i16`]: https://github.com/blueshift-gg/sbpf/issues/97
 [`simd-0194`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0194-deprecate-rent-exemption-threshold.md
@@ -224,5 +226,3 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
-[cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
-[overwrites data]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L1248

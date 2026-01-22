@@ -80,7 +80,6 @@ iterations.
 > strictly needed. However, using call-preserved registers is a good practice
 > for maintaining state across function calls in more complex programs.
 
-
 The program handles the special cases $F(0) = 0$ and $F(1) = 1$ by checking if
 $n \leq 1$ and returning early if so:
 
