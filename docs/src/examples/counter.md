@@ -40,14 +40,18 @@ The number of accounts acts as a discriminator for the two operations:
 | Initialize | 3                  | None                     |
 | Increment  | 2                  | Increment amount (`u64`) |
 
-| Account index | Description | Used for `initialize`? | Use for `increment`? |
-| ------------- | ----------- | --------------------------------- | --------------------- |
-| 0             | User's account          | Yes                   | Yes                   |
-| 1             | Counter [PDA] account   | Yes                   | Yes                   |
-| 2             | [System Program](transfer) account | Yes        | No                    |
+<!-- markdownlint-disable MD013 -->
+
+| Account index | Description                        | Used for `initialize`? | Use for `increment`? |
+| ------------- | ---------------------------------- | ---------------------- | -------------------- |
+| 0             | User's account                     | Yes                    | Yes                  |
+| 1             | Counter [PDA] account              | Yes                    | Yes                  |
+| 2             | [System Program](transfer) account | Yes                    | No                   |
+
+<!-- markdownlint-enable MD013 -->
 
 Only the initialize operation requires the [System Program](transfer) account in
-order to initialize the [PDA] account.  Hence the entrypoint first checks the
+order to initialize the [PDA] account. Hence the entrypoint first checks the
 number of accounts passed in and branches accordingly, erroring out if the
 number of accounts is unexpected.
 
@@ -77,31 +81,31 @@ memory map checks at the start of the initialize operation:
 Unlike in the [transfer CPI](transfer#transfer-cpi), the [`CreateAccount`]
 instruction [CPI](transfer#transfer-cpi) requires [signer seeds][pda-seeds]:
 
-| Register | Description |
-| -------- | ------------------------------------------------------ |
-| `r4`     | Pointer to array of [`SolSignerSeeds`]                 |
-| `r5`     | Number of elements in array (`1` in this example)      |
+| Register | Description                                       |
+| -------- | ------------------------------------------------- |
+| `r4`     | Pointer to array of [`SolSignerSeeds`]            |
+| `r5`     | Number of elements in array (`1` in this example) |
 
 There is only one [PDA signer][pda-seeds], such that the single
 [`SolSignerSeeds`] points to the following array of two [`SolSignerSeed`]
 structures:
 
-| Index | Description                          |
-| ----- | ------------------------------------ |
-| 0     | User's [pubkey]                        |
-| 1     | [PDA bump seed][pda]                           |
+| Index | Description          |
+| ----- | -------------------- |
+| 0     | User's [pubkey]      |
+| 1     | [PDA bump seed][pda] |
 
 Hence after checking the input memory map, the [`SolSignerSeed`] structures are
 populated on the [stack](transfer#transfer-cpi), which includes the same
 allocated regions as the [transfer example](transfer#transfer-cpi) plus the
 following additional regions:
 
-| Size (bytes) | Description                                                  |
-| ------------ | ------------------------------------------------------------ |
-| 16           | [`SolSignerSeed`] for user's [pubkey]                          |
-| 16           | [`SolSignerSeed`] for bump seed                              |
-| 16           | [`SolSignerSeeds`] for [CPI](#transfer)                      |
-| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)           |
+| Size (bytes) | Description                                         |
+| ------------ | --------------------------------------------------- |
+| 16           | [`SolSignerSeed`] for user's [pubkey]               |
+| 16           | [`SolSignerSeed`] for bump seed                     |
+| 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi) |
+| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)  |
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-seeds.txt{asm}
 
@@ -109,14 +113,14 @@ The [PDA] and [bump seed][pda] are computed by [`sol_try_find_program_address`],
 whose [implementation] similarly relies on a [`SolSignerSeed`] array, in this
 case containing a single [`SolSignerSeed`] for the user's [pubkey]:
 
-| Register | Description                                                      |
-| -------- | ---------------------------------------------------------------- |
-| `r0`     | Return code: set to `0` on success, `1` on fail                  |
-| `r1`     | Pointer to array of [`SolSignerSeed`]  |
-| `r2`     | Number of elements in [`SolSignerSeed`] array (1 in this case)                |
-| `r3`     | [PDA] owning program ID (counter program ID)                     |
-| `r4`     | Pointer filled with [PDA] ([unchanged] on error)                 |
-| `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)      |
+| Register | Description                                                    |
+| -------- | -------------------------------------------------------------- |
+| `r0`     | Return code: set to `0` on success, `1` on fail                |
+| `r1`     | Pointer to array of [`SolSignerSeed`]                          |
+| `r2`     | Number of elements in [`SolSignerSeed`] array (1 in this case) |
+| `r3`     | [PDA] owning program ID (counter program ID)                   |
+| `r4`     | Pointer filled with [PDA] ([unchanged] on error)               |
+| `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)    |
 
 ## Increment operation
 
@@ -155,13 +159,15 @@ one containing the user's [pubkey] and one containing the bump seed.
 [in `r1`][`sol_get_rent_sysvar`].
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
-[implementation]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
+[implementation]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
 [internally disallows account data]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L189-L192
 [not yet activated]: https://github.com/anza-xyz/agave/wiki/Feature-Gate-Tracker-Schedule
 [pda]: https://solana.com/docs/core/pda
+[pda-seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
 [per-byte cost of 250 cus]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L205
 [program id serialization]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/serialization.rs#L569
+[pubkey]: https://solana.com/docs/core/accounts#public-key
 [return value]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/sysvar_cache.rs#L156-L158
 [signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L56-L62
 [signer seeds]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L64-L71
@@ -174,10 +180,12 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
 [`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
 [`default_lamports_per_byte`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.DEFAULT_LAMPORTS_PER_BYTE.html
+[`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
 [`max_seed_len`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance
 [`r4` set to 0 if both regions are equal]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L162-L173
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
+[`sbpf` silently truncates offsets that are not `i16`]: https://github.com/blueshift-gg/sbpf/issues/97
 [`simd-0194`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0194-deprecate-rent-exemption-threshold.md
 [`simd-0436`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0436-reduce-rent-exempt-minimum-by-2x.md
 [`simd-0437`]: https://github.com/solana-foundation/solana-improvement-documents/pull/437
@@ -189,7 +197,3 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
-[`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
-[`sbpf` silently truncates offsets that are not `i16`]: https://github.com/blueshift-gg/sbpf/issues/97
-[pda-seeds]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
-[pubkey]: https://solana.com/docs/core/accounts#public-key

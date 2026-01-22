@@ -19,6 +19,7 @@ metas
 nonoverlapping
 nostd
 pda
+pdas
 repr
 rodata
 rustfilt
