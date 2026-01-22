@@ -144,7 +144,7 @@ initialize:
     sub64 r1, STK_INIT_RENT_OFF # Update to point to Rent struct.
     call sol_get_rent_sysvar # Get Rent struct.
     ldxdw r2, [r1 + NO_OFFSET] # Get Lamports per byte field.
-    # Multiply by length of PDA account data plus account storage overhead.
+    # Multiply by sum of PDA account data length, account storage overhead.
     mul64 r2, PDA_DATA_WITH_ACCOUNT_OVERHEAD
     mov64 r0, r2
 

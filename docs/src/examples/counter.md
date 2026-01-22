@@ -98,8 +98,8 @@ described below:
 | 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi)           |
 | 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)            |
 | 24           | [`Rent`] from [`sol_get_rent_sysvar`]                         |
-| 4           | `i32` from [`sol_memcmp`] (`r4`)                              |
-| 4             | Padding to maintain 8-byte alignment                             |
+| 4            | `i32` from [`sol_memcmp`] (`r4`)                              |
+| 4            | Padding to maintain 8-byte alignment                          |
 | 1            | [Bump seed][pda] from [`sol_try_find_program_address`] (`r5`) |
 
 ### Signer seeds
@@ -173,7 +173,7 @@ relies on [`sol_get_rent_sysvar`] which has a [return value] of [`Rent`],
 written to the pointer passed [in `r1`][`sol_get_rent_sysvar`]. The resulting
 [`minimum_balance`] is then computed as product of:
 
-1. [`Rent.lamports_per_byte_year`][`Rent`] ([`DEFAULT_LAMPORTS_PER_BYTE_YEAR`])
+1. [`Rent.lamports_per_byte_year`][`rent`] ([`DEFAULT_LAMPORTS_PER_BYTE_YEAR`])
 1. [PDA] account data length (`9`) plus [`ACCOUNT_STORAGE_OVERHEAD`]
 
 > [!note]
@@ -202,7 +202,6 @@ one containing the user's [pubkey] and one containing the bump seed.
 | `r0`     | 0                                | 1           |
 | `r4`     | Passed pointer filled with [PDA] | [Unchanged] |
 
-
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
@@ -216,6 +215,7 @@ one containing the user's [pubkey] and one containing the bump seed.
 [per-byte cost of 250 cus]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L205
 [program id serialization]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/serialization.rs#L569
 [pubkey]: https://solana.com/docs/core/accounts#public-key
+[rent]: https://solana.com/docs/core/accounts#account-structure
 [return value]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/sysvar_cache.rs#L156-L158
 [signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L56-L62
 [signer seeds]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L64-L71
@@ -244,4 +244,3 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
-[rent]: https://solana.com/docs/core/accounts#account-structure
