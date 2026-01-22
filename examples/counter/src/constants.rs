@@ -90,6 +90,7 @@ pub fn constants() -> Constants {
         user: StandardAccount, // Must be empty, or CreateAccount will fail.
         pda: StandardAccount,  // Reflects state before CreateAccount CPI.
         system_program: SystemProgramAccount,
+        instruction_data_len: u64, // 0u64 for initialize operation.
         program_id: Pubkey,
     }
 

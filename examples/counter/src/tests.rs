@@ -184,7 +184,7 @@ fn test_asm_initialize_system_program_data_len() {
 }
 
 #[test]
-fn test_asm_pda_duplicate() {
+fn test_asm_initialize_pda_duplicate() {
     let (setup, mut instruction, mut accounts, _checks) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
@@ -202,7 +202,7 @@ fn test_asm_pda_duplicate() {
 }
 
 #[test]
-fn test_asm_system_program_duplicate() {
+fn test_asm_initialize_system_program_duplicate() {
     let (setup, mut instruction, mut accounts, _checks) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
@@ -220,7 +220,7 @@ fn test_asm_system_program_duplicate() {
 }
 
 #[test]
-fn test_asm_init_pda_mismatch() {
+fn test_asm_initialize_pda_mismatch() {
     let (setup, mut instruction, mut accounts, _checks) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
@@ -238,7 +238,7 @@ fn test_asm_init_pda_mismatch() {
 }
 
 #[test]
-fn test_asm_init_happy_path() {
+fn test_asm_initialize_happy_path() {
     let (setup, mut instruction, mut accounts, checks) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 

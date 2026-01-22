@@ -30,7 +30,7 @@
 # System Program non-duplicate marker.
 .equ SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
 .equ SYSTEM_PROGRAM_DATA_LEN_OFF, 20760 # System program data length.
-.equ PROGRAM_ID_INIT_OFF, 31032 # Program ID during initialize operation.
+.equ PROGRAM_ID_INIT_OFF, 31040 # Program ID during initialize operation.
 
 # Stack frame layout for initialize operation.
 # --------------------------------------------
@@ -129,7 +129,7 @@ initialize:
     call sol_memcmp_
     mov64 r1, r9 # Restore input buffer pointer.
     ldxw r2, [r4 + NO_OFFSET] # Get compare result.
-    jne r4, COMPARE_EQUAL, e_pda_mismatch # Error out if PDA mismatch.
+    jne r2, COMPARE_EQUAL, e_pda_mismatch # Error out if PDA mismatch.
 
     exit
 
