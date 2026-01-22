@@ -1,0 +1,18 @@
+    # Compute PDA.
+    # ------------
+    mov64 r9, r1 # Store input buffer pointer for later.
+    mov64 r1, r10 # Get stack frame pointer.
+    # Update to point at user pubkey signer seed.
+    sub64 r1, STK_INIT_SEED_0_ADDR_OFF
+    mov64 r2, 1 # Indicate single signer seed (user pubkey).
+    mov64 r3, r9 # Get input buffer pointer.
+    add64 r3, PROGRAM_ID_INIT_OFF # Update to point at program ID.
+    mov64 r4, r10 # Get stack frame pointer.
+    sub64 r4, STK_INIT_PDA_OFF # Update to point to PDA region on stack.
+    mov64 r5, r10 # Get stack frame pointer.
+    sub64 r5, STK_INIT_BUMP_SEED_OFF # Update to point to bump seed region.
+    call sol_try_find_program_address # Find PDA.
+    mov64 r1, r9 # Restore input buffer pointer.
+    # Error out if unable to derive a PDA (this is practically impossible
+    # to test since odds of not finding bump seed are astronomically low).
+    jne r0, SUCCESS, e_unable_to_derive_pda

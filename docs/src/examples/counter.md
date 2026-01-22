@@ -96,22 +96,14 @@ structures:
 | 1     | [PDA bump seed][pda] |
 
 Hence after checking the input memory map, the [`SolSignerSeed`] structures are
-populated on the [stack](transfer#transfer-cpi), which includes the same
-allocated regions as the [transfer example](transfer#transfer-cpi) plus the
-following additional regions:
-
-| Size (bytes) | Description                                         |
-| ------------ | --------------------------------------------------- |
-| 16           | [`SolSignerSeed`] for user's [pubkey]               |
-| 16           | [`SolSignerSeed`] for bump seed                     |
-| 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi) |
-| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)  |
+populated on the [stack](transfer#transfer-cpi):
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-seeds.txt{asm}
 
-The [PDA] and [bump seed][pda] are computed by [`sol_try_find_program_address`],
-whose [implementation] similarly relies on a [`SolSignerSeed`] array, in this
-case containing a single [`SolSignerSeed`] for the user's [pubkey]:
+The [PDA] and [bump seed][pda] are then computed by
+[`sol_try_find_program_address`], whose [implementation] similarly relies on a
+[`SolSignerSeed`] array, in this case containing a single [`SolSignerSeed`] for
+the user's [pubkey]:
 
 | Register | Description                                                    |
 | -------- | -------------------------------------------------------------- |
@@ -121,6 +113,20 @@ case containing a single [`SolSignerSeed`] for the user's [pubkey]:
 | `r3`     | [PDA] owning program ID (counter program ID)                   |
 | `r4`     | Pointer filled with [PDA] ([unchanged] on error)               |
 | `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)    |
+
+<<< ../../../examples/counter/artifacts/snippets/asm/init-find-pda.txt{asm}
+
+Note that the initialize operation stack contains the same allocated regions as
+the [transfer example](transfer#transfer-cpi) plus the following additional
+regions:
+
+| Size (bytes) | Description                                         |
+| ------------ | --------------------------------------------------- |
+| 16           | [`SolSignerSeed`] for user's [pubkey]               |
+| 16           | [`SolSignerSeed`] for bump seed                     |
+| 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi) |
+| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)  |
+| 8            | [Bump seed][PDA] from [`sol_try_find_program_address`] (`r5`) |
 
 ## Increment operation
 

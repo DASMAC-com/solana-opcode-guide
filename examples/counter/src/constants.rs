@@ -77,10 +77,16 @@ pub fn constants() -> Constants {
     }
 
     #[repr(C)]
+    struct PdaAccountData {
+        counter: u64,
+        bump_seed: u8,
+    }
+
+    #[repr(C)]
     struct MemoryMapInit {
         n_accounts: u64,
         user: StandardAccount, // Must be empty, or CreateAccount will fail.
-        pda: StandardAccount,  // Must be empty, or CreateAccount will fail.
+        pda: StandardAccount,  // Reflects state before CreateAccount CPI.
         system_program: SystemProgramAccount,
         program_id: Pubkey,
     }
