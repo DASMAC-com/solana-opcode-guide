@@ -13,11 +13,13 @@ corresponding to one of [several runtime memory map regions].
 
 [Within the input buffer], data is serialized as follows:
 
-1. [The number of accounts as a `u64`].
-1. [A sequence of serialized accounts].
-1. [The length of instruction data as a `u64`].
-1. [The instruction data itself].
-1. [The calling program ID].
+| Description                        | Size (bytes)            |
+| ---------------------------------- | ---------------- |
+| [The number of accounts as a `u64`] | 8                |
+| [A sequence of serialized accounts] | Variable         |
+| [The length of instruction data as a `u64`] | 8       |
+| [Instruction data]      | Variable         |
+| [The calling program ID]           | 32               |
 
 > [!tip]
 > A new virtual memory map is created for [every instruction] _and_ for every
@@ -182,7 +184,7 @@ Notably, however, it introduces [compute unit] overhead:
 [several runtime memory map regions]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/ebpf.rs#L37-L51
 [success]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.SUCCESS.html
 [takes the following arguments]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/logging.rs#L7-L16
-[the instruction data itself]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L568
+[instruction data]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L568
 [the length of instruction data as a `u64`]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L567
 [the number of accounts as a `u64`]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L531
 [the `pinocchio` version of `sol_log_`]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/syscalls.rs#L42
