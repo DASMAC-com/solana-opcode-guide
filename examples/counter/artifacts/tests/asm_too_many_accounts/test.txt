@@ -1,0 +1,21 @@
+#[test]
+fn test_asm_too_many_accounts() {
+    let (setup, mut instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    instruction
+        .accounts
+        .push(AccountMeta::new_readonly(Pubkey::new_unique(), false));
+    accounts.push((
+        instruction.accounts.last().unwrap().pubkey,
+        Account::default(),
+    ));
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_N_ACCOUNTS") as u32,
+        ))],
+    );
+}
