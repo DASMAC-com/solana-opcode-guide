@@ -7,6 +7,7 @@
 .equ E_PDA_DUPLICATE, 5 # PDA is a duplicate account.
 .equ E_SYSTEM_PROGRAM_DUPLICATE, 6 # System Program is a duplicate account.
 .equ E_UNABLE_TO_DERIVE_PDA, 7 # Unable to derive PDA.
+.equ E_PDA_MISMATCH, 8 # Passed PDA does not match computed PDA.
 
 # Size of assorted types.
 # -----------------------
@@ -24,6 +25,7 @@
 .equ USER_DATA_LEN_OFF, 88 # User data length.
 .equ USER_PUBKEY_OFF, 16 # User pubkey.
 .equ PDA_NON_DUP_MARKER_OFF, 10344 # PDA non-duplicate marker.
+.equ PDA_PUBKEY_OFF, 10352 # PDA pubkey.
 .equ PDA_DATA_LEN_OFF, 10424 # PDA data length.
 # System Program non-duplicate marker.
 .equ SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
@@ -103,12 +105,23 @@ initialize:
     sub64 r4, STK_INIT_PDA_OFF # Update to point to PDA region on stack.
     mov64 r5, r10 # Get stack frame pointer.
     sub64 r5, STK_INIT_BUMP_SEED_OFF # Update to point to bump seed region.
-    call sol_try_create_program_address
+    call sol_try_find_program_address # Find PDA.
     mov64 r1, r9 # Restore input buffer pointer.
-    # Error out if unable to derive a PDA.
+    # Error out if unable to derive a PDA (this is practically impossible
+    # to test since odds of not finding bump seed are astronomically low).
     jne r0, SUCCESS, e_unable_to_derive_pda
 
-    # Abort if computed PDA mismatches passed PDA account.
+    # Compare computed PDA against passed account.
+    # --------------------------------------------
+    # Update input buffer pointer to point to passed PDA.
+    add64 r1, PDA_PUBKEY_OFF
+    mov64 r2, r10 # Get stack frame pointer.
+    sub64 r2, STK_INIT_PDA_OFF # Update to point to computed PDA.
+    mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
+    call sol_memcmp_
+    mov64 r1, r9 # Restore input buffer pointer.
+    jne r0, SUCCESS, e_pda_mismatch
+
     exit
 
 increment:
@@ -136,4 +149,8 @@ e_system_program_duplicate:
 
 e_unable_to_derive_pda:
     mov32 r0, E_UNABLE_TO_DERIVE_PDA
+    exit
+
+e_pda_mismatch:
+    mov32 r0, E_PDA_MISMATCH
     exit

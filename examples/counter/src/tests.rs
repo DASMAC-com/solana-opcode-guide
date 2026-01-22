@@ -216,7 +216,7 @@ fn test_asm_system_program_duplicate() {
 }
 
 #[test]
-fn test_asm_unable_to_derive_pda() {
+fn test_asm_pda_mismatch() {
     let (setup, mut instruction, mut accounts, _checks) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
@@ -224,7 +224,7 @@ fn test_asm_unable_to_derive_pda() {
         &instruction,
         &accounts,
         &[Check::err(ProgramError::Custom(
-            constants().get("E_UNABLE_TO_DERIVE_PDA") as u32,
+            constants().get("E_PDA_MISMATCH") as u32,
         ))],
     );
 }

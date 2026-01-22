@@ -133,6 +133,10 @@ pub fn constants() -> Constants {
                 .push_error(ErrorCode::new(
                     "UNABLE_TO_DERIVE_PDA",
                     "Unable to derive PDA.",
+                ))
+                .push_error(ErrorCode::new(
+                    "PDA_MISMATCH",
+                    "Passed PDA does not match computed PDA.",
                 )),
         )
         .push(
@@ -188,6 +192,11 @@ pub fn constants() -> Constants {
                     (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, non_dup_marker))
                         as u64,
                     "PDA non-duplicate marker.",
+                ))
+                .push(Constant::new_offset(
+                    "PDA_PUBKEY",
+                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, pubkey)) as u64,
+                    "PDA pubkey.",
                 ))
                 .push(Constant::new_offset(
                     "PDA_DATA_LEN",
