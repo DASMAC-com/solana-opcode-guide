@@ -153,6 +153,8 @@ equal:
 | `r3`     | Number of bytes to compare                  |
 | `r4`     | Pointer to fill with compare result (`i32`) |
 
+<<< ../../../examples/counter/artifacts/snippets/asm/init-pda-compare.txt{asm}
+
 ## Increment operation
 
 ## Links
