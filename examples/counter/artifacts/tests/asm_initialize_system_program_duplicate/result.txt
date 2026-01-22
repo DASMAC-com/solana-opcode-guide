@@ -1,7 +1,4 @@
-test tests::test_asm_too_many_accounts ... ok
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
+test tests::test_asm_initialize_system_program_duplicate ... ok
 warning: variant `Increment` is never constructed
   --> counter/src/tests.rs:39:5
    |
@@ -14,5 +11,5 @@ warning: variant `Increment` is never constructed
    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
 warning: `counter` (lib test) generated 1 warning
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 5 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... consumed 13 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6

@@ -1,4 +1,7 @@
 test tests::test_asm_initialize_pda_data_len ... ok
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
 warning: variant `Increment` is never constructed
   --> counter/src/tests.rs:39:5
    |
