@@ -1,7 +1,25 @@
 use solana_sdk::pubkey::Pubkey;
 use std::mem::{offset_of, size_of};
 
+/// In an assembly file, for viewable render on docs site.
+const LINE_LENGTH: usize = 75;
+/// Alignment for stack and account data.
+const ALIGNMENT: usize = 8;
+
 pub fn constants() -> Constants {
+    // Number of accounts for CPI create account instruction.
+    const N_ACCOUNTS_CPI: usize = 2;
+    // Number of signer seeds for PDA.
+    const N_SIGNER_SEEDS_PDA: usize = 2;
+    // Number of PDAs in CPI.
+    const N_PDAS: usize = 1;
+    /// For an account during an instruction.
+    const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
+    /// b"system_program" plus two bytes of padding.
+    const SYSTEM_PROGRAM_DATA_LEN: usize = "system_program".len();
+    const SYSTEM_PROGRAM_DATA_WITH_PAD_LEN: usize =
+        SYSTEM_PROGRAM_DATA_LEN + (ALIGNMENT - SYSTEM_PROGRAM_DATA_LEN % ALIGNMENT) % ALIGNMENT;
+
     #[repr(C)]
     struct SolInstruction {
         program_id_addr: u64,
@@ -20,8 +38,7 @@ pub fn constants() -> Constants {
     }
 
     #[repr(C)]
-    // Defined as bytes vectors so compiler doesn't align fields before end of struct during offset
-    // calculations.
+    // Defined as bytes vectors to prevent addition of inner padding during compilation.
     struct CreateAccountInstructionData {
         variant: [u8; size_of::<u32>()],
         lamports: [u8; size_of::<u64>()],
@@ -56,13 +73,6 @@ pub fn constants() -> Constants {
         pad: [u8; 5],
     }
 
-    // Number of accounts for CPI create account instruction.
-    const N_ACCOUNTS_CPI: usize = 2;
-    // Number of signer seeds for PDA.
-    const N_SIGNER_SEEDS_PDA: usize = 2;
-    // Number of PDAs in CPI.
-    const N_PDAS: usize = 1;
-
     #[repr(C)]
     struct StackFrameInit {
         instruction: SolInstruction,
@@ -94,8 +104,6 @@ pub fn constants() -> Constants {
         program_id: Pubkey,
     }
 
-    const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
-
     #[allow(dead_code)]
     #[repr(C)]
     struct AccountLayout<const PADDED_DATA_SIZE: usize> {
@@ -104,8 +112,8 @@ pub fn constants() -> Constants {
         is_writable: u8,
         is_executable: u8,
         original_data_len: [u8; 4],
-        pubkey: [u8; 32],
-        owner: [u8; 32],
+        pubkey: [u8; size_of::<Pubkey>()],
+        owner: [u8; size_of::<Pubkey>()],
         lamports: u64,
         data_len: u64,
         data_padded: [u8; PADDED_DATA_SIZE],
@@ -113,7 +121,8 @@ pub fn constants() -> Constants {
     }
 
     type StandardAccount = AccountLayout<MAX_PERMITTED_DATA_INCREASE>;
-    type SystemProgramAccount = AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + 16 }>;
+    type SystemProgramAccount =
+        AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + SYSTEM_PROGRAM_DATA_WITH_PAD_LEN }>;
 
     Constants::new()
         .push(
@@ -213,6 +222,13 @@ pub fn constants() -> Constants {
                     "PDA data length.",
                 ))
                 .push(Constant::new_offset(
+                    "PDA_BUMP_SEED",
+                    (offset_of!(MemoryMapInit, pda)
+                        + offset_of!(StandardAccount, data_padded)
+                        + offset_of!(PdaAccountData, bump_seed)) as u64,
+                    "PDA bump seed.",
+                ))
+                .push(Constant::new_offset(
                     "SYSTEM_PROGRAM_NON_DUP_MARKER",
                     (offset_of!(MemoryMapInit, system_program)
                         + offset_of!(SystemProgramAccount, non_dup_marker))
@@ -232,7 +248,7 @@ pub fn constants() -> Constants {
                 )),
         )
         .push(
-            ConstantGroup::new_with_prefix(
+            ConstantGroup::new_stack_layout(
                 "Stack frame layout for initialize operation.",
                 "STK_INIT_",
             )
@@ -300,11 +316,8 @@ pub fn constants() -> Constants {
         )
 }
 
-/// In an assembly file, for viewable render on docs site.
-pub const LINE_LENGTH: usize = 75;
-
 // Individual constant definition.
-pub struct Constant {
+struct Constant {
     name: &'static str,
     value: u64,
     is_offset: bool,
@@ -342,15 +355,15 @@ impl Constant {
         }
     }
 
-    pub fn new(name: &'static str, value: u64, comment: &'static str) -> Self {
+    fn new(name: &'static str, value: u64, comment: &'static str) -> Self {
         Self::create(name, value, false, false, comment)
     }
 
-    pub fn new_hex(name: &'static str, value: u64, comment: &'static str) -> Self {
+    fn new_hex(name: &'static str, value: u64, comment: &'static str) -> Self {
         Self::create(name, value, false, true, comment)
     }
 
-    pub fn new_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
+    fn new_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
         Self::create(name, value, true, false, comment)
     }
 
@@ -364,7 +377,7 @@ impl Constant {
 }
 
 // Error code definition.
-pub struct ErrorCode {
+struct ErrorCode {
     name: &'static str,
     comment: Comment,
 }
@@ -372,7 +385,7 @@ pub struct ErrorCode {
 impl ErrorCode {
     const PREFIX: &str = "E_";
 
-    pub fn new(name: &'static str, comment: &'static str) -> Self {
+    fn new(name: &'static str, comment: &'static str) -> Self {
         Self {
             name,
             comment: Comment::new(comment),
@@ -385,12 +398,13 @@ impl ErrorCode {
 }
 
 // Group of related constants.
-pub enum ConstantGroup {
+enum ConstantGroup {
     // Standard group of constants with optional prefix.
     Standard {
         comment: Comment,
         constants: Vec<Constant>,
         prefix: Option<&'static str>,
+        is_stack: bool,
     },
     // Error codes group where values are auto-incremented starting from 1.
     ErrorCodes {
@@ -400,38 +414,68 @@ pub enum ConstantGroup {
 }
 
 impl ConstantGroup {
-    pub fn new(comment: &'static str) -> Self {
+    fn new(comment: &'static str) -> Self {
         Self::Standard {
             comment: Comment::new(comment),
             constants: Vec::new(),
             prefix: None,
+            is_stack: false,
         }
     }
 
-    pub fn new_with_prefix(comment: &'static str, prefix: &'static str) -> Self {
+    fn new_with_prefix(comment: &'static str, prefix: &'static str) -> Self {
         Self::Standard {
             comment: Comment::new(comment),
             constants: Vec::new(),
             prefix: Some(prefix),
+            is_stack: false,
         }
     }
 
-    pub fn new_error_codes() -> Self {
+    fn new_stack_layout(comment: &'static str, prefix: &'static str) -> Self {
+        Self::Standard {
+            comment: Comment::new(comment),
+            constants: Vec::new(),
+            prefix: Some(prefix),
+            is_stack: true,
+        }
+    }
+
+    fn new_error_codes() -> Self {
         Self::ErrorCodes {
             comment: Comment::new("Error codes."),
             codes: Vec::new(),
         }
     }
 
-    pub fn push(mut self, constant: Constant) -> Self {
+    fn push(mut self, constant: Constant) -> Self {
         match &mut self {
-            Self::Standard { constants, .. } => constants.push(constant),
+            Self::Standard {
+                constants,
+                is_stack,
+                ..
+            } => {
+                if *is_stack {
+                    assert!(
+                        constant.is_offset,
+                        "Stack layout group must only contain offsets: {}",
+                        constant.name
+                    );
+                    assert!(
+                        constant.value.is_multiple_of(ALIGNMENT as u64),
+                        "Stack offset must be 8-byte aligned: {} = {}",
+                        constant.name,
+                        constant.value
+                    );
+                }
+                constants.push(constant);
+            }
             Self::ErrorCodes { .. } => panic!("Use push_error for error code groups"),
         }
         self
     }
 
-    pub fn push_error(mut self, error: ErrorCode) -> Self {
+    fn push_error(mut self, error: ErrorCode) -> Self {
         match &mut self {
             Self::Standard { .. } => panic!("Use push for standard groups"),
             Self::ErrorCodes { codes, .. } => codes.push(error),
@@ -460,11 +504,11 @@ pub struct Constants {
 }
 
 impl Constants {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self { groups: Vec::new() }
     }
 
-    pub fn push(mut self, group: ConstantGroup) -> Self {
+    fn push(mut self, group: ConstantGroup) -> Self {
         self.groups.push(group);
         self
     }
@@ -611,12 +655,12 @@ impl Constants {
 }
 
 // Comment type with validation.
-pub struct Comment(&'static str);
+struct Comment(&'static str);
 
 impl Comment {
     const MAX_LENGTH: usize = LINE_LENGTH - 2; // Account for "# " prefix.
 
-    pub fn new(text: &'static str) -> Self {
+    fn new(text: &'static str) -> Self {
         assert!(!text.is_empty(), "Comment must not be empty");
         assert!(text.ends_with('.'), "Comment must end with '.': {text}");
         assert!(
@@ -627,7 +671,7 @@ impl Comment {
         Self(text)
     }
 
-    pub fn as_str(&self) -> &'static str {
+    fn as_str(&self) -> &'static str {
         self.0
     }
 }

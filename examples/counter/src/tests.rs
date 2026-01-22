@@ -89,9 +89,7 @@ fn happy_path_setup(
                 .push(AccountMeta::new_readonly(system_program, false));
             accounts.push((system_program, system_account));
         }
-        Operation::Increment => {
-            // To be implemented.
-        }
+        Operation::Increment => {}
     }
     (setup, instruction, accounts, checks)
 }
@@ -239,7 +237,7 @@ fn test_asm_initialize_pda_mismatch() {
 
 #[test]
 fn test_asm_initialize_happy_path() {
-    let (setup, mut instruction, mut accounts, checks) =
+    let (setup, instruction, accounts, checks) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     setup

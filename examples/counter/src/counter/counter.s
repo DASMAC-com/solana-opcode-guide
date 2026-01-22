@@ -27,6 +27,7 @@
 .equ PDA_NON_DUP_MARKER_OFF, 10344 # PDA non-duplicate marker.
 .equ PDA_PUBKEY_OFF, 10352 # PDA pubkey.
 .equ PDA_DATA_LEN_OFF, 10424 # PDA data length.
+.equ PDA_BUMP_SEED_OFF, 10440 # PDA bump seed.
 # System Program non-duplicate marker.
 .equ SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
 .equ SYSTEM_PROGRAM_DATA_LEN_OFF, 20760 # System program data length.

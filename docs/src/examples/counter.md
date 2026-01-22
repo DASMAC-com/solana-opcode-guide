@@ -33,8 +33,9 @@ automatically inserted at the top of the assembly program file during a test:
 
 :::
 
-Importantly, this methodology strictly enforces [`i16` offset values] since, as
-of the time of this writing,
+Importantly, this methodology strictly enforces
+[8-byte aligned stack offsets](transfer#transfer-cpi), as well as
+[`i16` offset values] since, as of the time of this writing,
 [`sbpf` silently truncates offsets that are not `i16`].
 
 ## Entrypoint branching
