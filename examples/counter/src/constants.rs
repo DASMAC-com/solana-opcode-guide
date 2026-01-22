@@ -106,7 +106,7 @@ pub fn constants() -> Constants {
     type StandardAccount = AccountLayout<MAX_PERMITTED_DATA_INCREASE>;
     type SystemProgramAccount = AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + 16 }>;
 
-    let constants = Constants::new()
+    Constants::new()
         .push(
             ConstantGroup::new_error_codes()
                 .push_error(ErrorCode::new("N_ACCOUNTS", "Invalid number of accounts."))
@@ -129,7 +129,20 @@ pub fn constants() -> Constants {
                 .push_error(ErrorCode::new(
                     "SYSTEM_PROGRAM_DUPLICATE",
                     "System Program is a duplicate account.",
+                ))
+                .push_error(ErrorCode::new(
+                    "UNABLE_TO_DERIVE_PDA",
+                    "Unable to derive PDA.",
                 )),
+        )
+        .push(
+            ConstantGroup::new_with_prefix("Size of assorted types.", "SIZE_OF_")
+                .push(Constant::new(
+                    "PUBKEY",
+                    size_of::<Pubkey>() as u64,
+                    "Size of Pubkey.",
+                ))
+                .push(Constant::new("U8", size_of::<u8>() as u64, "Size of u8.")),
         )
         .push(
             ConstantGroup::new("Input memory map layout.")
@@ -193,36 +206,44 @@ pub fn constants() -> Constants {
                     (offset_of!(MemoryMapInit, system_program)
                         + offset_of!(SystemProgramAccount, data_len)) as u64,
                     "System program data length.",
+                ))
+                .push(Constant::new_offset(
+                    "PROGRAM_ID_INIT",
+                    offset_of!(MemoryMapInit, program_id) as u64,
+                    "Program ID during initialize operation.",
                 )),
-        );
-    constants.push(
-        ConstantGroup::new_with_prefix("Stack frame layout for initialize operation.", "STK_INIT_")
+        )
+        .push(
+            ConstantGroup::new_with_prefix(
+                "Stack frame layout for initialize operation.",
+                "STK_INIT_",
+            )
             .push(Constant::new_offset(
                 "INSN",
                 (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction)) as u64,
                 "SolInstruction for CreateAccount CPI.",
             ))
             .push(Constant::new_offset(
-                "SEED_1_ADDR",
+                "SEED_0_ADDR",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, signer_seeds))) as u64,
                 "Pointer to user pubkey.",
             ))
             .push(Constant::new_offset(
-                "SEED_1_LEN",
+                "SEED_0_LEN",
                 (size_of::<StackFrameInit>()
                     - (offset_of!(StackFrameInit, signer_seeds) + offset_of!(SolSignerSeed, len)))
                     as u64,
                 "Length of user pubkey.",
             ))
             .push(Constant::new_offset(
-                "SEED_2_ADDR",
+                "SEED_1_ADDR",
                 (size_of::<StackFrameInit>()
                     - (offset_of!(StackFrameInit, signer_seeds) + size_of::<SolSignerSeed>()))
                     as u64,
                 "Pointer to bump seed.",
             ))
             .push(Constant::new_offset(
-                "SEED_2_LEN",
+                "SEED_1_LEN",
                 (size_of::<StackFrameInit>()
                     - (offset_of!(StackFrameInit, signer_seeds)
                         + size_of::<SolSignerSeed>()
@@ -233,8 +254,13 @@ pub fn constants() -> Constants {
                 "PDA",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, pda))) as u64,
                 "PDA.",
+            ))
+            .push(Constant::new_offset(
+                "BUMP_SEED",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, bump_seed))) as u64,
+                "Bump seed.",
             )),
-    )
+        )
 }
 
 /// In an assembly file, for viewable render on docs site.

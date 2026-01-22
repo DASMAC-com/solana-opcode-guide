@@ -6,6 +6,12 @@
 .equ E_SYSTEM_PROGRAM_DATA_LEN, 4 # System Program data length is nonzero.
 .equ E_PDA_DUPLICATE, 5 # PDA is a duplicate account.
 .equ E_SYSTEM_PROGRAM_DUPLICATE, 6 # System Program is a duplicate account.
+.equ E_UNABLE_TO_DERIVE_PDA, 7 # Unable to derive PDA.
+
+# Size of assorted types.
+# -----------------------
+.equ SIZE_OF_PUBKEY, 32 # Size of Pubkey.
+.equ SIZE_OF_U8, 1 # Size of u8.
 
 # Input memory map layout.
 # ------------------------
@@ -22,15 +28,17 @@
 # System Program non-duplicate marker.
 .equ SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
 .equ SYSTEM_PROGRAM_DATA_LEN_OFF, 20760 # System program data length.
+.equ PROGRAM_ID_INIT_OFF, 31032 # Program ID during initialize operation.
 
 # Stack frame layout for initialize operation.
 # --------------------------------------------
 .equ STK_INIT_INSN_OFF, 328 # SolInstruction for CreateAccount CPI.
-.equ STK_INIT_SEED_1_ADDR_OFF, 88 # Pointer to user pubkey.
-.equ STK_INIT_SEED_1_LEN_OFF, 80 # Length of user pubkey.
-.equ STK_INIT_SEED_2_ADDR_OFF, 72 # Pointer to bump seed.
-.equ STK_INIT_SEED_2_LEN_OFF, 64 # Length of bump seed.
+.equ STK_INIT_SEED_0_ADDR_OFF, 88 # Pointer to user pubkey.
+.equ STK_INIT_SEED_0_LEN_OFF, 80 # Length of user pubkey.
+.equ STK_INIT_SEED_1_ADDR_OFF, 72 # Pointer to bump seed.
+.equ STK_INIT_SEED_1_LEN_OFF, 64 # Length of bump seed.
 .equ STK_INIT_PDA_OFF, 40 # PDA.
+.equ STK_INIT_BUMP_SEED_OFF, 8 # Bump seed.
 
 .global entrypoint
 
@@ -58,8 +66,45 @@ initialize:
     ldxdw r2, [r1 + SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r2, DATA_LEN_SYSTEM_PROGRAM, e_system_program_data_len
 
-    # Initialize user pubkey signer seed.
-    # -----------------------------------
+    # Initialize signer seed for user pubkey.
+    # ---------------------------------------
+    mov64 r2, r1 # Get input buffer pointer.
+    add64 r2, USER_PUBKEY_OFF # Update pointer to point at user pubkey.
+    # Store pointer in seed 0 pointer field.
+    stxdw [r10 - STK_INIT_SEED_0_ADDR_OFF], r2
+    mov64 r2, SIZE_OF_PUBKEY # Store length of pubkey.
+    # Store length in seed 0 length field.
+    stxdw [r10 - STK_INIT_SEED_0_LEN_OFF], r2
+
+    # Initialize signer seed for PDA bump key.
+    # ----------------------------------------
+    mov64 r2, r10 # Get stack frame pointer.
+    sub64 r2, STK_INIT_BUMP_SEED_OFF # Update to point at PDA bump seed.
+    # Store pointer in seed 1 pointer field.
+    stxdw [r10 - STK_INIT_SEED_1_ADDR_OFF], r2
+    mov64 r2, SIZE_OF_U8 # Store length of bump seed.
+    # Store length in seed 1 length field.
+    stxdw [r10 - STK_INIT_SEED_1_LEN_OFF], r2
+
+    # Compute PDA.
+    # ------------
+    mov64 r9, r1 # Store input buffer pointer for later.
+    mov64 r1, r10 # Get stack frame pointer.
+    # Update to point at user pubkey signer seed.
+    sub64 r1, STK_INIT_SEED_0_ADDR_OFF
+    mov64 r2, 1 # Indicate single signer seed (user pubkey).
+    mov64 r3, r9 # Get input buffer pointer.
+    add64 r3, PROGRAM_ID_INIT_OFF # Update to point at program ID.
+    mov64 r4, r10 # Get stack frame pointer.
+    sub64 r4, STK_INIT_PDA_OFF # Update to point to PDA region on stack.
+    mov64 r5, r10 # Get stack frame pointer.
+    sub64 r5, STK_INIT_BUMP_SEED_OFF # Update to point to bump seed region.
+    call sol_try_create_program_address
+    mov64 r1, r9 # Restore input buffer pointer.
+
+
+    # Abort if can't find PDA.
+    # Abort if computed PDA mismatches passed PDA account.
 
     exit
 
