@@ -22,8 +22,6 @@ Accounts in the [input buffer](memo) are [serialized] and [deserialized] with
 the following offsets relative to the start of the account, assuming
 non-duplicate accounts without any account data:
 
-<!-- markdownlint-disable MD013 -->
-
 | Offset (bytes) | Length (bytes) | Description                              |
 | -------------- | -------------- | ---------------------------------------- |
 | 0              | 1              | [`NON_DUP_MARKER`]                       |
@@ -38,8 +36,6 @@ non-duplicate accounts without any account data:
 | 88             | 0              | [Account data][account structure] (none) |
 | 88             | 10240          | Account data padding                     |
 | 10328          | 8              | Account [rent epoch][account structure]  |
-
-<!-- markdownlint-enable MD013 -->
 
 The account data padding length [is the sum of]:
 

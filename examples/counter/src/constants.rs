@@ -261,6 +261,13 @@ pub fn constants() -> Constants {
                 "Bump seed.",
             )),
         )
+        .push(
+            ConstantGroup::new("Assorted constants.").push(Constant::new(
+                "SUCCESS",
+                0,
+                "Indicates successful operation.",
+            )),
+        )
 }
 
 /// In an assembly file, for viewable render on docs site.
@@ -436,13 +443,14 @@ impl Constants {
         use std::collections::HashSet;
 
         // Check for duplicate prefixes.
-        let mut seen_prefixes: HashSet<Option<&str>> = HashSet::new();
+        let mut seen_prefixes: HashSet<&str> = HashSet::new();
         for group in &self.groups {
-            assert!(
-                seen_prefixes.insert(group.prefix()),
-                "Duplicate group prefix: {:?}",
-                group.prefix()
-            );
+            if let Some(prefix) = group.prefix() {
+                assert!(
+                    seen_prefixes.insert(prefix),
+                    "Duplicate group prefix: {prefix:?}",
+                );
+            }
         }
 
         // Check for duplicate constant names (after applying prefix and suffix).

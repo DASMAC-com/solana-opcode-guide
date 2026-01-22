@@ -40,6 +40,10 @@
 .equ STK_INIT_PDA_OFF, 40 # PDA.
 .equ STK_INIT_BUMP_SEED_OFF, 8 # Bump seed.
 
+# Assorted constants.
+# -------------------
+.equ SUCCESS, 0 # Indicates successful operation.
+
 .global entrypoint
 
 entrypoint:
@@ -101,6 +105,8 @@ initialize:
     sub64 r5, STK_INIT_BUMP_SEED_OFF # Update to point to bump seed region.
     call sol_try_create_program_address
     mov64 r1, r9 # Restore input buffer pointer.
+    # Error out if unable to derive a PDA.
+    jne r0, SUCCESS, e_unable_to_derive_pda
 
 
     # Abort if can't find PDA.
@@ -130,3 +136,6 @@ e_pda_duplicate:
 e_system_program_duplicate:
     mov32 r0, E_SYSTEM_PROGRAM_DUPLICATE
     exit
+
+e_unable_to_derive_pda:
+    mov32 r0, E_UNABLE_TO_DERIVE_PDA
