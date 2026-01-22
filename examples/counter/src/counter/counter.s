@@ -38,6 +38,8 @@
 # Stack frame layout for initialize operation.
 # --------------------------------------------
 .equ STK_INIT_INSN_OFF, 360 # SolInstruction for CreateAccount CPI.
+# Offset of lamports field inside CreateAccount instruction data.
+.equ STK_INIT_INSN_DATA_LAMPORTS_OFF, 316
 .equ STK_INIT_SEED_0_ADDR_OFF, 120 # Pointer to user pubkey.
 .equ STK_INIT_SEED_0_LEN_OFF, 112 # Length of user pubkey.
 .equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.

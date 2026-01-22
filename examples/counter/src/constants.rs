@@ -272,6 +272,14 @@ pub fn constants() -> Constants {
                 (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction)) as u64,
                 "SolInstruction for CreateAccount CPI.",
             ))
+            .push(Constant::new_unaligned_offset(
+                "INSN_DATA_LAMPORTS",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, instruction_data)
+                        + offset_of!(CreateAccountInstructionData, lamports)))
+                    as u64,
+                "Offset of lamports field inside CreateAccount instruction data.",
+            ))
             .push(Constant::new_offset(
                 "SEED_0_ADDR",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, signer_seeds))) as u64,
@@ -341,6 +349,7 @@ struct Constant {
     name: &'static str,
     value: u64,
     is_offset: bool,
+    may_be_unaligned: bool,
     is_hex: bool,
     comment: Comment,
 }
@@ -352,6 +361,7 @@ impl Constant {
         name: &'static str,
         value: u64,
         is_offset: bool,
+        may_be_unaligned: bool,
         is_hex: bool,
         comment: &'static str,
     ) -> Self {
@@ -370,21 +380,26 @@ impl Constant {
             name,
             value,
             is_offset,
+            may_be_unaligned,
             is_hex,
             comment: Comment::new(comment),
         }
     }
 
     fn new(name: &'static str, value: u64, comment: &'static str) -> Self {
-        Self::create(name, value, false, false, comment)
+        Self::create(name, value, false, false, false, comment)
     }
 
     fn new_hex(name: &'static str, value: u64, comment: &'static str) -> Self {
-        Self::create(name, value, false, true, comment)
+        Self::create(name, value, false, false, true, comment)
     }
 
     fn new_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
-        Self::create(name, value, true, false, comment)
+        Self::create(name, value, true, false, false, comment)
+    }
+
+    fn new_unaligned_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
+        Self::create(name, value, true, true, false, comment)
     }
 
     fn asm_name(&self) -> String {
@@ -481,12 +496,14 @@ impl ConstantGroup {
                         "Stack layout group must only contain offsets: {}",
                         constant.name
                     );
-                    assert!(
-                        constant.value.is_multiple_of(ALIGNMENT as u64),
-                        "Stack offset must be 8-byte aligned: {} = {}",
-                        constant.name,
-                        constant.value
-                    );
+                    if !constant.may_be_unaligned {
+                        assert!(
+                            constant.value.is_multiple_of(ALIGNMENT as u64),
+                            "Stack offset must be 8-byte aligned: {} = {}",
+                            constant.name,
+                            constant.value
+                        );
+                    }
                 }
                 constants.push(constant);
             }
