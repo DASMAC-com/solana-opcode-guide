@@ -11,12 +11,13 @@ The [SBPF instruction set architecture] defines 12 registers, including
 execution, `r1` [is initialized to] the [input buffer address `MM_INPUT_START`],
 corresponding to one of [several runtime memory map regions].
 
-[Within the input buffer], data is serialized in the following order:
+[Within the input buffer], data is serialized as follows:
 
 1. [The number of accounts as a `u64`].
 1. [A sequence of serialized accounts].
 1. [The length of instruction data as a `u64`].
 1. [The instruction data itself].
+1. [The calling program ID].
 
 > [!tip]
 > A new virtual memory map is created for [every instruction] _and_ for every
@@ -193,3 +194,4 @@ Notably, however, it introduces [compute unit] overhead:
 [`jne` (jump if not equal) `jne_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_REG.html
 [`ldxdw` (load indexed double word) `ld_dw_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_DW_REG.html
 [`sol_log_`]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/lib.rs#L345
+[The calling program ID]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L569
