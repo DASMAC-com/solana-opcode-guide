@@ -25,12 +25,12 @@
 
 # Stack frame layout for initialize operation.
 # --------------------------------------------
-.equ STK_INIT_INSN_OFF, 320 # SolInstruction for CreateAccount CPI.
-.equ STK_INIT_SEED_1_ADDR_OFF, 80 # Pointer to user pubkey.
-.equ STK_INIT_SEED_1_LEN_OFF, 72 # Length of user pubkey.
-.equ STK_INIT_SEED_2_ADDR_OFF, 64 # Pointer to bump seed.
-.equ STK_INIT_SEED_2_LEN_OFF, 56 # Length of bump seed.
-.equ STK_INIT_PDA_OFF, 32 # PDA.
+.equ STK_INIT_INSN_OFF, 328 # SolInstruction for CreateAccount CPI.
+.equ STK_INIT_SEED_1_ADDR_OFF, 88 # Pointer to user pubkey.
+.equ STK_INIT_SEED_1_LEN_OFF, 80 # Length of user pubkey.
+.equ STK_INIT_SEED_2_ADDR_OFF, 72 # Pointer to bump seed.
+.equ STK_INIT_SEED_2_LEN_OFF, 64 # Length of bump seed.
+.equ STK_INIT_PDA_OFF, 40 # PDA.
 
 .global entrypoint
 

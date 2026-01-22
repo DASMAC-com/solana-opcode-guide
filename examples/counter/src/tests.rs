@@ -411,6 +411,7 @@ fn constants() -> Constants {
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
         signers_seeds: [SolSignerSeeds; N_PDAS],
         pda: Pubkey,
+        bump_seed: u8,
     }
 
     #[repr(C)]

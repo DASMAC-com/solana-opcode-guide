@@ -25,7 +25,7 @@ accordingly, erroring out if the number of accounts is unexpected.
 
 <<< ../../../examples/counter/artifacts/snippets/asm/entrypoint.txt{asm}
 
-## Init operation
+## Initialize operation
 
 Like in the [transfer example](transfer), the initialize operation uses a
 [System Program CPI](transfer#transfer-cpi) but with [`CreateAccount`]
@@ -44,23 +44,26 @@ structures, one containing the users's pubkey and one containing the
 [PDA bump seed][pda]. The PDA is itself derived via
 [`sol_try_find_program_address`], which [behaves as follows]:
 
-| Register | Description                                                       |
-| -------- | ----------------------------------------------------------------- |
-| `r0`     | Return code: set to `0` on success, `1` on fail                   |
-| `r1`     | Pointer to array of [`SolSignerSeed`] for derivation              |
-| `r2`     | Number of elements in [`SolSignerSeed`] array                     |
-| `r3`     | [PDA] owning program ID                                           |
-| `r4`     | Passed pointer filled with [PDA], [unchanged] on error            |
-| `r5`     | Passed pointer filled with [bump seed][pda], [unchanged] on error |
+| Register | Description                                                      |
+| -------- | ---------------------------------------------------------------- |
+| `r0`     | Return code: set to `0` on success, `1` on fail                  |
+| `r1`     | Pointer to array of user pubkey [`SolSignerSeed`] for derivation |
+| `r2`     | Number of elements in [`SolSignerSeed`] array (1)                |
+| `r3`     | [PDA] owning program ID (counter program ID)                     |
+| `r4`     | Pointer filled with [PDA] ([unchanged] on error)                 |
+| `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)      |
 
 Note that in addition to the allocated stack regions from the
-[transfer example](transfer#transfer-cpi), this example requires the following
-additional allocations:
+[transfer example](transfer#transfer-cpi), the initialize operation requires the
+following additional allocations:
 
-1. Array of two [`SolSignerSeed`]
-    1. User's pubkey (32 bytes)
-    1. Bump seed (1 byte)
-1. Array of one [`SolSignerSeeds`]
+| Size (bytes) | Description                                                  |
+| ------------ | ------------------------------------------------------------ |
+| 16           | [`SolSignerSeed`] for user's pubkey                          |
+| 16           | [`SolSignerSeed`] for bump seed                              |
+| 16           | [`SolSignerSeeds`] for [CPI]                                 |
+| 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)           |
+| 1            | [PDA] bump seed from [`sol_try_find_program_address`] (`r5`) |
 
 ## Increment operation
 
@@ -101,12 +104,10 @@ one containing the owner's pubkey and one containing the bump seed.
 [`sol_get_rent_sysvar`] has a [return value] of pointer-to-[`Rent`] struct
 [in `r1`][`sol_get_rent_sysvar`].
 
-[internally disallows account data]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L189-L192
-[`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
-[`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [behaves as follows]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
+[internally disallows account data]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L189-L192
 [not yet activated]: https://github.com/anza-xyz/agave/wiki/Feature-Gate-Tracker-Schedule
 [pda]: https://solana.com/docs/core/pda
 [per-byte cost of 250 cus]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L205
@@ -120,6 +121,7 @@ one containing the owner's pubkey and one containing the bump seed.
 [uses]: https://github.com/anza-xyz/mollusk/blob/0.10.0/harness/src/sysvar.rs#L37
 [`account_storage_overhead`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.ACCOUNT_STORAGE_OVERHEAD.html
 [`createaccount`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L88-L97
+[`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
 [`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
 [`default_lamports_per_byte`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.DEFAULT_LAMPORTS_PER_BYTE.html
 [`max_seed_len`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
@@ -136,3 +138,4 @@ one containing the owner's pubkey and one containing the bump seed.
 [`sol_memcmp`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L67-L111
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
+[`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
