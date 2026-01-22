@@ -8,6 +8,23 @@ This example implements a simple on-chain counter program at a [PDA] account.
 The program supports two operations: initializing a user's counter, and
 incrementing a user's counter by a specified amount.
 
+Notably, constants including stack allocations are derived programmatically in
+Rust, then automatically inserted in the assembly program during a test:
+
+::: details Constants
+
+::: code-group
+
+<<< ../../../examples/counter/src/constants.rs [Rust derivations]
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/counter/artifacts/tests/asm_file_constants/test.txt{rs} [ASM file insertion]
+
+<!-- markdownlint-enable MD013 -->
+
+:::
+
 ## Entrypoint branching
 
 The number of accounts acts as a discriminator for the two operations:
@@ -42,7 +59,8 @@ The [CPI](transfer#transfer-cpi) also requires an array of a single
 [`SolSignerSeeds`] structure pointing to an array of two [`SolSignerSeed`]
 structures, one containing the users's pubkey and one containing the
 [PDA bump seed][pda]. The PDA is itself derived via
-[`sol_try_find_program_address`], which [behaves as follows]:
+[`sol_try_find_program_address`], which [behaves as follows] and similarly
+relies on the [`SolSignerSeed`] structure:
 
 | Register | Description                                                      |
 | -------- | ---------------------------------------------------------------- |
@@ -53,7 +71,7 @@ structures, one containing the users's pubkey and one containing the
 | `r4`     | Pointer filled with [PDA] ([unchanged] on error)                 |
 | `r5`     | Pointer filled with [bump seed][pda] ([unchanged] on error)      |
 
-Note that in addition to the allocated stack regions from the
+In addition to the allocated stack regions from the
 [transfer example](transfer#transfer-cpi), the initialize operation requires the
 following additional allocations:
 
@@ -64,23 +82,6 @@ following additional allocations:
 | 16           | [`SolSignerSeeds`] for [CPI](#transfer)                      |
 | 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)           |
 | 1            | [PDA] bump seed from [`sol_try_find_program_address`] (`r5`) |
-
-Constants including stack allocations are derived programmatically in Rust, then
-automatically inserted in the assembly program during a test:
-
-::: details Constants
-
-::: code-group
-
-<<< ../../../examples/counter/src/constants.rs [Rust derivations]
-
-<!-- markdownlint-disable MD013 -->
-
-<<< ../../../examples/counter/artifacts/tests/asm_file_constants/test.txt{rs} [ASM file insertion]
-
-<!-- markdownlint-enable MD013 -->
-
-:::
 
 Notably, [`create_account`] calls [`transfer`], which
 [internally disallows account data] such that the entire [memory map](memo) is
