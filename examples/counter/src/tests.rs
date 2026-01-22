@@ -410,6 +410,7 @@ fn constants() -> Constants {
         // User pubkey, then bump seed.
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
         signers_seeds: [SolSignerSeeds; N_PDAS],
+        pda: Pubkey,
     }
 
     #[repr(C)]
@@ -418,6 +419,7 @@ fn constants() -> Constants {
         user: StandardAccount, // Must be empty, or CreateAccount will fail.
         pda: StandardAccount,  // Must be empty, or CreateAccount will fail.
         system_program: SystemProgramAccount,
+        program_id: Pubkey,
     }
 
     const MAX_PERMITTED_DATA_INCREASE: usize = 10240;
@@ -456,15 +458,18 @@ fn constants() -> Constants {
                 .push_error(ErrorCode::new(
                     "SYSTEM_PROGRAM_DATA_LEN",
                     "System Program data length is nonzero.",
+                ))
+                .push_error(ErrorCode::new(
+                    "PDA_DUPLICATE",
+                    "PDA is a duplicate account.",
+                ))
+                .push_error(ErrorCode::new(
+                    "SYSTEM_PROGRAM_DUPLICATE",
+                    "System Program is a duplicate account.",
                 )),
         )
         .push(
-            ConstantGroup::new("Input memory map account layout.")
-                .push(Constant::new_offset(
-                    "N_ACCOUNTS",
-                    0,
-                    "Number of accounts in virtual memory map.",
-                ))
+            ConstantGroup::new("Input memory map layout.")
                 .push(Constant::new_hex(
                     "NON_DUP_MARKER",
                     0xff,
@@ -487,9 +492,9 @@ fn constants() -> Constants {
                     "Number of accounts for initialize operation.",
                 ))
                 .push(Constant::new_offset(
-                    "USER",
-                    offset_of!(MemoryMapInit, user) as u64,
-                    "Serialized user account.",
+                    "N_ACCOUNTS",
+                    0,
+                    "Number of accounts in virtual memory map.",
                 ))
                 .push(Constant::new_offset(
                     "USER_DATA_LEN",
@@ -503,9 +508,22 @@ fn constants() -> Constants {
                     "User pubkey.",
                 ))
                 .push(Constant::new_offset(
+                    "PDA_NON_DUP_MARKER",
+                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, non_dup_marker))
+                        as u64,
+                    "PDA non-duplicate marker.",
+                ))
+                .push(Constant::new_offset(
                     "PDA_DATA_LEN",
                     (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, data_len)) as u64,
                     "PDA data length.",
+                ))
+                .push(Constant::new_offset(
+                    "SYSTEM_PROGRAM_NON_DUP_MARKER",
+                    (offset_of!(MemoryMapInit, system_program)
+                        + offset_of!(SystemProgramAccount, non_dup_marker))
+                        as u64,
+                    "System Program non-duplicate marker.",
                 ))
                 .push(Constant::new_offset(
                     "SYSTEM_PROGRAM_DATA_LEN",
@@ -547,6 +565,11 @@ fn constants() -> Constants {
                         + size_of::<SolSignerSeed>()
                         + offset_of!(SolSignerSeed, len))) as u64,
                 "Length of bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "PDA",
+                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, pda))) as u64,
+                "PDA.",
             )),
     )
 }
@@ -711,13 +734,49 @@ fn test_asm_initialize_system_program_data_len() {
     let (setup, instruction, mut accounts, _checks) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
-    accounts[AccountIndex::SystemProgram as usize].1.data = vec![1u8; 1];
+    accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
 
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
         &[Check::err(ProgramError::Custom(
             constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_asm_pda_duplicate() {
+    let (setup, mut instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    instruction.accounts[AccountIndex::Pda as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_PDA_DUPLICATE") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_asm_system_program_duplicate() {
+    let (setup, mut instruction, mut accounts, _checks) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    instruction.accounts[AccountIndex::SystemProgram as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::SystemProgram as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
         ))],
     );
 }

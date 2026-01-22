@@ -44,11 +44,14 @@ structures, one containing the users's pubkey and one containing the
 [PDA bump seed][pda]. The PDA is itself derived via
 [`sol_try_find_program_address`], which [behaves as follows]:
 
-| Register | Success                                     | Failure     |
-| -------- | ------------------------------------------- | ----------- |
-| `r0`     | Set to 0                                    | Set to 1    |
-| `r4`     | Passed pointer filled with [PDA]            | [Unchanged] |
-| `r5`     | Passed pointer filled with [bump seed][pda] | [Unchanged] |
+| Register | Description                                                       |
+| -------- | ----------------------------------------------------------------- |
+| `r0`     | Return code: set to `0` on success, `1` on fail                   |
+| `r1`     | Pointer to array of [`SolSignerSeed`] for derivation              |
+| `r2`     | Number of elements in [`SolSignerSeed`] array                     |
+| `r3`     | [PDA] owning program ID                                           |
+| `r4`     | Passed pointer filled with [PDA], [unchanged] on error            |
+| `r5`     | Passed pointer filled with [bump seed][pda], [unchanged] on error |
 
 Note that in addition to the allocated stack regions from the
 [transfer example](transfer#transfer-cpi), this example requires the following
@@ -64,8 +67,6 @@ additional allocations:
 ## Links
 
 1. Init:
-   1. [`sol_try_find_program_address`] returns address
-      args.
    1. [`SIMD-0194`] took out 2x multiplier, then [`SIMD-0436`] made it lower
       value, but then superseded by [`SIMD-0437`] which hasn't landed
    1. So use [`DEFAULT_LAMPORTS_PER_BYTE`] and [`ACCOUNT_STORAGE_OVERHEAD`],
