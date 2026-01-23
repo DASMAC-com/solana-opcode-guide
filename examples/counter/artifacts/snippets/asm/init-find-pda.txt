@@ -12,10 +12,10 @@
     mov64 r5, r10 # Get stack frame pointer.
     sub64 r5, STK_INIT_BUMP_SEED_OFF # Update to point to bump seed region.
     call sol_try_find_program_address # Find PDA.
-    mov64 r1, r9 # Restore input buffer pointer.
     # Skip check to error out if unable to derive a PDA (failure to derive
     # is practically impossible to test since odds of not finding bump seed
     # are astronomically low):
     # ```
     # jne r0, SUCCESS, e_unable_to_derive_pda
     # ```
+    mov64 r1, r9 # Restore input buffer pointer.
