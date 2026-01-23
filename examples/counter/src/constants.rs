@@ -84,9 +84,10 @@ pub fn constants() -> Constants {
 
     #[repr(C)]
     struct StackFrameInit {
+        system_program_pubkey: Pubkey, // Zero-initialized.
         instruction: SolInstruction,
-        instruction_data: CreateAccountInstructionData,
         account_metas: [SolAccountMeta; N_ACCOUNTS_CPI],
+        instruction_data: CreateAccountInstructionData,
         account_infos: [SolAccountInfo; N_ACCOUNTS_CPI],
         // User pubkey, then bump seed.
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
@@ -268,9 +269,55 @@ pub fn constants() -> Constants {
                 "STK_INIT_",
             )
             .push(Constant::new_offset(
+                "SYSTEM_PROGRAM_PUBKEY",
+                (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, system_program_pubkey))
+                    as u64,
+                "System Program pubkey for CreateAccount CPI.",
+            ))
+            .push(Constant::new_offset(
                 "INSN",
                 (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction)) as u64,
                 "SolInstruction for CreateAccount CPI.",
+            ))
+            .push(Constant::new_offset(
+                "INSN_ACCOUNTS_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, instruction)
+                        + offset_of!(SolInstruction, accounts_addr))) as u64,
+                "Accounts address in SolInstruction.",
+            ))
+            .push(Constant::new_offset(
+                "INSN_ACCOUNTS_LEN",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, instruction)
+                        + offset_of!(SolInstruction, accounts_len))) as u64,
+                "Accounts length in SolInstruction.",
+            ))
+            .push(Constant::new_offset(
+                "INSN_DATA_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, instruction)
+                        + offset_of!(SolInstruction, data_addr))) as u64,
+                "Data address in SolInstruction.",
+            ))
+            .push(Constant::new_offset(
+                "INSN_DATA_LEN",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, instruction)
+                        + offset_of!(SolInstruction, data_len))) as u64,
+                "Data length in SolInstruction.",
+            ))
+            .push(Constant::new_offset(
+                "SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS",
+                (offset_of!(StackFrameInit, account_metas)
+                    - offset_of!(StackFrameInit, system_program_pubkey)) as u64,
+                "Offset from System Program pubkey to account metas.",
+            ))
+            .push(Constant::new_offset(
+                "ACCOUNT_METAS_TO_INSN_DATA",
+                (offset_of!(StackFrameInit, instruction_data)
+                    - offset_of!(StackFrameInit, account_metas)) as u64,
+                "Offset from account metas to instruction data.",
             ))
             .push(Constant::new_maybe_unaligned_offset(
                 "INSN_DATA_LAMPORTS",

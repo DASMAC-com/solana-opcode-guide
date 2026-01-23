@@ -37,9 +37,21 @@
 
 # Stack frame layout for initialize operation.
 # --------------------------------------------
+# System Program pubkey for CreateAccount CPI.
+.equ STK_INIT_SYSTEM_PROGRAM_PUBKEY_OFF, 392
 .equ STK_INIT_INSN_OFF, 360 # SolInstruction for CreateAccount CPI.
+# Accounts address in SolInstruction.
+.equ STK_INIT_INSN_ACCOUNTS_ADDR_OFF, 352
+# Accounts length in SolInstruction.
+.equ STK_INIT_INSN_ACCOUNTS_LEN_OFF, 344
+.equ STK_INIT_INSN_DATA_ADDR_OFF, 336 # Data address in SolInstruction.
+.equ STK_INIT_INSN_DATA_LEN_OFF, 328 # Data length in SolInstruction.
+# Offset from System Program pubkey to account metas.
+.equ STK_INIT_SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS_OFF, 72
+# Offset from account metas to instruction data.
+.equ STK_INIT_ACCOUNT_METAS_TO_INSN_DATA_OFF, 32
 # Offset of lamports field inside CreateAccount instruction data.
-.equ STK_INIT_INSN_DATA_LAMPORTS_OFF, 316
+.equ STK_INIT_INSN_DATA_LAMPORTS_OFF, 284
 .equ STK_INIT_SEED_0_ADDR_OFF, 120 # Pointer to user pubkey.
 .equ STK_INIT_SEED_0_LEN_OFF, 112 # Length of user pubkey.
 .equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.
@@ -151,6 +163,26 @@ initialize:
     # Store value directly in instruction data on stack.
     stxdw [r10 - STK_INIT_INSN_DATA_LAMPORTS_OFF], r2
     mov64 r1, r9 # Restore input buffer pointer.
+
+    # Populate SolInstruction on stack.
+    # ---------------------------------
+    mov64 r2, r10 # Get stack frame pointer for CPI instruction pointer.
+    mov64 r3, r10 # Get stack frame pointer for stepping through stack.
+    # Update to point to zero-initialized System Program pubkey on stack.
+    sub64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_OFF
+    stxdw [r2 - STK_INIT_INSN_OFF], r3 # Store as CPI program ID.
+    # Advance to point to account metas.
+    add64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS_OFF
+    # Store as CPI account metas address.
+    stxdw [r2 - STK_INIT_INSN_ACCOUNTS_ADDR_OFF], r3
+    # Advance to point to instruction data.
+    add64 r3, STK_INIT_ACCOUNT_METAS_TO_INSN_DATA_OFF
+    # Store as CPI data address.
+    stxdw [r2 - STK_INIT_INSN_DATA_ADDR_OFF], r3
+
+
+
+
 
     exit
 
