@@ -191,7 +191,7 @@ instruction data buffer on the [stack](transfer#transfer-cpi):
 As in the [transfer CPI](transfer#transfer-cpi), the [`CreateAccount`]
 instruction and associated account information regions are populated, this time
 with an additional optimization: the [deprecated `rent_epoch` field][rent] is
-ignored, since the [internal CPI `CallerAccount` structure][`CallerAccount`]
+ignored, since the [internal CPI `CallerAccount` structure][`calleraccount`]
 does not include it, hence it is unprocessed by [`update_callee_account`].
 
 Notably, the [`CreateAccount`] instruction data owner program ID field is
@@ -216,8 +216,6 @@ one containing the user's [pubkey] and one containing the bump seed.
 | `r0`     | 0                                | 1           |
 | `r4`     | Passed pointer filled with [PDA] | [Unchanged] |
 
-[`CallerAccount`]: https://docs.rs/solana-program-runtime/3.1.7/solana_program_runtime/cpi/struct.CallerAccount.html
-[`update_callee_account`]: https://github.com/anza-xyz/agave/blob/v3.1.7/program-runtime/src/cpi.rs#L1145-L1215
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
@@ -240,6 +238,7 @@ one containing the user's [pubkey] and one containing the bump seed.
 [unchanged]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L606-L612
 [uses]: https://github.com/anza-xyz/mollusk/blob/0.10.0/harness/src/sysvar.rs#L37
 [`account_storage_overhead`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.ACCOUNT_STORAGE_OVERHEAD.html
+[`calleraccount`]: https://docs.rs/solana-program-runtime/3.1.7/solana_program_runtime/cpi/struct.CallerAccount.html
 [`createaccount`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L88-L97
 [`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
 [`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
@@ -260,3 +259,4 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
+[`update_callee_account`]: https://github.com/anza-xyz/agave/blob/v3.1.7/program-runtime/src/cpi.rs#L1145-L1215
