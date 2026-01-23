@@ -186,7 +186,16 @@ instruction data buffer on the [stack](transfer#transfer-cpi):
 
 <<< ../../../examples/counter/artifacts/snippets/asm/min-balance.txt{asm}
 
+### CPI construction
+
+As in the [transfer CPI](transfer#transfer-cpi), the [`CreateAccount`]
+instruction and associated account information regions are populated, this time
+with an additional optimization: the [deprecated `rent_epoch` field][rent] is
+ignored, since the [internal CPI `CallerAccount` structure][`CallerAccount`]
+does not include it, hence it is unprocessed by [`update_callee_account`].
+
 ## Increment operation
+
 
 1. Increment:
    1. [`sol_create_program_address`]
@@ -207,6 +216,8 @@ one containing the user's [pubkey] and one containing the bump seed.
 | `r0`     | 0                                | 1           |
 | `r4`     | Passed pointer filled with [PDA] | [Unchanged] |
 
+[`CallerAccount`]: https://docs.rs/solana-program-runtime/3.1.7/solana_program_runtime/cpi/struct.CallerAccount.html
+[`update_callee_account`]: https://github.com/anza-xyz/agave/blob/v3.1.7/program-runtime/src/cpi.rs#L1145-L1215
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
