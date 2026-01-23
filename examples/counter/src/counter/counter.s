@@ -63,6 +63,18 @@
 .equ STK_INIT_INSN_DATA_SPACE_OFF, 276
 # Offset of owner field inside CreateAccount instruction data.
 .equ STK_INIT_INSN_DATA_OWNER_OFF, 268
+# User account meta pubkey address.
+.equ STK_INIT_ACCT_META_USER_PUBKEY_ADDR_OFF, 320
+# User account meta is_writable.
+.equ STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF, 312
+# User account meta is_signer.
+.equ STK_INIT_ACCT_META_USER_IS_SIGNER_OFF, 311
+# PDA account meta pubkey address.
+.equ STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF, 304
+# PDA account meta is_writable.
+.equ STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF, 296
+# PDA account meta is_signer.
+.equ STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF, 295
 .equ STK_INIT_SEED_0_ADDR_OFF, 120 # Pointer to user pubkey.
 .equ STK_INIT_SEED_0_LEN_OFF, 112 # Length of user pubkey.
 .equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.
@@ -76,6 +88,7 @@
 # -------------------
 .equ NO_OFFSET, 0 # Offset of zero.
 .equ SUCCESS, 0 # Indicates successful operation.
+.equ BOOL_TRUE, 1 # Boolean true.
 .equ COMPARE_EQUAL, 0 # Compare result indicating equality.
 
 .global entrypoint
@@ -205,6 +218,27 @@ initialize:
     sub64 r2, STK_INIT_INSN_DATA_OWNER_OFF # Point to owner field.
     mov64 r3, SIZE_OF_PUBKEY # Set length of bytes to copy.
     call sol_memcpy_ # Copy program ID into CreateAccount owner field.
+
+
+    # Populate account metas and infos.
+
+    # Mark user and PDA as writable.
+    stxb [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE
+    stxb [r10 - STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF], BOOL_TRUE
+    # Mark user and PDA as signer.
+    stxb [r10 - STK_INIT_ACCT_META_USER_IS_SIGNER_OFF], BOOL_TRUE
+    stxb [r10 - STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF], BOOL_TRUE
+
+    ## Parse user account into account metas and account infos.
+    #mov64 r2, r9 # Get input buffer pointer.
+    #add64 r2, USER_PUBKEY_OFF # Update to point at user pubkey.
+    ## Store in account meta pubkey address.
+    #stxdw [r10 - STK_INIT_ACCT_META_USER_ADDR], r2
+    ## Mark user and PDA as writable.
+    #stxb [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE
+    ## Mark user and PDA as signer.
+    #stxb [r10 - STK_INIT_ACCT_META_USER_IS_SIGNER_OFF], BOOL_TRUE
+
 
     exit
 

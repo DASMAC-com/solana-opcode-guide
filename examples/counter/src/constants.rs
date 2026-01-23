@@ -361,6 +361,48 @@ pub fn constants() -> Constants {
                         + offset_of!(CreateAccountInstructionData, owner))) as u64,
                 "Offset of owner field inside CreateAccount instruction data.",
             ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_META_USER_PUBKEY_ADDR",
+                (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, account_metas)) as u64,
+                "User account meta pubkey address.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_META_USER_IS_WRITABLE",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_metas)
+                        + offset_of!(SolAccountMeta, is_writable))) as u64,
+                "User account meta is_writable.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_META_USER_IS_SIGNER",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_metas)
+                        + offset_of!(SolAccountMeta, is_signer))) as u64,
+                "User account meta is_signer.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_META_PDA_PUBKEY_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_metas) + size_of::<SolAccountMeta>()))
+                    as u64,
+                "PDA account meta pubkey address.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_META_PDA_IS_WRITABLE",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_metas)
+                        + size_of::<SolAccountMeta>()
+                        + offset_of!(SolAccountMeta, is_writable))) as u64,
+                "PDA account meta is_writable.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_META_PDA_IS_SIGNER",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_metas)
+                        + size_of::<SolAccountMeta>()
+                        + offset_of!(SolAccountMeta, is_signer))) as u64,
+                "PDA account meta is_signer.",
+            ))
             .push(Constant::new_offset(
                 "SEED_0_ADDR",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, signer_seeds))) as u64,
@@ -417,6 +459,7 @@ pub fn constants() -> Constants {
                     0,
                     "Indicates successful operation.",
                 ))
+                .push(Constant::new("BOOL_TRUE", 1, "Boolean true."))
                 .push(Constant::new(
                     "COMPARE_EQUAL",
                     0,
