@@ -148,7 +148,9 @@ initialize:
     ldxdw r2, [r1 + NO_OFFSET] # Get Lamports per byte field.
     # Multiply by sum of PDA account data length, account storage overhead.
     mul64 r2, PDA_DATA_WITH_ACCOUNT_OVERHEAD
-    mov64 r0, r2
+    # Store value directly in instruction data on stack.
+    stxdw [r10 - STK_INIT_INSN_DATA_LAMPORTS_OFF], r2
+    mov64 r1, r9 # Restore input buffer pointer.
 
     exit
 

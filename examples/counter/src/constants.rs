@@ -272,7 +272,7 @@ pub fn constants() -> Constants {
                 (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction)) as u64,
                 "SolInstruction for CreateAccount CPI.",
             ))
-            .push(Constant::new_unaligned_offset(
+            .push(Constant::new_maybe_unaligned_offset(
                 "INSN_DATA_LAMPORTS",
                 (size_of::<StackFrameInit>()
                     - (offset_of!(StackFrameInit, instruction_data)
@@ -398,7 +398,7 @@ impl Constant {
         Self::create(name, value, true, false, false, comment)
     }
 
-    fn new_unaligned_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
+    fn new_maybe_unaligned_offset(name: &'static str, value: u64, comment: &'static str) -> Self {
         Self::create(name, value, true, true, false, comment)
     }
 
@@ -499,7 +499,8 @@ impl ConstantGroup {
                     if !constant.may_be_unaligned {
                         assert!(
                             constant.value.is_multiple_of(ALIGNMENT as u64),
-                            "Stack offset must be 8-byte aligned: {} = {}",
+                            "Stack offset must be {}-byte aligned: {} = {}",
+                            ALIGNMENT,
                             constant.name,
                             constant.value
                         );
