@@ -97,7 +97,7 @@ described below:
 | 16           | [`SolSignerSeed`] for bump seed                               |
 | 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi)           |
 | 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)            |
-| 24           | [`Rent`] from [`sol_get_rent_sysvar`]                         |
+| 24           | [`Rent`] from [`sol_get_rent_sysvar`] (`r1`)                  |
 | 4            | `i32` from [`sol_memcmp`] (`r4`)                              |
 | 4            | Padding to maintain 8-byte alignment                          |
 | 1            | [Bump seed][pda] from [`sol_try_find_program_address`] (`r5`) |
@@ -180,6 +180,11 @@ written to the pointer passed [in `r1`][`sol_get_rent_sysvar`]. The resulting
 > As of the time of this writing, [rent] is under active development:
 > [`SIMD-0194`], which has [not yet activated], is superseded by [`SIMD-0436`],
 > which is in turn superseded by [`SIMD-0437`].
+
+This resulting minimum balance is directly stored in the [`CreateAccount`]
+instruction data buffer on the [stack](transfer#transfer-cpi):
+
+<<< ../../../examples/counter/artifacts/snippets/asm/min-balance.txt{asm}
 
 ## Increment operation
 
