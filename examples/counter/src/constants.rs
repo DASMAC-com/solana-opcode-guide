@@ -264,6 +264,26 @@ pub fn constants() -> Constants {
                 )),
         )
         .push(
+            ConstantGroup::new_with_prefix("CreateAccount instruction data.", "INIT_CPI_")
+                .push(Constant::new(
+                    "N_ACCOUNTS",
+                    N_ACCOUNTS_CPI as u64,
+                    "Number of accounts for CPI.",
+                ))
+                .push(Constant::new(
+                    "INSN_DATA_LEN",
+                    (size_of::<u32>() + size_of::<u64>() + size_of::<u64>() + size_of::<Pubkey>())
+                        as u64,
+                    "Length of instruction data.",
+                ))
+                .push(Constant::new("DISCRIMINATOR", 0, "Discriminator."))
+                .push(Constant::new(
+                    "ACCT_SIZE",
+                    (size_of::<u64>() + size_of::<u8>()) as u64,
+                    "Account size.",
+                )),
+        )
+        .push(
             ConstantGroup::new_stack_layout(
                 "Stack frame layout for initialize operation.",
                 "STK_INIT_",
@@ -326,6 +346,20 @@ pub fn constants() -> Constants {
                         + offset_of!(CreateAccountInstructionData, lamports)))
                     as u64,
                 "Offset of lamports field inside CreateAccount instruction data.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "INSN_DATA_SPACE",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, instruction_data)
+                        + offset_of!(CreateAccountInstructionData, space))) as u64,
+                "Offset of space field inside CreateAccount instruction data.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "INSN_DATA_OWNER",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, instruction_data)
+                        + offset_of!(CreateAccountInstructionData, owner))) as u64,
+                "Offset of owner field inside CreateAccount instruction data.",
             ))
             .push(Constant::new_offset(
                 "SEED_0_ADDR",

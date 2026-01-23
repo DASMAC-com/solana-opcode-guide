@@ -126,7 +126,7 @@ populated on the [stack](transfer#transfer-cpi):
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-seeds.txt{asm}
 
-### PDA checks
+### PDA checks {pda-checks}
 
 The [PDA] and [bump seed][pda] are then computed by
 [`sol_try_find_program_address`], whose [implementation] similarly relies on a
@@ -194,15 +194,15 @@ with an additional optimization: the [deprecated `rent_epoch` field][rent] is
 ignored, since the [internal CPI `CallerAccount` structure][`CallerAccount`]
 does not include it, hence it is unprocessed by [`update_callee_account`].
 
+Notably, the [`CreateAccount`] instruction data owner program ID field is
+populated via [`sol_memcpy`], which has the same
+[CU cost as `sol_memcmp`](#pda-checks) but no compare value return.
+
 ## Increment operation
 
-
-1. Increment:
-   1. [`sol_create_program_address`]
+1. PDA account checks:
    1. Error if not there
    1. Error if more than two accounts
-1. Address compare/copy
-   1. [`sol_memcpy`] is same gas as memcmp but no return value.
 
 [`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
 one [signer seeds] array pointing an array of two [signer seed] structures,

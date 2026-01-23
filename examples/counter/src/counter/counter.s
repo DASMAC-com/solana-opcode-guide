@@ -35,6 +35,13 @@
 .equ SYSTEM_PROGRAM_DATA_LEN_OFF, 20760 # System program data length.
 .equ PROGRAM_ID_INIT_OFF, 31040 # Program ID during initialize operation.
 
+# CreateAccount instruction data.
+# -------------------------------
+.equ INIT_CPI_N_ACCOUNTS, 2 # Number of accounts for CPI.
+.equ INIT_CPI_INSN_DATA_LEN, 52 # Length of instruction data.
+.equ INIT_CPI_DISCRIMINATOR, 0 # Discriminator.
+.equ INIT_CPI_ACCT_SIZE, 9 # Account size.
+
 # Stack frame layout for initialize operation.
 # --------------------------------------------
 # System Program pubkey for CreateAccount CPI.
@@ -52,6 +59,10 @@
 .equ STK_INIT_ACCOUNT_METAS_TO_INSN_DATA_OFF, 32
 # Offset of lamports field inside CreateAccount instruction data.
 .equ STK_INIT_INSN_DATA_LAMPORTS_OFF, 284
+# Offset of space field inside CreateAccount instruction data.
+.equ STK_INIT_INSN_DATA_SPACE_OFF, 276
+# Offset of owner field inside CreateAccount instruction data.
+.equ STK_INIT_INSN_DATA_OWNER_OFF, 268
 .equ STK_INIT_SEED_0_ADDR_OFF, 120 # Pointer to user pubkey.
 .equ STK_INIT_SEED_0_LEN_OFF, 112 # Length of user pubkey.
 .equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.
@@ -166,23 +177,34 @@ initialize:
 
     # Populate SolInstruction on stack.
     # ---------------------------------
-    mov64 r2, r10 # Get stack frame pointer for CPI instruction pointer.
     mov64 r3, r10 # Get stack frame pointer for stepping through stack.
     # Update to point to zero-initialized System Program pubkey on stack.
     sub64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_OFF
-    stxdw [r2 - STK_INIT_INSN_OFF], r3 # Store as CPI program ID.
+    stxdw [r10 - STK_INIT_INSN_OFF], r3 # Store as CPI program ID.
     # Advance to point to account metas.
     add64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS_OFF
-    # Store as CPI account metas address.
-    stxdw [r2 - STK_INIT_INSN_ACCOUNTS_ADDR_OFF], r3
+    # Store pointer to account metas as CPI account metas address.
+    stxdw [r10 - STK_INIT_INSN_ACCOUNTS_ADDR_OFF], r3
+    # Store number of CPI accounts (fits in 32-bit immediate).
+    stxw [r10 - STK_INIT_INSN_ACCOUNTS_LEN_OFF], INIT_CPI_N_ACCOUNTS
     # Advance to point to instruction data.
     add64 r3, STK_INIT_ACCOUNT_METAS_TO_INSN_DATA_OFF
-    # Store as CPI data address.
-    stxdw [r2 - STK_INIT_INSN_DATA_ADDR_OFF], r3
+    stxdw [r10 - STK_INIT_INSN_DATA_ADDR_OFF], r3 # Store CPI data address.
+    # Store instruction data length (fits in 32-bit immediate).
+    stxw [r10 - STK_INIT_INSN_DATA_LEN_OFF], INIT_CPI_INSN_DATA_LEN
 
-
-
-
+    # Populate CreateAccount instruction data on stack.
+    # ---------------------------------------------------------------------
+    # - Discriminator is already set to 0 since stack is zero initialized.
+    # - Lamports field was already set in the minimum balance calculation.
+    # ---------------------------------------------------------------------
+    # Store the data length of the account to create (fits in 32 bits).
+    stxw [r10 - STK_INIT_INSN_DATA_SPACE_OFF], INIT_CPI_ACCT_SIZE
+    add64 r1, PROGRAM_ID_INIT_OFF # Get pointer to program ID.
+    mov64 r2, r10 # Get pointer to stack frame.
+    sub64 r2, STK_INIT_INSN_DATA_OWNER_OFF # Point to owner field.
+    mov64 r3, SIZE_OF_PUBKEY # Set length of bytes to copy.
+    call sol_memcpy_ # Copy program ID into CreateAccount owner field.
 
     exit
 
