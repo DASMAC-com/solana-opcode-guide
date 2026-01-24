@@ -383,6 +383,11 @@ pub fn constants() -> Constants {
                         + offset_of!(CreateAccountInstructionData, owner))) as u64,
                 "Offset of owner field inside CreateAccount instruction data.",
             ))
+            .push(Constant::new_offset(
+                "ACCT_INFOS",
+                (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, account_infos)) as u64,
+                "User account infos.",
+            ))
             .push(Constant::new_maybe_unaligned_offset(
                 "ACCT_META_USER_PUBKEY_ADDR",
                 (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, account_metas)) as u64,
@@ -541,6 +546,11 @@ pub fn constants() -> Constants {
                         + size_of::<SolSignerSeed>()
                         + offset_of!(SolSignerSeed, len))) as u64,
                 "Length of bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "SIGNERS_SEEDS",
+                (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, signers_seeds)) as u64,
+                "Pointer to signer seeds array.",
             ))
             .push(Constant::new_offset(
                 "PDA",

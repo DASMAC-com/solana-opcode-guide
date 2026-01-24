@@ -68,6 +68,7 @@
 .equ STK_INIT_INSN_DATA_SPACE_OFF, 276
 # Offset of owner field inside CreateAccount instruction data.
 .equ STK_INIT_INSN_DATA_OWNER_OFF, 268
+.equ STK_INIT_ACCT_INFOS_OFF, 232 # User account infos.
 # User account meta pubkey address.
 .equ STK_INIT_ACCT_META_USER_PUBKEY_ADDR_OFF, 320
 # User account meta is_writable.
@@ -108,6 +109,7 @@
 .equ STK_INIT_SEED_0_LEN_OFF, 112 # Length of user pubkey.
 .equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.
 .equ STK_INIT_SEED_1_LEN_OFF, 96 # Length of bump seed.
+.equ STK_INIT_SIGNERS_SEEDS_OFF, 88 # Pointer to signer seeds array.
 .equ STK_INIT_PDA_OFF, 72 # PDA.
 .equ STK_INIT_RENT_OFF, 40 # Rent struct return.
 .equ STK_INIT_MEMCMP_RESULT_OFF, 16 # Compare result of sol_memcmp.
@@ -311,11 +313,11 @@ initialize:
     mov64 r1, r10 # Get stack frame pointer.
     sub64 r1, STK_INIT_INSN_OFF # Point to instruction.
     mov64 r2, r10 # Get stack frame pointer.
-    sub64 r2, STK_INIT_INSN_DATA_OFF # Point to insturction data.
+    sub64 r2, STK_INIT_ACCT_INFOS_OFF # Point to account infos.
     mov64 r3, INIT_CPI_N_ACCOUNTS # Indicate number of account infos.
-    mov64 r4, INIT_CPI_N_SIGNERS_SEEDS # Indicate a sig
+    mov64 r4, INIT_CPI_N_SIGNERS_SEEDS # Indicate a single signer.
     mov64 r5, r10 # Get stack frame pointer.
-    sub64 r5, STK_INIT_SEED_0_ADDR_OFF # Point to signer seeds array.
+    sub64 r5, STK_INIT_SIGNERS_SEEDS_OFF # Point to single SignerSeeds.
     call sol_invoke_signed_c
 
     exit
