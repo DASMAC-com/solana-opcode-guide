@@ -159,9 +159,8 @@ initialize:
     add64 r2, USER_PUBKEY_OFF # Update pointer to point at user pubkey.
     # Store pointer in seed 0 pointer field.
     stxdw [r10 - STK_INIT_SEED_0_ADDR_OFF], r2
-    mov64 r2, SIZE_OF_PUBKEY # Store length of pubkey.
-    # Store length in seed 0 length field.
-    stxdw [r10 - STK_INIT_SEED_0_LEN_OFF], r2
+    # Store length in seed 0 length field (32-bit immediate).
+    stdw [r10 - STK_INIT_SEED_0_LEN_OFF], SIZE_OF_PUBKEY
 
     # Initialize signer seed for PDA bump key.
     # ----------------------------------------
@@ -169,9 +168,8 @@ initialize:
     sub64 r2, STK_INIT_BUMP_SEED_OFF # Update to point at PDA bump seed.
     # Store pointer in seed 1 pointer field.
     stxdw [r10 - STK_INIT_SEED_1_ADDR_OFF], r2
-    mov64 r2, SIZE_OF_U8 # Store length of bump seed.
-    # Store length in seed 1 length field.
-    stxdw [r10 - STK_INIT_SEED_1_LEN_OFF], r2
+    # Store length in seed 1 length field (32-bit immediate).
+    stdw [r10 - STK_INIT_SEED_1_LEN_OFF], SIZE_OF_U8
 
     # Compute PDA.
     # ------------
@@ -242,12 +240,12 @@ initialize:
     # Store pointer to account metas as CPI account metas address.
     stxdw [r10 - STK_INIT_INSN_ACCOUNTS_ADDR_OFF], r3
     # Store number of CPI accounts (fits in 32-bit immediate).
-    stxw [r10 - STK_INIT_INSN_ACCOUNTS_LEN_OFF], INIT_CPI_N_ACCOUNTS
+    stdw [r10 - STK_INIT_INSN_ACCOUNTS_LEN_OFF], INIT_CPI_N_ACCOUNTS
     # Advance to point to instruction data.
     add64 r3, STK_INIT_ACCOUNT_METAS_TO_INSN_DATA_OFF
     stxdw [r10 - STK_INIT_INSN_DATA_ADDR_OFF], r3 # Store CPI data address.
     # Store instruction data length (fits in 32-bit immediate).
-    stxw [r10 - STK_INIT_INSN_DATA_LEN_OFF], INIT_CPI_INSN_DATA_LEN
+    stdw [r10 - STK_INIT_INSN_DATA_LEN_OFF], INIT_CPI_INSN_DATA_LEN
 
     # Populate CreateAccount instruction data on stack.
     # ---------------------------------------------------------------------
@@ -255,7 +253,7 @@ initialize:
     # - Lamports field was already set in the minimum balance calculation.
     # ---------------------------------------------------------------------
     # Store the data length of the account to create (fits in 32 bits).
-    stxw [r10 - STK_INIT_INSN_DATA_SPACE_OFF], INIT_CPI_ACCT_SIZE
+    stdw [r10 - STK_INIT_INSN_DATA_SPACE_OFF], INIT_CPI_ACCT_SIZE
     add64 r1, PROGRAM_ID_INIT_OFF # Get pointer to program ID.
     mov64 r2, r10 # Get pointer to stack frame.
     sub64 r2, STK_INIT_INSN_DATA_OWNER_OFF # Point to owner field.
@@ -264,19 +262,19 @@ initialize:
 
     # Flag user and PDA accounts as CPI writable signers.
     # ---------------------------------------------------
-    stxh [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE_2X
-    stxh [r10 - STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF], BOOL_TRUE_2X
-    stxh [r10 - STK_INIT_ACCT_INFO_USER_IS_SIGNER_OFF], BOOL_TRUE_2X
-    stxh [r10 - STK_INIT_ACCT_INFO_PDA_IS_SIGNER_OFF], BOOL_TRUE_2X
+    sth [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE_2X
+    sth [r10 - STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF], BOOL_TRUE_2X
+    sth [r10 - STK_INIT_ACCT_INFO_USER_IS_SIGNER_OFF], BOOL_TRUE_2X
+    sth [r10 - STK_INIT_ACCT_INFO_PDA_IS_SIGNER_OFF], BOOL_TRUE_2X
     # Optimize out 4 CUs by omitting the following assignments, which are
     # covered by the double wide boolean true assign since is_signer
     # follows is_writable in SolAccountMeta, and is_writable follows
     # is_signer in SolAccountInfo.
     # ```
-    # stxb [r10 - STK_INIT_ACCT_META_USER_IS_SIGNER_OFF], BOOL_TRUE
-    # stxb [r10 - STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF], BOOL_TRUE
-    # stxb [r10 - STK_INIT_ACCT_INFO_USER_IS_WRITABLE_OFF], BOOL_TRUE
-    # stxb [r10 - STK_INIT_ACCT_INFO_PDA_IS_WRITABLE_OFF], BOOL_TRUE
+    # stb [r10 - STK_INIT_ACCT_META_USER_IS_SIGNER_OFF], BOOL_TRUE
+    # stb [r10 - STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF], BOOL_TRUE
+    # stb [r10 - STK_INIT_ACCT_INFO_USER_IS_WRITABLE_OFF], BOOL_TRUE
+    # stb [r10 - STK_INIT_ACCT_INFO_PDA_IS_WRITABLE_OFF], BOOL_TRUE
     # ```
 
     # Walk through remaining pointer fields for account metas and infos.
@@ -316,8 +314,8 @@ initialize:
     mov64 r2, r10 # Get stack frame pointer.
     sub64 r2, STK_INIT_SEED_0_ADDR_OFF # Update to point to signer seed 0.
     stxdw [r10 - STK_INIT_SIGNERS_SEEDS_OFF], r2 # Store in SignerSeeds.
-    # Store number of signer seeds in SignerSeeds for PDA.
-    stxdw [r10 - STK_INIT_SIGNER_SEEDS_0_LEN_OFF], N_SIGNER_SEEDS
+    # Store number of signer seeds for PDA (32-bit immediate).
+    stdw [r10 - STK_INIT_SIGNER_SEEDS_0_LEN_OFF], N_SIGNER_SEEDS
 
     # Invoke CreateAccount CPI.
     # -------------------------
