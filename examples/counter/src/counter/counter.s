@@ -25,8 +25,8 @@
 .equ N_ACCOUNTS_OFF, 0 # Number of accounts in virtual memory map.
 .equ USER_DATA_LEN_OFF, 88 # User data length.
 .equ USER_PUBKEY_OFF, 16 # User pubkey.
-# Offset from user account data to PDA lamports.
-.equ USER_DATA_TO_PDA_LAMPORTS_OFF, 10320
+# Offset from user account data to PDA owner.
+.equ USER_DATA_TO_PDA_OWNER_OFF, 10288
 .equ PDA_NON_DUP_MARKER_OFF, 10344 # PDA non-duplicate marker.
 .equ PDA_PUBKEY_OFF, 10352 # PDA pubkey.
 .equ PDA_DATA_LEN_OFF, 10424 # PDA data length.
@@ -199,6 +199,8 @@ initialize:
     add64 r1, PDA_PUBKEY_OFF
     # As an optimization, store this pointer on the stack in the account
     # meta and info for the PDA, rather than deriving the pointer again.
+    # Note that this must point to the pubkey in the input memory map, not
+    # the one on the stack, otherwise the CPI will fail.
     stxdw [r10 - STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF], r1
     stxdw [r10 - STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF], r1
     mov64 r2, r10 # Get stack frame pointer.
@@ -232,9 +234,6 @@ initialize:
     # Update to point to zero-initialized System Program pubkey on stack.
     sub64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_OFF
     stxdw [r10 - STK_INIT_INSN_OFF], r3 # Store as CPI program ID.
-    # As an optimization, store this in the owner field of PDA account
-    # info to avoid deriving pointer again later.
-    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF], r3
     # Advance to point to account metas.
     add64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS_OFF
     # Store pointer to account metas as CPI account metas address.
@@ -282,10 +281,8 @@ initialize:
     # - Rent epoch is ignored since is not needed.
     # - Data length and executable status are ignored since both values are
     #   zero and the stack is zero-initialized.
-    # - PDA owner is ignored since it was set above as an optimization
-    #   during the SolInstruction population.
     # - PDA pubkey is ignored since it was set above as an optimization
-    #   during the PDA computation operation.
+    #   during the PDA compare operation.
     # ---------------------------
     mov64 r2, r9 # Get input buffer pointer.
     add64 r2, USER_PUBKEY_OFF # Update to point at user pubkey.
@@ -301,8 +298,12 @@ initialize:
     add64 r2, SIZE_OF_U64_2X # Advance to point to user account data.
     # Store in account info.
     stxdw [r10 - STK_INIT_ACCT_INFO_USER_DATA_ADDR_OFF], r2
+    # Advance to point to PDA owner. Note that this must be used instead of
+    # the System Program pubkey on the stack or the CPI will fail.
+    add64 r2, USER_DATA_TO_PDA_OWNER_OFF
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF], r2
     # Advance to point to PDA Lamports.
-    add64 r2, USER_DATA_TO_PDA_LAMPORTS_OFF
+    add64 r2, SIZE_OF_PUBKEY
     # Store in account info.
     stxdw [r10 - STK_INIT_ACCT_INFO_PDA_LAMPORTS_ADDR_OFF], r2
     add64 r2, SIZE_OF_U64_2X # Advance to point to PDA account data.

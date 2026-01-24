@@ -222,11 +222,11 @@ pub fn constants() -> Constants {
                     "User pubkey.",
                 ))
                 .push(Constant::new_offset(
-                    "USER_DATA_TO_PDA_LAMPORTS",
-                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, lamports)
+                    "USER_DATA_TO_PDA_OWNER",
+                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, owner)
                         - (offset_of!(MemoryMapInit, user)
                             + offset_of!(StandardAccount, data_padded))) as u64,
-                    "Offset from user account data to PDA lamports.",
+                    "Offset from user account data to PDA owner.",
                 ))
                 .push(Constant::new_offset(
                     "PDA_NON_DUP_MARKER",
