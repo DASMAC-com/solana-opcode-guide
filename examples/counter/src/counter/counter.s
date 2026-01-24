@@ -234,6 +234,9 @@ initialize:
     # Update to point to zero-initialized System Program pubkey on stack.
     sub64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_OFF
     stxdw [r10 - STK_INIT_INSN_OFF], r3 # Store as CPI program ID.
+    # As an optimization, store this in the owner field of PDA account
+    # info to avoid deriving pointer again later.
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF], r3
     # Advance to point to account metas.
     add64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS_OFF
     # Store pointer to account metas as CPI account metas address.
@@ -254,9 +257,6 @@ initialize:
     # Store the data length of the account to create (fits in 32 bits).
     stxw [r10 - STK_INIT_INSN_DATA_SPACE_OFF], INIT_CPI_ACCT_SIZE
     add64 r1, PROGRAM_ID_INIT_OFF # Get pointer to program ID.
-    # As an optimization, store this pointer on the stack in the account
-    # info for the PDA, rather than deriving the pointer again later.
-    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF], r1
     mov64 r2, r10 # Get pointer to stack frame.
     sub64 r2, STK_INIT_INSN_DATA_OWNER_OFF # Point to owner field.
     mov64 r3, SIZE_OF_PUBKEY # Set length of bytes to copy.
@@ -285,7 +285,7 @@ initialize:
     # - Data length and executable status are ignored since both values are
     #   zero and the stack is zero-initialized.
     # - PDA owner is ignored since it was set above as an optimization
-    #   during the CreateAccount instruction population.
+    #   during the SolInstruction population.
     # - PDA pubkey is ignored since it was set above as an optimization
     #   during the PDA computation operation.
     # ---------------------------

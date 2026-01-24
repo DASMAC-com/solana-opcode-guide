@@ -76,7 +76,7 @@ fn happy_path_setup(
         ),
         (
             instruction.accounts[AccountIndex::Pda as usize].pubkey,
-            Account::new(0, 0, &setup.program_id),
+            Account::new(0, 0, &system_program),
         ),
     ];
 
