@@ -553,6 +553,13 @@ pub fn constants() -> Constants {
                 "Pointer to signer seeds array.",
             ))
             .push(Constant::new_offset(
+                "SIGNER_SEEDS_0_LEN",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, signers_seeds) + offset_of!(SolSignerSeeds, len)))
+                    as u64,
+                "Pointer to signer seeds array element 0 length field.",
+            ))
+            .push(Constant::new_offset(
                 "PDA",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, pda))) as u64,
                 "PDA.",
@@ -586,6 +593,11 @@ pub fn constants() -> Constants {
                     "BOOL_TRUE_2X",
                     0xffff,
                     "Double wide boolean true for two consecutive fields.",
+                ))
+                .push(Constant::new(
+                    "N_SIGNER_SEEDS",
+                    2,
+                    "Number of signer seeds for PDA.",
                 ))
                 .push(Constant::new(
                     "COMPARE_EQUAL",

@@ -110,6 +110,8 @@
 .equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.
 .equ STK_INIT_SEED_1_LEN_OFF, 96 # Length of bump seed.
 .equ STK_INIT_SIGNERS_SEEDS_OFF, 88 # Pointer to signer seeds array.
+# Pointer to signer seeds array element 0 length field.
+.equ STK_INIT_SIGNER_SEEDS_0_LEN_OFF, 80
 .equ STK_INIT_PDA_OFF, 72 # PDA.
 .equ STK_INIT_RENT_OFF, 40 # Rent struct return.
 .equ STK_INIT_MEMCMP_RESULT_OFF, 16 # Compare result of sol_memcmp.
@@ -122,6 +124,7 @@
 .equ BOOL_TRUE, 1 # Boolean true.
 # Double wide boolean true for two consecutive fields.
 .equ BOOL_TRUE_2X, 0xffff
+.equ N_SIGNER_SEEDS, 2 # Number of signer seeds for PDA.
 .equ COMPARE_EQUAL, 0 # Compare result indicating equality.
 
 .global entrypoint
@@ -199,7 +202,8 @@ initialize:
     mov64 r2, r10 # Get stack frame pointer.
     sub64 r2, STK_INIT_PDA_OFF # Update to point to computed PDA.
     # As an optimization, store this pointer on the stack in the account
-    # info for the PDA, rather than deriving the pointer again later.
+    # meta and info for the PDA, rather than deriving the pointer again.
+    stxdw [r10 - STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF], r2
     stxdw [r10 - STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF], r2
     mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
     mov64 r4, r10 # Get stack frame pointer.
@@ -299,7 +303,6 @@ initialize:
     add64 r2, SIZE_OF_U64_2X # Advance to point to user account data.
     # Store in account info.
     stxdw [r10 - STK_INIT_ACCT_INFO_USER_DATA_ADDR_OFF], r2
-
     # Advance to point to PDA Lamports.
     add64 r2, USER_DATA_TO_PDA_LAMPORTS_OFF
     # Store in account info.
@@ -307,6 +310,14 @@ initialize:
     add64 r2, SIZE_OF_U64_2X # Advance to point to PDA account data.
     # Store in account info.
     stxdw [r10 - STK_INIT_ACCT_INFO_PDA_DATA_ADDR_OFF], r2
+
+    # Populate SignerSeeds structure.
+    # -------------------------------
+    mov64 r2, r10 # Get stack frame pointer.
+    sub64 r2, STK_INIT_SEED_0_ADDR_OFF # Update to point to signer seed 0.
+    stxdw [r10 - STK_INIT_SIGNERS_SEEDS_OFF], r2 # Store in SignerSeeds.
+    # Store number of signer seeds in SignerSeeds for PDA.
+    stxdw [r10 - STK_INIT_SIGNER_SEEDS_0_LEN_OFF], N_SIGNER_SEEDS
 
     # Invoke CreateAccount CPI.
     # -------------------------
