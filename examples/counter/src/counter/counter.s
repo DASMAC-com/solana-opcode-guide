@@ -123,7 +123,7 @@
 .equ SUCCESS, 0 # Indicates successful operation.
 .equ BOOL_TRUE, 1 # Boolean true.
 # Double wide boolean true for two consecutive fields.
-.equ BOOL_TRUE_2X, 0xffff
+.equ BOOL_TRUE_2X, 0x101
 .equ N_SIGNER_SEEDS, 2 # Number of signer seeds for PDA.
 .equ COMPARE_EQUAL, 0 # Compare result indicating equality.
 
@@ -197,12 +197,12 @@ initialize:
     # --------------------------------------------
     # Update input buffer pointer to point to passed PDA.
     add64 r1, PDA_PUBKEY_OFF
-    mov64 r2, r10 # Get stack frame pointer.
-    sub64 r2, STK_INIT_PDA_OFF # Update to point to computed PDA.
     # As an optimization, store this pointer on the stack in the account
     # meta and info for the PDA, rather than deriving the pointer again.
-    stxdw [r10 - STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF], r2
-    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF], r2
+    stxdw [r10 - STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF], r1
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF], r1
+    mov64 r2, r10 # Get stack frame pointer.
+    sub64 r2, STK_INIT_PDA_OFF # Update to point to computed PDA.
     mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
     mov64 r4, r10 # Get stack frame pointer.
     sub64 r4, STK_INIT_MEMCMP_RESULT_OFF # Update to point to result.

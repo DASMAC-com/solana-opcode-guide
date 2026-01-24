@@ -591,7 +591,7 @@ pub fn constants() -> Constants {
                 .push(Constant::new("BOOL_TRUE", 1, "Boolean true."))
                 .push(Constant::new_hex(
                     "BOOL_TRUE_2X",
-                    0xffff,
+                    0x0101,
                     "Double wide boolean true for two consecutive fields.",
                 ))
                 .push(Constant::new(
