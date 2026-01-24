@@ -75,6 +75,18 @@
 .equ STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF, 296
 # PDA account meta is_signer.
 .equ STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF, 295
+# User account info key address.
+.equ STK_INIT_ACCT_INFO_USER_KEY_ADDR_OFF, 232
+# PDA account info key address.
+.equ STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF, 176
+# User account info is_signer.
+.equ STK_INIT_ACCT_INFO_USER_IS_SIGNER_OFF, 184
+# User account info is_writable.
+.equ STK_INIT_ACCT_INFO_USER_IS_WRITABLE_OFF, 183
+# PDA account info is_signer.
+.equ STK_INIT_ACCT_INFO_PDA_IS_SIGNER_OFF, 128
+# PDA account info is_writable.
+.equ STK_INIT_ACCT_INFO_PDA_IS_WRITABLE_OFF, 127
 .equ STK_INIT_SEED_0_ADDR_OFF, 120 # Pointer to user pubkey.
 .equ STK_INIT_SEED_0_LEN_OFF, 112 # Length of user pubkey.
 .equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.
@@ -89,6 +101,8 @@
 .equ NO_OFFSET, 0 # Offset of zero.
 .equ SUCCESS, 0 # Indicates successful operation.
 .equ BOOL_TRUE, 1 # Boolean true.
+# Double wide boolean true for two consecutive fields.
+.equ BOOL_TRUE_2X, 0xffff
 .equ COMPARE_EQUAL, 0 # Compare result indicating equality.
 
 .global entrypoint
@@ -219,21 +233,39 @@ initialize:
     mov64 r3, SIZE_OF_PUBKEY # Set length of bytes to copy.
     call sol_memcpy_ # Copy program ID into CreateAccount owner field.
 
+    # Flag user and PDA accounts as CPI writable signers.
+    # ---------------------------------------------------
+    stxh [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE_2X
+    stxh [r10 - STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF], BOOL_TRUE_2X
+    stxh [r10 - STK_INIT_ACCT_INFO_USER_IS_SIGNER_OFF], BOOL_TRUE_2X
+    stxh [r10 - STK_INIT_ACCT_INFO_PDA_IS_SIGNER_OFF], BOOL_TRUE_2X
+    # Optimize out 4 CUs by omitting the following assignments, which are
+    # covered by the double wide boolean true assign since is_signer
+    # follows is_writable in SolAccountMeta, and is_writable follows
+    # is_signer in SolAccountInfo.
+    # ```
+    # stxb [r10 - STK_INIT_ACCT_META_USER_IS_SIGNER_OFF], BOOL_TRUE
+    # stxb [r10 - STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF], BOOL_TRUE
+    # stxb [r10 - STK_INIT_ACCT_INFO_USER_IS_WRITABLE_OFF], BOOL_TRUE
+    # stxb [r10 - STK_INIT_ACCT_INFO_PDA_IS_WRITABLE_OFF], BOOL_TRUE
+    # ```
 
-    # Populate account metas and infos.
+    # Walk through remaining pointer fields for account metas and infos.
+    # ---------------------------------------------------------------------
+    # - Rent epoch is ignored since is not needed.
+    # - Data length and executable status are ignored since both values are
+    #   zero and the stack is zero-initialized.
+    # ---------------------------
+    mov64 r2, r9 # Get input buffer pointer.
+    add64 r2, USER_PUBKEY_OFF # Update to point at user pubkey.
+    # Store in account meta and account info.
+    stxdw [r10 - STK_INIT_ACCT_META_USER_PUBKEY_ADDR_OFF], r2
+    stxdw [r10 - STK_INIT_ACCT_INFO_USER_KEY_ADDR_OFF], r2
 
-    # Mark user and PDA as writable.
-    stxb [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE
-    stxb [r10 - STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF], BOOL_TRUE
-    # Mark user and PDA as signer.
-    stxb [r10 - STK_INIT_ACCT_META_USER_IS_SIGNER_OFF], BOOL_TRUE
-    stxb [r10 - STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF], BOOL_TRUE
 
     ## Parse user account into account metas and account infos.
-    #mov64 r2, r9 # Get input buffer pointer.
     #add64 r2, USER_PUBKEY_OFF # Update to point at user pubkey.
     ## Store in account meta pubkey address.
-    #stxdw [r10 - STK_INIT_ACCT_META_USER_ADDR], r2
     ## Mark user and PDA as writable.
     #stxb [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE
     ## Mark user and PDA as signer.

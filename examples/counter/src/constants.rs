@@ -404,6 +404,51 @@ pub fn constants() -> Constants {
                 "PDA account meta is_signer.",
             ))
             .push(Constant::new_offset(
+                "ACCT_INFO_USER_KEY_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + offset_of!(SolAccountInfo, key_addr))) as u64,
+                "User account info key address.",
+            ))
+            .push(Constant::new_offset(
+                "ACCT_INFO_PDA_KEY_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + size_of::<SolAccountInfo>()
+                        + offset_of!(SolAccountInfo, key_addr))) as u64,
+                "PDA account info key address.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_INFO_USER_IS_SIGNER",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + offset_of!(SolAccountInfo, is_signer))) as u64,
+                "User account info is_signer.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_INFO_USER_IS_WRITABLE",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + offset_of!(SolAccountInfo, is_writable))) as u64,
+                "User account info is_writable.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_INFO_PDA_IS_SIGNER",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + size_of::<SolAccountInfo>()
+                        + offset_of!(SolAccountInfo, is_signer))) as u64,
+                "PDA account info is_signer.",
+            ))
+            .push(Constant::new_maybe_unaligned_offset(
+                "ACCT_INFO_PDA_IS_WRITABLE",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + size_of::<SolAccountInfo>()
+                        + offset_of!(SolAccountInfo, is_writable))) as u64,
+                "PDA account info is_writable.",
+            ))
+            .push(Constant::new_offset(
                 "SEED_0_ADDR",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, signer_seeds))) as u64,
                 "Pointer to user pubkey.",
@@ -460,6 +505,11 @@ pub fn constants() -> Constants {
                     "Indicates successful operation.",
                 ))
                 .push(Constant::new("BOOL_TRUE", 1, "Boolean true."))
+                .push(Constant::new_hex(
+                    "BOOL_TRUE_2X",
+                    0xffff,
+                    "Double wide boolean true for two consecutive fields.",
+                ))
                 .push(Constant::new(
                     "COMPARE_EQUAL",
                     0,
