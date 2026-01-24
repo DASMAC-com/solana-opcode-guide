@@ -326,9 +326,9 @@ initialize:
     mov64 r2, r10 # Get stack frame pointer.
     sub64 r2, STK_INIT_ACCT_INFOS_OFF # Point to account infos.
     mov64 r3, INIT_CPI_N_ACCOUNTS # Indicate number of account infos.
-    mov64 r4, INIT_CPI_N_SIGNERS_SEEDS # Indicate a single signer.
-    mov64 r5, r10 # Get stack frame pointer.
-    sub64 r5, STK_INIT_SIGNERS_SEEDS_OFF # Point to single SignerSeeds.
+    mov64 r4, r10 # Get stack frame pointer.
+    sub64 r4, STK_INIT_SIGNERS_SEEDS_OFF # Point to single SignerSeeds.
+    mov64 r5, INIT_CPI_N_SIGNERS_SEEDS # Indicate a single signer.
     call sol_invoke_signed_c
 
     exit
