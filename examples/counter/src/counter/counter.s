@@ -43,6 +43,7 @@
 .equ INIT_CPI_N_ACCOUNTS, 2 # Number of accounts for CPI.
 .equ INIT_CPI_INSN_DATA_LEN, 52 # Length of instruction data.
 .equ INIT_CPI_DISCRIMINATOR, 0 # Discriminator.
+.equ INIT_CPI_N_SIGNERS_SEEDS, 1 # Number of signers seeds.
 .equ INIT_CPI_ACCT_SIZE, 9 # Account size.
 
 # Stack frame layout for initialize operation.
@@ -60,6 +61,7 @@
 .equ STK_INIT_SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS_OFF, 72
 # Offset from account metas to instruction data.
 .equ STK_INIT_ACCOUNT_METAS_TO_INSN_DATA_OFF, 32
+.equ STK_INIT_INSN_DATA_OFF, 288 # CreateAccount instruction data.
 # Offset of lamports field inside CreateAccount instruction data.
 .equ STK_INIT_INSN_DATA_LAMPORTS_OFF, 284
 # Offset of space field inside CreateAccount instruction data.
@@ -304,6 +306,17 @@ initialize:
     # Store in account info.
     stxdw [r10 - STK_INIT_ACCT_INFO_PDA_DATA_ADDR_OFF], r2
 
+    # Invoke CreateAccount CPI.
+    # -------------------------
+    mov64 r1, r10 # Get stack frame pointer.
+    sub64 r1, STK_INIT_INSN_OFF # Point to instruction.
+    mov64 r2, r10 # Get stack frame pointer.
+    sub64 r2, STK_INIT_INSN_DATA_OFF # Point to insturction data.
+    mov64 r3, INIT_CPI_N_ACCOUNTS # Indicate number of account infos.
+    mov64 r4, INIT_CPI_N_SIGNERS_SEEDS # Indicate a sig
+    mov64 r5, r10 # Get stack frame pointer.
+    sub64 r5, STK_INIT_SEED_0_ADDR_OFF # Point to signer seeds array.
+    call sol_invoke_signed_c
 
     exit
 

@@ -290,6 +290,11 @@ pub fn constants() -> Constants {
                 ))
                 .push(Constant::new("DISCRIMINATOR", 0, "Discriminator."))
                 .push(Constant::new(
+                    "N_SIGNERS_SEEDS",
+                    1,
+                    "Number of signers seeds.",
+                ))
+                .push(Constant::new(
                     "ACCT_SIZE",
                     (size_of::<u64>() + size_of::<u8>()) as u64,
                     "Account size.",
@@ -350,6 +355,11 @@ pub fn constants() -> Constants {
                 (offset_of!(StackFrameInit, instruction_data)
                     - offset_of!(StackFrameInit, account_metas)) as u64,
                 "Offset from account metas to instruction data.",
+            ))
+            .push(Constant::new_offset(
+                "INSN_DATA",
+                (size_of::<StackFrameInit>() - offset_of!(StackFrameInit, instruction_data)) as u64,
+                "CreateAccount instruction data.",
             ))
             .push(Constant::new_maybe_unaligned_offset(
                 "INSN_DATA_LAMPORTS",
