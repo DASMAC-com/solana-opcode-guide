@@ -175,7 +175,12 @@ pub fn constants() -> Constants {
                     size_of::<Pubkey>() as u64,
                     "Size of Pubkey.",
                 ))
-                .push(Constant::new("U8", size_of::<u8>() as u64, "Size of u8.")),
+                .push(Constant::new("U8", size_of::<u8>() as u64, "Size of u8."))
+                .push(Constant::new(
+                    "U64_2X",
+                    (size_of::<u64>() * 2) as u64,
+                    "Size of u64 times 2.",
+                )),
         )
         .push(
             ConstantGroup::new("Memory map layout.")
@@ -215,6 +220,13 @@ pub fn constants() -> Constants {
                     "USER_PUBKEY",
                     (offset_of!(MemoryMapInit, user) + offset_of!(StandardAccount, pubkey)) as u64,
                     "User pubkey.",
+                ))
+                .push(Constant::new_offset(
+                    "USER_DATA_TO_PDA_LAMPORTS",
+                    (offset_of!(MemoryMapInit, pda) + offset_of!(StandardAccount, lamports)
+                        - (offset_of!(MemoryMapInit, user)
+                            + offset_of!(StandardAccount, data_padded))) as u64,
+                    "Offset from user account data to PDA lamports.",
                 ))
                 .push(Constant::new_offset(
                     "PDA_NON_DUP_MARKER",
@@ -417,6 +429,51 @@ pub fn constants() -> Constants {
                         + size_of::<SolAccountInfo>()
                         + offset_of!(SolAccountInfo, key_addr))) as u64,
                 "PDA account info key address.",
+            ))
+            .push(Constant::new_offset(
+                "ACCT_INFO_USER_LAMPORTS_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + offset_of!(SolAccountInfo, lamports_addr))) as u64,
+                "User account info Lamports pointer.",
+            ))
+            .push(Constant::new_offset(
+                "ACCT_INFO_PDA_LAMPORTS_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + size_of::<SolAccountInfo>()
+                        + offset_of!(SolAccountInfo, lamports_addr))) as u64,
+                "PDA account info Lamports pointer.",
+            ))
+            .push(Constant::new_offset(
+                "ACCT_INFO_USER_OWNER_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + offset_of!(SolAccountInfo, owner_addr))) as u64,
+                "User account info owner pubkey pointer.",
+            ))
+            .push(Constant::new_offset(
+                "ACCT_INFO_PDA_OWNER_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + size_of::<SolAccountInfo>()
+                        + offset_of!(SolAccountInfo, owner_addr))) as u64,
+                "PDA account info owner pubkey pointer.",
+            ))
+            .push(Constant::new_offset(
+                "ACCT_INFO_USER_DATA_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + offset_of!(SolAccountInfo, data_addr))) as u64,
+                "User account info data pointer.",
+            ))
+            .push(Constant::new_offset(
+                "ACCT_INFO_PDA_DATA_ADDR",
+                (size_of::<StackFrameInit>()
+                    - (offset_of!(StackFrameInit, account_infos)
+                        + size_of::<SolAccountInfo>()
+                        + offset_of!(SolAccountInfo, data_addr))) as u64,
+                "PDA account info data pointer.",
             ))
             .push(Constant::new_maybe_unaligned_offset(
                 "ACCT_INFO_USER_IS_SIGNER",

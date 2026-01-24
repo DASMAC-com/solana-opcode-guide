@@ -13,6 +13,7 @@
 # -----------------------
 .equ SIZE_OF_PUBKEY, 32 # Size of Pubkey.
 .equ SIZE_OF_U8, 1 # Size of u8.
+.equ SIZE_OF_U64_2X, 16 # Size of u64 times 2.
 
 # Memory map layout.
 # ------------------
@@ -24,6 +25,8 @@
 .equ N_ACCOUNTS_OFF, 0 # Number of accounts in virtual memory map.
 .equ USER_DATA_LEN_OFF, 88 # User data length.
 .equ USER_PUBKEY_OFF, 16 # User pubkey.
+# Offset from user account data to PDA lamports.
+.equ USER_DATA_TO_PDA_LAMPORTS_OFF, 10320
 .equ PDA_NON_DUP_MARKER_OFF, 10344 # PDA non-duplicate marker.
 .equ PDA_PUBKEY_OFF, 10352 # PDA pubkey.
 .equ PDA_DATA_LEN_OFF, 10424 # PDA data length.
@@ -79,6 +82,18 @@
 .equ STK_INIT_ACCT_INFO_USER_KEY_ADDR_OFF, 232
 # PDA account info key address.
 .equ STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF, 176
+# User account info Lamports pointer.
+.equ STK_INIT_ACCT_INFO_USER_LAMPORTS_ADDR_OFF, 224
+# PDA account info Lamports pointer.
+.equ STK_INIT_ACCT_INFO_PDA_LAMPORTS_ADDR_OFF, 168
+# User account info owner pubkey pointer.
+.equ STK_INIT_ACCT_INFO_USER_OWNER_ADDR_OFF, 200
+# PDA account info owner pubkey pointer.
+.equ STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF, 144
+# User account info data pointer.
+.equ STK_INIT_ACCT_INFO_USER_DATA_ADDR_OFF, 208
+# PDA account info data pointer.
+.equ STK_INIT_ACCT_INFO_PDA_DATA_ADDR_OFF, 152
 # User account info is_signer.
 .equ STK_INIT_ACCT_INFO_USER_IS_SIGNER_OFF, 184
 # User account info is_writable.
@@ -179,6 +194,9 @@ initialize:
     add64 r1, PDA_PUBKEY_OFF
     mov64 r2, r10 # Get stack frame pointer.
     sub64 r2, STK_INIT_PDA_OFF # Update to point to computed PDA.
+    # As an optimization, store this pointer on the stack in the account
+    # info for the PDA, rather than deriving the pointer again later.
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF], r2
     mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
     mov64 r4, r10 # Get stack frame pointer.
     sub64 r4, STK_INIT_MEMCMP_RESULT_OFF # Update to point to result.
@@ -228,6 +246,9 @@ initialize:
     # Store the data length of the account to create (fits in 32 bits).
     stxw [r10 - STK_INIT_INSN_DATA_SPACE_OFF], INIT_CPI_ACCT_SIZE
     add64 r1, PROGRAM_ID_INIT_OFF # Get pointer to program ID.
+    # As an optimization, store this pointer on the stack in the account
+    # info for the PDA, rather than deriving the pointer again later.
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF], r1
     mov64 r2, r10 # Get pointer to stack frame.
     sub64 r2, STK_INIT_INSN_DATA_OWNER_OFF # Point to owner field.
     mov64 r3, SIZE_OF_PUBKEY # Set length of bytes to copy.
@@ -255,21 +276,33 @@ initialize:
     # - Rent epoch is ignored since is not needed.
     # - Data length and executable status are ignored since both values are
     #   zero and the stack is zero-initialized.
+    # - PDA owner is ignored since it was set above as an optimization
+    #   during the CreateAccount instruction population.
+    # - PDA pubkey is ignored since it was set above as an optimization
+    #   during the PDA computation operation.
     # ---------------------------
     mov64 r2, r9 # Get input buffer pointer.
     add64 r2, USER_PUBKEY_OFF # Update to point at user pubkey.
     # Store in account meta and account info.
     stxdw [r10 - STK_INIT_ACCT_META_USER_PUBKEY_ADDR_OFF], r2
     stxdw [r10 - STK_INIT_ACCT_INFO_USER_KEY_ADDR_OFF], r2
+    add64 r2, SIZE_OF_PUBKEY # Advance to point at user owner.
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_USER_OWNER_ADDR_OFF], r2
+    add64 r2, SIZE_OF_PUBKEY # Advance to point at user Lamports.
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_USER_LAMPORTS_ADDR_OFF], r2
+    add64 r2, SIZE_OF_U64_2X # Advance to point to user account data.
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_USER_DATA_ADDR_OFF], r2
 
-
-    ## Parse user account into account metas and account infos.
-    #add64 r2, USER_PUBKEY_OFF # Update to point at user pubkey.
-    ## Store in account meta pubkey address.
-    ## Mark user and PDA as writable.
-    #stxb [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE
-    ## Mark user and PDA as signer.
-    #stxb [r10 - STK_INIT_ACCT_META_USER_IS_SIGNER_OFF], BOOL_TRUE
+    # Advance to point to PDA Lamports.
+    add64 r2, USER_DATA_TO_PDA_LAMPORTS_OFF
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_LAMPORTS_ADDR_OFF], r2
+    add64 r2, SIZE_OF_U64_2X # Advance to point to PDA account data.
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_DATA_ADDR_OFF], r2
 
 
     exit
