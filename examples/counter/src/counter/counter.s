@@ -283,7 +283,7 @@ initialize:
     #   zero and the stack is zero-initialized.
     # - PDA pubkey is ignored since it was set above as an optimization
     #   during the PDA compare operation.
-    # ---------------------------
+    # ---------------------------------------------------------------------
     mov64 r2, r9 # Get input buffer pointer.
     add64 r2, USER_PUBKEY_OFF # Update to point at user pubkey.
     # Store in account meta and account info.
