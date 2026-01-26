@@ -330,6 +330,11 @@ initialize:
     mov64 r5, INIT_CPI_N_SIGNERS_SEEDS # Indicate a single signer.
     call sol_invoke_signed_c
 
+    # Write bump seed to new account.
+    # -------------------------------
+    ldxb r2, [r10 - STK_INIT_BUMP_SEED_OFF] # Load bump seed from stack.
+    stxb [r9 + PDA_BUMP_SEED_OFF], r2 # Store in new PDA account data.
+
     exit
 
 increment:

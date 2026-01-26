@@ -6,6 +6,7 @@ use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use std::fs;
+use std::mem::offset_of;
 use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
@@ -39,6 +40,11 @@ enum Operation {
     Increment,
 }
 
+struct CounterAccount {
+    count: u64,
+    bump_seed: u8,
+}
+
 enum AccountIndex {
     User = 0,
     Pda = 1,
@@ -57,7 +63,7 @@ fn happy_path_setup(
     let (system_program, system_account) = program::keyed_account_for_system_program();
 
     let user_pubkey = Pubkey::new_unique();
-    let (pda_pubkey, _bump) =
+    let (pda_pubkey, bump_seed) =
         Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
 
     let mut instruction = Instruction::new_with_bytes(
@@ -80,7 +86,12 @@ fn happy_path_setup(
         ),
     ];
 
-    let checks = vec![Check::success()];
+    let checks = vec![
+        Check::success(),
+        Check::account(&pda_pubkey.clone())
+            .data_slice(offset_of!(CounterAccount, bump_seed), &[bump_seed])
+            .build(),
+    ];
 
     match operation {
         Operation::Initialize => {
