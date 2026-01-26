@@ -253,9 +253,10 @@ initialize:
     # ---------------------------------------------------------------------
     # Store the data length of the account to create (fits in 32 bits).
     stdw [r10 - STK_INIT_INSN_DATA_SPACE_OFF], INIT_CPI_ACCT_SIZE
-    add64 r1, PROGRAM_ID_INIT_OFF # Get pointer to program ID.
-    mov64 r2, r10 # Get pointer to stack frame.
-    sub64 r2, STK_INIT_INSN_DATA_OWNER_OFF # Point to owner field.
+    mov64 r1, r10 # Get pointer to stack frame.
+    sub64 r1, STK_INIT_INSN_DATA_OWNER_OFF # Point to new owner field.
+    mov64 r2, r9 # Get input buffer pointer.
+    add64 r2, PROGRAM_ID_INIT_OFF # Point to program ID.
     mov64 r3, SIZE_OF_PUBKEY # Set length of bytes to copy.
     call sol_memcpy_ # Copy program ID into CreateAccount owner field.
 
@@ -332,8 +333,8 @@ initialize:
 
     # Write bump seed to new account.
     # -------------------------------
-    #ldxb r2, [r10 - STK_INIT_BUMP_SEED_OFF] # Load bump seed from stack.
-    #stxb [r9 + PDA_BUMP_SEED_OFF], r2 # Store in new PDA account data.
+    ldxb r2, [r10 - STK_INIT_BUMP_SEED_OFF] # Load bump seed from stack.
+    stxb [r9 + PDA_BUMP_SEED_OFF], r2 # Store in new PDA account data.
 
     exit
 

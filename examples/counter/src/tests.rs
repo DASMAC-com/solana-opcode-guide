@@ -6,7 +6,7 @@ use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use std::fs;
-use std::mem::offset_of;
+use std::mem::size_of;
 use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
@@ -267,7 +267,8 @@ fn test_asm_initialize_happy_path() {
     let checks = vec![
         Check::success(),
         Check::account(&instruction.accounts[AccountIndex::Pda as usize].pubkey)
-            //.data(counter_account.as_bytes())
+            .data(counter_account.as_bytes())
+            .space(size_of::<CounterAccount>())
             .owner(&setup.program_id)
             .build(),
     ];
