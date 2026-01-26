@@ -196,7 +196,28 @@ does not include it, hence it is unprocessed by [`update_callee_account`].
 
 Notably, the [`CreateAccount`] instruction data owner program ID field is
 populated via [`sol_memcpy`], which has the same
-[CU cost as `sol_memcmp`](#pda-checks) but no compare value return.
+[CU cost as `sol_memcmp`](#pda-checks) but no compare value return:
+
+::: details Optimized instruction and account region setup
+
+<<< ../../../examples/counter/artifacts/snippets/asm/cpi-setup.txt{asm}
+
+:::
+
+Unlike in the [transfer CPI](transfer#transfer-cpi), this example additionally
+populates a [`SignerSeeds`] region on the [stack](transfer#transfer-cpi) since
+there is a [PDA signer][pda-seeds]:
+
+<<< ../../../examples/counter/artifacts/snippets/asm/seeded-cpi.txt{asm}
+
+### Bump seed storage
+
+Finally, the [bump seed][pda] computed earlier by
+[`sol_try_find_program_address`] is stored in the last byte of the [PDA] account
+data:
+
+<<< ../../../examples/counter/artifacts/snippets/asm/store-seed.txt{asm}
+
 
 ## Increment operation
 
