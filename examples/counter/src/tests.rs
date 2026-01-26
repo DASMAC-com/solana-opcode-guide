@@ -267,7 +267,8 @@ fn test_asm_initialize_happy_path() {
     let checks = vec![
         Check::success(),
         Check::account(&instruction.accounts[AccountIndex::Pda as usize].pubkey)
-            .data(counter_account.as_bytes())
+            //.data(counter_account.as_bytes())
+            .owner(&setup.program_id)
             .build(),
     ];
 

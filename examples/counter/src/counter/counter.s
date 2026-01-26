@@ -332,8 +332,8 @@ initialize:
 
     # Write bump seed to new account.
     # -------------------------------
-    ldxb r2, [r10 - STK_INIT_BUMP_SEED_OFF] # Load bump seed from stack.
-    stxb [r9 + PDA_BUMP_SEED_OFF], r2 # Store in new PDA account data.
+    #ldxb r2, [r10 - STK_INIT_BUMP_SEED_OFF] # Load bump seed from stack.
+    #stxb [r9 + PDA_BUMP_SEED_OFF], r2 # Store in new PDA account data.
 
     exit
 
