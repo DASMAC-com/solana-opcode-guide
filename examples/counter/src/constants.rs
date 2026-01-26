@@ -38,14 +38,14 @@ pub fn constants() -> Constants {
         pad: [u8; 6],
     }
 
-    #[repr(C)]
-    // Defined as bytes vectors to prevent addition of inner padding during compilation.
+    // Packed to avoid introducing intermediate padding during compilation.
+    #[repr(C, packed)]
     struct CreateAccountInstructionData {
-        variant: [u8; size_of::<u32>()],
-        lamports: [u8; size_of::<u64>()],
-        space: [u8; size_of::<u64>()],
-        owner: [u8; size_of::<Pubkey>()],
-        pad: [u8; 4],
+        variant: u32,
+        lamports: u64,
+        space: u64,
+        owner: Pubkey,
+        pad: [u8; 4], // For when on stack.
     }
 
     #[repr(C)]
