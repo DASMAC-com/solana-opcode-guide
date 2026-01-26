@@ -40,9 +40,21 @@ enum Operation {
     Increment,
 }
 
+#[repr(C, packed)]
 struct CounterAccount {
-    count: u64,
+    counter: u64,
     bump_seed: u8,
+}
+
+impl CounterAccount {
+    fn as_bytes(&self) -> &[u8] {
+        unsafe {
+            std::slice::from_raw_parts(
+                self as *const Self as *const u8,
+                std::mem::size_of::<Self>(),
+            )
+        }
+    }
 }
 
 enum AccountIndex {
@@ -57,7 +69,7 @@ fn happy_path_setup(
     test_utils::TestSetup,
     Instruction,
     Vec<(Pubkey, Account)>,
-    Vec<Check<'static>>,
+    CounterAccount,
 ) {
     let setup = setup_test(program_language);
     let (system_program, system_account) = program::keyed_account_for_system_program();
@@ -86,13 +98,6 @@ fn happy_path_setup(
         ),
     ];
 
-    let checks = vec![
-        Check::success(),
-        Check::account(&pda_pubkey.clone())
-            .data_slice(offset_of!(CounterAccount, bump_seed), &[bump_seed])
-            .build(),
-    ];
-
     match operation {
         Operation::Initialize => {
             instruction
@@ -102,12 +107,20 @@ fn happy_path_setup(
         }
         Operation::Increment => {}
     }
-    (setup, instruction, accounts, checks)
+    (
+        setup,
+        instruction,
+        accounts,
+        CounterAccount {
+            counter: 0,
+            bump_seed,
+        },
+    )
 }
 
 #[test]
 fn test_asm_no_accounts() {
-    let (setup, mut instruction, mut accounts, _checks) =
+    let (setup, mut instruction, mut accounts, _bump_seed) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     instruction.accounts.clear();
@@ -124,7 +137,7 @@ fn test_asm_no_accounts() {
 
 #[test]
 fn test_asm_too_many_accounts() {
-    let (setup, mut instruction, mut accounts, _checks) =
+    let (setup, mut instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     instruction
@@ -146,7 +159,7 @@ fn test_asm_too_many_accounts() {
 
 #[test]
 fn test_asm_initialize_user_data_len() {
-    let (setup, instruction, mut accounts, _checks) =
+    let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
@@ -162,7 +175,7 @@ fn test_asm_initialize_user_data_len() {
 
 #[test]
 fn test_asm_initialize_pda_data_len() {
-    let (setup, instruction, mut accounts, _checks) =
+    let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
@@ -178,7 +191,7 @@ fn test_asm_initialize_pda_data_len() {
 
 #[test]
 fn test_asm_initialize_system_program_data_len() {
-    let (setup, instruction, mut accounts, _checks) =
+    let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
@@ -194,7 +207,7 @@ fn test_asm_initialize_system_program_data_len() {
 
 #[test]
 fn test_asm_initialize_pda_duplicate() {
-    let (setup, mut instruction, mut accounts, _checks) =
+    let (setup, mut instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     instruction.accounts[AccountIndex::Pda as usize] =
@@ -212,7 +225,7 @@ fn test_asm_initialize_pda_duplicate() {
 
 #[test]
 fn test_asm_initialize_system_program_duplicate() {
-    let (setup, mut instruction, mut accounts, _checks) =
+    let (setup, mut instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     instruction.accounts[AccountIndex::SystemProgram as usize] =
@@ -230,7 +243,7 @@ fn test_asm_initialize_system_program_duplicate() {
 
 #[test]
 fn test_asm_initialize_pda_mismatch() {
-    let (setup, mut instruction, mut accounts, _checks) =
+    let (setup, mut instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     instruction.accounts[AccountIndex::Pda as usize].pubkey = Pubkey::new_unique();
@@ -248,8 +261,15 @@ fn test_asm_initialize_pda_mismatch() {
 
 #[test]
 fn test_asm_initialize_happy_path() {
-    let (setup, instruction, accounts, checks) =
+    let (setup, instruction, accounts, counter_account) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    let checks = vec![
+        Check::success(),
+        Check::account(&instruction.accounts[AccountIndex::Pda as usize].pubkey)
+            .data(counter_account.as_bytes())
+            .build(),
+    ];
 
     setup
         .mollusk
