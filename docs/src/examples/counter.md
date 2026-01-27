@@ -226,8 +226,10 @@ padding as needed to
 [ensure 8-byte alignment](transfer#account-layout-background). Notably, since
 [`i32` immediates] are
 [cast to `i64` by the interpreter][`i32` interpretation], then
-[cast to `u64` by `AND64_IMM`][`AND64_IMM`], Rust's [sign extension] enables
-the following concise padding calculation:
+[cast to `u64` by `AND64_IMM`][`AND64_IMM`], the VM's use of Rust
+[sign extension] enables the following concise padding calculation, guaranteed
+not to overflow given that [`MAX_PERMITTED_DATA_LENGTH`] is much less than
+$2 ^ {64} - 1$:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/user-data-len.txt{asm}
 
@@ -295,3 +297,4 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`AND64_IMM`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L371
 [`i32` immediates]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/doc/bytecode.md#instruction-layout
 [sign extension]: https://en.wikipedia.org/wiki/Sign_extension
+[`MAX_PERMITTED_DATA_LENGTH`]: https://docs.rs/solana-system-interface/3.0.0/solana_system_interface/constant.MAX_PERMITTED_DATA_LENGTH.html

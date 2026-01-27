@@ -1,15 +1,19 @@
 #[test]
 fn test_pad_masking() {
     let increment = 7;
-    let mask = (-8i32 as i64) as u64; // VM interpretation.
+    let mask_immediate = -8i32; // Assembly immediate.
+    let mask = (mask_immediate as i64) as u64; // VM interpretation.
     let hex = 0xffff_ffff_ffff_fff8u64;
     let binary = 0b1111111111111111111111111111111111111111111111111111111111111000u64;
     assert_eq!(mask, hex);
     assert_eq!(mask, u64::MAX - 7u64);
     assert_eq!(mask, binary);
-    assert_eq!(increment & mask, 0);
-    assert_eq!((1 + increment) & mask, 8);
-    assert_eq!((8 + increment) & mask, 8);
-    assert_eq!((9 + increment) & mask, 16);
-    assert_eq!((15 + increment) & mask, 16);
+
+    let padded_data_len = |data_len: u64| -> u64 { (data_len + increment) & mask };
+
+    assert_eq!(padded_data_len(0), 0);
+    assert_eq!(padded_data_len(1), 8);
+    assert_eq!(padded_data_len(8), 8);
+    assert_eq!(padded_data_len(9), 16);
+    assert_eq!(padded_data_len(15), 16);
 }
