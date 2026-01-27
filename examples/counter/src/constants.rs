@@ -120,6 +120,16 @@ pub fn constants() -> Constants {
         program_id: Pubkey,
     }
 
+    #[repr(C)]
+    struct MemoryMapInc {
+        n_accounts: u64,
+        user: StandardAccount, // Might actually have data.
+        pda: PdaAccountInitialized,
+        instruction_data_len: u64, // 1u64 for increment operation.
+        counter_increment: u64,
+        program_id: Pubkey,
+    }
+
     #[allow(dead_code)]
     #[repr(C)]
     struct AccountLayout<const PADDED_DATA_SIZE: usize> {
@@ -139,6 +149,8 @@ pub fn constants() -> Constants {
     type StandardAccount = AccountLayout<MAX_PERMITTED_DATA_INCREASE>;
     type SystemProgramAccount =
         AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + SYSTEM_PROGRAM_DATA_WITH_PAD_LEN }>;
+    type PdaAccountInitialized =
+        AccountLayout<{ MAX_PERMITTED_DATA_INCREASE + size_of::<PdaAccountData>() }>;
 
     Constants::new()
         .push(
