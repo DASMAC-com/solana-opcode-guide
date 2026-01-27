@@ -205,7 +205,7 @@ populated via [`sol_memcpy`], which has the same
 :::
 
 Unlike in the [transfer CPI](transfer#transfer-cpi), this example additionally
-populates a [`SignerSeeds`] region on the [stack](transfer#transfer-cpi) since
+populates a [`SolSignerSeeds`] region on the [stack](transfer#transfer-cpi) since
 there is a [PDA signer][pda-seeds]:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/seeded-cpi.txt{asm}
@@ -221,9 +221,19 @@ data:
 
 ## Increment operation
 
-1. PDA account checks:
-   1. Error if not there
-   1. Error if more than two accounts
+The increment operation starts by checking the user's account data length,
+padding as needed to
+[ensure 8-byte alignment](transfer#account-layout-background). Notably, since
+[`i32` immediates] are
+[cast to `i64` by the interpreter][`i32` interpretation], then
+[cast to `u64` by `AND64_IMM`][`AND64_IMM`], Rust's [sign extension] enables
+the following concise padding calculation:
+
+<<< ../../../examples/counter/artifacts/snippets/asm/user-data-len.txt{asm}
+
+This algorithm is verified with a simple test:
+
+<<< ../../../examples/counter/artifacts/tests/pad_masking/test.txt{rs}
 
 [`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
 one [signer seeds] array pointing an array of two [signer seed] structures,
@@ -281,3 +291,7 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
 [`update_callee_account`]: https://github.com/anza-xyz/agave/blob/v3.1.7/program-runtime/src/cpi.rs#L1145-L1215
+[`i32` interpretation]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/ebpf.rs#L682
+[`AND64_IMM`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L371
+[`i32` immediates]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/doc/bytecode.md#instruction-layout
+[sign extension]: https://en.wikipedia.org/wiki/Sign_extension
