@@ -180,6 +180,10 @@ pub fn constants() -> Constants {
                 .push_error(ErrorCode::new(
                     "PDA_MISMATCH",
                     "Passed PDA does not match computed PDA.",
+                ))
+                .push_error(ErrorCode::new(
+                    "INVALID_INSTRUCTION_DATA_LEN",
+                    "Invalid instruction data length.",
                 )),
         )
         .push(
@@ -190,6 +194,11 @@ pub fn constants() -> Constants {
                     "Size of Pubkey.",
                 ))
                 .push(Constant::new("U8", size_of::<u8>() as u64, "Size of u8."))
+                .push(Constant::new(
+                    "U64",
+                    size_of::<u64>() as u64,
+                    "Size of u64.",
+                ))
                 .push(Constant::new(
                     "U64_2X",
                     (size_of::<u64>() * 2) as u64,
@@ -264,9 +273,16 @@ pub fn constants() -> Constants {
                     "PDA account data length plus account overhead.",
                 ))
                 .push(Constant::new_offset(
+                    "PDA_COUNTER",
+                    (offset_of!(MemoryMapInit, pda)
+                        + offset_of!(PdaAccountInitialized, data_padded)
+                        + offset_of!(PdaAccountData, counter)) as u64,
+                    "PDA counter.",
+                ))
+                .push(Constant::new_offset(
                     "PDA_BUMP_SEED",
                     (offset_of!(MemoryMapInit, pda)
-                        + offset_of!(StandardAccount, data_padded)
+                        + offset_of!(PdaAccountInitialized, data_padded)
                         + offset_of!(PdaAccountData, bump_seed)) as u64,
                     "PDA bump seed.",
                 ))
@@ -287,6 +303,21 @@ pub fn constants() -> Constants {
                     "PROGRAM_ID_INIT",
                     offset_of!(MemoryMapInit, program_id) as u64,
                     "Program ID during initialize operation.",
+                ))
+                .push(Constant::new_offset(
+                    "INSTRUCTION_DATA_LEN_INC",
+                    offset_of!(MemoryMapInc, instruction_data_len) as u64,
+                    "Instruction data length during increment operation.",
+                ))
+                .push(Constant::new_offset(
+                    "COUNTER_INCREMENT",
+                    offset_of!(MemoryMapInc, counter_increment) as u64,
+                    "Counter increment value.",
+                ))
+                .push(Constant::new_offset(
+                    "PROGRAM_ID_INC",
+                    offset_of!(MemoryMapInc, program_id) as u64,
+                    "Program ID during increment operation.",
                 )),
         )
         .push(

@@ -8,11 +8,13 @@
 .equ E_SYSTEM_PROGRAM_DUPLICATE, 6 # System Program is a duplicate account.
 .equ E_UNABLE_TO_DERIVE_PDA, 7 # Unable to derive PDA.
 .equ E_PDA_MISMATCH, 8 # Passed PDA does not match computed PDA.
+.equ E_INVALID_INSTRUCTION_DATA_LEN, 9 # Invalid instruction data length.
 
 # Size of assorted types.
 # -----------------------
 .equ SIZE_OF_PUBKEY, 32 # Size of Pubkey.
 .equ SIZE_OF_U8, 1 # Size of u8.
+.equ SIZE_OF_U64, 8 # Size of u64.
 .equ SIZE_OF_U64_2X, 16 # Size of u64 times 2.
 
 # Memory map layout.
@@ -32,11 +34,16 @@
 .equ PDA_DATA_LEN_OFF, 10424 # PDA data length.
 # PDA account data length plus account overhead.
 .equ PDA_DATA_WITH_ACCOUNT_OVERHEAD, 137
+.equ PDA_COUNTER_OFF, 10432 # PDA counter.
 .equ PDA_BUMP_SEED_OFF, 10440 # PDA bump seed.
 # System Program non-duplicate marker.
 .equ SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
 .equ SYSTEM_PROGRAM_DATA_LEN_OFF, 20760 # System program data length.
 .equ PROGRAM_ID_INIT_OFF, 31040 # Program ID during initialize operation.
+# Instruction data length during increment operation.
+.equ INSTRUCTION_DATA_LEN_INC_OFF, 20696
+.equ COUNTER_INCREMENT_OFF, 20704 # Counter increment value.
+.equ PROGRAM_ID_INC_OFF, 20712 # Program ID during increment operation.
 
 # CreateAccount instruction data.
 # -------------------------------
@@ -342,28 +349,44 @@ increment:
 
     # Get user data length with padding.
     # ----------------------------------
-    ldxdw r2, [r1 + USER_DATA_LEN_OFF] # Get user data length.
+    ldxdw r9, [r1 + USER_DATA_LEN_OFF] # Get user data length.
     # Speculatively add max possible padding. This will not overflow
     # because max account data length fits in a u32.
-    add64 r2, 7
+    add64 r9, 7
     # Clear low 3 bits, thereby truncating to 8-byte alignment. This yields
     # the data length plus (optional) required padding.
-    and64 r2, -8
+    and64 r9, -8
 
-    # Check PDA account layout.
-    # -------------------------
-    mov64 r3, r1 # Get input buffer pointer.
-    # Increment pointer by padded data length, affecting all subsequent
-    # offsets originally calculated assuming no user account data.
-    add64 r3, r2
-    ldxb r4, [r3 + PDA_NON_DUP_MARKER_OFF] # Load PDA duplicate marker.
-    jne r4, NON_DUP_MARKER, e_pda_duplicate # Exit if PDA is a duplicate.
-    ldxdw r4, [r3 + PDA_DATA_LEN_OFF] # Get PDA data length.
-    jne r4, INIT_CPI_ACCT_SIZE, e_pda_data_len # Exit if invalid length.
+    # Check remaining memory map layout.
+    # ----------------------------------
+    # Sum input buffer offset and padded user data length, affecting
+    # subsequent offsets originally calculated assuming no user account
+    # data: get input buffer pointer offset by padded user data length.
+    add64 r9, r1
+    ldxb r8, [r9 + PDA_NON_DUP_MARKER_OFF] # Load PDA duplicate marker.
+    jne r8, NON_DUP_MARKER, e_pda_duplicate # Exit if PDA is a duplicate.
+    ldxdw r8, [r9 + PDA_DATA_LEN_OFF] # Get PDA data length.
+    jne r8, INIT_CPI_ACCT_SIZE, e_pda_data_len # Exit if invalid length.
+    # Get instruction data length.
+    ldxdw r8, [r9 + INSTRUCTION_DATA_LEN_INC_OFF]
+    # Exit if invalid length.
+    jne r8, SIZE_OF_U64, e_invalid_instruction_data_len
 
     # Prepare signer seeds.
     # ---------------------
+    # CHECK: r9 is offset input
+    # ---------------------
     ldxb r2, [r3 + PDA_BUMP_SEED_OFF] # Get PDA bump seed.
+
+    # Process counter increment instruction.
+    # --------------------------------------
+    # CHECK: r9 is offset input
+    # --------------------------------------
+    ldxdw r8, [r9 + COUNTER_INCREMENT_OFF] # Get increment amount.
+    ldxdw r7, [r9 + PDA_COUNTER_OFF] # Get current PDA counter value.
+    add64 r7, r8 # Wrapping increment counter value by instruction amount.
+    stxdw [r9 + PDA_COUNTER_OFF], r7 # Store value in PDA account.
+
 
     exit
 
@@ -390,3 +413,6 @@ e_system_program_duplicate:
 e_pda_mismatch:
     mov32 r0, E_PDA_MISMATCH
     exit
+
+e_invalid_instruction_data_len:
+    mov32 r0, E_INVALID_INSTRUCTION_DATA_LEN
