@@ -205,8 +205,8 @@ populated via [`sol_memcpy`], which has the same
 :::
 
 Unlike in the [transfer CPI](transfer#transfer-cpi), this example additionally
-populates a [`SolSignerSeeds`] region on the [stack](transfer#transfer-cpi) since
-there is a [PDA signer][pda-seeds]:
+populates a [`SolSignerSeeds`] region on the [stack](transfer#transfer-cpi)
+since there is a [PDA signer][pda-seeds]:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/seeded-cpi.txt{asm}
 
@@ -218,7 +218,6 @@ data:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/store-seed.txt{asm}
 
-
 ## Increment operation
 
 The increment operation starts by checking the user's account data length,
@@ -226,7 +225,7 @@ padding as needed to
 [ensure 8-byte alignment](transfer#account-layout-background). Notably, since
 [`i32` immediates] are
 [cast to `i64` by the interpreter][`i32` interpretation], then
-[cast to `u64` by `AND64_IMM`][`AND64_IMM`], the VM's use of Rust
+[cast to `u64` by `AND64_IMM`][`and64_imm`], the VM's use of Rust
 [sign extension] enables the following concise padding calculation, guaranteed
 not to overflow given that [`MAX_PERMITTED_DATA_LENGTH`] is much less than
 $2 ^ {64} - 1$:
@@ -264,6 +263,7 @@ one containing the user's [pubkey] and one containing the bump seed.
 [pubkey]: https://solana.com/docs/core/accounts#public-key
 [rent]: https://solana.com/docs/core/accounts#account-structure
 [return value]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/sysvar_cache.rs#L156-L158
+[sign extension]: https://en.wikipedia.org/wiki/Sign_extension
 [signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L56-L62
 [signer seeds]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L64-L71
 [soon-to-be-deprecated `rent::default`]: https://github.com/anza-xyz/solana-sdk/blob/rent@v3.1.0/rent/src/lib.rs#L108-L114
@@ -271,12 +271,16 @@ one containing the user's [pubkey] and one containing the bump seed.
 [unchanged]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L606-L612
 [uses]: https://github.com/anza-xyz/mollusk/blob/0.10.0/harness/src/sysvar.rs#L37
 [`account_storage_overhead`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.ACCOUNT_STORAGE_OVERHEAD.html
+[`and64_imm`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L371
 [`calleraccount`]: https://docs.rs/solana-program-runtime/3.1.7/solana_program_runtime/cpi/struct.CallerAccount.html
 [`createaccount`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L88-L97
 [`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
 [`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
 [`default_lamports_per_byte_year`]: https://docs.rs/solana-rent/3.0.0/solana_rent/constant.DEFAULT_LAMPORTS_PER_BYTE_YEAR.html
 [`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
+[`i32` immediates]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/doc/bytecode.md#instruction-layout
+[`i32` interpretation]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/ebpf.rs#L682
+[`max_permitted_data_length`]: https://docs.rs/solana-system-interface/3.0.0/solana_system_interface/constant.MAX_PERMITTED_DATA_LENGTH.html
 [`max_seed_len`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
@@ -293,8 +297,3 @@ one containing the user's [pubkey] and one containing the bump seed.
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
 [`update_callee_account`]: https://github.com/anza-xyz/agave/blob/v3.1.7/program-runtime/src/cpi.rs#L1145-L1215
-[`i32` interpretation]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/ebpf.rs#L682
-[`AND64_IMM`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L371
-[`i32` immediates]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/doc/bytecode.md#instruction-layout
-[sign extension]: https://en.wikipedia.org/wiki/Sign_extension
-[`MAX_PERMITTED_DATA_LENGTH`]: https://docs.rs/solana-system-interface/3.0.0/solana_system_interface/constant.MAX_PERMITTED_DATA_LENGTH.html

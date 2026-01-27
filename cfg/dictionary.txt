@@ -5,6 +5,7 @@ dasmac
 ebpf
 fuelpump
 globl
+immediates
 insn
 keypair
 lamport
@@ -37,3 +38,4 @@ sysvar
 uninit
 usize
 vitepress
+xffff
