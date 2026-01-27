@@ -2,7 +2,7 @@
 # ------------
 .equ E_N_ACCOUNTS, 1 # Invalid number of accounts.
 .equ E_USER_DATA_LEN, 2 # User data length is nonzero.
-.equ E_PDA_DATA_LEN, 3 # PDA data length is nonzero.
+.equ E_PDA_DATA_LEN, 3 # Invalid PDA data length.
 .equ E_SYSTEM_PROGRAM_DATA_LEN, 4 # System Program data length is nonzero.
 .equ E_PDA_DUPLICATE, 5 # PDA is a duplicate account.
 .equ E_SYSTEM_PROGRAM_DUPLICATE, 6 # System Program is a duplicate account.
@@ -349,6 +349,21 @@ increment:
     # Clear low 3 bits, thereby truncating to 8-byte alignment. This yields
     # the data length plus (optional) required padding.
     and64 r2, -8
+
+    # Check PDA account layout.
+    # -------------------------
+    mov64 r3, r1 # Get input buffer pointer.
+    # Increment pointer by padded data length, affecting all subsequent
+    # offsets originally calculated assuming no user account data.
+    add64 r3, r2
+    ldxb r4, [r3 + PDA_NON_DUP_MARKER_OFF] # Load PDA duplicate marker.
+    jne r4, NON_DUP_MARKER, e_pda_duplicate # Exit if PDA is a duplicate.
+    ldxdw r4, [r3 + PDA_DATA_LEN_OFF] # Get PDA data length.
+    jne r4, INIT_CPI_ACCT_SIZE, e_pda_data_len # Exit if invalid length.
+
+    # Prepare signer seeds.
+    # ---------------------
+    ldxb r2, [r3 + PDA_BUMP_SEED_OFF] # Get PDA bump seed.
 
     exit
 

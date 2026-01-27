@@ -148,10 +148,7 @@ pub fn constants() -> Constants {
                     "USER_DATA_LEN",
                     "User data length is nonzero.",
                 ))
-                .push_error(ErrorCode::new(
-                    "PDA_DATA_LEN",
-                    "PDA data length is nonzero.",
-                ))
+                .push_error(ErrorCode::new("PDA_DATA_LEN", "Invalid PDA data length."))
                 .push_error(ErrorCode::new(
                     "SYSTEM_PROGRAM_DATA_LEN",
                     "System Program data length is nonzero.",
