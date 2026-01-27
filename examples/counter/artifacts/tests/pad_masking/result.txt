@@ -1,4 +1,4 @@
-test tests::test_asm_file_constants ... ok
+test tests::test_pad_masking ... ok
 warning: struct `StackFrameInc` is never constructed
    --> counter/src/constants.rs:103:12
     |

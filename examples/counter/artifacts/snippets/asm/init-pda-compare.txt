@@ -2,6 +2,12 @@
     # --------------------------------------------
     # Update input buffer pointer to point to passed PDA.
     add64 r1, PDA_PUBKEY_OFF
+    # As an optimization, store this pointer on the stack in the account
+    # meta and info for the PDA, rather than deriving the pointer again.
+    # Note that this must point to the pubkey in the input memory map, not
+    # the one on the stack, otherwise the CPI will fail.
+    stxdw [r10 - STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF], r1
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF], r1
     mov64 r2, r10 # Get stack frame pointer.
     sub64 r2, STK_INIT_PDA_OFF # Update to point to computed PDA.
     mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.

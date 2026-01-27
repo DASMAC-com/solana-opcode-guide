@@ -1,6 +1,6 @@
 #[test]
 fn test_asm_too_many_accounts() {
-    let (setup, mut instruction, mut accounts, _checks) =
+    let (setup, mut instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     instruction

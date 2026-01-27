@@ -1,6 +1,6 @@
 #[test]
 fn test_asm_initialize_pda_duplicate() {
-    let (setup, mut instruction, mut accounts, _checks) =
+    let (setup, mut instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     instruction.accounts[AccountIndex::Pda as usize] =

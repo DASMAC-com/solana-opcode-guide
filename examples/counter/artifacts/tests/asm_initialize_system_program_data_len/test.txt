@@ -1,6 +1,6 @@
 #[test]
 fn test_asm_initialize_system_program_data_len() {
-    let (setup, instruction, mut accounts, _checks) =
+    let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     accounts[AccountIndex::SystemProgram as usize].1.data = vec![];

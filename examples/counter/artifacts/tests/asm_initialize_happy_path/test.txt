@@ -1,7 +1,16 @@
 #[test]
 fn test_asm_initialize_happy_path() {
-    let (setup, instruction, accounts, checks) =
+    let (setup, instruction, accounts, counter_account) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    let checks = vec![
+        Check::success(),
+        Check::account(&instruction.accounts[AccountIndex::Pda as usize].pubkey)
+            .data(counter_account.as_bytes())
+            .space(size_of::<CounterAccount>())
+            .owner(&setup.program_id)
+            .build(),
+    ];
 
     setup
         .mollusk

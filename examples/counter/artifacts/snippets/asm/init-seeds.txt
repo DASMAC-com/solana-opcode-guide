@@ -4,9 +4,8 @@
     add64 r2, USER_PUBKEY_OFF # Update pointer to point at user pubkey.
     # Store pointer in seed 0 pointer field.
     stxdw [r10 - STK_INIT_SEED_0_ADDR_OFF], r2
-    mov64 r2, SIZE_OF_PUBKEY # Store length of pubkey.
-    # Store length in seed 0 length field.
-    stxdw [r10 - STK_INIT_SEED_0_LEN_OFF], r2
+    # Store length in seed 0 length field (32-bit immediate).
+    stdw [r10 - STK_INIT_SEED_0_LEN_OFF], SIZE_OF_PUBKEY
 
     # Initialize signer seed for PDA bump key.
     # ----------------------------------------
@@ -14,6 +13,5 @@
     sub64 r2, STK_INIT_BUMP_SEED_OFF # Update to point at PDA bump seed.
     # Store pointer in seed 1 pointer field.
     stxdw [r10 - STK_INIT_SEED_1_ADDR_OFF], r2
-    mov64 r2, SIZE_OF_U8 # Store length of bump seed.
-    # Store length in seed 1 length field.
-    stxdw [r10 - STK_INIT_SEED_1_LEN_OFF], r2
+    # Store length in seed 1 length field (32-bit immediate).
+    stdw [r10 - STK_INIT_SEED_1_LEN_OFF], SIZE_OF_U8

@@ -1,6 +1,6 @@
 #[test]
 fn test_asm_initialize_pda_data_len() {
-    let (setup, instruction, mut accounts, _checks) =
+    let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];

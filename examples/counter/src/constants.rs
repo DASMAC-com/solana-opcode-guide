@@ -100,6 +100,11 @@ pub fn constants() -> Constants {
     }
 
     #[repr(C)]
+    struct StackFrameInc {
+        signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
+    }
+
+    #[repr(C)]
     struct PdaAccountData {
         counter: u64,
         bump_seed: u8,

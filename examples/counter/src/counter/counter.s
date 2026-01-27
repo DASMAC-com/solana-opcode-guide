@@ -339,6 +339,17 @@ initialize:
     exit
 
 increment:
+
+    # Get user data length with padding.
+    # ----------------------------------
+    ldxdw r2, [r1 + USER_DATA_LEN_OFF] # Get user data length.
+    # Speculatively add max possible padding. This will not overflow
+    # because max account data length fits in a u32.
+    add64 r2, 7
+    # Clear low 3 bits, thereby truncating to 8-byte alignment. This yields
+    # the data length plus (optional) required padding.
+    and64 r2, -8
+
     exit
 
 e_user_data_len:

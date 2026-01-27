@@ -1,6 +1,6 @@
 #[test]
 fn test_asm_no_accounts() {
-    let (setup, mut instruction, mut accounts, _checks) =
+    let (setup, mut instruction, mut accounts, _bump_seed) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     instruction.accounts.clear();
