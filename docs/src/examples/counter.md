@@ -126,7 +126,7 @@ populated on the [stack](transfer#transfer-cpi):
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-seeds.txt{asm}
 
-### PDA checks {pda-checks}
+### PDA checks {#pda-checks}
 
 The [PDA] and [bump seed][pda] are then computed by
 [`sol_try_find_program_address`], whose [implementation] similarly relies on a
