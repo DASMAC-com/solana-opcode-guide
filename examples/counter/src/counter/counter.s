@@ -53,6 +53,13 @@
 .equ INIT_CPI_N_SIGNERS_SEEDS, 1 # Number of signers seeds.
 .equ INIT_CPI_ACCT_SIZE, 9 # Account size.
 
+# Stack frame layout for increment operation.
+# -------------------------------------------
+.equ STK_INC_SEED_0_ADDR_OFF, 32 # Pointer to user pubkey.
+.equ STK_INC_SEED_0_LEN_OFF, 24 # Length of user pubkey.
+.equ STK_INC_SEED_1_ADDR_OFF, 16 # Pointer to bump seed.
+.equ STK_INC_SEED_1_LEN_OFF, 8 # Length of bump seed.
+
 # Stack frame layout for initialize operation.
 # --------------------------------------------
 # System Program pubkey for CreateAccount CPI.
@@ -372,21 +379,36 @@ increment:
     # Exit if invalid length.
     jne r8, SIZE_OF_U64, e_invalid_instruction_data_len
 
-    # Prepare signer seeds.
-    # ---------------------
-    # CHECK: r9 is offset input
-    # ---------------------
-    ldxb r2, [r3 + PDA_BUMP_SEED_OFF] # Get PDA bump seed.
-
     # Process counter increment instruction.
-    # --------------------------------------
-    # CHECK: r9 is offset input
-    # --------------------------------------
+    # ---------------------------------------------------------------------
+    # This is done speculatively, before PDA bump seeds are verified, to
+    # minimize number of pointer copies during happy path. If this were
+    # done after signer seed verification, the pointer to the input buffer
+    # offset by user data length would need to be copied.
+    # ---------------------------------------------------------------------
     ldxdw r8, [r9 + COUNTER_INCREMENT_OFF] # Get increment amount.
     ldxdw r7, [r9 + PDA_COUNTER_OFF] # Get current PDA counter value.
     add64 r7, r8 # Wrapping increment counter value by instruction amount.
     stxdw [r9 + PDA_COUNTER_OFF], r7 # Store value in PDA account.
 
+    # Prepare signer seeds for PDA verification.
+    # ------------------------------------------
+    # Directly mutate input buffer pointer to point to user pubkey, since
+    # this is the last input buffer pointer access for this branch and
+    # a pointer copy can thus be optimized out.
+    add64 r1, USER_PUBKEY_OFF
+    # Store pointer in seed 0 pointer field.
+    stxdw [r10 - STK_INC_SEED_0_ADDR_OFF], r1
+    # Store length in seed 0 length field (32-bit immediate).
+    stdw [r10 - STK_INC_SEED_0_LEN_OFF], SIZE_OF_PUBKEY
+    # Directly mutate input pointer offset by padded user data length to
+    # point at PDA bump seed, since this is the last access of the offset
+    # pointer for this branch and a pointer copy can thus be optimized out.
+    add64 r9, PDA_BUMP_SEED_OFF
+    # Store pointer in seed 1 pointer field.
+    stxdw [r10 - STK_INC_SEED_1_ADDR_OFF], r9
+    # Store length in seed 1 length field (32-bit immediate).
+    stdw [r10 - STK_INC_SEED_1_LEN_OFF], SIZE_OF_U8
 
     exit
 

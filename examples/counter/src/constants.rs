@@ -347,6 +347,39 @@ pub fn constants() -> Constants {
         )
         .push(
             ConstantGroup::new_stack_layout(
+                "Stack frame layout for increment operation.",
+                "STK_INC_",
+            )
+            .push(Constant::new_offset(
+                "SEED_0_ADDR",
+                (size_of::<StackFrameInc>() - (offset_of!(StackFrameInc, signer_seeds))) as u64,
+                "Pointer to user pubkey.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_0_LEN",
+                (size_of::<StackFrameInc>()
+                    - (offset_of!(StackFrameInc, signer_seeds) + offset_of!(SolSignerSeed, len)))
+                    as u64,
+                "Length of user pubkey.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_1_ADDR",
+                (size_of::<StackFrameInc>()
+                    - (offset_of!(StackFrameInc, signer_seeds) + size_of::<SolSignerSeed>()))
+                    as u64,
+                "Pointer to bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "SEED_1_LEN",
+                (size_of::<StackFrameInc>()
+                    - (offset_of!(StackFrameInc, signer_seeds)
+                        + size_of::<SolSignerSeed>()
+                        + offset_of!(SolSignerSeed, len))) as u64,
+                "Length of bump seed.",
+            )),
+        )
+        .push(
+            ConstantGroup::new_stack_layout(
                 "Stack frame layout for initialize operation.",
                 "STK_INIT_",
             )
