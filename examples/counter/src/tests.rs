@@ -88,22 +88,60 @@ struct ComputeUnits {
     rs: u64,
 }
 
+impl ComputeUnits {
+    /// Returns CU for a specific chunk in pubkey mismatch tests (0-3).
+    /// Each chunk adds 3 CUs for the additional compare before exit.
+    const fn chunk(self, chunk: usize) -> ComputeUnits {
+        ComputeUnits {
+            asm: self.asm + (chunk * 3) as u64,
+            rs: self.rs + (chunk * 3) as u64,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
 enum Case {
+    // Initialize error cases (in execution order)
+    InitializeNoAccounts,
+    InitializeTooManyAccounts,
+    InitializeUserDataLen,
+    InitializePdaDuplicate,
+    InitializePdaDataLen,
+    InitializeSystemProgramDuplicate,
+    InitializeSystemProgramDataLen,
+    InitializePdaMismatch,
     InitializeHappyPath,
+
+    // Increment error cases (in execution order)
+    IncrementPdaDuplicate,
+    IncrementPdaDataLen,
+    IncrementNoInstructionData,
+    IncrementUnableToDerivePda,
+    IncrementPdaMismatch,
     IncrementHappyPath,
 }
 
 impl Case {
-    pub const fn get(self) -> ComputeUnits {
+    const fn get(self) -> ComputeUnits {
         match self {
-            Self::InitializeHappyPath => ComputeUnits {
-                asm: 2834,
-                rs: 2851,
-            },
-            Self::IncrementHappyPath => ComputeUnits {
-                asm: 1548,
-                rs: 1565,
-            },
+            // Initialize
+            Self::InitializeNoAccounts => ComputeUnits { asm: 5, rs: 8 },
+            Self::InitializeTooManyAccounts => ComputeUnits { asm: 5, rs: 8 },
+            Self::InitializeUserDataLen => ComputeUnits { asm: 7, rs: 13 },
+            Self::InitializePdaDuplicate => ComputeUnits { asm: 9, rs: 20 },
+            Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 23 },
+            Self::InitializeSystemProgramDuplicate => ComputeUnits { asm: 13, rs: 30 },
+            Self::InitializeSystemProgramDataLen => ComputeUnits { asm: 15, rs: 33 },
+            Self::InitializePdaMismatch => ComputeUnits { asm: 1543, rs: 1560 },
+            Self::InitializeHappyPath => ComputeUnits { asm: 2834, rs: 2851 },
+
+            // Increment
+            Self::IncrementPdaDuplicate => ComputeUnits { asm: 10, rs: 21 },
+            Self::IncrementPdaDataLen => ComputeUnits { asm: 12, rs: 24 },
+            Self::IncrementNoInstructionData => ComputeUnits { asm: 14, rs: 26 },
+            Self::IncrementUnableToDerivePda => ComputeUnits { asm: 1535, rs: 1552 },
+            Self::IncrementPdaMismatch => ComputeUnits { asm: 1540, rs: 1557 },
+            Self::IncrementHappyPath => ComputeUnits { asm: 1548, rs: 1565 },
         }
     }
 }
@@ -184,9 +222,12 @@ fn test_asm_no_accounts() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_N_ACCOUNTS") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_N_ACCOUNTS") as u32,
+            )),
+            Check::compute_units(Case::InitializeNoAccounts.get().asm),
+        ],
     );
 }
 
@@ -206,9 +247,12 @@ fn test_asm_too_many_accounts() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_N_ACCOUNTS") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_N_ACCOUNTS") as u32,
+            )),
+            Check::compute_units(Case::InitializeTooManyAccounts.get().asm),
+        ],
     );
 }
 
@@ -223,9 +267,12 @@ fn test_rs_no_accounts() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_N_ACCOUNTS") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_N_ACCOUNTS") as u32,
+            )),
+            Check::compute_units(Case::InitializeNoAccounts.get().rs),
+        ],
     );
 }
 
@@ -245,9 +292,12 @@ fn test_rs_too_many_accounts() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_N_ACCOUNTS") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_N_ACCOUNTS") as u32,
+            )),
+            Check::compute_units(Case::InitializeTooManyAccounts.get().rs),
+        ],
     );
 }
 
@@ -261,9 +311,12 @@ fn test_asm_initialize_user_data_len() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_USER_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_USER_DATA_LEN") as u32,
+            )),
+            Check::compute_units(Case::InitializeUserDataLen.get().asm),
+        ],
     );
 }
 
@@ -277,9 +330,12 @@ fn test_rs_initialize_user_data_len() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_USER_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_USER_DATA_LEN") as u32,
+            )),
+            Check::compute_units(Case::InitializeUserDataLen.get().rs),
+        ],
     );
 }
 
@@ -295,9 +351,12 @@ fn test_asm_initialize_pda_duplicate() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_DUPLICATE") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DUPLICATE") as u32,
+            )),
+            Check::compute_units(Case::InitializePdaDuplicate.get().asm),
+        ],
     );
 }
 
@@ -313,9 +372,12 @@ fn test_rs_initialize_pda_duplicate() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_DUPLICATE") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DUPLICATE") as u32,
+            )),
+            Check::compute_units(Case::InitializePdaDuplicate.get().rs),
+        ],
     );
 }
 
@@ -329,9 +391,12 @@ fn test_asm_initialize_pda_data_len() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DATA_LEN") as u32,
+            )),
+            Check::compute_units(Case::InitializePdaDataLen.get().asm),
+        ],
     );
 }
 
@@ -345,9 +410,12 @@ fn test_rs_initialize_pda_data_len() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DATA_LEN") as u32,
+            )),
+            Check::compute_units(Case::InitializePdaDataLen.get().rs),
+        ],
     );
 }
 
@@ -363,9 +431,12 @@ fn test_asm_initialize_system_program_duplicate() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
+            )),
+            Check::compute_units(Case::InitializeSystemProgramDuplicate.get().asm),
+        ],
     );
 }
 
@@ -381,9 +452,12 @@ fn test_rs_initialize_system_program_duplicate() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
+            )),
+            Check::compute_units(Case::InitializeSystemProgramDuplicate.get().rs),
+        ],
     );
 }
 
@@ -397,9 +471,12 @@ fn test_asm_initialize_system_program_data_len() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
+            )),
+            Check::compute_units(Case::InitializeSystemProgramDataLen.get().asm),
+        ],
     );
 }
 
@@ -413,9 +490,12 @@ fn test_rs_initialize_system_program_data_len() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
+            )),
+            Check::compute_units(Case::InitializeSystemProgramDataLen.get().rs),
+        ],
     );
 }
 
@@ -440,9 +520,12 @@ fn test_asm_initialize_pda_mismatch() {
         setup.mollusk.process_and_validate_instruction(
             &instruction,
             &accounts,
-            &[Check::err(ProgramError::Custom(
-                constants().get("E_PDA_MISMATCH") as u32,
-            ))],
+            &[
+                Check::err(ProgramError::Custom(
+                    constants().get("E_PDA_MISMATCH") as u32,
+                )),
+                Check::compute_units(Case::InitializePdaMismatch.get().chunk(chunk).asm),
+            ],
         );
     }
 }
@@ -451,6 +534,7 @@ fn test_asm_initialize_pda_mismatch() {
 fn test_rs_initialize_pda_mismatch() {
     // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
     // Use a single setup for all chunks to ensure deterministic CU costs.
+    // Note: RS impl doesn't follow clean +3 pattern per chunk, so no CU check.
     let (setup, instruction, accounts, _) =
         happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
 
@@ -483,7 +567,11 @@ fn test_asm_initialize_happy_path() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::success(), counter_account.check()],
+        &[
+            Check::success(),
+            counter_account.check(),
+            Check::compute_units(Case::InitializeHappyPath.get().asm),
+        ],
     );
 }
 
@@ -519,9 +607,12 @@ fn test_asm_increment_pda_duplicate() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_DUPLICATE") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DUPLICATE") as u32,
+            )),
+            Check::compute_units(Case::IncrementPdaDuplicate.get().asm),
+        ],
     );
 }
 
@@ -535,9 +626,12 @@ fn test_asm_increment_pda_data_len() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DATA_LEN") as u32,
+            )),
+            Check::compute_units(Case::IncrementPdaDataLen.get().asm),
+        ],
     );
 }
 
@@ -549,9 +643,12 @@ fn test_asm_increment_no_instruction_data() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_INVALID_INSTRUCTION_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_INVALID_INSTRUCTION_DATA_LEN") as u32,
+            )),
+            Check::compute_units(Case::IncrementNoInstructionData.get().asm),
+        ],
     );
 }
 
@@ -584,9 +681,12 @@ fn test_asm_increment_unable_to_derive_pda() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_UNABLE_TO_DERIVE_PDA") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_UNABLE_TO_DERIVE_PDA") as u32,
+            )),
+            Check::compute_units(Case::IncrementUnableToDerivePda.get().asm),
+        ],
     );
 }
 
@@ -604,9 +704,12 @@ fn test_asm_increment_pda_mismatch() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_MISMATCH") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_MISMATCH") as u32,
+            )),
+            Check::compute_units(Case::IncrementPdaMismatch.get().asm),
+        ],
     );
 }
 
@@ -700,7 +803,11 @@ fn test_asm_increment_happy_path() {
         setup.mollusk.process_and_validate_instruction(
             &instruction,
             &accounts,
-            &[Check::success(), counter_account.check()],
+            &[
+                Check::success(),
+                counter_account.check(),
+                Check::compute_units(Case::IncrementHappyPath.get().asm),
+            ],
         );
     }
 }
