@@ -3,6 +3,7 @@ pinocchio.workspace = true
 
 [dev-dependencies]
 mollusk-svm.workspace = true
+solana-rent.workspace = true
 solana-sdk.workspace = true
 test-utils.path = "../utils/test-utils"
 

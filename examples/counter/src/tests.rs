@@ -1,6 +1,7 @@
 use crate::constants::constants;
 use mollusk_svm::program;
 use mollusk_svm::result::Check;
+use solana_rent::ACCOUNT_STORAGE_OVERHEAD;
 use solana_sdk::account::Account;
 use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
@@ -55,7 +56,7 @@ struct CounterAccount {
 }
 
 impl CounterAccount {
-    fn check(&self) -> Check {
+    fn check(&self) -> Check<'_> {
         Check::account(&self.pubkey)
             .data(self.data.as_bytes())
             .lamports(self.lamports)
@@ -117,14 +118,16 @@ fn happy_path_setup(
         ),
     ];
 
-    let counter_account_data = CounterAccountData {
-        counter: 0,
-        bump_seed,
+    let counter_account = CounterAccount {
+        pubkey: pda_pubkey,
+        owner: setup.program_id,
+        lamports: setup.mollusk.sysvars.rent.lamports_per_byte_year
+            * ((size_of::<CounterAccountData>() as u64) + ACCOUNT_STORAGE_OVERHEAD),
+        data: CounterAccountData {
+            counter: 0,
+            bump_seed,
+        },
     };
-
-    // Hard-code account storage overhead rather than import an entire crate.
-    let lamports = setup.mollusk.sysvars.rent.lamports_per_byte_year
-        * ((size_of::<CounterAccountData>() as u64) + 128);
 
     match operation {
         Operation::Initialize => {
@@ -134,18 +137,13 @@ fn happy_path_setup(
             accounts.push((system_program, system_account));
         }
         Operation::Increment => {
-            let counter_account = &mut accounts[AccountIndex::Pda as usize].1;
-            counter_account.lamports = lamports;
-            counter_account.data = counter_account_data.as_bytes().to_vec();
-            counter_account.owner = setup.program_id;
+            let counter_account_info = &mut accounts[AccountIndex::Pda as usize].1;
+            counter_account_info.lamports = counter_account.lamports;
+            counter_account_info.data = counter_account.data.as_bytes().to_vec().clone();
+            counter_account_info.owner = setup.program_id;
         }
     }
-    let counter_account = CounterAccount {
-        pubkey: pda_pubkey,
-        owner: setup.program_id,
-        lamports,
-        data: counter_account_data,
-    };
+
     (setup, instruction, accounts, counter_account)
 }
 
