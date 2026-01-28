@@ -242,6 +242,22 @@ fn test_asm_initialize_user_data_len() {
 }
 
 #[test]
+fn test_rs_initialize_user_data_len() {
+    let (setup, instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+
+    accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_USER_DATA_LEN") as u32,
+        ))],
+    );
+}
+
+#[test]
 fn test_asm_initialize_pda_data_len() {
     let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
