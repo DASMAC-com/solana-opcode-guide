@@ -257,7 +257,10 @@ initialize:
     mul64 r2, PDA_DATA_WITH_ACCOUNT_OVERHEAD
     # Store value directly in instruction data on stack.
     stxdw [r10 - STK_INIT_INSN_DATA_LAMPORTS_OFF], r2
-    mov64 r1, r9 # Restore input buffer pointer.
+    # Skip input buffer restoration since block after next overwrites r1:
+    # ```
+    # mov64 r1, r9 # Restore input buffer pointer.
+    # ```
 
     # Populate SolInstruction on stack.
     # ---------------------------------
