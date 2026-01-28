@@ -514,6 +514,7 @@ dependencies = [
  "mollusk-svm",
  "pinocchio",
  "regex",
+ "solana-rent",
  "solana-sdk",
 ]
 

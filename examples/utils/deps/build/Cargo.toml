@@ -6,6 +6,7 @@ regex.workspace = true
 [dev-dependencies]
 fib-rs.workspace = true
 mollusk-svm.workspace = true
+solana-rent.workspace = true
 solana-sdk.workspace = true
 
 [lints]
