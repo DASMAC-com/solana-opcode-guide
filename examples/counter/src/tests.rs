@@ -419,20 +419,26 @@ fn test_asm_initialize_pda_mismatch() {
 
 #[test]
 fn test_rs_initialize_pda_mismatch() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+    // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
+    const FINAL_BIT: usize = size_of::<u64>() - 1;
+    for chunk in 0..size_of::<Pubkey>() / size_of::<u64>() {
+        let (setup, mut instruction, mut accounts, _) =
+            happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
 
-    instruction.accounts[AccountIndex::Pda as usize].pubkey = Pubkey::new_unique();
-    accounts[AccountIndex::Pda as usize].0 =
-        instruction.accounts[AccountIndex::Pda as usize].pubkey;
+        // Flip the last bit of the chunk to create a mismatch.
+        let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
+        accounts[AccountIndex::Pda as usize].0.as_mut()[flip_index] ^= 1;
+        instruction.accounts[AccountIndex::Pda as usize].pubkey =
+            accounts[AccountIndex::Pda as usize].0;
 
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_MISMATCH") as u32,
-        ))],
-    );
+        setup.mollusk.process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[Check::err(ProgramError::Custom(
+                constants().get("E_PDA_MISMATCH") as u32,
+            ))],
+        );
+    }
 }
 
 #[test]
