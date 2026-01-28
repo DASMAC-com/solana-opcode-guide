@@ -220,11 +220,13 @@ data:
 
 ## Increment operation
 
+### User data length
+
 The increment operation starts by checking the user's account data length,
 padding as needed to
 [ensure 8-byte alignment](transfer#account-layout-background). Notably, since
 [`i32` immediates] are
-[cast to `i64` by the interpreter][`i32` interpretation], then
+[cast to `i64` by the VM interpreter][`i32` interpretation], then
 [cast to `u64` by `AND64_IMM`][`and64_imm`], the VM's use of Rust
 [sign extension] enables the following concise padding calculation, guaranteed
 not to overflow given that [`MAX_PERMITTED_DATA_LENGTH`] is much less than
@@ -236,17 +238,46 @@ This algorithm is verified with a simple test:
 
 <<< ../../../examples/counter/artifacts/tests/pad_masking/test.txt{rs}
 
-[`create_program_address`] limits seeds to [`MAX_SEED_LEN`] each. So there is
-one [signer seeds] array pointing an array of two [signer seed] structures,
-one containing the user's [pubkey] and one containing the bump seed.
+### Memory map parsing
 
-[`sol_create_program_address`] implements
-[the following returns][create_pda_returns]:
+The [input memory map](memo) is then parsed using the calculated user offset
+with padding, and assorted pointers are stored for future operations:
+
+<<< ../../../examples/counter/artifacts/snippets/asm/increment-map.txt{asm}
+
+### Speculative increment
+
+The current counter value is then loaded from the [PDA] account data, and the
+`u64` increment amount from the instruction data is added to it speculatively
+before error checks, to minimize the number of future pointer copies:
+
+
+<<< ../../../examples/counter/artifacts/snippets/asm/speculative-inc.txt{asm}
+
+### PDA checks
+
+Finally, the [PDA] and [bump seed][pda] are verified using
+[`sol_create_program_address`], which requires an array of two [signer seed]
+structures: one containing the user's [pubkey] and one containing the
+[bump seed][pda]. Internally this relies on [`create_program_address`], which
+[can fail][create_pda_returns] if an address can't be found:
 
 | Register | Success                          | Failure     |
 | -------- | -------------------------------- | ----------- |
 | `r0`     | 0                                | 1           |
 | `r4`     | Passed pointer filled with [PDA] | [Unchanged] |
+
+<<< ../../../examples/counter/artifacts/snippets/asm/pda-checks-inc.txt{asm}
+
+This operation relies on the following [stack](transfer#transfer-cpi) layout:
+
+| Size (bytes) | Description                                                   |
+| ------------ | ------------------------------------------------------------- |
+| 16           | [`SolSignerSeed`] for user's [pubkey]                         |
+| 16           | [`SolSignerSeed`] for bump seed                               |
+| 32           | [PDA] from [`sol_create_program_address`] (`r4`)              |
+| 4            | Compare result from [`sol_memcmp`] (`r2`)                     |
+
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
