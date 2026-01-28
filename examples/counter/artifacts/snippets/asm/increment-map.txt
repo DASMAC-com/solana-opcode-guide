@@ -1,0 +1,20 @@
+    # Check remaining memory map layout.
+    # ----------------------------------
+    # Sum input buffer offset and padded user data length, affecting
+    # subsequent offsets originally calculated assuming no user account
+    # data: get input buffer pointer offset by padded user data length.
+    add64 r9, r1
+    ldxb r8, [r9 + PDA_NON_DUP_MARKER_OFF] # Load PDA duplicate marker.
+    jne r8, NON_DUP_MARKER, e_pda_duplicate # Exit if PDA is a duplicate.
+    ldxdw r8, [r9 + PDA_DATA_LEN_OFF] # Get PDA data length.
+    jne r8, INIT_CPI_ACCT_SIZE, e_pda_data_len # Exit if invalid length.
+    # Get instruction data length.
+    ldxdw r8, [r9 + INSTRUCTION_DATA_LEN_INC_OFF]
+    # Exit if invalid length.
+    jne r8, SIZE_OF_U64, e_invalid_instruction_data_len
+    mov64 r3, r9 # Copy input buffer offset by padded user data length.
+    # Update to point to program ID, for later verification syscall.
+    add64 r3, PROGRAM_ID_INC_OFF
+    mov64 r6, r9 # Copy input buffer offset by padded user data length.
+    # Update to point to PDA pubkey, for later verification syscall.
+    add64 r6, PDA_PUBKEY_OFF
