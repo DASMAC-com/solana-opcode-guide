@@ -35,10 +35,18 @@
     # ---------------------------------------------------------------------
     mov64 r1, r6 # Get pointer to passed PDA pubkey, set above.
     mov64 r2, r4 # Get pointer to computed PDA.
-    mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
-    add64 r4, SIZE_OF_PUBKEY # Get pointer to compare result on stack.
-    call sol_memcmp_
-    ldxw r2, [r4 + NO_OFFSET] # Get compare result.
-    jne r2, COMPARE_EQUAL, e_pda_mismatch # Error out if PDA mismatch.
+    # Compare pubkey values in 64-bit chunks (same optimization as init):
+    ldxdw r3, [r1 + 0]
+    ldxdw r4, [r2 + 0]
+    jne r3, r4, e_pda_mismatch
+    ldxdw r3, [r1 + SIZE_OF_U64]
+    ldxdw r4, [r2 + SIZE_OF_U64]
+    jne r3, r4, e_pda_mismatch
+    ldxdw r3, [r1 + SIZE_OF_U64_2X]
+    ldxdw r4, [r2 + SIZE_OF_U64_2X]
+    jne r3, r4, e_pda_mismatch
+    ldxdw r3, [r1 + SIZE_OF_U64_3X]
+    ldxdw r4, [r2 + SIZE_OF_U64_3X]
+    jne r3, r4, e_pda_mismatch
 
     exit

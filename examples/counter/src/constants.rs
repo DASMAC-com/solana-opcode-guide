@@ -94,8 +94,6 @@ pub fn constants() -> Constants {
         signers_seeds: [SolSignerSeeds; N_PDAS],
         pda: Pubkey,
         rent: Rent,
-        memcmp_result: i32,
-        pad: [u8; 4],
         bump_seed: u8,
     }
 
@@ -103,7 +101,6 @@ pub fn constants() -> Constants {
     struct StackFrameInc {
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
         pda: Pubkey,
-        memcmp_result: i32,
     }
 
     #[repr(C)]
@@ -658,11 +655,6 @@ pub fn constants() -> Constants {
                 "RENT",
                 (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, rent))) as u64,
                 "Rent struct return.",
-            ))
-            .push(Constant::new_offset(
-                "MEMCMP_RESULT",
-                (size_of::<StackFrameInit>() - (offset_of!(StackFrameInit, memcmp_result))) as u64,
-                "Compare result of sol_memcmp.",
             ))
             .push(Constant::new_offset(
                 "BUMP_SEED",

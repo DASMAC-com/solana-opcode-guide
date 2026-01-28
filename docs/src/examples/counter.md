@@ -98,7 +98,6 @@ described below:
 | 16           | [`SolSignerSeeds`] for [CPI](transfer#transfer-cpi)           |
 | 32           | [PDA] from [`sol_try_find_program_address`] (`r4`)            |
 | 24           | [`Rent`] from [`sol_get_rent_sysvar`] (`r1`)                  |
-| 4            | `i32` from [`sol_memcmp`] (`r4`)                              |
 | 4            | Padding to maintain 8-byte alignment                          |
 | 1            | [Bump seed][pda] from [`sol_try_find_program_address`] (`r5`) |
 
@@ -150,10 +149,10 @@ data, since the [`CreateAccount`] instruction [CPI processor exit routine] later
 <<< ../../../examples/counter/artifacts/snippets/asm/init-find-pda.txt{asm}
 
 The computed [PDA] is then compared against the passed [PDA] account's
-[pubkey] using [`sol_memcmp`], which is [subject to metering] that charges the
-larger of a [10 CU base cost], and a [per-byte cost of 250 CUs]. The
-[inner compare function] compare result is `0i32` only if the two regions are
-equal:
+[pubkey] using chunked compares. This is more efficient than [`sol_memcmp`],
+which is [subject to metering] that charges the larger of a [10 CU base cost],
+and a [per-byte cost of 250 CUs]. The [inner compare function] compare result
+is `0i32` only if the two regions are equal, and would need to be allocated:
 
 | Register | Description                                 |
 | -------- | ------------------------------------------- |
@@ -195,7 +194,7 @@ ignored, since the [internal CPI `CallerAccount` structure][`calleraccount`]
 does not include it, hence it is unprocessed by [`update_callee_account`].
 
 Notably, the [`CreateAccount`] instruction data owner program ID field is
-populated via [`sol_memcpy`], which has the same
+populated via chunked loads as opposed to [`sol_memcpy`], which has the same
 [CU cost as `sol_memcmp`](#pda-checks) but no compare value return:
 
 ::: details Optimized instruction and account region setup
@@ -275,7 +274,6 @@ This operation relies on the following [stack](transfer#transfer-cpi) layout:
 | 16           | [`SolSignerSeed`] for user's [pubkey]            |
 | 16           | [`SolSignerSeed`] for bump seed                  |
 | 32           | [PDA] from [`sol_create_program_address`] (`r4`) |
-| 4            | Compare result from [`sol_memcmp`] (`r2`)        |
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
