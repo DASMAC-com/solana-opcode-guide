@@ -205,6 +205,11 @@ pub fn constants() -> Constants {
                     "U64_2X",
                     (size_of::<u64>() * 2) as u64,
                     "Size of u64 times 2.",
+                ))
+                .push(Constant::new(
+                    "U64_3X",
+                    (size_of::<u64>() * 3) as u64,
+                    "Size of u64 times 3.",
                 )),
         )
         .push(
