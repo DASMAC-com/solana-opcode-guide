@@ -413,9 +413,9 @@ increment:
     stdw [r10 - STK_INC_SEED_1_LEN_OFF], SIZE_OF_U8
 
     # Re-derive PDA.
-    # ---------------------------------------------------
-    # r3 was preemptively set to program ID pointer above.
-    # ----------------------------------------------------
+    # ----------------------------------------------------------
+    # r3 was set to program ID pointer during memory map checks.
+    # ----------------------------------------------------------
     mov64 r1, r10 # Get stack frame pointer.
     sub64 r1, STK_INC_SEED_0_ADDR_OFF # Update to point to signer seeds.
     mov64 r2, N_SIGNER_SEEDS # Load signer seeds count (32-bit immediate).
