@@ -251,7 +251,6 @@ The current counter value is then loaded from the [PDA] account data, and the
 `u64` increment amount from the instruction data is added to it speculatively
 before error checks, to minimize the number of future pointer copies:
 
-
 <<< ../../../examples/counter/artifacts/snippets/asm/speculative-inc.txt{asm}
 
 ### PDA checks
@@ -271,13 +270,12 @@ structures: one containing the user's [pubkey] and one containing the
 
 This operation relies on the following [stack](transfer#transfer-cpi) layout:
 
-| Size (bytes) | Description                                                   |
-| ------------ | ------------------------------------------------------------- |
-| 16           | [`SolSignerSeed`] for user's [pubkey]                         |
-| 16           | [`SolSignerSeed`] for bump seed                               |
-| 32           | [PDA] from [`sol_create_program_address`] (`r4`)              |
-| 4            | Compare result from [`sol_memcmp`] (`r2`)                     |
-
+| Size (bytes) | Description                                      |
+| ------------ | ------------------------------------------------ |
+| 16           | [`SolSignerSeed`] for user's [pubkey]            |
+| 16           | [`SolSignerSeed`] for bump seed                  |
+| 32           | [PDA] from [`sol_create_program_address`] (`r4`) |
+| 4            | Compare result from [`sol_memcmp`] (`r2`)        |
 
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
@@ -296,7 +294,6 @@ This operation relies on the following [stack](transfer#transfer-cpi) layout:
 [return value]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/sysvar_cache.rs#L156-L158
 [sign extension]: https://en.wikipedia.org/wiki/Sign_extension
 [signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L56-L62
-[signer seeds]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L64-L71
 [soon-to-be-deprecated `rent::default`]: https://github.com/anza-xyz/solana-sdk/blob/rent@v3.1.0/rent/src/lib.rs#L108-L114
 [subject to metering]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L3-L10
 [unchanged]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L606-L612
@@ -312,7 +309,6 @@ This operation relies on the following [stack](transfer#transfer-cpi) layout:
 [`i32` immediates]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/doc/bytecode.md#instruction-layout
 [`i32` interpretation]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/ebpf.rs#L682
 [`max_permitted_data_length`]: https://docs.rs/solana-system-interface/3.0.0/solana_system_interface/constant.MAX_PERMITTED_DATA_LENGTH.html
-[`max_seed_len`]: https://docs.rs/solana-address/2.0.0/solana_address/constant.MAX_SEED_LEN.html
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
 [`sbpf` silently truncates offsets that are not `i16`]: https://github.com/blueshift-gg/sbpf/issues/97
