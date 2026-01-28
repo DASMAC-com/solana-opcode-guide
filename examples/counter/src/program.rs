@@ -11,6 +11,7 @@ no_allocator!();
 
 const E_N_ACCOUNTS: u32 = 1;
 const E_USER_DATA_LEN: u32 = 2;
+const E_PDA_DATA_LEN: u32 = 3;
 const E_PDA_DUPLICATE: u32 = 5;
 
 const N_ACCOUNTS_INCREMENT: u64 = 2;
@@ -21,8 +22,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
         N_ACCOUNTS_INCREMENT => {}
         N_ACCOUNTS_INITIALIZE => {
             // Safe because number of accounts has been checked.
-            let user = unsafe { context.next_account_unchecked() };
-            if !user.assume_account().is_data_empty() {
+            let user = unsafe { context.next_account_unchecked().assume_account() };
+            if !user.is_data_empty() {
                 return Err(pinocchio::error::ProgramError::Custom(E_USER_DATA_LEN));
             }
 
@@ -33,6 +34,9 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                     return Err(pinocchio::error::ProgramError::Custom(E_PDA_DUPLICATE))
                 }
             };
+            if !pda.is_data_empty() {
+                return Err(pinocchio::error::ProgramError::Custom(E_PDA_DATA_LEN));
+            }
         }
         _ => return Err(pinocchio::error::ProgramError::Custom(E_N_ACCOUNTS)),
     }
