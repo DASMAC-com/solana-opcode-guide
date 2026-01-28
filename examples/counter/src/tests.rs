@@ -6,8 +6,8 @@ use solana_sdk::account::Account;
 use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
-use std::fs;
 use std::mem::{offset_of, size_of};
+use std::{fs, vec};
 use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
@@ -82,6 +82,32 @@ enum AccountIndex {
     Pda = 1,
     SystemProgram = 2,
 }
+
+struct ComputeUnits {
+    asm: u64,
+    rs: u64,
+}
+
+enum Case {
+    InitializeHappyPath,
+    IncrementHappyPath,
+}
+
+impl Case {
+    pub const fn get(self) -> ComputeUnits {
+        match self {
+            Self::InitializeHappyPath => ComputeUnits {
+                asm: 2834,
+                rs: 2851,
+            },
+            Self::IncrementHappyPath => ComputeUnits {
+                asm: 1548,
+                rs: 1565,
+            },
+        }
+    }
+}
+
 fn happy_path_setup(
     program_language: ProgramLanguage,
     operation: Operation,
@@ -457,11 +483,7 @@ fn test_asm_initialize_happy_path() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[
-            Check::success(),
-            counter_account.check(),
-            Check::compute_units(2834),
-        ],
+        &[Check::success(), counter_account.check()],
     );
 }
 
