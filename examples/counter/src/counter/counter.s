@@ -461,3 +461,4 @@ e_pda_mismatch:
 
 e_invalid_instruction_data_len:
     mov32 r0, E_INVALID_INSTRUCTION_DATA_LEN
+    exit

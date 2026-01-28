@@ -319,3 +319,51 @@ fn test_pad_masking() {
     assert_eq!(padded_data_len(9), 16);
     assert_eq!(padded_data_len(15), 16);
 }
+
+#[test]
+fn test_asm_increment_pda_duplicate() {
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
+
+    instruction.accounts[AccountIndex::Pda as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_PDA_DUPLICATE") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_asm_increment_pda_data_len() {
+    let (setup, instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
+
+    accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_PDA_DATA_LEN") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_asm_increment_no_instruction_data() {
+    let (setup, instruction, accounts, _) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_INVALID_INSTRUCTION_DATA_LEN") as u32,
+        ))],
+    );
+}
