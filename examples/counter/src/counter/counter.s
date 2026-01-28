@@ -55,10 +55,11 @@
 
 # Stack frame layout for increment operation.
 # -------------------------------------------
-.equ STK_INC_SEED_0_ADDR_OFF, 32 # Pointer to user pubkey.
-.equ STK_INC_SEED_0_LEN_OFF, 24 # Length of user pubkey.
-.equ STK_INC_SEED_1_ADDR_OFF, 16 # Pointer to bump seed.
-.equ STK_INC_SEED_1_LEN_OFF, 8 # Length of bump seed.
+.equ STK_INC_SEED_0_ADDR_OFF, 72 # Pointer to user pubkey.
+.equ STK_INC_SEED_0_LEN_OFF, 64 # Length of user pubkey.
+.equ STK_INC_SEED_1_ADDR_OFF, 56 # Pointer to bump seed.
+.equ STK_INC_SEED_1_LEN_OFF, 48 # Length of bump seed.
+.equ STK_INC_PDA_OFF, 40 # Pointer to PDA.
 
 # Stack frame layout for initialize operation.
 # --------------------------------------------
@@ -378,6 +379,9 @@ increment:
     ldxdw r8, [r9 + INSTRUCTION_DATA_LEN_INC_OFF]
     # Exit if invalid length.
     jne r8, SIZE_OF_U64, e_invalid_instruction_data_len
+    mov64 r3, r9 # Copy input buffer offset by padded user data length.
+    # Update to point to program ID, for later verification syscall.
+    add64 r3, PROGRAM_ID_INC_OFF
 
     # Process counter increment instruction.
     # ---------------------------------------------------------------------
@@ -393,12 +397,10 @@ increment:
 
     # Prepare signer seeds for PDA verification.
     # ------------------------------------------
-    # Directly mutate input buffer pointer to point to user pubkey, since
-    # this is the last input buffer pointer access for this branch and
-    # a pointer copy can thus be optimized out.
-    add64 r1, USER_PUBKEY_OFF
+    mov64 r8, r1 # Get pointer to input buffer.
+    add64 r8, USER_PUBKEY_OFF # Update to point to user pubkey.
     # Store pointer in seed 0 pointer field.
-    stxdw [r10 - STK_INC_SEED_0_ADDR_OFF], r1
+    stxdw [r10 - STK_INC_SEED_0_ADDR_OFF], r8
     # Store length in seed 0 length field (32-bit immediate).
     stdw [r10 - STK_INC_SEED_0_LEN_OFF], SIZE_OF_PUBKEY
     # Directly mutate input pointer offset by padded user data length to
@@ -409,6 +411,27 @@ increment:
     stxdw [r10 - STK_INC_SEED_1_ADDR_OFF], r9
     # Store length in seed 1 length field (32-bit immediate).
     stdw [r10 - STK_INC_SEED_1_LEN_OFF], SIZE_OF_U8
+
+    # Re-derive PDA.
+    # ---------------------------------------------------
+    # r3 was preemptively set to program ID pointer above.
+    # ----------------------------------------------------
+    mov64 r1, r10 # Get stack frame pointer.
+    sub64 r1, STK_INC_SEED_0_ADDR_OFF # Update to point to signer seeds.
+    mov64 r2, N_SIGNER_SEEDS # Load signer seeds count (32-bit immediate).
+    mov64 r4, r10 # Get stack frame pointer.
+    sub64 r4, STK_INC_PDA_OFF # Update to point to PDA result on stack.
+    call sol_create_program_address # Create PDA.
+
+    # Verify PDA.
+    # -----------
+    mov64 r1, r8 # Get pointer to user pubkey, set above.
+    mov64 r2, r4 # Get pointer to computed PDA.
+    mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
+    add64 r4, SIZE_OF_PUBKEY # Get pointer to compare result on stack.
+    call sol_memcmp_
+    ldxw r2, [r4 + NO_OFFSET] # Get compare result.
+    jne r2, COMPARE_EQUAL, e_pda_mismatch # Error out if PDA mismatch.
 
     exit
 

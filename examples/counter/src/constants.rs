@@ -102,6 +102,8 @@ pub fn constants() -> Constants {
     #[repr(C)]
     struct StackFrameInc {
         signer_seeds: [SolSignerSeed; N_SIGNER_SEEDS_PDA],
+        pda: Pubkey,
+        memcmp_result: i32,
     }
 
     #[repr(C)]
@@ -376,6 +378,11 @@ pub fn constants() -> Constants {
                         + size_of::<SolSignerSeed>()
                         + offset_of!(SolSignerSeed, len))) as u64,
                 "Length of bump seed.",
+            ))
+            .push(Constant::new_offset(
+                "PDA",
+                (size_of::<StackFrameInc>() - offset_of!(StackFrameInc, pda)) as u64,
+                "Pointer to PDA.",
             )),
         )
         .push(
