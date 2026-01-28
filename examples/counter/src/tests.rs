@@ -446,7 +446,7 @@ fn test_asm_initialize_happy_path() {
         &[
             Check::success(),
             counter_account.check(),
-            Check::compute_units(2839),
+            Check::compute_units(2835),
         ],
     );
 }
