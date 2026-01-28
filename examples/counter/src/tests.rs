@@ -422,3 +422,98 @@ fn test_asm_increment_pda_mismatch() {
         ))],
     );
 }
+
+#[test]
+fn test_asm_increment_happy_path() {
+    struct TestCase {
+        user_account_data_length: u64,
+        starting_counter: u64,
+        increment: u64,
+    }
+
+    let test_cases = &[
+        // Aligned user data lengths.
+        TestCase {
+            user_account_data_length: 0,
+            starting_counter: 0,
+            increment: 1,
+        },
+        TestCase {
+            user_account_data_length: 0,
+            starting_counter: 0,
+            increment: u64::MAX,
+        },
+        TestCase {
+            user_account_data_length: 0,
+            starting_counter: u64::MAX,
+            increment: 1,
+        },
+        TestCase {
+            user_account_data_length: 0,
+            starting_counter: u64::MAX,
+            increment: u64::MAX,
+        },
+        TestCase {
+            user_account_data_length: 8,
+            starting_counter: 0,
+            increment: 1,
+        },
+        TestCase {
+            user_account_data_length: 16,
+            starting_counter: 1,
+            increment: 1,
+        },
+        TestCase {
+            user_account_data_length: 128,
+            starting_counter: 100,
+            increment: 200,
+        },
+        // Unaligned user data lengths.
+        TestCase {
+            user_account_data_length: 1,
+            starting_counter: 0,
+            increment: 1,
+        },
+        TestCase {
+            user_account_data_length: 7,
+            starting_counter: 1,
+            increment: u64::MAX - 1,
+        },
+        TestCase {
+            user_account_data_length: 9,
+            starting_counter: 100,
+            increment: 200,
+        },
+        TestCase {
+            user_account_data_length: 15,
+            starting_counter: u64::MAX,
+            increment: 1,
+        },
+        TestCase {
+            user_account_data_length: 100,
+            starting_counter: u64::MAX,
+            increment: u64::MAX,
+        },
+    ];
+
+    for tc in test_cases {
+        let (setup, mut instruction, mut accounts, mut counter_account) =
+            happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
+
+        instruction.data = tc.increment.to_le_bytes().to_vec();
+
+        accounts[AccountIndex::User as usize].1.data =
+            vec![0u8; tc.user_account_data_length as usize];
+
+        accounts[AccountIndex::Pda as usize].1.data[..size_of::<u64>()]
+            .copy_from_slice(&tc.starting_counter.to_le_bytes());
+
+        counter_account.data.counter = tc.starting_counter.wrapping_add(tc.increment);
+
+        setup.mollusk.process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[Check::success(), counter_account.check()],
+        );
+    }
+}
