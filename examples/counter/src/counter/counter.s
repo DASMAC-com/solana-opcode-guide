@@ -56,81 +56,80 @@
 
 # Stack frame layout for increment operation.
 # -------------------------------------------
-.equ STK_INC_SEED_0_ADDR_OFF, 72 # Pointer to user pubkey.
-.equ STK_INC_SEED_0_LEN_OFF, 64 # Length of user pubkey.
-.equ STK_INC_SEED_1_ADDR_OFF, 56 # Pointer to bump seed.
-.equ STK_INC_SEED_1_LEN_OFF, 48 # Length of bump seed.
-.equ STK_INC_PDA_OFF, 40 # Pointer to PDA.
+.equ STK_INC_SEED_0_ADDR_OFF, 64 # Pointer to user pubkey.
+.equ STK_INC_SEED_0_LEN_OFF, 56 # Length of user pubkey.
+.equ STK_INC_SEED_1_ADDR_OFF, 48 # Pointer to bump seed.
+.equ STK_INC_SEED_1_LEN_OFF, 40 # Length of bump seed.
+.equ STK_INC_PDA_OFF, 32 # Pointer to PDA.
 
 # Stack frame layout for initialize operation.
 # --------------------------------------------
 # System Program pubkey for CreateAccount CPI.
-.equ STK_INIT_SYSTEM_PROGRAM_PUBKEY_OFF, 392
-.equ STK_INIT_INSN_OFF, 360 # SolInstruction for CreateAccount CPI.
+.equ STK_INIT_SYSTEM_PROGRAM_PUBKEY_OFF, 384
+.equ STK_INIT_INSN_OFF, 352 # SolInstruction for CreateAccount CPI.
 # Accounts address in SolInstruction.
-.equ STK_INIT_INSN_ACCOUNTS_ADDR_OFF, 352
+.equ STK_INIT_INSN_ACCOUNTS_ADDR_OFF, 344
 # Accounts length in SolInstruction.
-.equ STK_INIT_INSN_ACCOUNTS_LEN_OFF, 344
-.equ STK_INIT_INSN_DATA_ADDR_OFF, 336 # Data address in SolInstruction.
-.equ STK_INIT_INSN_DATA_LEN_OFF, 328 # Data length in SolInstruction.
+.equ STK_INIT_INSN_ACCOUNTS_LEN_OFF, 336
+.equ STK_INIT_INSN_DATA_ADDR_OFF, 328 # Data address in SolInstruction.
+.equ STK_INIT_INSN_DATA_LEN_OFF, 320 # Data length in SolInstruction.
 # Offset from System Program pubkey to account metas.
 .equ STK_INIT_SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS_OFF, 72
 # Offset from account metas to instruction data.
 .equ STK_INIT_ACCOUNT_METAS_TO_INSN_DATA_OFF, 32
-.equ STK_INIT_INSN_DATA_OFF, 288 # CreateAccount instruction data.
+.equ STK_INIT_INSN_DATA_OFF, 280 # CreateAccount instruction data.
 # Offset of lamports field inside CreateAccount instruction data.
-.equ STK_INIT_INSN_DATA_LAMPORTS_OFF, 284
+.equ STK_INIT_INSN_DATA_LAMPORTS_OFF, 276
 # Offset of space field inside CreateAccount instruction data.
-.equ STK_INIT_INSN_DATA_SPACE_OFF, 276
+.equ STK_INIT_INSN_DATA_SPACE_OFF, 268
 # Offset of owner field inside CreateAccount instruction data.
-.equ STK_INIT_INSN_DATA_OWNER_OFF, 268
-.equ STK_INIT_ACCT_INFOS_OFF, 232 # User account infos.
+.equ STK_INIT_INSN_DATA_OWNER_OFF, 260
+.equ STK_INIT_ACCT_INFOS_OFF, 224 # User account infos.
 # User account meta pubkey address.
-.equ STK_INIT_ACCT_META_USER_PUBKEY_ADDR_OFF, 320
+.equ STK_INIT_ACCT_META_USER_PUBKEY_ADDR_OFF, 312
 # User account meta is_writable.
-.equ STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF, 312
+.equ STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF, 304
 # User account meta is_signer.
-.equ STK_INIT_ACCT_META_USER_IS_SIGNER_OFF, 311
+.equ STK_INIT_ACCT_META_USER_IS_SIGNER_OFF, 303
 # PDA account meta pubkey address.
-.equ STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF, 304
+.equ STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF, 296
 # PDA account meta is_writable.
-.equ STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF, 296
+.equ STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF, 288
 # PDA account meta is_signer.
-.equ STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF, 295
+.equ STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF, 287
 # User account info key address.
-.equ STK_INIT_ACCT_INFO_USER_KEY_ADDR_OFF, 232
+.equ STK_INIT_ACCT_INFO_USER_KEY_ADDR_OFF, 224
 # PDA account info key address.
-.equ STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF, 176
+.equ STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF, 168
 # User account info Lamports pointer.
-.equ STK_INIT_ACCT_INFO_USER_LAMPORTS_ADDR_OFF, 224
+.equ STK_INIT_ACCT_INFO_USER_LAMPORTS_ADDR_OFF, 216
 # PDA account info Lamports pointer.
-.equ STK_INIT_ACCT_INFO_PDA_LAMPORTS_ADDR_OFF, 168
+.equ STK_INIT_ACCT_INFO_PDA_LAMPORTS_ADDR_OFF, 160
 # User account info owner pubkey pointer.
-.equ STK_INIT_ACCT_INFO_USER_OWNER_ADDR_OFF, 200
+.equ STK_INIT_ACCT_INFO_USER_OWNER_ADDR_OFF, 192
 # PDA account info owner pubkey pointer.
-.equ STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF, 144
+.equ STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF, 136
 # User account info data pointer.
-.equ STK_INIT_ACCT_INFO_USER_DATA_ADDR_OFF, 208
+.equ STK_INIT_ACCT_INFO_USER_DATA_ADDR_OFF, 200
 # PDA account info data pointer.
-.equ STK_INIT_ACCT_INFO_PDA_DATA_ADDR_OFF, 152
+.equ STK_INIT_ACCT_INFO_PDA_DATA_ADDR_OFF, 144
 # User account info is_signer.
-.equ STK_INIT_ACCT_INFO_USER_IS_SIGNER_OFF, 184
+.equ STK_INIT_ACCT_INFO_USER_IS_SIGNER_OFF, 176
 # User account info is_writable.
-.equ STK_INIT_ACCT_INFO_USER_IS_WRITABLE_OFF, 183
+.equ STK_INIT_ACCT_INFO_USER_IS_WRITABLE_OFF, 175
 # PDA account info is_signer.
-.equ STK_INIT_ACCT_INFO_PDA_IS_SIGNER_OFF, 128
+.equ STK_INIT_ACCT_INFO_PDA_IS_SIGNER_OFF, 120
 # PDA account info is_writable.
-.equ STK_INIT_ACCT_INFO_PDA_IS_WRITABLE_OFF, 127
-.equ STK_INIT_SEED_0_ADDR_OFF, 120 # Pointer to user pubkey.
-.equ STK_INIT_SEED_0_LEN_OFF, 112 # Length of user pubkey.
-.equ STK_INIT_SEED_1_ADDR_OFF, 104 # Pointer to bump seed.
-.equ STK_INIT_SEED_1_LEN_OFF, 96 # Length of bump seed.
-.equ STK_INIT_SIGNERS_SEEDS_OFF, 88 # Pointer to signer seeds array.
+.equ STK_INIT_ACCT_INFO_PDA_IS_WRITABLE_OFF, 119
+.equ STK_INIT_SEED_0_ADDR_OFF, 112 # Pointer to user pubkey.
+.equ STK_INIT_SEED_0_LEN_OFF, 104 # Length of user pubkey.
+.equ STK_INIT_SEED_1_ADDR_OFF, 96 # Pointer to bump seed.
+.equ STK_INIT_SEED_1_LEN_OFF, 88 # Length of bump seed.
+.equ STK_INIT_SIGNERS_SEEDS_OFF, 80 # Pointer to signer seeds array.
 # Pointer to signer seeds array element 0 length field.
-.equ STK_INIT_SIGNER_SEEDS_0_LEN_OFF, 80
-.equ STK_INIT_PDA_OFF, 72 # PDA.
-.equ STK_INIT_RENT_OFF, 40 # Rent struct return.
-.equ STK_INIT_MEMCMP_RESULT_OFF, 16 # Compare result of sol_memcmp.
+.equ STK_INIT_SIGNER_SEEDS_0_LEN_OFF, 72
+.equ STK_INIT_PDA_OFF, 64 # PDA.
+.equ STK_INIT_RENT_OFF, 32 # Rent struct return.
 .equ STK_INIT_BUMP_SEED_OFF, 8 # Bump seed.
 
 # Assorted constants.
