@@ -422,6 +422,7 @@ increment:
     mov64 r4, r10 # Get stack frame pointer.
     sub64 r4, STK_INC_PDA_OFF # Update to point to PDA result on stack.
     call sol_create_program_address # Create PDA.
+    jne r0, SUCCESS, e_unable_to_derive_pda # Error if unable to create.
 
     # Verify PDA.
     # -----------
@@ -461,4 +462,8 @@ e_pda_mismatch:
 
 e_invalid_instruction_data_len:
     mov32 r0, E_INVALID_INSTRUCTION_DATA_LEN
+    exit
+
+e_unable_to_derive_pda:
+    mov32 r0, E_UNABLE_TO_DERIVE_PDA
     exit

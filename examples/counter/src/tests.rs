@@ -7,7 +7,7 @@ use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use std::fs;
-use std::mem::size_of;
+use std::mem::{offset_of, size_of};
 use test_utils::{setup_test, ProgramLanguage};
 
 #[test]
@@ -364,6 +364,41 @@ fn test_asm_increment_no_instruction_data() {
         &accounts,
         &[Check::err(ProgramError::Custom(
             constants().get("E_INVALID_INSTRUCTION_DATA_LEN") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_asm_increment_unable_to_derive_pda() {
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
+
+    instruction.data = 1u64.to_le_bytes().to_vec();
+
+    // Find a user pubkey whose PDA bump is < u8::MAX, so bump + 1 is guaranteed to fail since
+    // find_program_address already rejected it.
+    let mut user_pubkey = accounts[AccountIndex::User as usize].0;
+    let (mut pda_pubkey, mut bump_seed) =
+        Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
+    while bump_seed == u8::MAX {
+        user_pubkey = Pubkey::new_unique();
+        (pda_pubkey, bump_seed) =
+            Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
+    }
+
+    // Update account keys and set bump seed + 1 in PDA account data.
+    instruction.accounts[AccountIndex::User as usize].pubkey = user_pubkey;
+    instruction.accounts[AccountIndex::Pda as usize].pubkey = pda_pubkey;
+    accounts[AccountIndex::User as usize].0 = user_pubkey;
+    accounts[AccountIndex::Pda as usize].0 = pda_pubkey;
+    accounts[AccountIndex::Pda as usize].1.data[offset_of!(CounterAccountData, bump_seed)] =
+        bump_seed + 1;
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_UNABLE_TO_DERIVE_PDA") as u32,
         ))],
     );
 }
