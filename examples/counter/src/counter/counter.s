@@ -400,10 +400,12 @@ increment:
 
     # Prepare signer seeds for PDA verification.
     # ------------------------------------------
-    mov64 r8, r1 # Get pointer to input buffer.
-    add64 r8, USER_PUBKEY_OFF # Update to point to user pubkey.
+    # Directly mutate input buffer pointer to point to user pubkey, since
+    # this is the last access of the input buffer pointer for this branch
+    # and a pointer copy can thus be optimized out.
+    add64 r1, USER_PUBKEY_OFF
     # Store pointer in seed 0 pointer field.
-    stxdw [r10 - STK_INC_SEED_0_ADDR_OFF], r8
+    stxdw [r10 - STK_INC_SEED_0_ADDR_OFF], r1
     # Store length in seed 0 length field (32-bit immediate).
     stdw [r10 - STK_INC_SEED_0_LEN_OFF], SIZE_OF_PUBKEY
     # Directly mutate input pointer offset by padded user data length to
@@ -416,9 +418,9 @@ increment:
     stdw [r10 - STK_INC_SEED_1_LEN_OFF], SIZE_OF_U8
 
     # Re-derive PDA.
-    # ----------------------------------------------------------
+    # ---------------------------------------------------------------------
     # r3 was set to program ID pointer during memory map checks.
-    # ----------------------------------------------------------
+    # ---------------------------------------------------------------------
     mov64 r1, r10 # Get stack frame pointer.
     sub64 r1, STK_INC_SEED_0_ADDR_OFF # Update to point to signer seeds.
     mov64 r2, N_SIGNER_SEEDS # Load signer seeds count (32-bit immediate).
@@ -428,7 +430,9 @@ increment:
     jne r0, SUCCESS, e_unable_to_derive_pda # Error if unable to create.
 
     # Verify PDA.
-    # -----------
+    # ---------------------------------------------------------------------
+    # r6 was set to passed PDA pubkey pointer during memory map checks.
+    # ---------------------------------------------------------------------
     mov64 r1, r6 # Get pointer to passed PDA pubkey, set above.
     mov64 r2, r4 # Get pointer to computed PDA.
     mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
