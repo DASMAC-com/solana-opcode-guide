@@ -187,6 +187,45 @@ fn test_asm_too_many_accounts() {
 }
 
 #[test]
+fn test_rs_no_accounts() {
+    let (setup, mut instruction, mut accounts, _bump_seed) =
+        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+
+    instruction.accounts.clear();
+    accounts.clear();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_N_ACCOUNTS") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_rs_too_many_accounts() {
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+
+    instruction
+        .accounts
+        .push(AccountMeta::new_readonly(Pubkey::new_unique(), false));
+    accounts.push((
+        instruction.accounts.last().unwrap().pubkey,
+        Account::default(),
+    ));
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_N_ACCOUNTS") as u32,
+        ))],
+    );
+}
+
+#[test]
 fn test_asm_initialize_user_data_len() {
     let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
