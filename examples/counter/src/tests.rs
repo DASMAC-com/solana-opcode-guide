@@ -402,3 +402,23 @@ fn test_asm_increment_unable_to_derive_pda() {
         ))],
     );
 }
+
+#[test]
+fn test_asm_increment_pda_mismatch() {
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
+
+    instruction.data = 1u64.to_le_bytes().to_vec();
+
+    instruction.accounts[AccountIndex::Pda as usize].pubkey = Pubkey::new_unique();
+    accounts[AccountIndex::Pda as usize].0 =
+        instruction.accounts[AccountIndex::Pda as usize].pubkey;
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_PDA_MISMATCH") as u32,
+        ))],
+    );
+}
