@@ -412,6 +412,24 @@ fn test_asm_initialize_pda_mismatch() {
 }
 
 #[test]
+fn test_rs_initialize_pda_mismatch() {
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+
+    instruction.accounts[AccountIndex::Pda as usize].pubkey = Pubkey::new_unique();
+    accounts[AccountIndex::Pda as usize].0 =
+        instruction.accounts[AccountIndex::Pda as usize].pubkey;
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_PDA_MISMATCH") as u32,
+        ))],
+    );
+}
+
+#[test]
 fn test_asm_initialize_happy_path() {
     let (setup, instruction, accounts, counter_account) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
