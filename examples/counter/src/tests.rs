@@ -41,12 +41,31 @@ enum Operation {
 }
 
 #[repr(C, packed)]
-struct CounterAccount {
+struct CounterAccountData {
     counter: u64,
     bump_seed: u8,
 }
 
+#[repr(C, packed)]
+struct CounterAccount {
+    pubkey: Pubkey,
+    owner: Pubkey,
+    lamports: u64,
+    data: CounterAccountData,
+}
+
 impl CounterAccount {
+    fn check(&self) -> Check {
+        Check::account(&self.pubkey)
+            .data(self.data.as_bytes())
+            .lamports(self.lamports)
+            .space(size_of::<CounterAccountData>())
+            .owner(&self.owner)
+            .build()
+    }
+}
+
+impl CounterAccountData {
     fn as_bytes(&self) -> &[u8] {
         unsafe {
             std::slice::from_raw_parts(
@@ -98,6 +117,15 @@ fn happy_path_setup(
         ),
     ];
 
+    let counter_account_data = CounterAccountData {
+        counter: 0,
+        bump_seed,
+    };
+
+    // Hard-code account storage overhead rather than import an entire crate.
+    let lamports = setup.mollusk.sysvars.rent.lamports_per_byte_year
+        * ((size_of::<CounterAccountData>() as u64) + 128);
+
     match operation {
         Operation::Initialize => {
             instruction
@@ -105,17 +133,20 @@ fn happy_path_setup(
                 .push(AccountMeta::new_readonly(system_program, false));
             accounts.push((system_program, system_account));
         }
-        Operation::Increment => {}
+        Operation::Increment => {
+            let counter_account = &mut accounts[AccountIndex::Pda as usize].1;
+            counter_account.lamports = lamports;
+            counter_account.data = counter_account_data.as_bytes().to_vec();
+            counter_account.owner = setup.program_id;
+        }
     }
-    (
-        setup,
-        instruction,
-        accounts,
-        CounterAccount {
-            counter: 0,
-            bump_seed,
-        },
-    )
+    let counter_account = CounterAccount {
+        pubkey: pda_pubkey,
+        owner: setup.program_id,
+        lamports,
+        data: counter_account_data,
+    };
+    (setup, instruction, accounts, counter_account)
 }
 
 #[test]
@@ -264,18 +295,11 @@ fn test_asm_initialize_happy_path() {
     let (setup, instruction, accounts, counter_account) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
-    let checks = vec![
-        Check::success(),
-        Check::account(&instruction.accounts[AccountIndex::Pda as usize].pubkey)
-            .data(counter_account.as_bytes())
-            .space(size_of::<CounterAccount>())
-            .owner(&setup.program_id)
-            .build(),
-    ];
-
-    setup
-        .mollusk
-        .process_and_validate_instruction(&instruction, &accounts, &checks);
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::success(), counter_account.check()],
+    );
 }
 
 #[test]
