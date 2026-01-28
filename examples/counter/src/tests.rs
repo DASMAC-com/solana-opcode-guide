@@ -396,10 +396,14 @@ fn test_rs_initialize_system_program_data_len() {
 #[test]
 fn test_asm_initialize_pda_mismatch() {
     // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
+    // Use a single setup for all chunks to ensure deterministic CU costs.
+    let (setup, instruction, accounts, _) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
     const FINAL_BIT: usize = size_of::<u64>() - 1;
     for chunk in 0..size_of::<Pubkey>() / size_of::<u64>() {
-        let (setup, mut instruction, mut accounts, _) =
-            happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+        let mut instruction = instruction.clone();
+        let mut accounts = accounts.clone();
 
         // Flip the last bit of the chunk to create a mismatch.
         let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
@@ -420,10 +424,14 @@ fn test_asm_initialize_pda_mismatch() {
 #[test]
 fn test_rs_initialize_pda_mismatch() {
     // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
+    // Use a single setup for all chunks to ensure deterministic CU costs.
+    let (setup, instruction, accounts, _) =
+        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+
     const FINAL_BIT: usize = size_of::<u64>() - 1;
     for chunk in 0..size_of::<Pubkey>() / size_of::<u64>() {
-        let (setup, mut instruction, mut accounts, _) =
-            happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+        let mut instruction = instruction.clone();
+        let mut accounts = accounts.clone();
 
         // Flip the last bit of the chunk to create a mismatch.
         let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
