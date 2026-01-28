@@ -258,6 +258,42 @@ fn test_rs_initialize_user_data_len() {
 }
 
 #[test]
+fn test_asm_initialize_pda_duplicate() {
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+
+    instruction.accounts[AccountIndex::Pda as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_PDA_DUPLICATE") as u32,
+        ))],
+    );
+}
+
+#[test]
+fn test_rs_initialize_pda_duplicate() {
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+
+    instruction.accounts[AccountIndex::Pda as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_PDA_DUPLICATE") as u32,
+        ))],
+    );
+}
+
+#[test]
 fn test_asm_initialize_pda_data_len() {
     let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
@@ -285,24 +321,6 @@ fn test_asm_initialize_system_program_data_len() {
         &accounts,
         &[Check::err(ProgramError::Custom(
             constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
-        ))],
-    );
-}
-
-#[test]
-fn test_asm_initialize_pda_duplicate() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    instruction.accounts[AccountIndex::Pda as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_DUPLICATE") as u32,
         ))],
     );
 }
