@@ -382,6 +382,9 @@ increment:
     mov64 r3, r9 # Copy input buffer offset by padded user data length.
     # Update to point to program ID, for later verification syscall.
     add64 r3, PROGRAM_ID_INC_OFF
+    mov64 r6, r9 # Copy input buffer offset by padded user data length.
+    # Update to point to PDA pubkey, for later verification syscall.
+    add64 r6, PDA_PUBKEY_OFF
 
     # Process counter increment instruction.
     # ---------------------------------------------------------------------
@@ -426,7 +429,7 @@ increment:
 
     # Verify PDA.
     # -----------
-    mov64 r1, r8 # Get pointer to user pubkey, set above.
+    mov64 r1, r6 # Get pointer to passed PDA pubkey, set above.
     mov64 r2, r4 # Get pointer to computed PDA.
     mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
     add64 r4, SIZE_OF_PUBKEY # Get pointer to compare result on stack.
