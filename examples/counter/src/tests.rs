@@ -88,6 +88,7 @@ struct ComputeUnits {
     rs: u64,
 }
 
+#[derive(Clone, Copy)]
 enum Case {
     // Initialize error cases (in ASM execution order).
     InitializeNoAccounts,
@@ -155,6 +156,87 @@ impl Case {
                 rs: 1575,
             },
         }
+    }
+
+    const fn name(&self) -> &'static str {
+        match self {
+            Self::InitializeNoAccounts => "No accounts",
+            Self::InitializeTooManyAccounts => "Too many accounts",
+            Self::InitializeUserDataLen => "User data len",
+            Self::InitializePdaDuplicate => "PDA duplicate",
+            Self::InitializePdaDataLen => "PDA data len",
+            Self::InitializeSystemProgramDuplicate => "System program duplicate",
+            Self::InitializeSystemProgramDataLen => "System program data len",
+            Self::InitializePdaMismatch => "PDA mismatch",
+            Self::InitializeHappyPath => "Happy path",
+            Self::IncrementPdaDuplicate => "PDA duplicate",
+            Self::IncrementPdaDataLen => "PDA data len",
+            Self::IncrementNoInstructionData => "No instruction data",
+            Self::IncrementUnableToDerivePda => "Unable to derive PDA",
+            Self::IncrementPdaMismatch => "PDA mismatch",
+            Self::IncrementHappyPath => "Happy path",
+        }
+    }
+
+    const INITIALIZE_CASES: &'static [Case] = &[
+        Case::InitializeNoAccounts,
+        Case::InitializeTooManyAccounts,
+        Case::InitializeUserDataLen,
+        Case::InitializePdaDuplicate,
+        Case::InitializePdaDataLen,
+        Case::InitializeSystemProgramDuplicate,
+        Case::InitializeSystemProgramDataLen,
+        Case::InitializePdaMismatch,
+        Case::InitializeHappyPath,
+    ];
+
+    const INCREMENT_CASES: &'static [Case] = &[
+        Case::IncrementPdaDuplicate,
+        Case::IncrementPdaDataLen,
+        Case::IncrementNoInstructionData,
+        Case::IncrementUnableToDerivePda,
+        Case::IncrementPdaMismatch,
+        Case::IncrementHappyPath,
+    ];
+
+    fn generate_markdown_table(title: &str, cases: &[Case]) -> String {
+        let mut table = format!("### {}\n\n", title);
+        table.push_str("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |\n");
+        table.push_str("|------|-----------|------------|----------|------------|\n");
+
+        for case in cases {
+            let cu = case.get();
+            let overhead = cu.rs as i64 - cu.asm as i64;
+            let overhead_pct = if cu.asm > 0 {
+                (overhead as f64 / cu.asm as f64) * 100.0
+            } else {
+                0.0
+            };
+            table.push_str(&format!(
+                "| {} | {} | {} | {:+} | {:+.1}% |\n",
+                case.name(),
+                cu.asm,
+                cu.rs,
+                overhead,
+                overhead_pct
+            ));
+        }
+
+        table
+    }
+
+    fn markdown_tables() -> String {
+        let mut output = String::new();
+        output.push_str(&Self::generate_markdown_table(
+            "Initialize",
+            Self::INITIALIZE_CASES,
+        ));
+        output.push('\n');
+        output.push_str(&Self::generate_markdown_table(
+            "Increment",
+            Self::INCREMENT_CASES,
+        ));
+        output
     }
 }
 
@@ -225,8 +307,7 @@ fn happy_path_setup(
 
 fn test_no_accounts(lang: ProgramLanguage) {
     let cu = Case::InitializeNoAccounts.get().for_lang(&lang);
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Initialize);
+    let (setup, mut instruction, mut accounts, _) = happy_path_setup(lang, Operation::Initialize);
 
     instruction.accounts.clear();
     accounts.clear();
@@ -243,8 +324,7 @@ fn test_no_accounts(lang: ProgramLanguage) {
 
 fn test_too_many_accounts(lang: ProgramLanguage) {
     let cu = Case::InitializeTooManyAccounts.get().for_lang(&lang);
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Initialize);
+    let (setup, mut instruction, mut accounts, _) = happy_path_setup(lang, Operation::Initialize);
 
     instruction
         .accounts
@@ -266,8 +346,7 @@ fn test_too_many_accounts(lang: ProgramLanguage) {
 
 fn test_initialize_user_data_len(lang: ProgramLanguage) {
     let cu = Case::InitializeUserDataLen.get().for_lang(&lang);
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Initialize);
+    let (setup, instruction, mut accounts, _) = happy_path_setup(lang, Operation::Initialize);
 
     accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
 
@@ -285,8 +364,7 @@ fn test_initialize_user_data_len(lang: ProgramLanguage) {
 
 fn test_initialize_pda_duplicate(lang: ProgramLanguage) {
     let cu = Case::InitializePdaDuplicate.get().for_lang(&lang);
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Initialize);
+    let (setup, mut instruction, mut accounts, _) = happy_path_setup(lang, Operation::Initialize);
 
     instruction.accounts[AccountIndex::Pda as usize] =
         instruction.accounts[AccountIndex::User as usize].clone();
@@ -306,8 +384,7 @@ fn test_initialize_pda_duplicate(lang: ProgramLanguage) {
 
 fn test_initialize_pda_data_len(lang: ProgramLanguage) {
     let cu = Case::InitializePdaDataLen.get().for_lang(&lang);
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Initialize);
+    let (setup, instruction, mut accounts, _) = happy_path_setup(lang, Operation::Initialize);
 
     accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
 
@@ -325,8 +402,7 @@ fn test_initialize_pda_data_len(lang: ProgramLanguage) {
 
 fn test_initialize_system_program_duplicate(lang: ProgramLanguage) {
     let cu = Case::InitializeSystemProgramDuplicate.get().for_lang(&lang);
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Initialize);
+    let (setup, mut instruction, mut accounts, _) = happy_path_setup(lang, Operation::Initialize);
 
     instruction.accounts[AccountIndex::SystemProgram as usize] =
         instruction.accounts[AccountIndex::User as usize].clone();
@@ -346,8 +422,7 @@ fn test_initialize_system_program_duplicate(lang: ProgramLanguage) {
 
 fn test_initialize_system_program_data_len(lang: ProgramLanguage) {
     let cu = Case::InitializeSystemProgramDataLen.get().for_lang(&lang);
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Initialize);
+    let (setup, instruction, mut accounts, _) = happy_path_setup(lang, Operation::Initialize);
 
     accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
 
@@ -365,8 +440,7 @@ fn test_initialize_system_program_data_len(lang: ProgramLanguage) {
 
 fn test_initialize_pda_mismatch(lang: ProgramLanguage) {
     let cu = Case::InitializePdaMismatch.get().for_lang(&lang);
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(lang, Operation::Initialize);
+    let (setup, instruction, accounts, _) = happy_path_setup(lang, Operation::Initialize);
 
     test_pda_mismatch_chunks(&setup, instruction, accounts, cu, None);
 }
@@ -389,8 +463,7 @@ fn test_initialize_happy_path(lang: ProgramLanguage) {
 
 fn test_increment_pda_duplicate(lang: ProgramLanguage) {
     let cu = Case::IncrementPdaDuplicate.get().for_lang(&lang);
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Increment);
+    let (setup, mut instruction, mut accounts, _) = happy_path_setup(lang, Operation::Increment);
 
     instruction.accounts[AccountIndex::Pda as usize] =
         instruction.accounts[AccountIndex::User as usize].clone();
@@ -410,8 +483,7 @@ fn test_increment_pda_duplicate(lang: ProgramLanguage) {
 
 fn test_increment_pda_data_len(lang: ProgramLanguage) {
     let cu = Case::IncrementPdaDataLen.get().for_lang(&lang);
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Increment);
+    let (setup, instruction, mut accounts, _) = happy_path_setup(lang, Operation::Increment);
 
     accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
 
@@ -429,8 +501,7 @@ fn test_increment_pda_data_len(lang: ProgramLanguage) {
 
 fn test_increment_no_instruction_data(lang: ProgramLanguage) {
     let cu = Case::IncrementNoInstructionData.get().for_lang(&lang);
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(lang, Operation::Increment);
+    let (setup, instruction, accounts, _) = happy_path_setup(lang, Operation::Increment);
 
     setup.mollusk.process_and_validate_instruction(
         &instruction,
@@ -446,8 +517,7 @@ fn test_increment_no_instruction_data(lang: ProgramLanguage) {
 
 fn test_increment_unable_to_derive_pda(lang: ProgramLanguage) {
     let cu = Case::IncrementUnableToDerivePda.get().for_lang(&lang);
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(lang, Operation::Increment);
+    let (setup, mut instruction, mut accounts, _) = happy_path_setup(lang, Operation::Increment);
 
     instruction.data = 1u64.to_le_bytes().to_vec();
 
@@ -484,8 +554,7 @@ fn test_increment_unable_to_derive_pda(lang: ProgramLanguage) {
 
 fn test_increment_pda_mismatch(lang: ProgramLanguage) {
     let cu = Case::IncrementPdaMismatch.get().for_lang(&lang);
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(lang, Operation::Increment);
+    let (setup, instruction, accounts, _) = happy_path_setup(lang, Operation::Increment);
 
     test_pda_mismatch_chunks(
         &setup,
@@ -801,4 +870,9 @@ fn test_asm_increment_happy_path() {
 #[test]
 fn test_rs_increment_happy_path() {
     test_increment_happy_path(ProgramLanguage::Rust);
+}
+
+#[test]
+fn test_print_compute_units_tables() {
+    println!("\n{}", Case::markdown_tables());
 }
