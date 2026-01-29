@@ -2,9 +2,14 @@ use pinocchio::{
     address::address_eq,
     cpi::{Seed, Signer},
     entrypoint::{InstructionContext, MaybeAccount},
-    lazy_program_entrypoint, no_allocator, nostd_panic_handler, Address, ProgramResult,
+    lazy_program_entrypoint, no_allocator, nostd_panic_handler,
+    sysvars::{
+        rent::{Rent, ACCOUNT_STORAGE_OVERHEAD},
+        Sysvar,
+    },
+    Address, ProgramResult,
 };
-use pinocchio_system::create_account_with_minimum_balance_signed;
+use pinocchio_system::instructions::CreateAccount;
 
 lazy_program_entrypoint!(process_instruction);
 nostd_panic_handler!();
@@ -22,6 +27,7 @@ const N_ACCOUNTS_INCREMENT: u64 = 2;
 const N_ACCOUNTS_INITIALIZE: u64 = 3;
 const SYSTEM_PROGRAM_DATA_LEN: usize = b"system_program".len();
 
+#[repr(C, packed)]
 struct PdaAccountData {
     counter: u64,
     bump: u8,
@@ -77,15 +83,22 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             let bump_ref = &[bump];
             let seeds = [Seed::from(user.address().as_array()), Seed::from(bump_ref)];
 
+            // Calculate lamports from rent sysvar (matches assembly behavior).
+            // SAFETY: Rent is #[repr(C)] with lamports_per_byte as first field (u64).
+            let rent = Rent::get()?;
+            let lamports_per_byte = unsafe { *(&rent as *const Rent as *const u64) };
+            let lamports =
+                (size_of::<PdaAccountData>() as u64 + ACCOUNT_STORAGE_OVERHEAD) * lamports_per_byte;
+
             // Create PDA account.
-            create_account_with_minimum_balance_signed(
-                &pda,
-                size_of::<PdaAccountData>(),
-                program_id,
-                &user,
-                None,
-                &[Signer::from(&seeds)],
-            )?;
+            CreateAccount {
+                from: &user,
+                to: &pda,
+                lamports,
+                space: size_of::<PdaAccountData>() as u64,
+                owner: program_id,
+            }
+            .invoke_signed(&[Signer::from(&seeds)])?;
 
             // Write bump seed to PDA data.
             // SAFETY: PDA account was just created with sufficient space.
