@@ -5,12 +5,12 @@ use pinocchio::{
     entrypoint::{InstructionContext, MaybeAccount},
     instruction::{InstructionAccount, InstructionView},
     lazy_program_entrypoint, no_allocator, nostd_panic_handler,
-    sysvars::{
-        rent::{Rent, ACCOUNT_STORAGE_OVERHEAD},
-        Sysvar,
-    },
+    sysvars::rent::{Rent, ACCOUNT_STORAGE_OVERHEAD},
     Address, ProgramResult,
 };
+
+#[cfg(target_os = "solana")]
+use pinocchio::syscalls::sol_get_rent_sysvar;
 
 lazy_program_entrypoint!(process_instruction);
 nostd_panic_handler!();
@@ -89,11 +89,16 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
             }
 
-            // Calculate lamports from rent sysvar (matches assembly behavior).
-            // SAFETY: Rent sysvar has no return code.
-            let rent = Rent::get().unwrap();
-            // SAFETY: Rent is #[repr(C)] with lamports_per_byte as first field (u64).
-            let lamports_per_byte = unsafe { *(&rent as *const Rent as *const u64) };
+            // Calculate minimum balance for rent exemption.
+            let mut rent = core::mem::MaybeUninit::<Rent>::uninit();
+            // SAFETY: size is checked.
+            let lamports_per_byte = unsafe {
+                #[cfg(target_os = "solana")]
+                {
+                    sol_get_rent_sysvar(rent.as_mut_ptr() as *mut u8);
+                }
+                *(rent.as_ptr() as *const u64)
+            };
             let lamports =
                 (size_of::<PdaAccountData>() as u64 + ACCOUNT_STORAGE_OVERHEAD) * lamports_per_byte;
 

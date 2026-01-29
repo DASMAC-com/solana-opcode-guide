@@ -113,20 +113,20 @@ impl Case {
     const fn get(self) -> ComputeUnits {
         match self {
             // Initialize
-            Self::InitializeNoAccounts => ComputeUnits { asm: 5, rs: 6 },
-            Self::InitializeTooManyAccounts => ComputeUnits { asm: 5, rs: 6 },
-            Self::InitializeUserDataLen => ComputeUnits { asm: 7, rs: 10 },
-            Self::InitializePdaDuplicate => ComputeUnits { asm: 9, rs: 17 },
-            Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 20 },
-            Self::InitializeSystemProgramDuplicate => ComputeUnits { asm: 13, rs: 27 },
-            Self::InitializeSystemProgramDataLen => ComputeUnits { asm: 15, rs: 30 },
+            Self::InitializeNoAccounts => ComputeUnits { asm: 5, rs: 7 },
+            Self::InitializeTooManyAccounts => ComputeUnits { asm: 5, rs: 7 },
+            Self::InitializeUserDataLen => ComputeUnits { asm: 7, rs: 11 },
+            Self::InitializePdaDuplicate => ComputeUnits { asm: 9, rs: 18 },
+            Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 21 },
+            Self::InitializeSystemProgramDuplicate => ComputeUnits { asm: 13, rs: 28 },
+            Self::InitializeSystemProgramDataLen => ComputeUnits { asm: 15, rs: 31 },
             Self::InitializePdaMismatch => ComputeUnits {
                 asm: 1543,
-                rs: 1562,
+                rs: 1563,
             },
             Self::InitializeHappyPath => ComputeUnits {
                 asm: 2834,
-                rs: 2905,
+                rs: 2915,
             },
 
             // Increment
