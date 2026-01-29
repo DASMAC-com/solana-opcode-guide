@@ -110,10 +110,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                             InstructionAccount::writable_signer(user.address()),
                             InstructionAccount::writable_signer(pda.address()),
                         ],
-                        data: core::slice::from_raw_parts(
-                            (&instruction_data as *const CreateAccountInstructionData).cast(),
-                            size_of::<CreateAccountInstructionData>(),
-                        ),
+                        data: &*(&raw const instruction_data)
+                            .cast::<[u8; size_of::<CreateAccountInstructionData>()]>(),
                     },
                     &[(&user).into(), (&pda).into()],
                     &[Signer::from(&[user_pubkey_seed, Seed::from(&[bump])])],
