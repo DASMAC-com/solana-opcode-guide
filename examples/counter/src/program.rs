@@ -95,7 +95,12 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             let lamports_per_byte: u64 = unsafe {
                 #[cfg(target_os = "solana")]
                 sol_get_rent_sysvar(transmute::<_, *mut u8>(&rent));
-                transmute::<_, (u64, [u8; 8])>(rent).0
+                // `Rent` fields are private.
+                struct VisibleRentStruct {
+                    lamports_per_byte: u64,
+                    something_else: u64,
+                }
+                transmute::<_, VisibleRentStruct>(rent).lamports_per_byte
             };
             let lamports =
                 (size_of::<PdaAccountData>() as u64 + ACCOUNT_STORAGE_OVERHEAD) * lamports_per_byte;
