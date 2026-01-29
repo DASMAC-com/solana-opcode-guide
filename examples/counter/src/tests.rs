@@ -88,9 +88,8 @@ struct ComputeUnits {
     rs: u64,
 }
 
-#[derive(Clone, Copy)]
 enum Case {
-    // Initialize error cases (in execution order)
+    // Initialize error cases (in ASM execution order).
     InitializeNoAccounts,
     InitializeTooManyAccounts,
     InitializeUserDataLen,
@@ -101,7 +100,7 @@ enum Case {
     InitializePdaMismatch,
     InitializeHappyPath,
 
-    // Increment error cases (in execution order)
+    // Increment error cases (in ASM execution order).
     IncrementPdaDuplicate,
     IncrementPdaDataLen,
     IncrementNoInstructionData,
@@ -503,11 +502,11 @@ fn test_asm_initialize_pda_mismatch() {
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
     // Each chunk adds 3 CUs for the additional compare before exit.
-    const CHUNK_INCREMENT: [u64; 4] = [0, 3, 6, 9];
+    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
     let base_cu = Case::InitializePdaMismatch.get().asm;
 
     const FINAL_BIT: usize = size_of::<u64>() - 1;
-    for chunk in 0..size_of::<Pubkey>() / size_of::<u64>() {
+    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
         let mut instruction = instruction.clone();
         let mut accounts = accounts.clone();
 
@@ -524,7 +523,7 @@ fn test_asm_initialize_pda_mismatch() {
                 Check::err(ProgramError::Custom(
                     constants().get("E_PDA_MISMATCH") as u32
                 )),
-                Check::compute_units(base_cu + CHUNK_INCREMENT[chunk]),
+                Check::compute_units(base_cu + increment),
             ],
         );
     }
@@ -538,11 +537,11 @@ fn test_rs_initialize_pda_mismatch() {
         happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
 
     // RS impl has +4 on final chunk instead of +3.
-    const CHUNK_INCREMENT: [u64; 4] = [0, 3, 6, 10];
+    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 10];
     let base_cu = Case::InitializePdaMismatch.get().rs;
 
     const FINAL_BIT: usize = size_of::<u64>() - 1;
-    for chunk in 0..size_of::<Pubkey>() / size_of::<u64>() {
+    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
         let mut instruction = instruction.clone();
         let mut accounts = accounts.clone();
 
@@ -559,7 +558,7 @@ fn test_rs_initialize_pda_mismatch() {
                 Check::err(ProgramError::Custom(
                     constants().get("E_PDA_MISMATCH") as u32
                 )),
-                Check::compute_units(base_cu + CHUNK_INCREMENT[chunk]),
+                Check::compute_units(base_cu + increment),
             ],
         );
     }
@@ -704,11 +703,11 @@ fn test_asm_increment_pda_mismatch() {
         happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
 
     // Each chunk adds 3 CUs for the additional compare before exit.
-    const CHUNK_INCREMENT: [u64; 4] = [0, 3, 6, 9];
+    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
     let base_cu = Case::IncrementPdaMismatch.get().asm;
 
     const FINAL_BIT: usize = size_of::<u64>() - 1;
-    for chunk in 0..size_of::<Pubkey>() / size_of::<u64>() {
+    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
         let mut instruction = instruction.clone();
         let mut accounts = accounts.clone();
 
@@ -727,7 +726,7 @@ fn test_asm_increment_pda_mismatch() {
                 Check::err(ProgramError::Custom(
                     constants().get("E_PDA_MISMATCH") as u32
                 )),
-                Check::compute_units(base_cu + CHUNK_INCREMENT[chunk]),
+                Check::compute_units(base_cu + increment),
             ],
         );
     }
