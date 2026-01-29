@@ -581,6 +581,22 @@ fn test_asm_initialize_happy_path() {
 }
 
 #[test]
+fn test_rs_initialize_happy_path() {
+    let (setup, instruction, accounts, counter_account) =
+        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::success(),
+            counter_account.check(),
+            Check::compute_units(Case::InitializeHappyPath.get().rs),
+        ],
+    );
+}
+
+#[test]
 fn test_pad_masking() {
     let increment = 7;
     let mask_immediate = -8i32; // Assembly immediate.
