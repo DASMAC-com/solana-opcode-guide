@@ -636,6 +636,27 @@ fn test_asm_increment_pda_duplicate() {
 }
 
 #[test]
+fn test_rs_increment_pda_duplicate() {
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(ProgramLanguage::Rust, Operation::Increment);
+
+    instruction.accounts[AccountIndex::Pda as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DUPLICATE") as u32
+            )),
+            Check::compute_units(Case::IncrementPdaDuplicate.get().rs),
+        ],
+    );
+}
+
+#[test]
 fn test_asm_increment_pda_data_len() {
     let (setup, instruction, mut accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);

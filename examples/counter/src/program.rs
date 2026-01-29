@@ -24,6 +24,7 @@ const E_SYSTEM_PROGRAM_DATA_LEN: u32 = 4;
 const E_PDA_DUPLICATE: u32 = 5;
 const E_SYSTEM_PROGRAM_DUPLICATE: u32 = 6;
 const E_PDA_MISMATCH: u32 = 8;
+const E_INVALID_INSTRUCTION_DATA_LEN: u32 = 9;
 
 const N_ACCOUNTS_INCREMENT: u64 = 2;
 const N_ACCOUNTS_INITIALIZE: u64 = 3;
@@ -45,7 +46,27 @@ struct CreateAccountInstructionData {
 
 pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     match context.remaining() {
-        N_ACCOUNTS_INCREMENT => {}
+        N_ACCOUNTS_INCREMENT => {
+            // SAFETY: number of accounts has been checked.
+            let user = unsafe { context.next_account_unchecked().assume_account() };
+            // SAFETY: number of accounts has been checked.
+            let pda = match unsafe { context.next_account_unchecked() } {
+                MaybeAccount::Account(account) => account,
+                MaybeAccount::Duplicated(_) => {
+                    return Err(pinocchio::error::ProgramError::Custom(E_PDA_DUPLICATE))
+                }
+            };
+            if pda.data_len() != size_of::<PdaAccountData>() {
+                return Err(pinocchio::error::ProgramError::Custom(E_PDA_DATA_LEN));
+            }
+            // SAFETY: All accounts have been consumed.
+            let instruction_data = unsafe { context.instruction_data_unchecked() };
+            if instruction_data.len() != size_of::<u64>() {
+                return Err(pinocchio::error::ProgramError::Custom(
+                    E_INVALID_INSTRUCTION_DATA_LEN,
+                ));
+            }
+        }
         N_ACCOUNTS_INITIALIZE => {
             // SAFETY: number of accounts has been checked.
             let user = unsafe { context.next_account_unchecked().assume_account() };
