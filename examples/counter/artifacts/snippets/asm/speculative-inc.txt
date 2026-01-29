@@ -1,0 +1,11 @@
+    # Process counter increment instruction.
+    # ---------------------------------------------------------------------
+    # This is done speculatively, before PDA bump seeds are verified, to
+    # minimize number of pointer copies during happy path. If this were
+    # done after signer seed verification, the pointer to the input buffer
+    # offset by user data length would need to be copied.
+    # ---------------------------------------------------------------------
+    ldxdw r8, [r9 + COUNTER_INCREMENT_OFF] # Get increment amount.
+    ldxdw r7, [r9 + PDA_COUNTER_OFF] # Get current PDA counter value.
+    add64 r7, r8 # Wrapping increment counter value by instruction amount.
+    stxdw [r9 + PDA_COUNTER_OFF], r7 # Store value in PDA account.

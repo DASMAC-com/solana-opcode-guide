@@ -1,0 +1,93 @@
+    # Populate SolInstruction on stack.
+    # ---------------------------------
+    mov64 r3, r10 # Get stack frame pointer for stepping through stack.
+    # Update to point to zero-initialized System Program pubkey on stack.
+    sub64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_OFF
+    stxdw [r10 - STK_INIT_INSN_OFF], r3 # Store as CPI program ID.
+    # Advance to point to account metas.
+    add64 r3, STK_INIT_SYSTEM_PROGRAM_PUBKEY_TO_ACCOUNT_METAS_OFF
+    # Store pointer to account metas as CPI account metas address.
+    stxdw [r10 - STK_INIT_INSN_ACCOUNTS_ADDR_OFF], r3
+    # Store number of CPI accounts (fits in 32-bit immediate).
+    stdw [r10 - STK_INIT_INSN_ACCOUNTS_LEN_OFF], INIT_CPI_N_ACCOUNTS
+    # Advance to point to instruction data.
+    add64 r3, STK_INIT_ACCOUNT_METAS_TO_INSN_DATA_OFF
+    stxdw [r10 - STK_INIT_INSN_DATA_ADDR_OFF], r3 # Store CPI data address.
+    # Store instruction data length (fits in 32-bit immediate).
+    stdw [r10 - STK_INIT_INSN_DATA_LEN_OFF], INIT_CPI_INSN_DATA_LEN
+
+    # Populate CreateAccount instruction data on stack.
+    # ---------------------------------------------------------------------
+    # - Discriminator is already set to 0 since stack is zero initialized.
+    # - Lamports field was already set in the minimum balance calculation.
+    # ---------------------------------------------------------------------
+    # Store the data length of the account to create (fits in 32 bits).
+    stdw [r10 - STK_INIT_INSN_DATA_SPACE_OFF], INIT_CPI_ACCT_SIZE
+    mov64 r1, r10 # Get pointer to stack frame.
+    sub64 r1, STK_INIT_INSN_DATA_OWNER_OFF # Point to new owner field.
+    mov64 r2, r9 # Get input buffer pointer.
+    add64 r2, PROGRAM_ID_INIT_OFF # Point to program ID.
+    # Copy the pubkey value in 64-bit chunks, which is less CUs than:
+    # ```
+    # mov64 r3, SIZE_OF_PUBKEY # Set length of bytes to copy.
+    # call sol_memcpy_ # Copy program ID into CreateAccount owner field.
+    # ```
+    ldxdw r3, [r2 + 0]
+    stxdw [r1 + 0], r3
+    ldxdw r3, [r2 + SIZE_OF_U64]
+    stxdw [r1 + SIZE_OF_U64], r3
+    ldxdw r3, [r2 + SIZE_OF_U64_2X]
+    stxdw [r1 + SIZE_OF_U64_2X], r3
+    ldxdw r3, [r2 + SIZE_OF_U64_3X]
+    stxdw [r1 + SIZE_OF_U64_3X], r3
+
+    # Flag user and PDA accounts as CPI writable signers.
+    # ---------------------------------------------------
+    sth [r10 - STK_INIT_ACCT_META_USER_IS_WRITABLE_OFF], BOOL_TRUE_2X
+    sth [r10 - STK_INIT_ACCT_META_PDA_IS_WRITABLE_OFF], BOOL_TRUE_2X
+    sth [r10 - STK_INIT_ACCT_INFO_USER_IS_SIGNER_OFF], BOOL_TRUE_2X
+    sth [r10 - STK_INIT_ACCT_INFO_PDA_IS_SIGNER_OFF], BOOL_TRUE_2X
+    # Optimize out 4 CUs by omitting the following assignments, which are
+    # covered by the double wide boolean true assign since is_signer
+    # follows is_writable in SolAccountMeta, and is_writable follows
+    # is_signer in SolAccountInfo.
+    # ```
+    # stb [r10 - STK_INIT_ACCT_META_USER_IS_SIGNER_OFF], BOOL_TRUE
+    # stb [r10 - STK_INIT_ACCT_META_PDA_IS_SIGNER_OFF], BOOL_TRUE
+    # stb [r10 - STK_INIT_ACCT_INFO_USER_IS_WRITABLE_OFF], BOOL_TRUE
+    # stb [r10 - STK_INIT_ACCT_INFO_PDA_IS_WRITABLE_OFF], BOOL_TRUE
+    # ```
+
+    # Walk through remaining pointer fields for account metas and infos.
+    # ---------------------------------------------------------------------
+    # - Rent epoch is ignored since is not needed.
+    # - Data length and executable status are ignored since both values are
+    #   zero and the stack is zero-initialized.
+    # - PDA pubkey is ignored since it was set above as an optimization
+    #   during the PDA compare operation.
+    # ---------------------------------------------------------------------
+    mov64 r2, r9 # Get input buffer pointer.
+    add64 r2, USER_PUBKEY_OFF # Update to point at user pubkey.
+    # Store in account meta and account info.
+    stxdw [r10 - STK_INIT_ACCT_META_USER_PUBKEY_ADDR_OFF], r2
+    stxdw [r10 - STK_INIT_ACCT_INFO_USER_KEY_ADDR_OFF], r2
+    add64 r2, SIZE_OF_PUBKEY # Advance to point at user owner.
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_USER_OWNER_ADDR_OFF], r2
+    add64 r2, SIZE_OF_PUBKEY # Advance to point at user Lamports.
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_USER_LAMPORTS_ADDR_OFF], r2
+    add64 r2, SIZE_OF_U64_2X # Advance to point to user account data.
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_USER_DATA_ADDR_OFF], r2
+    # Advance to point to PDA owner. Note that this must be used instead of
+    # the System Program pubkey on the stack or the CPI will fail.
+    add64 r2, USER_DATA_TO_PDA_OWNER_OFF
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_OWNER_ADDR_OFF], r2
+    # Advance to point to PDA Lamports.
+    add64 r2, SIZE_OF_PUBKEY
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_LAMPORTS_ADDR_OFF], r2
+    add64 r2, SIZE_OF_U64_2X # Advance to point to PDA account data.
+    # Store in account info.
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_DATA_ADDR_OFF], r2

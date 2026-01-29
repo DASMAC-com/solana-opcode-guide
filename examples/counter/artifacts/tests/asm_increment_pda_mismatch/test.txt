@@ -1,0 +1,36 @@
+#[test]
+fn test_asm_increment_pda_mismatch() {
+    // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
+    // Use a single setup for all chunks to ensure deterministic CU costs.
+    let (setup, instruction, accounts, _) =
+        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
+
+    // Each chunk adds 3 CUs for the additional compare before exit.
+    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
+    let base_cu = Case::IncrementPdaMismatch.get().asm;
+
+    const FINAL_BIT: usize = size_of::<u64>() - 1;
+    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
+        let mut instruction = instruction.clone();
+        let mut accounts = accounts.clone();
+
+        instruction.data = 1u64.to_le_bytes().to_vec();
+
+        // Flip the last bit of the chunk to create a mismatch.
+        let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
+        accounts[AccountIndex::Pda as usize].0.as_mut()[flip_index] ^= 1;
+        instruction.accounts[AccountIndex::Pda as usize].pubkey =
+            accounts[AccountIndex::Pda as usize].0;
+
+        setup.mollusk.process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[
+                Check::err(ProgramError::Custom(
+                    constants().get("E_PDA_MISMATCH") as u32
+                )),
+                Check::compute_units(base_cu + increment),
+            ],
+        );
+    }
+}

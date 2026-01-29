@@ -1,11 +1,13 @@
 [dependencies]
 cargo-manifest.workspace = true
 pinocchio.workspace = true
+pinocchio-system.workspace = true
 regex.workspace = true
 
 [dev-dependencies]
 fib-rs.workspace = true
 mollusk-svm.workspace = true
+solana-rent.workspace = true
 solana-sdk.workspace = true
 
 [lints]

@@ -1,0 +1,20 @@
+[dependencies]
+pinocchio.workspace = true
+pinocchio-system.workspace = true
+
+[dev-dependencies]
+mollusk-svm.workspace = true
+solana-rent.workspace = true
+solana-sdk.workspace = true
+test-utils.path = "../utils/test-utils"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[lints]
+workspace = true
+
+[package]
+edition = "2021"
+name = "counter"
+version = "0.1.0"

@@ -77,7 +77,7 @@
 .equ DATA_LENGTH_ZERO, 0
 .equ PUBKEY_SIZE_OF, 32
 .equ U8_SIZE_OF, 8
-.equ U16_SIZE_OF, 16
+.equ U128_SIZE_OF, 16
 .equ BOOL_TRUE, 1
 .equ BOOL_FALSE, 0
 
@@ -230,7 +230,7 @@ entrypoint:
     stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_OFFSET], r4
     add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
     stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_OFFSET], r4
-    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
+    add64 r4, U128_SIZE_OF # Step over data length, to account data pointer.
     stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_OFFSET], r4
 
     # Repeat for recipient account, but start by stepping through pointer
@@ -259,7 +259,7 @@ entrypoint:
     stxdw [r3 + CPI_ACCT_INFO_OWNER_ADDR_RECIPIENT_OFFSET], r4
     add64 r4, PUBKEY_SIZE_OF # Step to Lamports balance pointer.
     stxdw [r3 + CPI_ACCT_INFO_LAMPORTS_ADDR_RECIPIENT_OFFSET], r4
-    add64 r4, U16_SIZE_OF # Step over data length, to account data pointer.
+    add64 r4, U128_SIZE_OF # Step over data length, to account data pointer.
     stxdw [r3 + CPI_ACCT_INFO_DATA_ADDR_RECIPIENT_OFFSET], r4
 
     # Copy individual fields, optimizing out 5 CUs by simply omitting the

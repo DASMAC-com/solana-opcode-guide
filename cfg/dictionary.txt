@@ -5,6 +5,7 @@ dasmac
 ebpf
 fuelpump
 globl
+immediates
 insn
 keypair
 lamport
@@ -12,10 +13,15 @@ lamports
 lddw
 ldxb
 ldxdw
+ldxw
 mathjax
+memcmp
+memcpy
 metas
 nonoverlapping
 nostd
+pda
+pdas
 repr
 rodata
 rustfilt
@@ -28,6 +34,9 @@ stxdw
 stxw
 syscall
 syscalls
+sysvar
+sysvars
 uninit
 usize
 vitepress
+xffff

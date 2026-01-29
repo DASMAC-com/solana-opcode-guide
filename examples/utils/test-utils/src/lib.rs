@@ -4,6 +4,7 @@ use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::{read_keypair_file, Keypair};
 use solana_sdk::signer::Signer;
+use std::path::PathBuf;
 
 pub enum ProgramLanguage {
     Assembly,
@@ -14,6 +15,7 @@ pub struct TestSetup {
     pub keypair: Keypair,
     pub program_id: Pubkey,
     pub mollusk: Mollusk,
+    pub asm_source_path: Option<PathBuf>,
 }
 
 /// Sets up a test environment for the given program language.
@@ -47,10 +49,21 @@ pub fn setup_test(implementation: ProgramLanguage) -> TestSetup {
 
     let mollusk = Mollusk::new(&program_id, &program_path);
 
+    // Check for assembly source file at src/{package_name}/{package_name}.s
+    let asm_source_path = {
+        let path = PathBuf::from(format!("src/{}/{}.s", package_name, package_name));
+        if path.exists() {
+            Some(path)
+        } else {
+            None
+        }
+    };
+
     TestSetup {
         keypair,
         program_id,
         mollusk,
+        asm_source_path,
     }
 }
 
