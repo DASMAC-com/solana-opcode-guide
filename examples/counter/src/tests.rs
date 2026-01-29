@@ -132,18 +132,18 @@ impl Case {
             // Increment
             Self::IncrementPdaDuplicate => ComputeUnits { asm: 10, rs: 16 },
             Self::IncrementPdaDataLen => ComputeUnits { asm: 12, rs: 19 },
-            Self::IncrementNoInstructionData => ComputeUnits { asm: 14, rs: 30 },
+            Self::IncrementNoInstructionData => ComputeUnits { asm: 14, rs: 26 },
             Self::IncrementUnableToDerivePda => ComputeUnits {
                 asm: 1535,
-                rs: 1563,
+                rs: 1558,
             },
             Self::IncrementPdaMismatch => ComputeUnits {
                 asm: 1540,
-                rs: 1570,
+                rs: 1565,
             },
             Self::IncrementHappyPath => ComputeUnits {
                 asm: 1548,
-                rs: 1565,
+                rs: 1575,
             },
         }
     }
