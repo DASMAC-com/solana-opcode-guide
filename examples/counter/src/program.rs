@@ -1,4 +1,4 @@
-use core::mem::transmute;
+use core::mem::{size_of, transmute, MaybeUninit};
 use pinocchio::{
     address::address_eq,
     cpi::{invoke_signed_unchecked, Seed, Signer},
@@ -10,7 +10,7 @@ use pinocchio::{
 };
 
 #[cfg(target_os = "solana")]
-use pinocchio::syscalls::sol_get_rent_sysvar;
+use pinocchio::{syscalls::sol_get_rent_sysvar, sysvars::rent};
 
 lazy_program_entrypoint!(process_instruction);
 nostd_panic_handler!();
@@ -90,14 +90,12 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             }
 
             // Calculate minimum balance for rent exemption.
-            let mut rent = core::mem::MaybeUninit::<Rent>::uninit();
-            // SAFETY: size is checked.
-            let lamports_per_byte = unsafe {
+            // SAFETY: Rent is #[repr(C)] with lamports_per_byte (u64) as first field.
+            let mut rent = MaybeUninit::<Rent>::uninit();
+            let lamports_per_byte: u64 = unsafe {
                 #[cfg(target_os = "solana")]
-                {
-                    sol_get_rent_sysvar(rent.as_mut_ptr() as *mut u8);
-                }
-                *(rent.as_ptr() as *const u64)
+                sol_get_rent_sysvar(transmute::<_, *mut u8>(&rent));
+                transmute::<_, (u64, [u8; 8])>(rent).0
             };
             let lamports =
                 (size_of::<PdaAccountData>() as u64 + ACCOUNT_STORAGE_OVERHEAD) * lamports_per_byte;

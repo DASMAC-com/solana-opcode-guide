@@ -113,8 +113,8 @@ impl Case {
     const fn get(self) -> ComputeUnits {
         match self {
             // Initialize
-            Self::InitializeNoAccounts => ComputeUnits { asm: 5, rs: 7 },
-            Self::InitializeTooManyAccounts => ComputeUnits { asm: 5, rs: 7 },
+            Self::InitializeNoAccounts => ComputeUnits { asm: 5, rs: 6 },
+            Self::InitializeTooManyAccounts => ComputeUnits { asm: 5, rs: 6 },
             Self::InitializeUserDataLen => ComputeUnits { asm: 7, rs: 11 },
             Self::InitializePdaDuplicate => ComputeUnits { asm: 9, rs: 18 },
             Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 21 },
@@ -126,7 +126,7 @@ impl Case {
             },
             Self::InitializeHappyPath => ComputeUnits {
                 asm: 2834,
-                rs: 2915,
+                rs: 2914,
             },
 
             // Increment
