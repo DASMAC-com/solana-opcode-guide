@@ -39,12 +39,14 @@ fn err<T>(code: u32) -> Result<T, pinocchio::error::ProgramError> {
 /// SAFETY: Caller must ensure address points to valid memory of correct size.
 #[inline(always)]
 unsafe fn user_seed(address: &Address) -> Seed<'_> {
+    #[allow(clippy::missing_transmute_annotations)]
     Seed::from(transmute::<_, &[u8; size_of::<Address>()]>(address))
 }
 
 /// SAFETY: Caller must ensure data_ptr points to valid PdaAccountData.
 #[inline(always)]
 unsafe fn pda_data(data_ptr: *mut u8) -> &'static mut PdaAccountData {
+    #[allow(clippy::transmute_ptr_to_ref)]
     transmute(data_ptr)
 }
 
@@ -157,6 +159,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 instruction_tag: 0,
                 lamports,
                 space: size_of::<PdaAccountData>() as u64,
+                // Clippy suggests a dereference, which breaks compilation.
+                #[allow(clippy::clone_on_copy)]
                 owner: program_id.clone(),
             };
             // SAFETY: Sizes have been validated a priori.
@@ -168,6 +172,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                             InstructionAccount::writable_signer(user.address()),
                             InstructionAccount::writable_signer(pda.address()),
                         ],
+                        #[allow(clippy::missing_transmute_annotations)]
                         data: transmute::<_, &[u8; size_of::<CreateAccountInstructionData>()]>(
                             &instruction_data,
                         ),
