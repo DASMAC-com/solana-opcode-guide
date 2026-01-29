@@ -111,7 +111,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                             InstructionAccount::writable_signer(pda.address()),
                         ],
                         data: core::slice::from_raw_parts(
-                            &instruction_data as *const _ as *const u8,
+                            (&instruction_data as *const CreateAccountInstructionData).cast(),
                             size_of::<CreateAccountInstructionData>(),
                         ),
                     },
