@@ -49,6 +49,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
         N_ACCOUNTS_INCREMENT => {
             // SAFETY: number of accounts has been checked.
             let user = unsafe { context.next_account_unchecked().assume_account() };
+
             // SAFETY: number of accounts has been checked.
             let pda = match unsafe { context.next_account_unchecked() } {
                 MaybeAccount::Account(account) => account,
@@ -59,6 +60,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             if pda.data_len() != size_of::<PdaAccountData>() {
                 return Err(pinocchio::error::ProgramError::Custom(E_PDA_DATA_LEN));
             }
+
             // SAFETY: All accounts have been consumed.
             let instruction_data = unsafe { context.instruction_data_unchecked() };
             if instruction_data.len() != size_of::<u64>() {
@@ -66,6 +68,11 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                     E_INVALID_INSTRUCTION_DATA_LEN,
                 ));
             }
+
+            // SAFETY: PDA account size has been validated.
+            unsafe { transmute::<_, &mut PdaAccountData>(pda.data_ptr()) }
+                .counter
+                .wrapping_add(45);
         }
         N_ACCOUNTS_INITIALIZE => {
             // SAFETY: number of accounts has been checked.
