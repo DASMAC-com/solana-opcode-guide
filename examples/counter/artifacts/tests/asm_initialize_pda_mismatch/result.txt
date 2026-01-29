@@ -1,20 +1,28 @@
 test tests::test_asm_initialize_pda_mismatch ... ok
-warning: struct `StackFrameInc` is never constructed
-   --> counter/src/constants.rs:103:12
-    |
-103 |     struct StackFrameInc {
-    |            ^^^^^^^^^^^^^
-    |
-    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
-warning: variant `Increment` is never constructed
-  --> counter/src/tests.rs:40:5
+warning: unused import: `invoke_signed`
+ --> counter/src/program.rs:3:11
+  |
+3 |     cpi::{invoke_signed, Seed},
+  |           ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+warning: unused variable: `bump_seed`
+  --> counter/src/program.rs:69:17
    |
-38 | enum Operation {
-   |      --------- variant in this enum
-39 |     Initialize,
-40 |     Increment,
-   |     ^^^^^^^^^
-warning: `counter` (lib test) generated 2 warnings
+69 |             let bump_seed = Seed::from(&[bump_seed]);
+   |                 ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_bump_seed`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+warning: `counter` (lib test) generated 2 warnings (run `cargo fix --lib -p counter --tests` to apply 1 suggestion)
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 1556 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 1543 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1546 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1549 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1552 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8

@@ -8,8 +8,11 @@ fn test_asm_initialize_pda_data_len() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_PDA_DATA_LEN") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DATA_LEN") as u32
+            )),
+            Check::compute_units(Case::InitializePdaDataLen.get().asm),
+        ],
     );
 }

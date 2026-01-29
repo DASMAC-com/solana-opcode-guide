@@ -10,8 +10,11 @@ fn test_asm_initialize_system_program_duplicate() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
+            )),
+            Check::compute_units(Case::InitializeSystemProgramDuplicate.get().asm),
+        ],
     );
 }

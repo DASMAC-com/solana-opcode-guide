@@ -9,8 +9,9 @@ fn test_asm_no_accounts() {
     setup.mollusk.process_and_validate_instruction(
         &instruction,
         &accounts,
-        &[Check::err(ProgramError::Custom(
-            constants().get("E_N_ACCOUNTS") as u32,
-        ))],
+        &[
+            Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
+            Check::compute_units(Case::InitializeNoAccounts.get().asm),
+        ],
     );
 }

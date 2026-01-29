@@ -35,7 +35,8 @@
     # ---------------------------------------------------------------------
     mov64 r1, r6 # Get pointer to passed PDA pubkey, set above.
     mov64 r2, r4 # Get pointer to computed PDA.
-    # Compare pubkey values in 64-bit chunks (same optimization as init):
+    # Compare pubkey values in 64-bit chunks (same optimization as in the
+    # initialize operation):
     ldxdw r3, [r1 + 0]
     ldxdw r4, [r2 + 0]
     jne r3, r4, e_pda_mismatch

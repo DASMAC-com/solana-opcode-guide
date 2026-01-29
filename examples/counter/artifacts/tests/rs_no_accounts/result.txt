@@ -1,0 +1,19 @@
+test tests::test_rs_no_accounts ... ok
+warning: unused import: `invoke_signed`
+ --> counter/src/program.rs:3:11
+  |
+3 |     cpi::{invoke_signed, Seed},
+  |           ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+warning: unused variable: `bump_seed`
+  --> counter/src/program.rs:69:17
+   |
+69 |             let bump_seed = Seed::from(&[bump_seed]);
+   |                 ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_bump_seed`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+warning: `counter` (lib test) generated 2 warnings (run `cargo fix --lib -p counter --tests` to apply 1 suggestion)
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 8 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
