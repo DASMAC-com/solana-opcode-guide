@@ -23,6 +23,7 @@ const E_PDA_DATA_LEN: u32 = 3;
 const E_SYSTEM_PROGRAM_DATA_LEN: u32 = 4;
 const E_PDA_DUPLICATE: u32 = 5;
 const E_SYSTEM_PROGRAM_DUPLICATE: u32 = 6;
+const E_UNABLE_TO_DERIVE_PDA: u32 = 7;
 const E_PDA_MISMATCH: u32 = 8;
 const E_INVALID_INSTRUCTION_DATA_LEN: u32 = 9;
 
@@ -70,9 +71,30 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             }
 
             // SAFETY: PDA account size has been validated.
-            unsafe { transmute::<_, &mut PdaAccountData>(pda.data_ptr()) }
-                .counter
-                .wrapping_add(45);
+            let pda_data: &mut PdaAccountData = unsafe { transmute(pda.data_ptr()) };
+            // SAFETY: instruction data size has been validated.
+            pda_data.counter =
+                unsafe { pda_data.counter.wrapping_add(transmute(&instruction_data)) };
+
+            // Prepare PDA seeds, check address.
+            // SAFETY: accounts and instruction data have been read.
+            let program_id = unsafe { context.program_id_unchecked() };
+            let user_pubkey_seed =
+                unsafe { Seed::from(transmute::<_, &[u8; size_of::<Address>()]>(user.address())) };
+            let expected_pda = match Address::create_program_address(
+                &[&user_pubkey_seed, &[pda_data.bump]],
+                program_id,
+            ) {
+                Ok(pda) => pda,
+                Err(_) => {
+                    return Err(pinocchio::error::ProgramError::Custom(
+                        E_UNABLE_TO_DERIVE_PDA,
+                    ))
+                }
+            };
+            if !address_eq(pda.address(), &expected_pda) {
+                return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
+            }
         }
         N_ACCOUNTS_INITIALIZE => {
             // SAFETY: number of accounts has been checked.
@@ -129,7 +151,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             let lamports_per_byte: u64 = unsafe {
                 #[allow(deprecated)]
                 #[cfg(target_os = "solana")]
-                sol_get_rent_sysvar(transmute::<_, _>(&rent));
+                sol_get_rent_sysvar(transmute(&rent));
                 rent.assume_init().lamports_per_byte
             };
             let lamports =
