@@ -81,7 +81,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             }
 
             // Calculate lamports from rent sysvar (matches assembly behavior).
-            let rent = Rent::get()?;
+            // SAFETY: Rent sysvar has no return code.
+            let rent = Rent::get().unwrap();
             // SAFETY: Rent is #[repr(C)] with lamports_per_byte as first field (u64).
             let lamports_per_byte = unsafe { *(&rent as *const Rent as *const u64) };
             let lamports =
