@@ -34,6 +34,14 @@ struct PdaAccountData {
     bump: u8,
 }
 
+#[repr(C, packed)]
+struct CreateAccountInstructionData {
+    instruction_tag: u32,
+    lamports: u64,
+    space: u64,
+    owner: Address,
+}
+
 pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     match context.remaining() {
         N_ACCOUNTS_INCREMENT => {}
@@ -89,34 +97,12 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             let lamports =
                 (size_of::<PdaAccountData>() as u64 + ACCOUNT_STORAGE_OVERHEAD) * lamports_per_byte;
 
-            const IXN_BYTES: usize = 52; // for CreateAccount
-            let data = unsafe {
-                let mut instruction_data: [MaybeUninit<u8>; IXN_BYTES] =
-                    [MaybeUninit::uninit(); IXN_BYTES];
-                core::ptr::copy_nonoverlapping(
-                    [0u8; 4].as_ptr(),
-                    instruction_data.as_mut_ptr() as *mut u8,
-                    4,
-                );
-                core::ptr::copy_nonoverlapping(
-                    lamports.to_le_bytes().as_ptr(),
-                    (instruction_data.as_mut_ptr() as *mut u8).add(4),
-                    8,
-                );
-                core::ptr::copy_nonoverlapping(
-                    size_of::<PdaAccountData>().to_le_bytes().as_ptr(),
-                    (instruction_data.as_mut_ptr() as *mut u8).add(12),
-                    8,
-                );
-                core::ptr::copy_nonoverlapping(
-                    program_id.as_array().as_ptr(),
-                    (instruction_data.as_mut_ptr() as *mut u8).add(20),
-                    32,
-                );
-
-                &{ *(instruction_data.as_ptr() as *const [u8; IXN_BYTES]) }
+            let instruction_data = CreateAccountInstructionData {
+                instruction_tag: 0,
+                lamports,
+                space: size_of::<PdaAccountData>() as u64,
+                owner: program_id.clone(),
             };
-
             unsafe {
                 invoke_signed_unchecked(
                     &InstructionView {
@@ -125,7 +111,10 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                             InstructionAccount::writable_signer(user.address()),
                             InstructionAccount::writable_signer(pda.address()),
                         ],
-                        data,
+                        data: core::slice::from_raw_parts(
+                            &instruction_data as *const _ as *const u8,
+                            size_of::<CreateAccountInstructionData>(),
+                        ),
                     },
                     &[(&user).into(), (&pda).into()],
                     &[Signer::from(&[user_pubkey_seed, Seed::from(&[bump])])],
