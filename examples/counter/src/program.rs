@@ -91,16 +91,16 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
 
             // Calculate minimum balance for rent exemption.
             // SAFETY: Rent is #[repr(C)] with lamports_per_byte (u64) as first field.
-            let mut rent = MaybeUninit::<Rent>::uninit();
+            // `Rent` fields are private.
+            struct VisibleRentStruct {
+                lamports_per_byte: u64,
+                something_else: u64,
+            }
+            let mut rent = MaybeUninit::<VisibleRentStruct>::uninit();
             let lamports_per_byte: u64 = unsafe {
                 #[cfg(target_os = "solana")]
-                sol_get_rent_sysvar(transmute::<_, *mut u8>(&rent));
-                // `Rent` fields are private.
-                struct VisibleRentStruct {
-                    lamports_per_byte: u64,
-                    something_else: u64,
-                }
-                transmute::<_, VisibleRentStruct>(rent).lamports_per_byte
+                sol_get_rent_sysvar(transmute::<_, _>(&rent));
+                rent.assume_init().lamports_per_byte
             };
             let lamports =
                 (size_of::<PdaAccountData>() as u64 + ACCOUNT_STORAGE_OVERHEAD) * lamports_per_byte;
