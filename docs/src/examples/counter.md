@@ -275,6 +275,20 @@ This operation relies on the following [stack](transfer#transfer-cpi) layout:
 | 16           | [`SolSignerSeed`] for bump seed                  |
 | 32           | [PDA] from [`sol_create_program_address`] (`r4`) |
 
+## Rust implementation
+
+The Rust implementation relies on [`lazy_program_entrypoint`] to minimize
+parsing overhead, with liberal use of [`transmute`] for pointer conversion
+parity with the assembly implementation:
+
+:::details Full program
+
+<<< ../../../examples/counter/src/program.rs
+
+:::
+
+[`transmute`]: https://doc.rust-lang.org/std/mem/fn.transmute.html
+[`lazy_program_entrypoint`]: https://docs.rs/pinocchio/0.10.1/pinocchio/macro.lazy_program_entrypoint.html
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
