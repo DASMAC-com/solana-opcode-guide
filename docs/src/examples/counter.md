@@ -287,8 +287,14 @@ parity with the assembly implementation:
 
 :::
 
-[`transmute`]: https://doc.rust-lang.org/std/mem/fn.transmute.html
-[`lazy_program_entrypoint`]: https://docs.rs/pinocchio/0.10.1/pinocchio/macro.lazy_program_entrypoint.html
+## Compute unit analysis
+
+<!-- markdownlint-disable MD013 -->
+
+<!-- @include: ../../../examples/counter/artifacts/tests/print_compute_units_tables/result.txt{1,20} -->
+
+<!-- markdownlint-enable MD013 -->
+
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
@@ -320,6 +326,7 @@ parity with the assembly implementation:
 [`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
 [`i32` immediates]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/doc/bytecode.md#instruction-layout
 [`i32` interpretation]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/ebpf.rs#L682
+[`lazy_program_entrypoint`]: https://docs.rs/pinocchio/0.10.1/pinocchio/macro.lazy_program_entrypoint.html
 [`max_permitted_data_length`]: https://docs.rs/solana-system-interface/3.0.0/solana_system_interface/constant.MAX_PERMITTED_DATA_LENGTH.html
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
@@ -335,4 +342,5 @@ parity with the assembly implementation:
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
+[`transmute`]: https://doc.rust-lang.org/std/mem/fn.transmute.html
 [`update_callee_account`]: https://github.com/anza-xyz/agave/blob/v3.1.7/program-runtime/src/cpi.rs#L1145-L1215
