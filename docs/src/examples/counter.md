@@ -289,6 +289,9 @@ parity with the assembly implementation:
 
 ## Compute unit analysis
 
+Like in the [transfer example](transfer#compute-unit-analysis), the
+[`CreateAccount`] CPI consumes a base cost of `1096` CUs.
+
 <!-- markdownlint-disable MD013 -->
 
 <!-- @include: ../../../examples/counter/artifacts/tests/print_compute_units_tables/result.txt{1,20} -->
