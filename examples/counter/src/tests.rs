@@ -126,7 +126,7 @@ impl Case {
             },
             Self::InitializeHappyPath => ComputeUnits {
                 asm: 2834,
-                rs: 3047,
+                rs: 3046,
             },
 
             // Increment
