@@ -103,6 +103,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 space: size_of::<PdaAccountData>() as u64,
                 owner: program_id.clone(),
             };
+            // SAFETY: Sizes have been validated a priori.
             unsafe {
                 invoke_signed_unchecked(
                     &InstructionView {
