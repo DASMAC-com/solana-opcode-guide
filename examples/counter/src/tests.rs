@@ -109,6 +109,15 @@ enum Case {
     IncrementHappyPath,
 }
 
+impl ComputeUnits {
+    fn for_lang(&self, lang: &ProgramLanguage) -> u64 {
+        match lang {
+            ProgramLanguage::Assembly => self.asm,
+            ProgramLanguage::Rust => self.rs,
+        }
+    }
+}
+
 impl Case {
     const fn get(self) -> ComputeUnits {
         match self {
@@ -214,10 +223,10 @@ fn happy_path_setup(
     (setup, instruction, accounts, counter_account)
 }
 
-#[test]
-fn test_asm_no_accounts() {
-    let (setup, mut instruction, mut accounts, _bump_seed) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+fn test_no_accounts(lang: ProgramLanguage) {
+    let cu = Case::InitializeNoAccounts.get().for_lang(&lang);
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Initialize);
 
     instruction.accounts.clear();
     accounts.clear();
@@ -227,15 +236,15 @@ fn test_asm_no_accounts() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
-            Check::compute_units(Case::InitializeNoAccounts.get().asm),
+            Check::compute_units(cu),
         ],
     );
 }
 
-#[test]
-fn test_asm_too_many_accounts() {
+fn test_too_many_accounts(lang: ProgramLanguage) {
+    let cu = Case::InitializeTooManyAccounts.get().for_lang(&lang);
     let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
+        happy_path_setup(lang, Operation::Initialize);
 
     instruction
         .accounts
@@ -250,348 +259,468 @@ fn test_asm_too_many_accounts() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
-            Check::compute_units(Case::InitializeTooManyAccounts.get().asm),
+            Check::compute_units(cu),
         ],
     );
+}
+
+fn test_initialize_user_data_len(lang: ProgramLanguage) {
+    let cu = Case::InitializeUserDataLen.get().for_lang(&lang);
+    let (setup, instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Initialize);
+
+    accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_USER_DATA_LEN") as u32
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_initialize_pda_duplicate(lang: ProgramLanguage) {
+    let cu = Case::InitializePdaDuplicate.get().for_lang(&lang);
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Initialize);
+
+    instruction.accounts[AccountIndex::Pda as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DUPLICATE") as u32
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_initialize_pda_data_len(lang: ProgramLanguage) {
+    let cu = Case::InitializePdaDataLen.get().for_lang(&lang);
+    let (setup, instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Initialize);
+
+    accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DATA_LEN") as u32
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_initialize_system_program_duplicate(lang: ProgramLanguage) {
+    let cu = Case::InitializeSystemProgramDuplicate.get().for_lang(&lang);
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Initialize);
+
+    instruction.accounts[AccountIndex::SystemProgram as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::SystemProgram as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_initialize_system_program_data_len(lang: ProgramLanguage) {
+    let cu = Case::InitializeSystemProgramDataLen.get().for_lang(&lang);
+    let (setup, instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Initialize);
+
+    accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_initialize_pda_mismatch(lang: ProgramLanguage) {
+    let cu = Case::InitializePdaMismatch.get().for_lang(&lang);
+    let (setup, instruction, accounts, _) =
+        happy_path_setup(lang, Operation::Initialize);
+
+    test_pda_mismatch_chunks(&setup, instruction, accounts, cu, None);
+}
+
+fn test_initialize_happy_path(lang: ProgramLanguage) {
+    let cu = Case::InitializeHappyPath.get().for_lang(&lang);
+    let (setup, instruction, accounts, counter_account) =
+        happy_path_setup(lang, Operation::Initialize);
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::success(),
+            counter_account.check(),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_increment_pda_duplicate(lang: ProgramLanguage) {
+    let cu = Case::IncrementPdaDuplicate.get().for_lang(&lang);
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Increment);
+
+    instruction.accounts[AccountIndex::Pda as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DUPLICATE") as u32
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_increment_pda_data_len(lang: ProgramLanguage) {
+    let cu = Case::IncrementPdaDataLen.get().for_lang(&lang);
+    let (setup, instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Increment);
+
+    accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_PDA_DATA_LEN") as u32
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_increment_no_instruction_data(lang: ProgramLanguage) {
+    let cu = Case::IncrementNoInstructionData.get().for_lang(&lang);
+    let (setup, instruction, accounts, _) =
+        happy_path_setup(lang, Operation::Increment);
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_INVALID_INSTRUCTION_DATA_LEN") as u32,
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_increment_unable_to_derive_pda(lang: ProgramLanguage) {
+    let cu = Case::IncrementUnableToDerivePda.get().for_lang(&lang);
+    let (setup, mut instruction, mut accounts, _) =
+        happy_path_setup(lang, Operation::Increment);
+
+    instruction.data = 1u64.to_le_bytes().to_vec();
+
+    // Find a user pubkey whose PDA bump is < u8::MAX, so bump + 1 is guaranteed to fail since
+    // find_program_address already rejected it.
+    let mut user_pubkey = accounts[AccountIndex::User as usize].0;
+    let (mut pda_pubkey, mut bump_seed) =
+        Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
+    while bump_seed == u8::MAX {
+        user_pubkey = Pubkey::new_unique();
+        (pda_pubkey, bump_seed) =
+            Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
+    }
+
+    // Update account keys and set bump seed + 1 in PDA account data.
+    instruction.accounts[AccountIndex::User as usize].pubkey = user_pubkey;
+    instruction.accounts[AccountIndex::Pda as usize].pubkey = pda_pubkey;
+    accounts[AccountIndex::User as usize].0 = user_pubkey;
+    accounts[AccountIndex::Pda as usize].0 = pda_pubkey;
+    accounts[AccountIndex::Pda as usize].1.data[offset_of!(CounterAccountData, bump_seed)] =
+        bump_seed + 1;
+
+    setup.mollusk.process_and_validate_instruction(
+        &instruction,
+        &accounts,
+        &[
+            Check::err(ProgramError::Custom(
+                constants().get("E_UNABLE_TO_DERIVE_PDA") as u32,
+            )),
+            Check::compute_units(cu),
+        ],
+    );
+}
+
+fn test_increment_pda_mismatch(lang: ProgramLanguage) {
+    let cu = Case::IncrementPdaMismatch.get().for_lang(&lang);
+    let (setup, instruction, accounts, _) =
+        happy_path_setup(lang, Operation::Increment);
+
+    test_pda_mismatch_chunks(
+        &setup,
+        instruction,
+        accounts,
+        cu,
+        Some(1u64.to_le_bytes().to_vec()),
+    );
+}
+
+/// Helper for testing PDA mismatch detection in each 8-byte chunk of the 32-byte pubkey.
+fn test_pda_mismatch_chunks(
+    setup: &test_utils::TestSetup,
+    instruction: Instruction,
+    accounts: Vec<(Pubkey, Account)>,
+    base_cu: u64,
+    instruction_data: Option<Vec<u8>>,
+) {
+    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
+    const FINAL_BIT: usize = size_of::<u64>() - 1;
+
+    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
+        let mut instruction = instruction.clone();
+        let mut accounts = accounts.clone();
+
+        if let Some(ref data) = instruction_data {
+            instruction.data = data.clone();
+        }
+
+        // Flip the last bit of the chunk to create a mismatch.
+        let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
+        accounts[AccountIndex::Pda as usize].0.as_mut()[flip_index] ^= 1;
+        instruction.accounts[AccountIndex::Pda as usize].pubkey =
+            accounts[AccountIndex::Pda as usize].0;
+
+        setup.mollusk.process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[
+                Check::err(ProgramError::Custom(
+                    constants().get("E_PDA_MISMATCH") as u32
+                )),
+                Check::compute_units(base_cu + increment),
+            ],
+        );
+    }
+}
+
+struct IncrementTestCase {
+    user_account_data_length: u64,
+    starting_counter: u64,
+    increment: u64,
+}
+
+const INCREMENT_TEST_CASES: &[IncrementTestCase] = &[
+    // Aligned user data lengths.
+    IncrementTestCase {
+        user_account_data_length: 0,
+        starting_counter: 0,
+        increment: 1,
+    },
+    IncrementTestCase {
+        user_account_data_length: 0,
+        starting_counter: 0,
+        increment: u64::MAX,
+    },
+    IncrementTestCase {
+        user_account_data_length: 0,
+        starting_counter: u64::MAX,
+        increment: 1,
+    },
+    IncrementTestCase {
+        user_account_data_length: 0,
+        starting_counter: u64::MAX,
+        increment: u64::MAX,
+    },
+    IncrementTestCase {
+        user_account_data_length: 8,
+        starting_counter: 0,
+        increment: 1,
+    },
+    IncrementTestCase {
+        user_account_data_length: 16,
+        starting_counter: 1,
+        increment: 1,
+    },
+    IncrementTestCase {
+        user_account_data_length: 128,
+        starting_counter: 100,
+        increment: 200,
+    },
+    // Unaligned user data lengths.
+    IncrementTestCase {
+        user_account_data_length: 1,
+        starting_counter: 0,
+        increment: 1,
+    },
+    IncrementTestCase {
+        user_account_data_length: 7,
+        starting_counter: 1,
+        increment: u64::MAX - 1,
+    },
+    IncrementTestCase {
+        user_account_data_length: 9,
+        starting_counter: 100,
+        increment: 200,
+    },
+    IncrementTestCase {
+        user_account_data_length: 15,
+        starting_counter: u64::MAX,
+        increment: 1,
+    },
+    IncrementTestCase {
+        user_account_data_length: 100,
+        starting_counter: u64::MAX,
+        increment: u64::MAX,
+    },
+];
+
+fn test_increment_happy_path(lang: ProgramLanguage) {
+    let cu = Case::IncrementHappyPath.get().for_lang(&lang);
+    for tc in INCREMENT_TEST_CASES {
+        let (setup, mut instruction, mut accounts, mut counter_account) =
+            happy_path_setup(lang, Operation::Increment);
+
+        instruction.data = tc.increment.to_le_bytes().to_vec();
+
+        accounts[AccountIndex::User as usize].1.data =
+            vec![0u8; tc.user_account_data_length as usize];
+
+        accounts[AccountIndex::Pda as usize].1.data[..size_of::<u64>()]
+            .copy_from_slice(&tc.starting_counter.to_le_bytes());
+
+        counter_account.data.counter = tc.starting_counter.wrapping_add(tc.increment);
+
+        setup.mollusk.process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[
+                Check::success(),
+                counter_account.check(),
+                Check::compute_units(cu),
+            ],
+        );
+    }
+}
+
+#[test]
+fn test_asm_no_accounts() {
+    test_no_accounts(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_no_accounts() {
-    let (setup, mut instruction, mut accounts, _bump_seed) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+    test_no_accounts(ProgramLanguage::Rust);
+}
 
-    instruction.accounts.clear();
-    accounts.clear();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
-            Check::compute_units(Case::InitializeNoAccounts.get().rs),
-        ],
-    );
+#[test]
+fn test_asm_too_many_accounts() {
+    test_too_many_accounts(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_too_many_accounts() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    instruction
-        .accounts
-        .push(AccountMeta::new_readonly(Pubkey::new_unique(), false));
-    accounts.push((
-        instruction.accounts.last().unwrap().pubkey,
-        Account::default(),
-    ));
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
-            Check::compute_units(Case::InitializeTooManyAccounts.get().rs),
-        ],
-    );
+    test_too_many_accounts(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_initialize_user_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_USER_DATA_LEN") as u32
-            )),
-            Check::compute_units(Case::InitializeUserDataLen.get().asm),
-        ],
-    );
+    test_initialize_user_data_len(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_initialize_user_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_USER_DATA_LEN") as u32
-            )),
-            Check::compute_units(Case::InitializeUserDataLen.get().rs),
-        ],
-    );
+    test_initialize_user_data_len(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_initialize_pda_duplicate() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    instruction.accounts[AccountIndex::Pda as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DUPLICATE") as u32
-            )),
-            Check::compute_units(Case::InitializePdaDuplicate.get().asm),
-        ],
-    );
+    test_initialize_pda_duplicate(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_initialize_pda_duplicate() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    instruction.accounts[AccountIndex::Pda as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DUPLICATE") as u32
-            )),
-            Check::compute_units(Case::InitializePdaDuplicate.get().rs),
-        ],
-    );
+    test_initialize_pda_duplicate(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_initialize_pda_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DATA_LEN") as u32
-            )),
-            Check::compute_units(Case::InitializePdaDataLen.get().asm),
-        ],
-    );
+    test_initialize_pda_data_len(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_initialize_pda_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DATA_LEN") as u32
-            )),
-            Check::compute_units(Case::InitializePdaDataLen.get().rs),
-        ],
-    );
+    test_initialize_pda_data_len(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_initialize_system_program_duplicate() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    instruction.accounts[AccountIndex::SystemProgram as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::SystemProgram as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
-            )),
-            Check::compute_units(Case::InitializeSystemProgramDuplicate.get().asm),
-        ],
-    );
+    test_initialize_system_program_duplicate(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_initialize_system_program_duplicate() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    instruction.accounts[AccountIndex::SystemProgram as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::SystemProgram as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
-            )),
-            Check::compute_units(Case::InitializeSystemProgramDuplicate.get().rs),
-        ],
-    );
+    test_initialize_system_program_duplicate(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_initialize_system_program_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
-            )),
-            Check::compute_units(Case::InitializeSystemProgramDataLen.get().asm),
-        ],
-    );
+    test_initialize_system_program_data_len(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_initialize_system_program_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
-            )),
-            Check::compute_units(Case::InitializeSystemProgramDataLen.get().rs),
-        ],
-    );
+    test_initialize_system_program_data_len(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_initialize_pda_mismatch() {
-    // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
-    // Use a single setup for all chunks to ensure deterministic CU costs.
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
-    let base_cu = Case::InitializePdaMismatch.get().asm;
-
-    const FINAL_BIT: usize = size_of::<u64>() - 1;
-    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
-        let mut instruction = instruction.clone();
-        let mut accounts = accounts.clone();
-
-        // Flip the last bit of the chunk to create a mismatch.
-        let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
-        accounts[AccountIndex::Pda as usize].0.as_mut()[flip_index] ^= 1;
-        instruction.accounts[AccountIndex::Pda as usize].pubkey =
-            accounts[AccountIndex::Pda as usize].0;
-
-        setup.mollusk.process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[
-                Check::err(ProgramError::Custom(
-                    constants().get("E_PDA_MISMATCH") as u32
-                )),
-                Check::compute_units(base_cu + increment),
-            ],
-        );
-    }
+    test_initialize_pda_mismatch(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_initialize_pda_mismatch() {
-    // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
-    // Use a single setup for all chunks to ensure deterministic CU costs.
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
-    let base_cu = Case::InitializePdaMismatch.get().rs;
-
-    const FINAL_BIT: usize = size_of::<u64>() - 1;
-    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
-        let mut instruction = instruction.clone();
-        let mut accounts = accounts.clone();
-
-        // Flip the last bit of the chunk to create a mismatch.
-        let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
-        accounts[AccountIndex::Pda as usize].0.as_mut()[flip_index] ^= 1;
-        instruction.accounts[AccountIndex::Pda as usize].pubkey =
-            accounts[AccountIndex::Pda as usize].0;
-
-        setup.mollusk.process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[
-                Check::err(ProgramError::Custom(
-                    constants().get("E_PDA_MISMATCH") as u32
-                )),
-                Check::compute_units(base_cu + increment),
-            ],
-        );
-    }
+    test_initialize_pda_mismatch(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_initialize_happy_path() {
-    let (setup, instruction, accounts, counter_account) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::success(),
-            counter_account.check(),
-            Check::compute_units(Case::InitializeHappyPath.get().asm),
-        ],
-    );
+    test_initialize_happy_path(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_initialize_happy_path() {
-    let (setup, instruction, accounts, counter_account) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::success(),
-            counter_account.check(),
-            Check::compute_units(Case::InitializeHappyPath.get().rs),
-        ],
-    );
+    test_initialize_happy_path(ProgramLanguage::Rust);
 }
 
 #[test]
@@ -616,460 +745,60 @@ fn test_pad_masking() {
 
 #[test]
 fn test_asm_increment_pda_duplicate() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
-
-    instruction.accounts[AccountIndex::Pda as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DUPLICATE") as u32
-            )),
-            Check::compute_units(Case::IncrementPdaDuplicate.get().asm),
-        ],
-    );
+    test_increment_pda_duplicate(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_increment_pda_duplicate() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Increment);
-
-    instruction.accounts[AccountIndex::Pda as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::Pda as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DUPLICATE") as u32
-            )),
-            Check::compute_units(Case::IncrementPdaDuplicate.get().rs),
-        ],
-    );
+    test_increment_pda_duplicate(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_increment_pda_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
-
-    accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DATA_LEN") as u32
-            )),
-            Check::compute_units(Case::IncrementPdaDataLen.get().asm),
-        ],
-    );
+    test_increment_pda_data_len(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_increment_pda_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Increment);
-
-    accounts[AccountIndex::Pda as usize].1.data = vec![1u8; 1];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DATA_LEN") as u32
-            )),
-            Check::compute_units(Case::IncrementPdaDataLen.get().rs),
-        ],
-    );
+    test_increment_pda_data_len(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_increment_no_instruction_data() {
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_INVALID_INSTRUCTION_DATA_LEN") as u32,
-            )),
-            Check::compute_units(Case::IncrementNoInstructionData.get().asm),
-        ],
-    );
+    test_increment_no_instruction_data(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_increment_no_instruction_data() {
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Increment);
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_INVALID_INSTRUCTION_DATA_LEN") as u32,
-            )),
-            Check::compute_units(Case::IncrementNoInstructionData.get().rs),
-        ],
-    );
+    test_increment_no_instruction_data(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_increment_unable_to_derive_pda() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
-
-    instruction.data = 1u64.to_le_bytes().to_vec();
-
-    // Find a user pubkey whose PDA bump is < u8::MAX, so bump + 1 is guaranteed to fail since
-    // find_program_address already rejected it.
-    let mut user_pubkey = accounts[AccountIndex::User as usize].0;
-    let (mut pda_pubkey, mut bump_seed) =
-        Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
-    while bump_seed == u8::MAX {
-        user_pubkey = Pubkey::new_unique();
-        (pda_pubkey, bump_seed) =
-            Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
-    }
-
-    // Update account keys and set bump seed + 1 in PDA account data.
-    instruction.accounts[AccountIndex::User as usize].pubkey = user_pubkey;
-    instruction.accounts[AccountIndex::Pda as usize].pubkey = pda_pubkey;
-    accounts[AccountIndex::User as usize].0 = user_pubkey;
-    accounts[AccountIndex::Pda as usize].0 = pda_pubkey;
-    accounts[AccountIndex::Pda as usize].1.data[offset_of!(CounterAccountData, bump_seed)] =
-        bump_seed + 1;
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_UNABLE_TO_DERIVE_PDA") as u32,
-            )),
-            Check::compute_units(Case::IncrementUnableToDerivePda.get().asm),
-        ],
-    );
+    test_increment_unable_to_derive_pda(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_increment_unable_to_derive_pda() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Increment);
-
-    instruction.data = 1u64.to_le_bytes().to_vec();
-
-    // Find a user pubkey whose PDA bump is < u8::MAX, so bump + 1 is guaranteed to fail since
-    // find_program_address already rejected it.
-    let mut user_pubkey = accounts[AccountIndex::User as usize].0;
-    let (mut pda_pubkey, mut bump_seed) =
-        Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
-    while bump_seed == u8::MAX {
-        user_pubkey = Pubkey::new_unique();
-        (pda_pubkey, bump_seed) =
-            Pubkey::find_program_address(&[user_pubkey.as_ref()], &setup.program_id);
-    }
-
-    // Update account keys and set bump seed + 1 in PDA account data.
-    instruction.accounts[AccountIndex::User as usize].pubkey = user_pubkey;
-    instruction.accounts[AccountIndex::Pda as usize].pubkey = pda_pubkey;
-    accounts[AccountIndex::User as usize].0 = user_pubkey;
-    accounts[AccountIndex::Pda as usize].0 = pda_pubkey;
-    accounts[AccountIndex::Pda as usize].1.data[offset_of!(CounterAccountData, bump_seed)] =
-        bump_seed + 1;
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_UNABLE_TO_DERIVE_PDA") as u32,
-            )),
-            Check::compute_units(Case::IncrementUnableToDerivePda.get().rs),
-        ],
-    );
+    test_increment_unable_to_derive_pda(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_increment_pda_mismatch() {
-    // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
-    // Use a single setup for all chunks to ensure deterministic CU costs.
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
-
-    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
-    let base_cu = Case::IncrementPdaMismatch.get().asm;
-
-    const FINAL_BIT: usize = size_of::<u64>() - 1;
-    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
-        let mut instruction = instruction.clone();
-        let mut accounts = accounts.clone();
-
-        instruction.data = 1u64.to_le_bytes().to_vec();
-
-        // Flip the last bit of the chunk to create a mismatch.
-        let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
-        accounts[AccountIndex::Pda as usize].0.as_mut()[flip_index] ^= 1;
-        instruction.accounts[AccountIndex::Pda as usize].pubkey =
-            accounts[AccountIndex::Pda as usize].0;
-
-        setup.mollusk.process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[
-                Check::err(ProgramError::Custom(
-                    constants().get("E_PDA_MISMATCH") as u32
-                )),
-                Check::compute_units(base_cu + increment),
-            ],
-        );
-    }
+    test_increment_pda_mismatch(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_increment_pda_mismatch() {
-    // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
-    // Use a single setup for all chunks to ensure deterministic CU costs.
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Increment);
-
-    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
-    let base_cu = Case::IncrementPdaMismatch.get().rs;
-
-    const FINAL_BIT: usize = size_of::<u64>() - 1;
-    for (chunk, &increment) in CHUNK_INCREMENT.iter().enumerate() {
-        let mut instruction = instruction.clone();
-        let mut accounts = accounts.clone();
-
-        instruction.data = 1u64.to_le_bytes().to_vec();
-
-        // Flip the last bit of the chunk to create a mismatch.
-        let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
-        accounts[AccountIndex::Pda as usize].0.as_mut()[flip_index] ^= 1;
-        instruction.accounts[AccountIndex::Pda as usize].pubkey =
-            accounts[AccountIndex::Pda as usize].0;
-
-        setup.mollusk.process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[
-                Check::err(ProgramError::Custom(
-                    constants().get("E_PDA_MISMATCH") as u32
-                )),
-                Check::compute_units(base_cu + increment),
-            ],
-        );
-    }
+    test_increment_pda_mismatch(ProgramLanguage::Rust);
 }
 
 #[test]
 fn test_asm_increment_happy_path() {
-    struct TestCase {
-        user_account_data_length: u64,
-        starting_counter: u64,
-        increment: u64,
-    }
-
-    let test_cases = &[
-        // Aligned user data lengths.
-        TestCase {
-            user_account_data_length: 0,
-            starting_counter: 0,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 0,
-            starting_counter: 0,
-            increment: u64::MAX,
-        },
-        TestCase {
-            user_account_data_length: 0,
-            starting_counter: u64::MAX,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 0,
-            starting_counter: u64::MAX,
-            increment: u64::MAX,
-        },
-        TestCase {
-            user_account_data_length: 8,
-            starting_counter: 0,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 16,
-            starting_counter: 1,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 128,
-            starting_counter: 100,
-            increment: 200,
-        },
-        // Unaligned user data lengths.
-        TestCase {
-            user_account_data_length: 1,
-            starting_counter: 0,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 7,
-            starting_counter: 1,
-            increment: u64::MAX - 1,
-        },
-        TestCase {
-            user_account_data_length: 9,
-            starting_counter: 100,
-            increment: 200,
-        },
-        TestCase {
-            user_account_data_length: 15,
-            starting_counter: u64::MAX,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 100,
-            starting_counter: u64::MAX,
-            increment: u64::MAX,
-        },
-    ];
-
-    for tc in test_cases {
-        let (setup, mut instruction, mut accounts, mut counter_account) =
-            happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
-
-        instruction.data = tc.increment.to_le_bytes().to_vec();
-
-        accounts[AccountIndex::User as usize].1.data =
-            vec![0u8; tc.user_account_data_length as usize];
-
-        accounts[AccountIndex::Pda as usize].1.data[..size_of::<u64>()]
-            .copy_from_slice(&tc.starting_counter.to_le_bytes());
-
-        counter_account.data.counter = tc.starting_counter.wrapping_add(tc.increment);
-
-        setup.mollusk.process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[
-                Check::success(),
-                counter_account.check(),
-                Check::compute_units(Case::IncrementHappyPath.get().asm),
-            ],
-        );
-    }
+    test_increment_happy_path(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_increment_happy_path() {
-    struct TestCase {
-        user_account_data_length: u64,
-        starting_counter: u64,
-        increment: u64,
-    }
-
-    let test_cases = &[
-        // Aligned user data lengths.
-        TestCase {
-            user_account_data_length: 0,
-            starting_counter: 0,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 0,
-            starting_counter: 0,
-            increment: u64::MAX,
-        },
-        TestCase {
-            user_account_data_length: 0,
-            starting_counter: u64::MAX,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 0,
-            starting_counter: u64::MAX,
-            increment: u64::MAX,
-        },
-        TestCase {
-            user_account_data_length: 8,
-            starting_counter: 0,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 16,
-            starting_counter: 1,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 128,
-            starting_counter: 100,
-            increment: 200,
-        },
-        // Unaligned user data lengths.
-        TestCase {
-            user_account_data_length: 1,
-            starting_counter: 0,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 7,
-            starting_counter: 1,
-            increment: u64::MAX - 1,
-        },
-        TestCase {
-            user_account_data_length: 9,
-            starting_counter: 100,
-            increment: 200,
-        },
-        TestCase {
-            user_account_data_length: 15,
-            starting_counter: u64::MAX,
-            increment: 1,
-        },
-        TestCase {
-            user_account_data_length: 100,
-            starting_counter: u64::MAX,
-            increment: u64::MAX,
-        },
-    ];
-
-    for tc in test_cases {
-        let (setup, mut instruction, mut accounts, mut counter_account) =
-            happy_path_setup(ProgramLanguage::Rust, Operation::Increment);
-
-        instruction.data = tc.increment.to_le_bytes().to_vec();
-
-        accounts[AccountIndex::User as usize].1.data =
-            vec![0u8; tc.user_account_data_length as usize];
-
-        accounts[AccountIndex::Pda as usize].1.data[..size_of::<u64>()]
-            .copy_from_slice(&tc.starting_counter.to_le_bytes());
-
-        counter_account.data.counter = tc.starting_counter.wrapping_add(tc.increment);
-
-        setup.mollusk.process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[
-                Check::success(),
-                counter_account.check(),
-                Check::compute_units(Case::IncrementHappyPath.get().rs),
-            ],
-        );
-    }
+    test_increment_happy_path(ProgramLanguage::Rust);
 }

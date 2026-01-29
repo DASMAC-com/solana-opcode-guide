@@ -6,6 +6,7 @@ use solana_sdk::signature::{read_keypair_file, Keypair};
 use solana_sdk::signer::Signer;
 use std::path::PathBuf;
 
+#[derive(Clone, Copy)]
 pub enum ProgramLanguage {
     Assembly,
     Rust,
