@@ -90,7 +90,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
             }
 
-            // Calculate minimum balance for rent exemption using mock of `Rent` with visible fields.
+            // Calculate minimum balance for rent exemption using mock of `Rent`, since `Rent`
+            // fields are private and APIs are unaware of SIMD changes affecting ASM feature parity.
             // SAFETY: Rent is #[repr(C)] with lamports_per_byte (u64) as first field.
             struct MockRent {
                 lamports_per_byte: u64,
