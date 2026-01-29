@@ -130,12 +130,10 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                     &[Signer::from(&[user_pubkey_seed, Seed::from(&[bump])])],
                 );
             }
+
             // Write bump seed to PDA data.
             // SAFETY: PDA account was just created with sufficient space.
-            let pda_data_ptr = pda.data_ptr() as *mut PdaAccountData;
-            unsafe {
-                (*pda_data_ptr).bump = bump;
-            }
+            unsafe { transmute::<_, &mut PdaAccountData>(pda.data_ptr()) }.bump = bump;
         }
         _ => return Err(pinocchio::error::ProgramError::Custom(E_N_ACCOUNTS)),
     }
