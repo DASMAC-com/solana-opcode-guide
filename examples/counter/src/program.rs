@@ -1,9 +1,10 @@
 use pinocchio::{
     address::address_eq,
-    cpi::{invoke_signed, Seed},
+    cpi::{Seed, Signer},
     entrypoint::{InstructionContext, MaybeAccount},
     lazy_program_entrypoint, no_allocator, nostd_panic_handler, Address, ProgramResult,
 };
+use pinocchio_system::create_account_with_minimum_balance_signed;
 
 lazy_program_entrypoint!(process_instruction);
 nostd_panic_handler!();
@@ -20,6 +21,11 @@ const E_PDA_MISMATCH: u32 = 8;
 const N_ACCOUNTS_INCREMENT: u64 = 2;
 const N_ACCOUNTS_INITIALIZE: u64 = 3;
 const SYSTEM_PROGRAM_DATA_LEN: usize = b"system_program".len();
+
+struct PdaAccountData {
+    counter: u64,
+    bump: u8,
+}
 
 pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     match context.remaining() {
@@ -57,16 +63,36 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 ));
             }
 
+            // Prepare PDA seeds, check address.
             // SAFETY: known number of accounts have been read.
             let program_id = unsafe { context.program_id_unchecked() };
             let user_pubkey_seed = Seed::from(user.address().as_array());
-            let (expected_pda, bump_seed) =
+            let (expected_pda, bump) =
                 Address::find_program_address(&[&user_pubkey_seed], program_id);
             if !address_eq(pda.address(), &expected_pda) {
                 return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
             }
 
-            let bump_seed = Seed::from(&[bump_seed]);
+            // Prepare PDA seeds.
+            let bump_ref = &[bump];
+            let seeds = [Seed::from(user.address().as_array()), Seed::from(bump_ref)];
+
+            // Create PDA account.
+            create_account_with_minimum_balance_signed(
+                &pda,
+                size_of::<PdaAccountData>(),
+                program_id,
+                &user,
+                None,
+                &[Signer::from(&seeds)],
+            )?;
+
+            // Write bump seed to PDA data.
+            // SAFETY: PDA account was just created with sufficient space.
+            let pda_data_ptr = pda.data_ptr() as *mut PdaAccountData;
+            unsafe {
+                (*pda_data_ptr).bump = bump;
+            }
         }
         _ => return Err(pinocchio::error::ProgramError::Custom(E_N_ACCOUNTS)),
     }

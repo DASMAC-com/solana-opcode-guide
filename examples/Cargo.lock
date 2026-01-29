@@ -513,6 +513,7 @@ dependencies = [
  "fib-rs",
  "mollusk-svm",
  "pinocchio",
+ "pinocchio-system",
  "regex",
  "solana-rent",
  "solana-sdk",
@@ -672,6 +673,7 @@ version = "0.1.0"
 dependencies = [
  "mollusk-svm",
  "pinocchio",
+ "pinocchio-system",
  "solana-rent",
  "solana-sdk",
  "test-utils",
@@ -1659,6 +1661,16 @@ dependencies = [
  "solana-define-syscall 4.0.1",
  "solana-instruction-view",
  "solana-program-error",
+]
+
+[[package]]
+name = "pinocchio-system"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24044a0815753862b558e179e78f03f7344cb755de48617a09d7d23b50883b6c"
+dependencies = [
+ "pinocchio",
+ "solana-address 2.0.0",
 ]
 
 [[package]]

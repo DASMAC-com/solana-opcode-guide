@@ -1,6 +1,7 @@
 [dependencies]
 cargo-manifest.workspace = true
 pinocchio.workspace = true
+pinocchio-system.workspace = true
 regex.workspace = true
 
 [dev-dependencies]
