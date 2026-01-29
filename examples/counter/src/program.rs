@@ -95,7 +95,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 space: size_of::<PdaAccountData>() as u64,
                 owner: program_id,
             }
-            .invoke_signed(&[Signer::from(&[Seed::from(user_ref), Seed::from(&[bump])])])?;
+            .invoke_signed(&[Signer::from(&[user_pubkey_seed, Seed::from(&[bump])])])?;
 
             // Write bump seed to PDA data.
             // SAFETY: PDA account was just created with sufficient space.
