@@ -5,12 +5,12 @@ use pinocchio::{
     entrypoint::{InstructionContext, MaybeAccount},
     instruction::{InstructionAccount, InstructionView},
     lazy_program_entrypoint, no_allocator, nostd_panic_handler,
-    sysvars::rent::{Rent, ACCOUNT_STORAGE_OVERHEAD},
+    sysvars::rent::ACCOUNT_STORAGE_OVERHEAD,
     Address, ProgramResult,
 };
 
 #[cfg(target_os = "solana")]
-use pinocchio::{syscalls::sol_get_rent_sysvar, sysvars::rent};
+use pinocchio::syscalls::sol_get_rent_sysvar;
 
 lazy_program_entrypoint!(process_instruction);
 nostd_panic_handler!();
@@ -89,14 +89,13 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
             }
 
-            // Calculate minimum balance for rent exemption.
+            // Calculate minimum balance for rent exemption using mock of `Rent` with visible fields.
             // SAFETY: Rent is #[repr(C)] with lamports_per_byte (u64) as first field.
-            // `Rent` fields are private.
-            struct VisibleRentStruct {
+            struct MockRent {
                 lamports_per_byte: u64,
-                something_else: u64,
+                _ignore: u64,
             }
-            let mut rent = MaybeUninit::<VisibleRentStruct>::uninit();
+            let rent = MaybeUninit::<MockRent>::uninit();
             let lamports_per_byte: u64 = unsafe {
                 #[cfg(target_os = "solana")]
                 sol_get_rent_sysvar(transmute::<_, _>(&rent));
