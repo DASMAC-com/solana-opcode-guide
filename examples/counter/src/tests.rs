@@ -88,17 +88,6 @@ struct ComputeUnits {
     rs: u64,
 }
 
-impl ComputeUnits {
-    /// Returns CU for a specific chunk in pubkey mismatch tests (0-3).
-    /// Each chunk adds 3 CUs for the additional compare before exit.
-    const fn chunk(self, chunk: usize) -> ComputeUnits {
-        ComputeUnits {
-            asm: self.asm + (chunk * 3) as u64,
-            rs: self.rs + (chunk * 3) as u64,
-        }
-    }
-}
-
 #[derive(Clone, Copy)]
 enum Case {
     // Initialize error cases (in execution order)
@@ -132,16 +121,31 @@ impl Case {
             Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 23 },
             Self::InitializeSystemProgramDuplicate => ComputeUnits { asm: 13, rs: 30 },
             Self::InitializeSystemProgramDataLen => ComputeUnits { asm: 15, rs: 33 },
-            Self::InitializePdaMismatch => ComputeUnits { asm: 1543, rs: 1560 },
-            Self::InitializeHappyPath => ComputeUnits { asm: 2834, rs: 2851 },
+            Self::InitializePdaMismatch => ComputeUnits {
+                asm: 1543,
+                rs: 1560,
+            },
+            Self::InitializeHappyPath => ComputeUnits {
+                asm: 2834,
+                rs: 2851,
+            },
 
             // Increment
             Self::IncrementPdaDuplicate => ComputeUnits { asm: 10, rs: 21 },
             Self::IncrementPdaDataLen => ComputeUnits { asm: 12, rs: 24 },
             Self::IncrementNoInstructionData => ComputeUnits { asm: 14, rs: 26 },
-            Self::IncrementUnableToDerivePda => ComputeUnits { asm: 1535, rs: 1552 },
-            Self::IncrementPdaMismatch => ComputeUnits { asm: 1540, rs: 1557 },
-            Self::IncrementHappyPath => ComputeUnits { asm: 1548, rs: 1565 },
+            Self::IncrementUnableToDerivePda => ComputeUnits {
+                asm: 1535,
+                rs: 1552,
+            },
+            Self::IncrementPdaMismatch => ComputeUnits {
+                asm: 1540,
+                rs: 1557,
+            },
+            Self::IncrementHappyPath => ComputeUnits {
+                asm: 1548,
+                rs: 1565,
+            },
         }
     }
 }
@@ -223,9 +227,7 @@ fn test_asm_no_accounts() {
         &instruction,
         &accounts,
         &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_N_ACCOUNTS") as u32,
-            )),
+            Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
             Check::compute_units(Case::InitializeNoAccounts.get().asm),
         ],
     );
@@ -248,9 +250,7 @@ fn test_asm_too_many_accounts() {
         &instruction,
         &accounts,
         &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_N_ACCOUNTS") as u32,
-            )),
+            Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
             Check::compute_units(Case::InitializeTooManyAccounts.get().asm),
         ],
     );
@@ -268,9 +268,7 @@ fn test_rs_no_accounts() {
         &instruction,
         &accounts,
         &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_N_ACCOUNTS") as u32,
-            )),
+            Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
             Check::compute_units(Case::InitializeNoAccounts.get().rs),
         ],
     );
@@ -293,9 +291,7 @@ fn test_rs_too_many_accounts() {
         &instruction,
         &accounts,
         &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_N_ACCOUNTS") as u32,
-            )),
+            Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
             Check::compute_units(Case::InitializeTooManyAccounts.get().rs),
         ],
     );
@@ -313,7 +309,7 @@ fn test_asm_initialize_user_data_len() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_USER_DATA_LEN") as u32,
+                constants().get("E_USER_DATA_LEN") as u32
             )),
             Check::compute_units(Case::InitializeUserDataLen.get().asm),
         ],
@@ -332,7 +328,7 @@ fn test_rs_initialize_user_data_len() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_USER_DATA_LEN") as u32,
+                constants().get("E_USER_DATA_LEN") as u32
             )),
             Check::compute_units(Case::InitializeUserDataLen.get().rs),
         ],
@@ -353,7 +349,7 @@ fn test_asm_initialize_pda_duplicate() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DUPLICATE") as u32,
+                constants().get("E_PDA_DUPLICATE") as u32
             )),
             Check::compute_units(Case::InitializePdaDuplicate.get().asm),
         ],
@@ -374,7 +370,7 @@ fn test_rs_initialize_pda_duplicate() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DUPLICATE") as u32,
+                constants().get("E_PDA_DUPLICATE") as u32
             )),
             Check::compute_units(Case::InitializePdaDuplicate.get().rs),
         ],
@@ -393,7 +389,7 @@ fn test_asm_initialize_pda_data_len() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DATA_LEN") as u32,
+                constants().get("E_PDA_DATA_LEN") as u32
             )),
             Check::compute_units(Case::InitializePdaDataLen.get().asm),
         ],
@@ -412,7 +408,7 @@ fn test_rs_initialize_pda_data_len() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DATA_LEN") as u32,
+                constants().get("E_PDA_DATA_LEN") as u32
             )),
             Check::compute_units(Case::InitializePdaDataLen.get().rs),
         ],
@@ -506,6 +502,10 @@ fn test_asm_initialize_pda_mismatch() {
     let (setup, instruction, accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
+    // Each chunk adds 3 CUs for the additional compare before exit.
+    const CHUNK_INCREMENT: [u64; 4] = [0, 3, 6, 9];
+    let base_cu = Case::InitializePdaMismatch.get().asm;
+
     const FINAL_BIT: usize = size_of::<u64>() - 1;
     for chunk in 0..size_of::<Pubkey>() / size_of::<u64>() {
         let mut instruction = instruction.clone();
@@ -522,9 +522,9 @@ fn test_asm_initialize_pda_mismatch() {
             &accounts,
             &[
                 Check::err(ProgramError::Custom(
-                    constants().get("E_PDA_MISMATCH") as u32,
+                    constants().get("E_PDA_MISMATCH") as u32
                 )),
-                Check::compute_units(Case::InitializePdaMismatch.get().chunk(chunk).asm),
+                Check::compute_units(base_cu + CHUNK_INCREMENT[chunk]),
             ],
         );
     }
@@ -534,9 +534,12 @@ fn test_asm_initialize_pda_mismatch() {
 fn test_rs_initialize_pda_mismatch() {
     // Test mismatch detection in each 8-byte chunk of the 32-byte pubkey.
     // Use a single setup for all chunks to ensure deterministic CU costs.
-    // Note: RS impl doesn't follow clean +3 pattern per chunk, so no CU check.
     let (setup, instruction, accounts, _) =
         happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
+
+    // RS impl has +4 on final chunk instead of +3.
+    const CHUNK_INCREMENT: [u64; 4] = [0, 3, 6, 10];
+    let base_cu = Case::InitializePdaMismatch.get().rs;
 
     const FINAL_BIT: usize = size_of::<u64>() - 1;
     for chunk in 0..size_of::<Pubkey>() / size_of::<u64>() {
@@ -552,9 +555,12 @@ fn test_rs_initialize_pda_mismatch() {
         setup.mollusk.process_and_validate_instruction(
             &instruction,
             &accounts,
-            &[Check::err(ProgramError::Custom(
-                constants().get("E_PDA_MISMATCH") as u32,
-            ))],
+            &[
+                Check::err(ProgramError::Custom(
+                    constants().get("E_PDA_MISMATCH") as u32
+                )),
+                Check::compute_units(base_cu + CHUNK_INCREMENT[chunk]),
+            ],
         );
     }
 }
@@ -609,7 +615,7 @@ fn test_asm_increment_pda_duplicate() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DUPLICATE") as u32,
+                constants().get("E_PDA_DUPLICATE") as u32
             )),
             Check::compute_units(Case::IncrementPdaDuplicate.get().asm),
         ],
@@ -628,7 +634,7 @@ fn test_asm_increment_pda_data_len() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_PDA_DATA_LEN") as u32,
+                constants().get("E_PDA_DATA_LEN") as u32
             )),
             Check::compute_units(Case::IncrementPdaDataLen.get().asm),
         ],
@@ -706,7 +712,7 @@ fn test_asm_increment_pda_mismatch() {
         &accounts,
         &[
             Check::err(ProgramError::Custom(
-                constants().get("E_PDA_MISMATCH") as u32,
+                constants().get("E_PDA_MISMATCH") as u32
             )),
             Check::compute_units(Case::IncrementPdaMismatch.get().asm),
         ],
