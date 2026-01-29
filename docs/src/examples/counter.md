@@ -289,8 +289,22 @@ parity with the assembly implementation:
 
 ## Compute unit analysis
 
-Like in the [transfer example](transfer#compute-unit-analysis), the
-[`CreateAccount`] CPI consumes a base cost of `1096` CUs.
+Note the following fixed costs, which can be subtracted from the total
+[compute unit] costs to calculate adjusted overhead values for each operation:
+
+| Operation | Fixed cost (CUs) |
+| --------- | ---------- |
+| [`CreateAccount`] CPI | [1096](transfer#compute-unit-analysis) |
+| [`sol_try_find_program_address`] | [1500](create_program_address_units) |
+| [`sol_create_program_address`] | [1500](create_program_address_units) |
+| [`sol_get_rent_sysvar`] | 117 |
+
+> [!note]
+> The [`SyscallGetRentSysvar`] implementation relies on [`get_sysvar`], which
+> has a [100 CU base cost][sysvar_base_cost] plus [the target struct length],
+> in this case `17` bytes for [`Rent`].
+
+
 
 <!-- markdownlint-disable MD013 -->
 
@@ -298,6 +312,11 @@ Like in the [transfer example](transfer#compute-unit-analysis), the
 
 <!-- markdownlint-enable MD013 -->
 
+
+[the target struct length]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L18
+[`get_sysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L6-L42
+[`SyscallGetRentSysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L135-L155
+[compute unit]: https://solana.com/docs/references/terminology#compute-units
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
@@ -317,6 +336,7 @@ Like in the [transfer example](transfer#compute-unit-analysis), the
 [signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/pubkey.h#L56-L62
 [soon-to-be-deprecated `rent::default`]: https://github.com/anza-xyz/solana-sdk/blob/rent@v3.1.0/rent/src/lib.rs#L108-L114
 [subject to metering]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L3-L10
+[sysvar_base_cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L206
 [unchanged]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L606-L612
 [uses]: https://github.com/anza-xyz/mollusk/blob/0.10.0/harness/src/sysvar.rs#L37
 [`account_storage_overhead`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.ACCOUNT_STORAGE_OVERHEAD.html
@@ -324,6 +344,7 @@ Like in the [transfer example](transfer#compute-unit-analysis), the
 [`calleraccount`]: https://docs.rs/solana-program-runtime/3.1.7/solana_program_runtime/cpi/struct.CallerAccount.html
 [`createaccount`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L88-L97
 [`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
+[create_program_address_units]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L200
 [`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
 [`default_lamports_per_byte_year`]: https://docs.rs/solana-rent/3.0.0/solana_rent/constant.DEFAULT_LAMPORTS_PER_BYTE_YEAR.html
 [`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45

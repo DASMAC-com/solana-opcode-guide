@@ -119,6 +119,18 @@ impl ComputeUnits {
     }
 }
 
+/// Fixed costs for syscalls and CPI operations.
+mod fixed_costs {
+    /// Cost for sol_create_program_address / sol_try_find_program_address syscall.
+    pub const CREATE_PROGRAM_ADDRESS: u64 = 1500;
+    /// Cost for sol_get_rent_sysvar syscall.
+    pub const SYSVAR_RENT: u64 = 117;
+    /// CPI base invocation cost (SIMD-0339).
+    pub const CPI_BASE: u64 = 946;
+    /// System Program operation cost.
+    pub const SYSTEM_PROGRAM: u64 = 150;
+}
+
 impl Case {
     const fn get(self) -> ComputeUnits {
         match self {
@@ -155,6 +167,40 @@ impl Case {
                 asm: 1548,
                 rs: 1575,
             },
+        }
+    }
+
+    /// Returns the fixed syscall/CPI costs for this case.
+    /// These costs are identical for both ASM and Rust implementations.
+    const fn fixed_costs(self) -> u64 {
+        match self {
+            // Initialize: early exits have no fixed costs.
+            Self::InitializeNoAccounts
+            | Self::InitializeTooManyAccounts
+            | Self::InitializeUserDataLen
+            | Self::InitializePdaDuplicate
+            | Self::InitializePdaDataLen
+            | Self::InitializeSystemProgramDuplicate
+            | Self::InitializeSystemProgramDataLen => 0,
+            // Initialize: PDA mismatch calls sol_try_find_program_address only.
+            Self::InitializePdaMismatch => fixed_costs::CREATE_PROGRAM_ADDRESS,
+            // Initialize: Happy path calls sol_try_find_program_address + sol_get_rent_sysvar
+            // + CPI to System Program.
+            Self::InitializeHappyPath => {
+                fixed_costs::CREATE_PROGRAM_ADDRESS
+                    + fixed_costs::SYSVAR_RENT
+                    + fixed_costs::CPI_BASE
+                    + fixed_costs::SYSTEM_PROGRAM
+            }
+
+            // Increment: early exits have no fixed costs.
+            Self::IncrementPdaDuplicate
+            | Self::IncrementPdaDataLen
+            | Self::IncrementNoInstructionData => 0,
+            // Increment: PDA-related cases call sol_create_program_address.
+            Self::IncrementUnableToDerivePda
+            | Self::IncrementPdaMismatch
+            | Self::IncrementHappyPath => fixed_costs::CREATE_PROGRAM_ADDRESS,
         }
     }
 
@@ -201,24 +247,48 @@ impl Case {
 
     fn generate_markdown_table(title: &str, cases: &[Case]) -> String {
         let mut table = format!("### {}\n\n", title);
-        table.push_str("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |\n");
-        table.push_str("|------|-----------|------------|----------|------------|\n");
+        table.push_str("| Case | ASM | Rust | Overhead | Overhead % | Fixed | ASM Adj | Rust Adj | Adj Overhead % |\n");
+        table.push_str("|------|-----|------|----------|------------|-------|---------|----------|----------------|\n");
 
         for case in cases {
             let cu = case.get();
+            let fixed = case.fixed_costs();
             let overhead = cu.rs as i64 - cu.asm as i64;
             let overhead_pct = if cu.asm > 0 {
                 (overhead as f64 / cu.asm as f64) * 100.0
             } else {
                 0.0
             };
+
+            // Adjusted values (subtracting fixed costs).
+            let asm_adj = cu.asm.saturating_sub(fixed);
+            let rs_adj = cu.rs.saturating_sub(fixed);
+            let adj_overhead_pct = if asm_adj > 0 {
+                (overhead as f64 / asm_adj as f64) * 100.0
+            } else if fixed > 0 {
+                // If fixed costs dominate, show N/A.
+                f64::NAN
+            } else {
+                overhead_pct
+            };
+
+            let adj_overhead_str = if adj_overhead_pct.is_nan() {
+                "N/A".to_string()
+            } else {
+                format!("{:+.1}%", adj_overhead_pct)
+            };
+
             table.push_str(&format!(
-                "| {} | {} | {} | {:+} | {:+.1}% |\n",
+                "| {} | {} | {} | {:+} | {:+.1}% | {} | {} | {} | {} |\n",
                 case.name(),
                 cu.asm,
                 cu.rs,
                 overhead,
-                overhead_pct
+                overhead_pct,
+                fixed,
+                asm_adj,
+                rs_adj,
+                adj_overhead_str
             ));
         }
 
