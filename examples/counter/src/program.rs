@@ -72,20 +72,17 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             // Prepare PDA seeds, check address.
             // SAFETY: known number of accounts have been read.
             let program_id = unsafe { context.program_id_unchecked() };
-            let user_pubkey_seed = Seed::from(user.address().as_array());
+            let user_ref = user.address().as_array();
+            let user_pubkey_seed = Seed::from(user_ref);
             let (expected_pda, bump) =
                 Address::find_program_address(&[&user_pubkey_seed], program_id);
             if !address_eq(pda.address(), &expected_pda) {
                 return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
             }
 
-            // Prepare PDA seeds.
-            let bump_ref = &[bump];
-            let seeds = [Seed::from(user.address().as_array()), Seed::from(bump_ref)];
-
             // Calculate lamports from rent sysvar (matches assembly behavior).
-            // SAFETY: Rent is #[repr(C)] with lamports_per_byte as first field (u64).
             let rent = Rent::get()?;
+            // SAFETY: Rent is #[repr(C)] with lamports_per_byte as first field (u64).
             let lamports_per_byte = unsafe { *(&rent as *const Rent as *const u64) };
             let lamports =
                 (size_of::<PdaAccountData>() as u64 + ACCOUNT_STORAGE_OVERHEAD) * lamports_per_byte;
@@ -98,7 +95,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 space: size_of::<PdaAccountData>() as u64,
                 owner: program_id,
             }
-            .invoke_signed(&[Signer::from(&seeds)])?;
+            .invoke_signed(&[Signer::from(&[Seed::from(user_ref), Seed::from(&[bump])])])?;
 
             // Write bump seed to PDA data.
             // SAFETY: PDA account was just created with sufficient space.

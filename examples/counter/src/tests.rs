@@ -113,20 +113,20 @@ impl Case {
     const fn get(self) -> ComputeUnits {
         match self {
             // Initialize
-            Self::InitializeNoAccounts => ComputeUnits { asm: 5, rs: 7 },
-            Self::InitializeTooManyAccounts => ComputeUnits { asm: 5, rs: 7 },
-            Self::InitializeUserDataLen => ComputeUnits { asm: 7, rs: 16 },
-            Self::InitializePdaDuplicate => ComputeUnits { asm: 9, rs: 21 },
-            Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 25 },
-            Self::InitializeSystemProgramDuplicate => ComputeUnits { asm: 13, rs: 32 },
-            Self::InitializeSystemProgramDataLen => ComputeUnits { asm: 15, rs: 35 },
+            Self::InitializeNoAccounts => ComputeUnits { asm: 5, rs: 6 },
+            Self::InitializeTooManyAccounts => ComputeUnits { asm: 5, rs: 6 },
+            Self::InitializeUserDataLen => ComputeUnits { asm: 7, rs: 15 },
+            Self::InitializePdaDuplicate => ComputeUnits { asm: 9, rs: 20 },
+            Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 24 },
+            Self::InitializeSystemProgramDuplicate => ComputeUnits { asm: 13, rs: 31 },
+            Self::InitializeSystemProgramDataLen => ComputeUnits { asm: 15, rs: 34 },
             Self::InitializePdaMismatch => ComputeUnits {
                 asm: 1543,
-                rs: 1566,
+                rs: 1565,
             },
             Self::InitializeHappyPath => ComputeUnits {
                 asm: 2834,
-                rs: 3050,
+                rs: 3047,
             },
 
             // Increment
@@ -501,7 +501,6 @@ fn test_asm_initialize_pda_mismatch() {
     let (setup, instruction, accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
 
-    // Each chunk adds 3 CUs for the additional compare before exit.
     const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
     let base_cu = Case::InitializePdaMismatch.get().asm;
 
@@ -536,8 +535,7 @@ fn test_rs_initialize_pda_mismatch() {
     let (setup, instruction, accounts, _) =
         happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
 
-    // RS impl has +4 on final chunk instead of +3.
-    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 10];
+    const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
     let base_cu = Case::InitializePdaMismatch.get().rs;
 
     const FINAL_BIT: usize = size_of::<u64>() - 1;
@@ -718,7 +716,6 @@ fn test_asm_increment_pda_mismatch() {
     let (setup, instruction, accounts, _) =
         happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
 
-    // Each chunk adds 3 CUs for the additional compare before exit.
     const CHUNK_INCREMENT: [u64; size_of::<Pubkey>() / size_of::<u64>()] = [0, 3, 6, 9];
     let base_cu = Case::IncrementPdaMismatch.get().asm;
 
