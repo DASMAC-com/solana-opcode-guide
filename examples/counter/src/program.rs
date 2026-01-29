@@ -9,6 +9,7 @@ use pinocchio::{
     Address, ProgramResult,
 };
 
+#[allow(deprecated)]
 #[cfg(target_os = "solana")]
 use pinocchio::syscalls::sol_get_rent_sysvar;
 
@@ -97,6 +98,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             }
             let rent = MaybeUninit::<MockRent>::uninit();
             let lamports_per_byte: u64 = unsafe {
+                #[allow(deprecated)]
                 #[cfg(target_os = "solana")]
                 sol_get_rent_sysvar(transmute::<_, _>(&rent));
                 rent.assume_init().lamports_per_byte
