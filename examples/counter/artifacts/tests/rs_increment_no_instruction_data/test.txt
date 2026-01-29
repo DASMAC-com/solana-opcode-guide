@@ -1,0 +1,4 @@
+#[test]
+fn test_rs_increment_no_instruction_data() {
+    test_increment_no_instruction_data(ProgramLanguage::Rust);
+}

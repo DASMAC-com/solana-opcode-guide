@@ -1,20 +1,4 @@
 #[test]
 fn test_asm_initialize_system_program_duplicate() {
-    let (setup, mut instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    instruction.accounts[AccountIndex::SystemProgram as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::SystemProgram as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_SYSTEM_PROGRAM_DUPLICATE") as u32,
-            )),
-            Check::compute_units(Case::InitializeSystemProgramDuplicate.get().asm),
-        ],
-    );
+    test_initialize_system_program_duplicate(ProgramLanguage::Assembly);
 }

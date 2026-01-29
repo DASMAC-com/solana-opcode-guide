@@ -1,18 +1,4 @@
 #[test]
 fn test_asm_initialize_system_program_data_len() {
-    let (setup, instruction, mut accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_SYSTEM_PROGRAM_DATA_LEN") as u32,
-            )),
-            Check::compute_units(Case::InitializeSystemProgramDataLen.get().asm),
-        ],
-    );
+    test_initialize_system_program_data_len(ProgramLanguage::Assembly);
 }

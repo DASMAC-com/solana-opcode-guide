@@ -1,0 +1,4 @@
+#[test]
+fn test_print_compute_units_tables() {
+    println!("\n{}", Case::markdown_tables());
+}

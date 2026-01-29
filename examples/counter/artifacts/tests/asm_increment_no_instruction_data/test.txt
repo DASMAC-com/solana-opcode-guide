@@ -1,16 +1,4 @@
 #[test]
 fn test_asm_increment_no_instruction_data() {
-    let (setup, instruction, accounts, _) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Increment);
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(
-                constants().get("E_INVALID_INSTRUCTION_DATA_LEN") as u32,
-            )),
-            Check::compute_units(Case::IncrementNoInstructionData.get().asm),
-        ],
-    );
+    test_increment_no_instruction_data(ProgramLanguage::Assembly);
 }

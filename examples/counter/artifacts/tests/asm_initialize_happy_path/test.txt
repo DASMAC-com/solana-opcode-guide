@@ -1,15 +1,4 @@
 #[test]
 fn test_asm_initialize_happy_path() {
-    let (setup, instruction, accounts, counter_account) =
-        happy_path_setup(ProgramLanguage::Assembly, Operation::Initialize);
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::success(),
-            counter_account.check(),
-            Check::compute_units(Case::InitializeHappyPath.get().asm),
-        ],
-    );
+    test_initialize_happy_path(ProgramLanguage::Assembly);
 }

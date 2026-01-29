@@ -1,17 +1,4 @@
 #[test]
 fn test_rs_no_accounts() {
-    let (setup, mut instruction, mut accounts, _bump_seed) =
-        happy_path_setup(ProgramLanguage::Rust, Operation::Initialize);
-
-    instruction.accounts.clear();
-    accounts.clear();
-
-    setup.mollusk.process_and_validate_instruction(
-        &instruction,
-        &accounts,
-        &[
-            Check::err(ProgramError::Custom(constants().get("E_N_ACCOUNTS") as u32)),
-            Check::compute_units(Case::InitializeNoAccounts.get().rs),
-        ],
-    );
+    test_no_accounts(ProgramLanguage::Rust);
 }
