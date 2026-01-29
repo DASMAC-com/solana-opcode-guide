@@ -79,12 +79,18 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
 
             // Prepare PDA seeds, check address.
             // SAFETY: accounts and instruction data have been read.
-            let program_id = unsafe { context.program_id_unchecked() };
-            let user_pubkey_seed =
-                unsafe { Seed::from(transmute::<_, &[u8; size_of::<Address>()]>(user.address())) };
-            let expected_pda =
-                Address::create_program_address(&[&user_pubkey_seed, &[pda_data.bump]], program_id)
-                    .map_err(|_| pinocchio::error::ProgramError::Custom(E_UNABLE_TO_DERIVE_PDA))?;
+            let expected_pda = Address::create_program_address(
+                &[
+                    // SAFETY: user address is valid and of correct size.
+                    unsafe {
+                        &Seed::from(transmute::<_, &[u8; size_of::<Address>()]>(user.address()))
+                    },
+                    &[pda_data.bump],
+                ],
+                // SAFETY: program ID is valid and accounts have been read.
+                unsafe { context.program_id_unchecked() },
+            )
+            .map_err(|_| pinocchio::error::ProgramError::Custom(E_UNABLE_TO_DERIVE_PDA))?;
             if !address_eq(pda.address(), &expected_pda) {
                 return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
             }
@@ -125,8 +131,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             // Prepare PDA seeds, check address.
             // SAFETY: known number of accounts have been read.
             let program_id = unsafe { context.program_id_unchecked() };
-            let user_ref = user.address().as_array();
-            let user_pubkey_seed = Seed::from(user_ref);
+            let user_pubkey_seed =
+                unsafe { Seed::from(transmute::<_, &[u8; size_of::<Address>()]>(user.address())) };
             let (expected_pda, bump) =
                 Address::find_program_address(&[&user_pubkey_seed], program_id);
             if !address_eq(pda.address(), &expected_pda) {
