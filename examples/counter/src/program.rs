@@ -105,13 +105,11 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                 );
                 core::ptr::copy_nonoverlapping(
                     size_of::<PdaAccountData>().to_le_bytes().as_ptr(),
-                    // Move the pointer forward by 8 bytes from first arg
                     (instruction_data.as_mut_ptr() as *mut u8).add(12),
                     8,
                 );
                 core::ptr::copy_nonoverlapping(
                     program_id.as_array().as_ptr(),
-                    // Move the pointer forward by 16 bytes from first arg
                     (instruction_data.as_mut_ptr() as *mut u8).add(20),
                     32,
                 );
