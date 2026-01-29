@@ -115,18 +115,18 @@ impl Case {
             // Initialize
             Self::InitializeNoAccounts => ComputeUnits { asm: 5, rs: 6 },
             Self::InitializeTooManyAccounts => ComputeUnits { asm: 5, rs: 6 },
-            Self::InitializeUserDataLen => ComputeUnits { asm: 7, rs: 15 },
-            Self::InitializePdaDuplicate => ComputeUnits { asm: 9, rs: 20 },
-            Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 24 },
-            Self::InitializeSystemProgramDuplicate => ComputeUnits { asm: 13, rs: 31 },
-            Self::InitializeSystemProgramDataLen => ComputeUnits { asm: 15, rs: 34 },
+            Self::InitializeUserDataLen => ComputeUnits { asm: 7, rs: 10 },
+            Self::InitializePdaDuplicate => ComputeUnits { asm: 9, rs: 17 },
+            Self::InitializePdaDataLen => ComputeUnits { asm: 11, rs: 20 },
+            Self::InitializeSystemProgramDuplicate => ComputeUnits { asm: 13, rs: 27 },
+            Self::InitializeSystemProgramDataLen => ComputeUnits { asm: 15, rs: 30 },
             Self::InitializePdaMismatch => ComputeUnits {
                 asm: 1543,
-                rs: 1565,
+                rs: 1562,
             },
             Self::InitializeHappyPath => ComputeUnits {
                 asm: 2834,
-                rs: 3046,
+                rs: 2905,
             },
 
             // Increment

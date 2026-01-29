@@ -1,7 +1,9 @@
+use core::mem::MaybeUninit;
 use pinocchio::{
     address::address_eq,
-    cpi::{Seed, Signer},
+    cpi::{invoke_signed_unchecked, Seed, Signer},
     entrypoint::{InstructionContext, MaybeAccount},
+    instruction::{InstructionAccount, InstructionView},
     lazy_program_entrypoint, no_allocator, nostd_panic_handler,
     sysvars::{
         rent::{Rent, ACCOUNT_STORAGE_OVERHEAD},
@@ -9,7 +11,6 @@ use pinocchio::{
     },
     Address, ProgramResult,
 };
-use pinocchio_system::instructions::CreateAccount;
 
 lazy_program_entrypoint!(process_instruction);
 nostd_panic_handler!();
@@ -88,16 +89,50 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             let lamports =
                 (size_of::<PdaAccountData>() as u64 + ACCOUNT_STORAGE_OVERHEAD) * lamports_per_byte;
 
-            // Create PDA account.
-            CreateAccount {
-                from: &user,
-                to: &pda,
-                lamports,
-                space: size_of::<PdaAccountData>() as u64,
-                owner: program_id,
-            }
-            .invoke_signed(&[Signer::from(&[user_pubkey_seed, Seed::from(&[bump])])])?;
+            const IXN_BYTES: usize = 52; // for CreateAccount
+            let data = unsafe {
+                let mut instruction_data: [MaybeUninit<u8>; IXN_BYTES] =
+                    [MaybeUninit::uninit(); IXN_BYTES];
+                core::ptr::copy_nonoverlapping(
+                    [0u8; 4].as_ptr(),
+                    instruction_data.as_mut_ptr() as *mut u8,
+                    4,
+                );
+                core::ptr::copy_nonoverlapping(
+                    lamports.to_le_bytes().as_ptr(),
+                    (instruction_data.as_mut_ptr() as *mut u8).add(4),
+                    8,
+                );
+                core::ptr::copy_nonoverlapping(
+                    size_of::<PdaAccountData>().to_le_bytes().as_ptr(),
+                    // Move the pointer forward by 8 bytes from first arg
+                    (instruction_data.as_mut_ptr() as *mut u8).add(12),
+                    8,
+                );
+                core::ptr::copy_nonoverlapping(
+                    program_id.as_array().as_ptr(),
+                    // Move the pointer forward by 16 bytes from first arg
+                    (instruction_data.as_mut_ptr() as *mut u8).add(20),
+                    32,
+                );
 
+                &{ *(instruction_data.as_ptr() as *const [u8; IXN_BYTES]) }
+            };
+
+            unsafe {
+                invoke_signed_unchecked(
+                    &InstructionView {
+                        program_id: &pinocchio_system::ID,
+                        accounts: &[
+                            InstructionAccount::writable_signer(user.address()),
+                            InstructionAccount::writable_signer(pda.address()),
+                        ],
+                        data,
+                    },
+                    &[(&user).into(), (&pda).into()],
+                    &[Signer::from(&[user_pubkey_seed, Seed::from(&[bump])])],
+                );
+            }
             // Write bump seed to PDA data.
             // SAFETY: PDA account was just created with sufficient space.
             let pda_data_ptr = pda.data_ptr() as *mut PdaAccountData;
