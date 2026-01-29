@@ -73,8 +73,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             // SAFETY: PDA account size has been validated.
             let pda_data: &mut PdaAccountData = unsafe { transmute(pda.data_ptr()) };
             // SAFETY: instruction data size has been validated.
-            let increment: u64 = unsafe { *(instruction_data.as_ptr() as *const u64) };
-            pda_data.counter = pda_data.counter.wrapping_add(increment);
+            let increment: *const u64 = unsafe { transmute(instruction_data.as_ptr()) };
+            pda_data.counter = unsafe { pda_data.counter.wrapping_add(*increment) };
 
             // Prepare PDA seeds, check address.
             // SAFETY: accounts and instruction data have been read.
