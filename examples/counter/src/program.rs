@@ -1,4 +1,3 @@
-use core::mem::MaybeUninit;
 use pinocchio::{
     address::address_eq,
     cpi::{invoke_signed_unchecked, Seed, Signer},
