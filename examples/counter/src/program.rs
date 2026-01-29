@@ -1,3 +1,4 @@
+use core::mem::transmute;
 use pinocchio::{
     address::address_eq,
     cpi::{invoke_signed_unchecked, Seed, Signer},
@@ -110,8 +111,9 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
                             InstructionAccount::writable_signer(user.address()),
                             InstructionAccount::writable_signer(pda.address()),
                         ],
-                        data: &*(&raw const instruction_data)
-                            .cast::<[u8; size_of::<CreateAccountInstructionData>()]>(),
+                        data: transmute::<_, &[u8; size_of::<CreateAccountInstructionData>()]>(
+                            &instruction_data,
+                        ),
                     },
                     &[(&user).into(), (&pda).into()],
                     &[Signer::from(&[user_pubkey_seed, Seed::from(&[bump])])],
