@@ -31,6 +31,23 @@ const N_ACCOUNTS_INCREMENT: u64 = 2;
 const N_ACCOUNTS_INITIALIZE: u64 = 3;
 const SYSTEM_PROGRAM_DATA_LEN: usize = b"system_program".len();
 
+#[inline(always)]
+const fn err(code: u32) -> pinocchio::error::ProgramError {
+    pinocchio::error::ProgramError::Custom(code)
+}
+
+/// SAFETY: Caller must ensure address points to valid memory of correct size.
+#[inline(always)]
+unsafe fn user_seed(address: &Address) -> Seed<'_> {
+    Seed::from(transmute::<_, &[u8; size_of::<Address>()]>(address))
+}
+
+/// SAFETY: Caller must ensure data_ptr points to valid PdaAccountData.
+#[inline(always)]
+unsafe fn pda_data(data_ptr: *mut u8) -> &'static mut PdaAccountData {
+    transmute(data_ptr)
+}
+
 #[repr(C, packed)]
 struct PdaAccountData {
     counter: u64,
@@ -54,24 +71,20 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             // SAFETY: number of accounts has been checked.
             let pda = match unsafe { context.next_account_unchecked() } {
                 MaybeAccount::Account(account) => account,
-                MaybeAccount::Duplicated(_) => {
-                    return Err(pinocchio::error::ProgramError::Custom(E_PDA_DUPLICATE))
-                }
+                MaybeAccount::Duplicated(_) => return Err(err(E_PDA_DUPLICATE)),
             };
             if pda.data_len() != size_of::<PdaAccountData>() {
-                return Err(pinocchio::error::ProgramError::Custom(E_PDA_DATA_LEN));
+                return Err(err(E_PDA_DATA_LEN));
             }
 
             // SAFETY: All accounts have been consumed.
             let instruction_data = unsafe { context.instruction_data_unchecked() };
             if instruction_data.len() != size_of::<u64>() {
-                return Err(pinocchio::error::ProgramError::Custom(
-                    E_INVALID_INSTRUCTION_DATA_LEN,
-                ));
+                return Err(err(E_INVALID_INSTRUCTION_DATA_LEN));
             }
 
             // SAFETY: PDA account size has been validated.
-            let pda_data: &mut PdaAccountData = unsafe { transmute(pda.data_ptr()) };
+            let pda_data = unsafe { pda_data(pda.data_ptr()) };
             // SAFETY: instruction data size has been validated.
             pda_data.counter = pda_data
                 .counter
@@ -80,63 +93,47 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
             // Prepare PDA seeds, check address.
             // SAFETY: accounts and instruction data have been read.
             let expected_pda = Address::create_program_address(
-                &[
-                    // SAFETY: user address is valid and of correct size.
-                    unsafe {
-                        &Seed::from(transmute::<_, &[u8; size_of::<Address>()]>(user.address()))
-                    },
-                    &[pda_data.bump],
-                ],
-                // SAFETY: program ID is valid and accounts have been read.
+                &[unsafe { &user_seed(user.address()) }, &[pda_data.bump]],
                 unsafe { context.program_id_unchecked() },
             )
-            .map_err(|_| pinocchio::error::ProgramError::Custom(E_UNABLE_TO_DERIVE_PDA))?;
+            .map_err(|_| err(E_UNABLE_TO_DERIVE_PDA))?;
             if !address_eq(pda.address(), &expected_pda) {
-                return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
+                return Err(err(E_PDA_MISMATCH));
             }
         }
         N_ACCOUNTS_INITIALIZE => {
             // SAFETY: number of accounts has been checked.
             let user = unsafe { context.next_account_unchecked().assume_account() };
             if !user.is_data_empty() {
-                return Err(pinocchio::error::ProgramError::Custom(E_USER_DATA_LEN));
+                return Err(err(E_USER_DATA_LEN));
             }
 
             // SAFETY: number of accounts has been checked.
             let pda = match unsafe { context.next_account_unchecked() } {
                 MaybeAccount::Account(account) => account,
-                MaybeAccount::Duplicated(_) => {
-                    return Err(pinocchio::error::ProgramError::Custom(E_PDA_DUPLICATE))
-                }
+                MaybeAccount::Duplicated(_) => return Err(err(E_PDA_DUPLICATE)),
             };
             if !pda.is_data_empty() {
-                return Err(pinocchio::error::ProgramError::Custom(E_PDA_DATA_LEN));
+                return Err(err(E_PDA_DATA_LEN));
             }
 
             // SAFETY: number of accounts has been checked.
             let system_program = match unsafe { context.next_account_unchecked() } {
                 MaybeAccount::Account(account) => account,
-                MaybeAccount::Duplicated(_) => {
-                    return Err(pinocchio::error::ProgramError::Custom(
-                        E_SYSTEM_PROGRAM_DUPLICATE,
-                    ))
-                }
+                MaybeAccount::Duplicated(_) => return Err(err(E_SYSTEM_PROGRAM_DUPLICATE)),
             };
             if system_program.data_len() != SYSTEM_PROGRAM_DATA_LEN {
-                return Err(pinocchio::error::ProgramError::Custom(
-                    E_SYSTEM_PROGRAM_DATA_LEN,
-                ));
+                return Err(err(E_SYSTEM_PROGRAM_DATA_LEN));
             }
 
             // Prepare PDA seeds, check address.
             // SAFETY: known number of accounts have been read.
             let program_id = unsafe { context.program_id_unchecked() };
-            let user_pubkey_seed =
-                unsafe { Seed::from(transmute::<_, &[u8; size_of::<Address>()]>(user.address())) };
+            let user_pubkey_seed = unsafe { user_seed(user.address()) };
             let (expected_pda, bump) =
                 Address::find_program_address(&[&user_pubkey_seed], program_id);
             if !address_eq(pda.address(), &expected_pda) {
-                return Err(pinocchio::error::ProgramError::Custom(E_PDA_MISMATCH));
+                return Err(err(E_PDA_MISMATCH));
             }
 
             // Calculate minimum balance for rent exemption using mock of `Rent`, since `Rent`
@@ -182,9 +179,9 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
 
             // Write bump seed to PDA data.
             // SAFETY: PDA account was just created with sufficient space.
-            unsafe { transmute::<_, &mut PdaAccountData>(pda.data_ptr()) }.bump = bump;
+            unsafe { pda_data(pda.data_ptr()) }.bump = bump;
         }
-        _ => return Err(pinocchio::error::ProgramError::Custom(E_N_ACCOUNTS)),
+        _ => return Err(err(E_N_ACCOUNTS)),
     }
     Ok(())
 }
