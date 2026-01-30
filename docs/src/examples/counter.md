@@ -293,13 +293,14 @@ which implement internal full-copy mechanisms that do not leverage the assembly
 implementation's [zero-initialized stack optimizations](#cpi-construction),
 since individual stack frames are not zero-initialized during a
 [frame push][`push_frame`] and therefore may have residual data from prior
-calls during runtime for the Rust implementation:
+calls during runtime:
 
 <<< ../../../examples/counter/artifacts/snippets/rs/cpi.txt{5,6,13 rs}
 
-Since the assembly implementation verifiably uses only a single stack frame for
-each operation, the Rust implementation displays considerable overhead in
-particular for the initialize operation happy path, due to all the copies.
+Compared with the assembly implementation, which verifiably uses only a single
+stack frame for each operation, the Rust implementation exhibits considerable
+overhead in particular for the initialize operation happy path, which relies on
+the aforementioned full-copy mechanisms.
 
 ## Compute unit analysis
 
