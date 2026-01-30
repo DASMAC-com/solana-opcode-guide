@@ -279,8 +279,8 @@ impl Case {
         }
 
         let mut table = format!("### {} (adjusted)\n\n", title);
-        table.push_str("| Case | Fixed | ASM Adj | Rust Adj | Overhead | Adj Overhead % |\n");
-        table.push_str("|------|-------|---------|----------|----------|----------------|\n");
+        table.push_str("| Case | Fixed costs | ASM (net) | Rust (net) | Overhead | Overhead % (net) |\n");
+        table.push_str("|------|-------------|-----------|------------|----------|------------------|\n");
 
         for case in adjusted_cases {
             let cu = case.get();
