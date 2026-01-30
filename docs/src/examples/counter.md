@@ -326,6 +326,18 @@ values for each operation:
 
 <!-- markdownlint-enable MD013 -->
 
+## All tests
+
+::: details `tests.rs`
+
+<<< ../../../examples/counter/src/tests.rs
+
+:::
+
+> [!note]
+> The assembly file in this example was adapted from an [`sbpf` example].
+
+[`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b54199788a1f654b27f356cd3f79add8bea3e275/examples/sbpf-asm-counter/src/sbpf-asm-counter/sbpf-asm-counter.s
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
