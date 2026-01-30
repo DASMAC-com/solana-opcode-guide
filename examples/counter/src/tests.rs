@@ -247,29 +247,51 @@ impl Case {
 
     fn generate_markdown_table(title: &str, cases: &[Case]) -> String {
         let mut table = format!("### {}\n\n", title);
-        table.push_str("| Case | ASM | Rust | Overhead | Overhead % | Fixed | ASM Adj | Rust Adj | Adj Overhead % |\n");
-        table.push_str("|------|-----|------|----------|------------|-------|---------|----------|----------------|\n");
+        table.push_str("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |\n");
+        table.push_str("|------|-----------|------------|----------|------------|\n");
 
         for case in cases {
             let cu = case.get();
-            let fixed = case.fixed_costs();
             let overhead = cu.rs as i64 - cu.asm as i64;
             let overhead_pct = if cu.asm > 0 {
                 (overhead as f64 / cu.asm as f64) * 100.0
             } else {
                 0.0
             };
+            table.push_str(&format!(
+                "| {} | {} | {} | {:+} | {:+.1}% |\n",
+                case.name(),
+                cu.asm,
+                cu.rs,
+                overhead,
+                overhead_pct
+            ));
+        }
 
-            // Adjusted values (subtracting fixed costs).
+        table
+    }
+
+    fn generate_adjusted_table(title: &str, cases: &[Case]) -> String {
+        // Filter to only cases with fixed costs.
+        let adjusted_cases: Vec<_> = cases.iter().filter(|c| c.fixed_costs() > 0).collect();
+        if adjusted_cases.is_empty() {
+            return String::new();
+        }
+
+        let mut table = format!("### {} (adjusted)\n\n", title);
+        table.push_str("| Case | Fixed | ASM Adj | Rust Adj | Overhead | Adj Overhead % |\n");
+        table.push_str("|------|-------|---------|----------|----------|----------------|\n");
+
+        for case in adjusted_cases {
+            let cu = case.get();
+            let fixed = case.fixed_costs();
             let asm_adj = cu.asm.saturating_sub(fixed);
             let rs_adj = cu.rs.saturating_sub(fixed);
+            let overhead = cu.rs as i64 - cu.asm as i64;
             let adj_overhead_pct = if asm_adj > 0 {
                 (overhead as f64 / asm_adj as f64) * 100.0
-            } else if fixed > 0 {
-                // If fixed costs dominate, show N/A.
-                f64::NAN
             } else {
-                overhead_pct
+                f64::NAN
             };
 
             let adj_overhead_str = if adj_overhead_pct.is_nan() {
@@ -279,15 +301,12 @@ impl Case {
             };
 
             table.push_str(&format!(
-                "| {} | {} | {} | {:+} | {:+.1}% | {} | {} | {} | {} |\n",
+                "| {} | {} | {} | {} | {:+} | {} |\n",
                 case.name(),
-                cu.asm,
-                cu.rs,
-                overhead,
-                overhead_pct,
                 fixed,
                 asm_adj,
                 rs_adj,
+                overhead,
                 adj_overhead_str
             ));
         }
@@ -302,7 +321,17 @@ impl Case {
             Self::INITIALIZE_CASES,
         ));
         output.push('\n');
+        output.push_str(&Self::generate_adjusted_table(
+            "Initialize",
+            Self::INITIALIZE_CASES,
+        ));
+        output.push('\n');
         output.push_str(&Self::generate_markdown_table(
+            "Increment",
+            Self::INCREMENT_CASES,
+        ));
+        output.push('\n');
+        output.push_str(&Self::generate_adjusted_table(
             "Increment",
             Self::INCREMENT_CASES,
         ));

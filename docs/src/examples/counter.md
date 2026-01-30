@@ -290,7 +290,8 @@ parity with the assembly implementation:
 ## Compute unit analysis
 
 Note the following fixed costs, which can be subtracted from the total
-[compute unit] costs to calculate adjusted overhead values for each operation:
+[compute unit] costs for relevant test cases to calculate adjusted overhead
+values for each operation:
 
 | Operation | Fixed cost (CUs) |
 | --------- | ---------- |
@@ -308,7 +309,7 @@ Note the following fixed costs, which can be subtracted from the total
 
 <!-- markdownlint-disable MD013 -->
 
-<!-- @include: ../../../examples/counter/artifacts/tests/print_compute_units_tables/result.txt{1,20} -->
+<!-- @include: ../../../examples/counter/artifacts/tests/print_compute_units_tables/result.txt{1,32} -->
 
 <!-- markdownlint-enable MD013 -->
 
