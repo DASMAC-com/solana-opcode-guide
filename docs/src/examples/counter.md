@@ -185,7 +185,7 @@ instruction data buffer on the [stack](transfer#transfer-cpi):
 
 <<< ../../../examples/counter/artifacts/snippets/asm/min-balance.txt{asm}
 
-### CPI construction
+### CPI construction {#cpi-construction}
 
 As in the [transfer CPI](transfer#transfer-cpi), the [`CreateAccount`]
 instruction and associated account information regions are populated, this time
@@ -287,6 +287,20 @@ parity with the assembly implementation:
 
 :::
 
+Notably, the Rust implementation relies on
+[`InstructionAccount::writable_signer`] and [`CpiAccount::From<AccountView>`],
+which implement internal full-copy mechanisms that do not leverage the assembly
+implementation's [zero-initialized stack optimizations](#cpi-constructions),
+since individual stack frames are not zero-initialized during a
+[frame push][`push_frame`] and therefore may have residual data from prior
+calls during runtime for the Rust implementation:
+
+<<< ../../../examples/counter/artifacts/snippets/rs/cpi.txt{5,6,13 rs}
+
+Since the assembly implementation verifiably uses only a single stack frame for
+each operation, the Rust implementation displays considerable overhead in
+particular for the initialize operation happy path, due to all the copies.
+
 ## Compute unit analysis
 
 Note the following fixed costs, which can be subtracted from the total
@@ -313,7 +327,9 @@ values for each operation:
 
 <!-- markdownlint-enable MD013 -->
 
-
+[`push_frame`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L128-L160
+[`CpiAccount::From<AccountView>`]: https://docs.rs/solana-instruction-view/1.0.0/solana_instruction_view/cpi/struct.CpiAccount.html#impl-From%3C%26AccountView%3E-for-CpiAccount%3C'a%3E
+[`InstructionAccount::writable_signer`]: https://docs.rs/solana-instruction-view/1.0.0/solana_instruction_view/struct.InstructionAccount.html#method.writable_signer
 [the target struct length]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L18
 [`get_sysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L6-L42
 [`SyscallGetRentSysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L135-L155

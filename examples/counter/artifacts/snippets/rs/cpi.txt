@@ -1,0 +1,15 @@
+                invoke_signed_unchecked(
+                    &InstructionView {
+                        program_id: &pinocchio_system::ID,
+                        accounts: &[
+                            InstructionAccount::writable_signer(user.address()),
+                            InstructionAccount::writable_signer(pda.address()),
+                        ],
+                        #[allow(clippy::missing_transmute_annotations)]
+                        data: transmute::<_, &[u8; size_of::<CreateAccountInstructionData>()]>(
+                            &instruction_data,
+                        ),
+                    },
+                    &[(&user).into(), (&pda).into()],
+                    &[Signer::from(&[user_pubkey_seed, Seed::from(&[bump])])],
+                );
