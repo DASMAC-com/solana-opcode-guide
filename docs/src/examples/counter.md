@@ -311,8 +311,8 @@ values for each operation:
 | Operation                        | Fixed cost (CUs)                       |
 | -------------------------------- | -------------------------------------- |
 | [`CreateAccount`] CPI            | [1096](transfer#compute-unit-analysis) |
-| [`sol_try_find_program_address`] | [1500](create_program_address_units)   |
-| [`sol_create_program_address`]   | [1500](create_program_address_units)   |
+| [`sol_try_find_program_address`] | [1500][`create_program_address_units`] |
+| [`sol_create_program_address`]   | [1500][`create_program_address_units`] |
 | [`sol_get_rent_sysvar`]          | 117                                    |
 
 > [!note]
@@ -356,6 +356,7 @@ values for each operation:
 [`cpiaccount::from<accountview>`]: https://docs.rs/solana-instruction-view/1.0.0/solana_instruction_view/cpi/struct.CpiAccount.html#impl-From%3C%26AccountView%3E-for-CpiAccount%3C'a%3E
 [`createaccount`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L88-L97
 [`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
+[`create_program_address_units`]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L200
 [`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
 [`default_lamports_per_byte_year`]: https://docs.rs/solana-rent/3.0.0/solana_rent/constant.DEFAULT_LAMPORTS_PER_BYTE_YEAR.html
 [`get_sysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L6-L42
