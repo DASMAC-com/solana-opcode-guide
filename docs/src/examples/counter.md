@@ -290,7 +290,7 @@ parity with the assembly implementation:
 Notably, the Rust implementation relies on
 [`InstructionAccount::writable_signer`] and [`CpiAccount::From<AccountView>`],
 which implement internal full-copy mechanisms that do not leverage the assembly
-implementation's [zero-initialized stack optimizations](#cpi-constructions),
+implementation's [zero-initialized stack optimizations](#cpi-construction),
 since individual stack frames are not zero-initialized during a
 [frame push][`push_frame`] and therefore may have residual data from prior
 calls during runtime for the Rust implementation:
@@ -307,19 +307,17 @@ Note the following fixed costs, which can be subtracted from the total
 [compute unit] costs for relevant test cases to calculate adjusted overhead
 values for each operation:
 
-| Operation | Fixed cost (CUs) |
-| --------- | ---------- |
-| [`CreateAccount`] CPI | [1096](transfer#compute-unit-analysis) |
-| [`sol_try_find_program_address`] | [1500](create_program_address_units) |
-| [`sol_create_program_address`] | [1500](create_program_address_units) |
-| [`sol_get_rent_sysvar`] | 117 |
+| Operation                        | Fixed cost (CUs)                       |
+| -------------------------------- | -------------------------------------- |
+| [`CreateAccount`] CPI            | [1096](transfer#compute-unit-analysis) |
+| [`sol_try_find_program_address`] | [1500](create_program_address_units)   |
+| [`sol_create_program_address`]   | [1500](create_program_address_units)   |
+| [`sol_get_rent_sysvar`]          | 117                                    |
 
 > [!note]
 > The [`SyscallGetRentSysvar`] implementation relies on [`get_sysvar`], which
 > has a [100 CU base cost][sysvar_base_cost] plus [the target struct length],
 > in this case `17` bytes for [`Rent`].
-
-
 
 <!-- markdownlint-disable MD013 -->
 
@@ -327,14 +325,8 @@ values for each operation:
 
 <!-- markdownlint-enable MD013 -->
 
-[`push_frame`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L128-L160
-[`CpiAccount::From<AccountView>`]: https://docs.rs/solana-instruction-view/1.0.0/solana_instruction_view/cpi/struct.CpiAccount.html#impl-From%3C%26AccountView%3E-for-CpiAccount%3C'a%3E
-[`InstructionAccount::writable_signer`]: https://docs.rs/solana-instruction-view/1.0.0/solana_instruction_view/struct.InstructionAccount.html#method.writable_signer
-[the target struct length]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L18
-[`get_sysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L6-L42
-[`SyscallGetRentSysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L135-L155
-[compute unit]: https://solana.com/docs/references/terminology#compute-units
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
+[compute unit]: https://solana.com/docs/references/terminology#compute-units
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
 [create_pda_returns]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L798-L834
 [implementation]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/lib.rs#L836-L886
@@ -354,22 +346,26 @@ values for each operation:
 [soon-to-be-deprecated `rent::default`]: https://github.com/anza-xyz/solana-sdk/blob/rent@v3.1.0/rent/src/lib.rs#L108-L114
 [subject to metering]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L3-L10
 [sysvar_base_cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L206
+[the target struct length]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L18
 [unchanged]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L606-L612
 [uses]: https://github.com/anza-xyz/mollusk/blob/0.10.0/harness/src/sysvar.rs#L37
 [`account_storage_overhead`]: https://docs.rs/solana-rent/3.1.0/solana_rent/constant.ACCOUNT_STORAGE_OVERHEAD.html
 [`and64_imm`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L371
 [`calleraccount`]: https://docs.rs/solana-program-runtime/3.1.7/solana_program_runtime/cpi/struct.CallerAccount.html
+[`cpiaccount::from<accountview>`]: https://docs.rs/solana-instruction-view/1.0.0/solana_instruction_view/cpi/struct.CpiAccount.html#impl-From%3C%26AccountView%3E-for-CpiAccount%3C'a%3E
 [`createaccount`]: https://github.com/anza-xyz/solana-sdk/blob/sdk@v3.0.0/system-interface/src/instruction.rs#L88-L97
 [`create_account`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L146-L179
-[create_program_address_units]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L200
 [`create_program_address`]: https://docs.rs/solana-address/2.0.0/solana_address/struct.Address.html#method.create_program_address
 [`default_lamports_per_byte_year`]: https://docs.rs/solana-rent/3.0.0/solana_rent/constant.DEFAULT_LAMPORTS_PER_BYTE_YEAR.html
+[`get_sysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L6-L42
 [`i16` offset values]: https://github.com/anza-xyz/sbpf/blob/v0.14.1/doc/bytecode.md?plain=1#L45
 [`i32` immediates]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/doc/bytecode.md#instruction-layout
 [`i32` interpretation]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/ebpf.rs#L682
+[`instructionaccount::writable_signer`]: https://docs.rs/solana-instruction-view/1.0.0/solana_instruction_view/struct.InstructionAccount.html#method.writable_signer
 [`lazy_program_entrypoint`]: https://docs.rs/pinocchio/0.10.1/pinocchio/macro.lazy_program_entrypoint.html
 [`max_permitted_data_length`]: https://docs.rs/solana-system-interface/3.0.0/solana_system_interface/constant.MAX_PERMITTED_DATA_LENGTH.html
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance
+[`push_frame`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L128-L160
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
 [`sbpf` silently truncates offsets that are not `i16`]: https://github.com/blueshift-gg/sbpf/issues/97
 [`simd-0194`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0194-deprecate-rent-exemption-threshold.md
@@ -382,6 +378,7 @@ values for each operation:
 [`sol_memcmp`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L67-L111
 [`sol_memcpy`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/mem_ops.rs#L26-L47
 [`sol_try_find_program_address`]: https://github.com/anza-xyz/agave/blob/v3.1.6/platform-tools-sdk/sbf/c/inc/sol/inc/pubkey.inc#L74-L83
+[`syscallgetrentsysvar`]: https://github.com/anza-xyz/agave/blob/v3.1.6/syscalls/src/sysvar.rs#L135-L155
 [`transfer`]: https://github.com/anza-xyz/agave/blob/v3.1.6/programs/system/src/system_processor.rs#L210-L233
 [`transmute`]: https://doc.rust-lang.org/std/mem/fn.transmute.html
 [`update_callee_account`]: https://github.com/anza-xyz/agave/blob/v3.1.7/program-runtime/src/cpi.rs#L1145-L1215

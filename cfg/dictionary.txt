@@ -1,12 +1,15 @@
+accountview
 blueshift
 cdylib
 clippy
+cpiaccount
 dasmac
 ebpf
 fuelpump
 globl
 immediates
 insn
+instructionaccount
 keypair
 lamport
 lamports
