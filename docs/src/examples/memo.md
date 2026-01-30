@@ -2,7 +2,7 @@
 
 # Memo
 
-<!--@include: ./disclaimer.md-->
+<!-- @include: ./disclaimer.md -->
 
 ## :world_map: Memory map background
 

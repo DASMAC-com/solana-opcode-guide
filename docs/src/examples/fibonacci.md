@@ -2,7 +2,7 @@
 
 # Fibonacci
 
-<!--@include: ./disclaimer.md-->
+<!-- @include: ./disclaimer.md -->
 
 ## :1234: Fibonacci sequence background
 

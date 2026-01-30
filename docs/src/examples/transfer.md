@@ -1,6 +1,6 @@
 # Transfer
 
-<!--@include: ./disclaimer.md-->
+<!-- @include: ./disclaimer.md -->
 
 ## :moneybag: Background
 
