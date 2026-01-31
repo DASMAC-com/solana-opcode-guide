@@ -321,22 +321,22 @@ impl Case {
     fn markdown_tables() -> String {
         let mut output = String::new();
         output.push_str(&Self::generate_markdown_table(
-            "Initialize",
+            ":test_tube: Initialize",
             Self::INITIALIZE_CASES,
         ));
         output.push('\n');
         output.push_str(&Self::generate_adjusted_table(
-            "Initialize",
+            ":alembic: Initialize",
             Self::INITIALIZE_CASES,
         ));
         output.push('\n');
         output.push_str(&Self::generate_markdown_table(
-            "Increment",
+            ":package: Increment",
             Self::INCREMENT_CASES,
         ));
         output.push('\n');
         output.push_str(&Self::generate_adjusted_table(
-            "Increment",
+            ":gift: Increment",
             Self::INCREMENT_CASES,
         ));
         output
