@@ -337,7 +337,6 @@ values for each operation:
 > [!note]
 > The assembly file in this example was adapted from an [`sbpf` example].
 
-[`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b54199788a1f654b27f356cd3f79add8bea3e275/examples/sbpf-asm-counter/src/sbpf-asm-counter/sbpf-asm-counter.s
 [10 cu base cost]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/execution_budget.rs#L222
 [compute unit]: https://solana.com/docs/references/terminology#compute-units
 [cpi processor exit routine]: https://github.com/anza-xyz/agave/blob/v3.1.6/program-runtime/src/cpi.rs#L907-L921
@@ -381,6 +380,7 @@ values for each operation:
 [`minimum_balance`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html#method.minimum_balance
 [`push_frame`]: https://github.com/anza-xyz/sbpf/blob/v0.14.0/src/interpreter.rs#L128-L160
 [`rent`]: https://docs.rs/solana-rent/3.1.0/solana_rent/struct.Rent.html
+[`sbpf` example]: https://github.com/blueshift-gg/sbpf/blob/b54199788a1f654b27f356cd3f79add8bea3e275/examples/sbpf-asm-counter/src/sbpf-asm-counter/sbpf-asm-counter.s
 [`sbpf` silently truncates offsets that are not `i16`]: https://github.com/blueshift-gg/sbpf/issues/97
 [`simd-0194`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0194-deprecate-rent-exemption-threshold.md
 [`simd-0436`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0436-reduce-rent-exempt-minimum-by-2x.md
