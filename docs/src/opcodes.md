@@ -2,7 +2,8 @@
 
 This table links opcodes from the [SBPF bytecode ISA] with their corresponding
 [Rust implementation constant name]. Each opcode also has a link to a select
-example from this guide where it is used.
+example from this guide where it is used, as well as its corresponding
+[assembler mnemonic].
 
 <!-- markdownlint-disable MD013 -->
 
@@ -35,6 +36,7 @@ example from this guide where it is used.
 
 <!-- markdownlint-enable MD013 -->
 
+[assembler mnemonic]: https://en.wikipedia.org/wiki/Assembly_language#Opcode_mnemonics_and_extended_mnemonics
 [counter]: examples/counter
 [fibonacci]: examples/fibonacci
 [memo]: examples/memo
