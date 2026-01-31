@@ -38,32 +38,16 @@ of the enduring Solana Virtual Machine.
 
 ## :bulb: Example
 
-A Rust operation that checks if `a` is less than `b` looks like:
+Here is a simple ["Hello, World!" program] implemented in both SBPF assembly and
+Rust:
 
-```rust:no-line-numbers
-if a < b
-```
+::: code-group
 
-In bytecode this corresponds to the [assembler mnemonic]:
+<<< ../../examples/hello-dasmac/src/hello-dasmac/hello-dasmac.s{asm} [Assembly]
 
-```asm:no-line-numbers
-jlt dst, src, off
-```
+<<< ../../examples/hello-dasmac/src/program.rs [Rust]
 
-<!-- markdownlint-disable MD013 -->
-
-| Term  | Meaning                                                                                 |
-| ----- | --------------------------------------------------------------------------------------- |
-| `jlt` | The "jump if less than" operation                                                       |
-| `dst` | The destination register (`a` in Rust)                                                  |
-| `src` | The source register (`b` in Rust)                                                       |
-| `off` | How much to increment the program counter by (the "offset") if `dst` is less than `src` |
-
-<!-- markdownlint-enable MD013 -->
-
-Inside an ELF file, this `jlt` operation is represented using the number `173`
-(or `0xad` in [hexadecimal]), and is encoded in a single byte, corresponding to
-the constant [`JLT_REG`] from the [SBPF opcodes].
+:::
 
 ## :rocket: Continue your journey
 
@@ -82,6 +66,7 @@ up your environment and run a simple example. After that, simply follow the
 [bytecode]: https://en.wikipedia.org/wiki/Bytecode
 [ebpf]: https://www.rfc-editor.org/rfc/rfc9669
 [elf]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [hexadecimal]: https://en.wikipedia.org/wiki/Hexadecimal
 [instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
 [llvm]: https://llvm.org/
