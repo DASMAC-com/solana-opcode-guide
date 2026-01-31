@@ -57,7 +57,6 @@ See also the following pages:
 | [Opcodes](opcodes)     | [SBPF opcode][isa] reference linked with examples |
 | [Syscalls](syscalls)   | [Solana syscalls] reference linked with examples  |
 
-[Solana syscalls]: https://github.com/anza-xyz/solana-sdk/blob/frozen-abi-macro@v3.2.0/define-syscall/src/definitions.rs
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [anchor]: https://www.anchor-lang.com/docs
 [bytecode]: https://en.wikipedia.org/wiki/Bytecode
@@ -70,6 +69,7 @@ See also the following pages:
 [rust]: https://en.wikipedia.org/wiki/Rust_(programming_language)
 [sbpf opcodes]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
 [solana programs]: https://solana.com/docs/core/programs
+[solana syscalls]: https://github.com/anza-xyz/solana-sdk/blob/frozen-abi-macro@v3.2.0/define-syscall/src/definitions.rs
 [solana virtual machine]: https://docs.rs/crate/solana-sbpf/latest
 [syscall]: https://en.wikipedia.org/wiki/System_call
 [virtual machine]: https://en.wikipedia.org/wiki/Virtual_machine
