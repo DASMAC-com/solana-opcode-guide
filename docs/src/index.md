@@ -15,12 +15,16 @@ frameworks like [Anchor] provide further abstractions at the cost of execution
 overhead.
 
 At its core, Solana simply runs [SBPF opcodes] (based on [eBPF]) to manipulate
-bytes. Mastery of these [opcodes][instruction set architecture] and their
-[syscall] support (for things like [logging]) enables high-performance program
-development. For example,
+bytes. Mastery of these [opcodes][isa] and their [syscall] support (for things
+like [logging]) enables high-performance program development. For example,
 [compute unit analysis from this guide](examples/counter#compute-unit-analysis)
 shows that Rust can easily introduce 50-100% overhead compared with hand-written
 assembly, even when using high-performance frameworks like [`pinocchio`].
+
+Contrary to typical approaches of higher-level frameworks and abstractions, this
+guide surveys optimization techniques that are only possible when writing in
+assembly, helping you gain full control over program execution to squeeze as
+much performance as possible out of the [Solana Virtual Machine].
 
 ## :bulb: Example
 
@@ -39,24 +43,28 @@ Rust:
 
 Start with the [quickstart](quickstart) to set up your environment and run the
 above program, then follow the [examples](examples/index) in order to
-incrementally learn more advanced [SBPF][instruction set architecture] concepts.
+incrementally learn more advanced [SBPF][isa] concepts.
 
-> [!tip]
-> See the [resources](resources) page for curated links and the
-> [opcodes](opcodes) page for a reference table linking to examples.
+See also the following pages:
+
+| Page                   | Content                                           |
+| ---------------------- | ------------------------------------------------- |
+| [Resources](resources) | Curated resource links                            |
+| [Opcodes](opcodes)     | [SBPF opcode][isa] reference linked with examples |
 
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [anchor]: https://www.anchor-lang.com/docs
 [bytecode]: https://en.wikipedia.org/wiki/Bytecode
 [ebpf]: https://www.rfc-editor.org/rfc/rfc9669
 [elf]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
-[instruction set architecture]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
+[isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
 [llvm]: https://llvm.org/
 [logging]: https://docs.rs/solana-msg/3.0.0/src/solana_msg/lib.rs.html#45
 [native rust]: https://solana.com/docs/programs/rust
 [rust]: https://en.wikipedia.org/wiki/Rust_(programming_language)
 [sbpf opcodes]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
 [solana programs]: https://solana.com/docs/core/programs
+[solana virtual machine]: https://docs.rs/crate/solana-sbpf/latest
 [syscall]: https://en.wikipedia.org/wiki/System_call
 [virtual machine]: https://en.wikipedia.org/wiki/Virtual_machine
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
