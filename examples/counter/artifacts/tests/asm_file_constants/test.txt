@@ -1,0 +1,23 @@
+#[test]
+fn test_asm_file_constants() {
+    const GLOBAL_ENTRYPOINT: &str = ".global entrypoint";
+
+    // Parse assembly file.
+    let asm_path = setup_test(ProgramLanguage::Assembly)
+        .asm_source_path
+        .expect("Assembly source file not found");
+    let content = fs::read_to_string(&asm_path).expect("Failed to read assembly file");
+    let global_pos = content
+        .find(GLOBAL_ENTRYPOINT)
+        .expect("Could not find '.global entrypoint' in assembly file");
+
+    // Overwrite assembly file with updated constants, asserting nothing changed.
+    let after_global = &content[global_pos..];
+    let new_content = format!("{}\n{}", constants().to_asm(), after_global);
+    let changed = new_content != content;
+    fs::write(&asm_path, new_content).expect("Failed to write assembly file");
+    assert!(
+        !changed,
+        "Assembly file constants were out of date and have been updated. Please re-run the test."
+    );
+}

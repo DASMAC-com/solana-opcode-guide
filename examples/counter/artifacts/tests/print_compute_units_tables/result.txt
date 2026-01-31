@@ -1,0 +1,33 @@
+### :test_tube: Initialize
+| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|------|-----------|------------|----------|------------|
+| No accounts passed | 5 | 6 | +1 | +20.0% |
+| Too many accounts passed | 5 | 6 | +1 | +20.0% |
+| Invalid user data length | 7 | 9 | +2 | +28.6% |
+| PDA account is duplicate | 9 | 16 | +7 | +77.8% |
+| PDA data length is invalid | 11 | 19 | +8 | +72.7% |
+| System program is duplicate | 13 | 26 | +13 | +100.0% |
+| System program data length is invalid | 15 | 29 | +14 | +93.3% |
+| PDA mismatch | 1543 | 1561 | +18 | +1.2% |
+| Happy path | 2834 | 2913 | +79 | +2.8% |
+### :alembic: Initialize (adjusted)
+| Case | Fixed costs | ASM (net) | Rust (net) | Overhead | Overhead % (net) |
+|------|-------------|-----------|------------|----------|------------------|
+| PDA mismatch | 1500 | 43 | 61 | +18 | +41.9% |
+| Happy path | 2713 | 121 | 200 | +79 | +65.3% |
+### :package: Increment
+| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|------|-----------|------------|----------|------------|
+| PDA account is duplicate | 10 | 16 | +6 | +60.0% |
+| PDA data length is invalid | 12 | 19 | +7 | +58.3% |
+| No instruction data provided | 14 | 26 | +12 | +85.7% |
+| Unable to derive PDA | 1535 | 1558 | +23 | +1.5% |
+| PDA mismatch | 1540 | 1565 | +25 | +1.6% |
+| Happy path | 1548 | 1575 | +27 | +1.7% |
+### :gift: Increment (adjusted)
+| Case | Fixed costs | ASM (net) | Rust (net) | Overhead | Overhead % (net) |
+|------|-------------|-----------|------------|----------|------------------|
+| Unable to derive PDA | 1500 | 35 | 58 | +23 | +65.7% |
+| PDA mismatch | 1500 | 40 | 65 | +25 | +62.5% |
+| Happy path | 1500 | 48 | 75 | +27 | +56.2% |
+test tests::test_print_compute_units_tables ... ok

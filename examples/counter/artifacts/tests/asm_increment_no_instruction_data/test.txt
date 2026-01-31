@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_increment_no_instruction_data() {
+    test_increment_no_instruction_data(ProgramLanguage::Assembly);
+}

@@ -1,0 +1,4 @@
+test tests::test_asm_increment_pda_duplicate ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 10 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x5

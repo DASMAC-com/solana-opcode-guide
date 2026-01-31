@@ -2,7 +2,7 @@
 
 # Memo
 
-<!--@include: ./disclaimer.md-->
+<!-- @include: ./disclaimer.md -->
 
 ## :world_map: Memory map background
 
@@ -11,12 +11,15 @@ The [SBPF instruction set architecture] defines 12 registers, including
 execution, `r1` [is initialized to] the [input buffer address `MM_INPUT_START`],
 corresponding to one of [several runtime memory map regions].
 
-[Within the input buffer], data is serialized in the following order:
+[Within the input buffer], data is serialized as follows:
 
-1. [The number of accounts as a `u64`].
-1. [A sequence of serialized accounts].
-1. [The length of instruction data as a `u64`].
-1. [The instruction data itself].
+| Description                                 | Size (bytes) |
+| ------------------------------------------- | ------------ |
+| [The number of accounts as a `u64`]         | 8            |
+| [A sequence of serialized accounts]         | Variable     |
+| [The length of instruction data as a `u64`] | 8            |
+| [Instruction data]                          | Variable     |
+| [The calling program ID]                    | 32           |
 
 > [!tip]
 > A new virtual memory map is created for [every instruction] _and_ for every
@@ -173,6 +176,7 @@ Notably, however, it introduces [compute unit] overhead:
 [inner call to an instruction processor]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L882
 [input buffer address `mm_input_start`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MM_INPUT_START.html
 [instance]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L802
+[instruction data]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L568
 [is considered the return value]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/interpreter.rs#L574
 [is initialized to]: https://github.com/anza-xyz/agave/blob/v3.1.3/programs/bpf_loader/src/lib.rs#L1523
 [own inner call]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/invoke_context.rs#L484
@@ -181,7 +185,7 @@ Notably, however, it introduces [compute unit] overhead:
 [several runtime memory map regions]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/src/ebpf.rs#L37-L51
 [success]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.SUCCESS.html
 [takes the following arguments]: https://github.com/anza-xyz/agave/blob/v3.1.3/syscalls/src/logging.rs#L7-L16
-[the instruction data itself]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L568
+[the calling program id]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L569
 [the length of instruction data as a `u64`]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L567
 [the number of accounts as a `u64`]: https://github.com/anza-xyz/agave/blob/v3.1.3/program-runtime/src/serialization.rs#L531
 [the `pinocchio` version of `sol_log_`]: https://github.com/anza-xyz/pinocchio/blob/pinocchio@v0.9.2/sdk/pinocchio/src/syscalls.rs#L42

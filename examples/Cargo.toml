@@ -2,6 +2,7 @@
 
 [workspace]
 members = [
+  "counter",
   "fibonacci",
   "hello-dasmac",
   "memo",
@@ -17,7 +18,9 @@ cargo-manifest = "0.19.1"
 fib-rs = "1.0.0"
 mollusk-svm = "0.10.1"
 pinocchio = {version = "0.10.1", features = ["cpi"]}
+pinocchio-system = "0.5.0"
 regex = "1.12.2"
+solana-rent = "3.0.0"
 solana-sdk = "3.0.0"
 
 [workspace.lints.rust]

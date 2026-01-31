@@ -1,0 +1,6 @@
+test tests::test_asm_initialize_happy_path ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 2834 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success

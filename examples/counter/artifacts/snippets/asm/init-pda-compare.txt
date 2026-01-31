@@ -1,0 +1,37 @@
+    # Compare computed PDA against passed account.
+    # --------------------------------------------
+    # Update input buffer pointer to point to passed PDA.
+    add64 r1, PDA_PUBKEY_OFF
+    # As an optimization, store this pointer on the stack in the account
+    # meta and info for the PDA, rather than deriving the pointer again.
+    # Note that this must point to the pubkey in the input memory map, not
+    # the one on the stack, otherwise the CPI will fail.
+    stxdw [r10 - STK_INIT_ACCT_META_PDA_PUBKEY_ADDR_OFF], r1
+    stxdw [r10 - STK_INIT_ACCT_INFO_PDA_KEY_ADDR_OFF], r1
+    mov64 r2, r10 # Get stack frame pointer.
+    sub64 r2, STK_INIT_PDA_OFF # Update to point to computed PDA.
+    # Compare the pubkey values in 64-bit chunks, which is less CUs than:
+    # ```
+    # mov64 r3, SIZE_OF_PUBKEY # Flag size of bytes to compare.
+    # mov64 r4, r10 # Get stack frame pointer.
+    # sub64 r4, STK_INIT_MEMCMP_RESULT_OFF # Update to point to result.
+    # call sol_memcmp_
+    # ldxw r2, [r4 + NO_OFFSET] # Get compare result.
+    # jne r2, COMPARE_EQUAL, e_pda_mismatch # Error out if PDA mismatch.
+    # ```
+    ldxdw r3, [r1 + 0]
+    ldxdw r4, [r2 + 0]
+    jne r3, r4, e_pda_mismatch
+    ldxdw r3, [r1 + SIZE_OF_U64]
+    ldxdw r4, [r2 + SIZE_OF_U64]
+    jne r3, r4, e_pda_mismatch
+    ldxdw r3, [r1 + SIZE_OF_U64_2X]
+    ldxdw r4, [r2 + SIZE_OF_U64_2X]
+    jne r3, r4, e_pda_mismatch
+    ldxdw r3, [r1 + SIZE_OF_U64_3X]
+    ldxdw r4, [r2 + SIZE_OF_U64_3X]
+    jne r3, r4, e_pda_mismatch
+    # Skip input buffer restoration since next block overwrites r1:
+    # ```
+    # mov64 r1, r9 # Restore input buffer pointer.
+    # ```

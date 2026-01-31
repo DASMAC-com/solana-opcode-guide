@@ -1,0 +1,15 @@
+test tests::test_asm_pda_duplicate ... ok
+warning: variant `Increment` is never constructed
+  --> counter/src/tests.rs:39:5
+   |
+37 | enum Operation {
+   |      --------- variant in this enum
+38 |     Initialize,
+39 |     Increment,
+   |     ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+warning: `counter` (lib test) generated 1 warning
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 9 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x5

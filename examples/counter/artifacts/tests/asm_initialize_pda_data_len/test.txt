@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_initialize_pda_data_len() {
+    test_initialize_pda_data_len(ProgramLanguage::Assembly);
+}

@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_too_many_accounts() {
+    test_too_many_accounts(ProgramLanguage::Assembly);
+}

@@ -513,7 +513,9 @@ dependencies = [
  "fib-rs",
  "mollusk-svm",
  "pinocchio",
+ "pinocchio-system",
  "regex",
+ "solana-rent",
  "solana-sdk",
 ]
 
@@ -664,6 +666,18 @@ name = "constant_time_eq"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c74b8349d32d297c9134b8c88677813a227df8f779daa29bfc29c183fe3dca6"
+
+[[package]]
+name = "counter"
+version = "0.1.0"
+dependencies = [
+ "mollusk-svm",
+ "pinocchio",
+ "pinocchio-system",
+ "solana-rent",
+ "solana-sdk",
+ "test-utils",
+]
 
 [[package]]
 name = "cpufeatures"
@@ -1650,6 +1664,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pinocchio-system"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24044a0815753862b558e179e78f03f7344cb755de48617a09d7d23b50883b6c"
+dependencies = [
+ "pinocchio",
+ "solana-address 2.0.0",
+]
+
+[[package]]
 name = "pkcs8"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1706,6 +1730,7 @@ name = "program-deps"
 version = "0.1.0"
 dependencies = [
  "pinocchio",
+ "pinocchio-system",
 ]
 
 [[package]]

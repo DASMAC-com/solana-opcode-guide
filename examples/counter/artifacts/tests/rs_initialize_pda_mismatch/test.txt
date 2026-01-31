@@ -1,0 +1,4 @@
+#[test]
+fn test_rs_initialize_pda_mismatch() {
+    test_initialize_pda_mismatch(ProgramLanguage::Rust);
+}

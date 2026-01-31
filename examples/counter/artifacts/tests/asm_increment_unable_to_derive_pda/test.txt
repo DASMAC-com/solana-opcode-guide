@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_increment_unable_to_derive_pda() {
+    test_increment_unable_to_derive_pda(ProgramLanguage::Assembly);
+}

@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_increment_pda_data_len() {
+    test_increment_pda_data_len(ProgramLanguage::Assembly);
+}

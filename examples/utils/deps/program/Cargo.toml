@@ -1,5 +1,6 @@
 [dependencies]
 pinocchio.workspace = true
+pinocchio-system.workspace = true
 
 [lib]
 crate-type = ["cdylib", "lib"]

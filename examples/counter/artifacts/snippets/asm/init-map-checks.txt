@@ -1,0 +1,16 @@
+initialize:
+
+    # Check input memory map.
+    # -----------------------
+    ldxdw r2, [r1 + USER_DATA_LEN_OFF] # Get user data length.
+    jne r2, DATA_LEN_ZERO, e_user_data_len # Exit if user account has data.
+    ldxb r2, [r1 + PDA_NON_DUP_MARKER_OFF] # Check if PDA is a duplicate.
+    jne r2, NON_DUP_MARKER, e_pda_duplicate # Exit if PDA is a duplicate.
+    ldxdw r2, [r1 + PDA_DATA_LEN_OFF] # Get PDA data length.
+    jne r2, DATA_LEN_ZERO, e_pda_data_len # Exit if PDA account has data.
+    # Exit early if System Program is a duplicate.
+    ldxb r2, [r1 + SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
+    jne r2, NON_DUP_MARKER, e_system_program_duplicate
+    # Exit early if System Program data length is invalid.
+    ldxdw r2, [r1 + SYSTEM_PROGRAM_DATA_LEN_OFF]
+    jne r2, DATA_LEN_SYSTEM_PROGRAM, e_system_program_data_len

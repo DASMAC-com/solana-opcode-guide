@@ -1,6 +1,6 @@
 # Transfer
 
-<!--@include: ./disclaimer.md-->
+<!-- @include: ./disclaimer.md -->
 
 ## :moneybag: Background
 
@@ -22,8 +22,6 @@ Accounts in the [input buffer](memo) are [serialized] and [deserialized] with
 the following offsets relative to the start of the account, assuming
 non-duplicate accounts without any account data:
 
-<!-- markdownlint-disable MD013 -->
-
 | Offset (bytes) | Length (bytes) | Description                              |
 | -------------- | -------------- | ---------------------------------------- |
 | 0              | 1              | [`NON_DUP_MARKER`]                       |
@@ -38,8 +36,6 @@ non-duplicate accounts without any account data:
 | 88             | 0              | [Account data][account structure] (none) |
 | 88             | 10240          | Account data padding                     |
 | 10328          | 8              | Account [rent epoch][account structure]  |
-
-<!-- markdownlint-enable MD013 -->
 
 The account data padding length [is the sum of]:
 
@@ -92,18 +88,18 @@ and is invoked internally in this example using a [CPI] via the
 | `r1`     | [Instruction] pointer        |
 | `r2`     | [Account info] array pointer |
 | `r3`     | [Account info] array length  |
-| `r4`     | [Signer seed] array pointer  |
-| `r5`     | [Signer seed] array length   |
+| `r4`     | [Signer seeds] array pointer |
+| `r5`     | [Signer seeds] array length  |
 
 The [instruction] layout is as follows:
 
-> | Offset (bytes) | Length (bytes) | Description                            |
-> | -------------- | -------------- | -------------------------------------- |
-> | 0              | 8              | Program ID ([System Program] pointer ) |
-> | 8              | 8              | [Account metadata] array pointer       |
-> | 16             | 8              | [Account metadata] array length        |
-> | 24             | 8              | [Transfer instruction data] pointer    |
-> | 32             | 8              | [Transfer instruction data] length     |
+> | Offset (bytes) | Length (bytes) | Description                           |
+> | -------------- | -------------- | ------------------------------------- |
+> | 0              | 8              | Program ID ([System Program] pointer) |
+> | 8              | 8              | [Account metadata] array pointer      |
+> | 16             | 8              | [Account metadata] array length       |
+> | 24             | 8              | [Transfer instruction data] pointer   |
+> | 32             | 8              | [Transfer instruction data] length    |
 >
 > Each element in the [account metadata] array has the following layout:
 >
@@ -146,7 +142,8 @@ Each [account info] element has the following layout:
 
 <!-- markdownlint-enable MD013 -->
 
-In this example, no signer seeds are required due to the lack of a [PDA signer].
+In this example, no [signer seeds] are required due to the lack of a
+[PDA signer].
 
 Since the data required by the CPI is too wide to fit in one of the
 [64-bit general purpose registers][isa], it must be allocated within a
@@ -222,7 +219,7 @@ the zero-initialized stack memory and known offsets:
 
 Finally, the CPI is invoked, leveraging the
 [zero-initialized `r5` memory](memo#error-checking) for another optimization
-since no [signer seeds][pda signer] are required:
+since no [signer seeds] are required:
 
 <<< ../../../examples/transfer/artifacts/snippets/asm/invoke-cpi.txt{3-13 asm}
 
@@ -351,7 +348,7 @@ some 84% overhead versus the assembly version.
 [pda signer]: https://solana.com/docs/core/cpi#cpis-with-pda-signers
 [serialized]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/serialization.rs#L530-L559
 [signer]: https://github.com/anza-xyz/agave/blob/v3.1.5/transaction-context/src/lib.rs#L78-L79
-[signer seed]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L105-L111
+[signer seeds]: https://github.com/anza-xyz/agave/blob/v3.1.5/program-runtime/src/cpi.rs#L113-L119
 [stack frame]: https://en.wikipedia.org/wiki/Call_stack#Stack_and_frame_pointers
 [system program]: https://solana.com/docs/core/programs#the-system-program
 [to an 8-byte boundary]: https://docs.rs/solana-program-entrypoint/3.1.1/solana_program_entrypoint/constant.BPF_ALIGN_OF_U128.html

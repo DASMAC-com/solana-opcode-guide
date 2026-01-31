@@ -1,0 +1,27 @@
+#[test]
+fn test_asm_expected_failures() {
+    let setup = setup_test(ProgramLanguage::Assembly);
+    let (system_program, system_account) = program::keyed_account_for_system_program();
+
+    // Check no accounts.
+    setup.mollusk.process_and_validate_instruction(
+        &Instruction::new_with_bytes(setup.program_id, &[], vec![]),
+        &[],
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_N_ACCOUNTS") as u32,
+        ))],
+    );
+
+    // Check too many accounts.
+    let n_accounts: usize = 4;
+    let account_metas = vec![AccountMeta::new_readonly(Pubkey::new_unique(), false); n_accounts];
+    let account_infos =
+        vec![(account_metas[0].pubkey, Account::new(0, 0, &system_program),); n_accounts];
+    setup.mollusk.process_and_validate_instruction(
+        &Instruction::new_with_bytes(setup.program_id, &[], account_metas),
+        &account_infos,
+        &[Check::err(ProgramError::Custom(
+            constants().get("E_N_ACCOUNTS") as u32,
+        ))],
+    );
+}

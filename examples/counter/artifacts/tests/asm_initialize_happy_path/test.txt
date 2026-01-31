@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_initialize_happy_path() {
+    test_initialize_happy_path(ProgramLanguage::Assembly);
+}

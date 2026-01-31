@@ -1,0 +1,19 @@
+    # Populate SignerSeeds structure.
+    # -------------------------------
+    mov64 r2, r10 # Get stack frame pointer.
+    sub64 r2, STK_INIT_SEED_0_ADDR_OFF # Update to point to signer seed 0.
+    stxdw [r10 - STK_INIT_SIGNERS_SEEDS_OFF], r2 # Store in SignerSeeds.
+    # Store number of signer seeds for PDA (32-bit immediate).
+    stdw [r10 - STK_INIT_SIGNER_SEEDS_0_LEN_OFF], N_SIGNER_SEEDS
+
+    # Invoke CreateAccount CPI.
+    # -------------------------
+    mov64 r1, r10 # Get stack frame pointer.
+    sub64 r1, STK_INIT_INSN_OFF # Point to instruction.
+    mov64 r2, r10 # Get stack frame pointer.
+    sub64 r2, STK_INIT_ACCT_INFOS_OFF # Point to account infos.
+    mov64 r3, INIT_CPI_N_ACCOUNTS # Indicate number of account infos.
+    mov64 r4, r10 # Get stack frame pointer.
+    sub64 r4, STK_INIT_SIGNERS_SEEDS_OFF # Point to single SignerSeeds.
+    mov64 r5, INIT_CPI_N_SIGNERS_SEEDS # Indicate a single signer.
+    call sol_invoke_signed_c

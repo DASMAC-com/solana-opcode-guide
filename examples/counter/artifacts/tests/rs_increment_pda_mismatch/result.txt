@@ -1,0 +1,13 @@
+test tests::test_rs_increment_pda_mismatch ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1565 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1568 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1571 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1574 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8

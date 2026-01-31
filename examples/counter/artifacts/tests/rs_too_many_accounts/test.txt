@@ -1,0 +1,4 @@
+#[test]
+fn test_rs_too_many_accounts() {
+    test_too_many_accounts(ProgramLanguage::Rust);
+}

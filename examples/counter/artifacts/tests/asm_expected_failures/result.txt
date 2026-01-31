@@ -1,0 +1,18 @@
+test tests::test_asm_expected_failures ... ok
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+warning: unused variable: `system_account`
+   --> counter/src/tests.rs:522:26
+    |
+522 |     let (system_program, system_account) = program::keyed_account_for_system_program();
+    |                          ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_system_account`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+warning: `counter` (lib test) generated 1 warning
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 5 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 5 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1

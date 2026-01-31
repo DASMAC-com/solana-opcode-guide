@@ -1,0 +1,4 @@
+#[test]
+fn test_rs_initialize_pda_data_len() {
+    test_initialize_pda_data_len(ProgramLanguage::Rust);
+}

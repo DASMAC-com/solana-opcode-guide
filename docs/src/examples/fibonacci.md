@@ -2,7 +2,7 @@
 
 # Fibonacci
 
-<!--@include: ./disclaimer.md-->
+<!-- @include: ./disclaimer.md -->
 
 ## :1234: Fibonacci sequence background
 
@@ -74,6 +74,11 @@ These registers (`r6`, `r7`, `r8`) are
 [SBPF calling convention], meaning their values are preserved across function
 calls. This makes them ideal for storing loop state that needs to persist across
 iterations.
+
+> [!tip]
+> This example does not implement `call` so the call-preserved property isn't
+> strictly needed. However, using call-preserved registers is a good practice
+> for maintaining state across function calls in more complex programs.
 
 The program handles the special cases $F(0) = 0$ and $F(1) = 1$ by checking if
 $n \leq 1$ and returning early if so:

@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_initialize_system_program_duplicate() {
+    test_initialize_system_program_duplicate(ProgramLanguage::Assembly);
+}

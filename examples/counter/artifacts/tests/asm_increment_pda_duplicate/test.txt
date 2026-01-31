@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_increment_pda_duplicate() {
+    test_increment_pda_duplicate(ProgramLanguage::Assembly);
+}
