@@ -2,7 +2,7 @@
 
 <!-- @include: ./disclaimer.md -->
 
-## Background
+## :bulb: Background
 
 This example implements a simple on-chain counter program at a [PDA] account.
 The program supports two operations: initializing a user's counter, and
@@ -38,7 +38,7 @@ Importantly, this methodology strictly enforces
 [`i16` offset values] since, as of the time of this writing,
 [`sbpf` silently truncates offsets that are not `i16`].
 
-## Entrypoint branching
+## :twisted_rightwards_arrows: Entrypoint branching
 
 The number of accounts acts as a discriminator for the two operations:
 
@@ -64,9 +64,9 @@ number of accounts is unexpected.
 
 <<< ../../../examples/counter/artifacts/snippets/asm/entrypoint.txt{asm}
 
-## Initialize operation
+## :rocket: Initialize operation
 
-### Layout background
+### :world_map: Layout background
 
 Like in the [transfer example](transfer), the initialize operation uses a
 [System Program CPI](transfer#transfer-cpi) but with [`CreateAccount`]
@@ -101,7 +101,7 @@ described below:
 | 4            | Padding to maintain 8-byte alignment                          |
 | 1            | [Bump seed][pda] from [`sol_try_find_program_address`] (`r5`) |
 
-### Signer seeds
+### :seedling: Signer seeds
 
 Unlike in the [transfer CPI](transfer#transfer-cpi), the [`CreateAccount`]
 instruction [CPI](transfer#transfer-cpi) requires [signer seeds][pda-seeds]:
@@ -125,7 +125,7 @@ populated on the [stack](transfer#transfer-cpi):
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-seeds.txt{asm}
 
-### PDA checks {#pda-checks}
+### :mag: A priori PDA checks {#pda-checks}
 
 The [PDA] and [bump seed][pda] are then computed by
 [`sol_try_find_program_address`], whose [implementation] similarly relies on a
@@ -164,7 +164,7 @@ is `0i32` only if the two regions are equal, and would need to be allocated:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/init-pda-compare.txt{asm}
 
-### Minimum balance
+### :moneybag: Minimum balance
 
 The testing framework in this example [uses] the
 [soon-to-be-deprecated `Rent::default`] implementation, so the assembly program
@@ -185,7 +185,7 @@ instruction data buffer on the [stack](transfer#transfer-cpi):
 
 <<< ../../../examples/counter/artifacts/snippets/asm/min-balance.txt{asm}
 
-### CPI construction {#cpi-construction}
+### :hammer_and_wrench: CPI construction {#cpi-construction}
 
 As in the [transfer CPI](transfer#transfer-cpi), the [`CreateAccount`]
 instruction and associated account information regions are populated, this time
@@ -209,7 +209,7 @@ since there is a [PDA signer][pda-seeds]:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/seeded-cpi.txt{asm}
 
-### Bump seed storage
+### :floppy_disk: Bump seed storage
 
 Finally, the [bump seed][pda] computed earlier by
 [`sol_try_find_program_address`] is stored in the last byte of the [PDA] account
@@ -217,9 +217,9 @@ data:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/store-seed.txt{asm}
 
-## Increment operation
+## :heavy_plus_sign: Increment operation
 
-### User data length
+### :straight_ruler: User data length
 
 The increment operation starts by checking the user's account data length,
 padding as needed to
@@ -237,14 +237,14 @@ This algorithm is verified with a simple test:
 
 <<< ../../../examples/counter/artifacts/tests/pad_masking/test.txt{rs}
 
-### Memory map parsing
+### :bookmark_tabs: Memory map parsing
 
 The [input memory map](memo) is then parsed using the calculated user offset
 with padding, and assorted pointers are stored for future operations:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/increment-map.txt{asm}
 
-### Speculative increment
+### :zap: Speculative increment
 
 The current counter value is then loaded from the [PDA] account data, and the
 `u64` increment amount from the instruction data is added to it speculatively
@@ -252,7 +252,7 @@ before error checks, to minimize the number of future pointer copies:
 
 <<< ../../../examples/counter/artifacts/snippets/asm/speculative-inc.txt{asm}
 
-### PDA checks
+### :lock: PDA check followup
 
 Finally, the [PDA] and [bump seed][pda] are verified using
 [`sol_create_program_address`], which requires an array of two [signer seed]
@@ -275,7 +275,7 @@ This operation relies on the following [stack](transfer#transfer-cpi) layout:
 | 16           | [`SolSignerSeed`] for bump seed                  |
 | 32           | [PDA] from [`sol_create_program_address`] (`r4`) |
 
-## Rust implementation
+## :crab: Rust implementation
 
 The Rust implementation relies on [`lazy_program_entrypoint`] to minimize
 parsing overhead, with liberal use of [`transmute`] for pointer conversion
@@ -302,7 +302,7 @@ stack frame for each operation, the Rust implementation exhibits considerable
 overhead in particular for the initialize operation happy path, which relies on
 the aforementioned full-copy mechanisms.
 
-## Compute unit analysis
+## :bar_chart: Compute unit analysis
 
 Note the following fixed costs, which can be subtracted from the total
 [compute unit] costs for relevant test cases to calculate adjusted overhead
@@ -326,7 +326,7 @@ values for each operation:
 
 <!-- markdownlint-enable MD013 -->
 
-## All tests
+## :white_check_mark: All tests
 
 ::: details `tests.rs`
 
