@@ -47,9 +47,9 @@ export default {
         text: "Indices",
         link: "/indices/",
         items: [
-          { text: "Resources", link: "/indices/resources" },
           { text: "Opcodes", link: "/indices/opcodes" },
           { text: "Syscalls", link: "/indices/syscalls" },
+          { text: "Resources", link: "/indices/resources" },
         ],
       },
     ],
