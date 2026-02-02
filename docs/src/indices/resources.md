@@ -1,6 +1,6 @@
 # Resources
 
-## Content
+## :movie_camera: Content
 
 <!-- markdownlint-disable MD013 -->
 
@@ -10,34 +10,34 @@
 
 <!-- markdownlint-enable MD013 -->
 
-## Examples
+## :test_tube: Examples
 
 1. [`sbpf` examples]
 1. [`hello-solana-asm`]
 1. [SBPF opcode test suite]
 1. [`sbpf-asm-noop`]
 
-## Guides
+## :book: Guides
 
 1. [How to Write Solana Programs with SBPF Assembly]
 1. [`Learn-Solana-BPF-Assembly`]
 1. [sBPF Assembly 101]
 1. [Optimizing Solana Programs]
 
-## SBPF references
+## :books: SBPF references
 
 1. [`solana_sbpf::ebpf` documentation]
 1. [SBPF instruction set architecture]
 1. [SBPF memory map layout]
 
-## Syscall references
+## :telephone_receiver: Syscall references
 
 1. [`agave` syscall library]
 1. [`sbpf` syscall registry]
 1. [`pinocchio` syscall registry]
 1. [`solana-sdk` syscall registry]
 
-## Tools
+## :wrench: Tools
 
 1. [`sbpf`]
 1. [LiteSVM]
