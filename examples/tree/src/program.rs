@@ -1,11 +1,12 @@
-use pinocchio::{entrypoint, AccountView, Address, ProgramResult};
+use pinocchio::{
+    entrypoint::InstructionContext, lazy_program_entrypoint, no_allocator, nostd_panic_handler,
+    ProgramResult,
+};
 
-entrypoint!(process_instruction);
+lazy_program_entrypoint!(process_instruction);
+nostd_panic_handler!();
+no_allocator!();
 
-fn process_instruction(
-    _program_id: &Address,
-    _accounts: &[AccountView],
-    _instruction_data: &[u8],
-) -> ProgramResult {
+pub fn process_instruction(_context: InstructionContext) -> ProgramResult {
     Ok(())
 }
