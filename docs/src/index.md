@@ -53,9 +53,9 @@ See also the following pages:
 
 | Page                   | Content                                           |
 | ---------------------- | ------------------------------------------------- |
-| [Resources](resources) | Curated resource links                            |
-| [Opcodes](opcodes)     | [SBPF opcode][isa] reference linked with examples |
-| [Syscalls](syscalls)   | [Solana syscalls] reference linked with examples  |
+| [Resources](indices/resources) | Curated resource links                            |
+| [Opcodes](indices/opcodes)     | [SBPF opcode][isa] reference linked with examples |
+| [Syscalls](indices/syscalls)   | [Solana syscalls] reference linked with examples  |
 
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [anchor]: https://www.anchor-lang.com/docs

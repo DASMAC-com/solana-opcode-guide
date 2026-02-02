@@ -42,9 +42,16 @@ export default {
           { text: "Counter", link: "/examples/counter" },
         ],
       },
-      { text: "Resources", link: "/resources" },
-      { text: "Opcodes", link: "/opcodes" },
-      { text: "Syscalls", link: "/syscalls" },
+      {
+        collapsed: false,
+        text: "Indices",
+        link: "/indices/",
+        items: [
+          { text: "Resources", link: "/indices/resources" },
+          { text: "Opcodes", link: "/indices/opcodes" },
+          { text: "Syscalls", link: "/indices/syscalls" },
+        ],
+      },
     ],
   },
 };
