@@ -40,6 +40,7 @@ export default {
           { text: "Fibonacci", link: "/examples/fibonacci" },
           { text: "Transfer", link: "/examples/transfer" },
           { text: "Counter", link: "/examples/counter" },
+          { text: "Tree", link: "/examples/tree" },
         ],
       },
       {

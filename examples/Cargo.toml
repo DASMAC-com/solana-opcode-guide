@@ -7,6 +7,7 @@ members = [
   "hello-dasmac",
   "memo",
   "transfer",
+  "tree",
   "utils/build-examples",
   "utils/deps/build",
   "utils/deps/program"
