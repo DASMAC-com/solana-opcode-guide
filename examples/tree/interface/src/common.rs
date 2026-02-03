@@ -1,11 +1,10 @@
 use macros::{constant_group, error_codes};
 
-#[error_codes]
-pub enum Error {
+error_codes! {
     /// An invalid number of accounts were passed.
-    NAccounts,
+    N_ACCOUNTS_INVALID,
     /// The user account has nonzero data length.
-    UserData,
+    USER_HAS_DATA,
 }
 
 constant_group! {

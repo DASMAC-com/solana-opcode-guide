@@ -1,10 +1,9 @@
-use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    parse_macro_input, Data, DeriveInput, Fields, Ident, Lit, LitInt, Meta, Token,
+    parse_macro_input, Ident, Lit, LitInt, Meta, Token,
 };
 
 /// Maximum line length for ASM output.
@@ -13,126 +12,99 @@ const MAX_LINE_LEN: usize = 75;
 /// Maximum comment length (accounting for `# ` prefix).
 const MAX_COMMENT_LEN: usize = MAX_LINE_LEN - "# ".len();
 
-/// Attribute macro for defining error code enums shared between Rust and ASM.
+/// Error code entry: doc comment + snake_case name.
+struct ErrorCodeEntry {
+    doc: String,
+    name: Ident,
+}
+
+/// Input for error_codes! macro.
+struct ErrorCodesInput {
+    entries: Vec<ErrorCodeEntry>,
+}
+
+impl Parse for ErrorCodesInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut entries = Vec::new();
+
+        while !input.is_empty() {
+            let attrs = input.call(syn::Attribute::parse_outer)?;
+            let doc = extract_doc_comment(&attrs)
+                .ok_or_else(|| input.error("Error code must have a doc comment"))?;
+
+            if let Err(e) = validate_doc_comment(&doc) {
+                return Err(input.error(e));
+            }
+
+            let name: Ident = input.parse()?;
+
+            // Optional trailing comma.
+            let _ = input.parse::<Token![,]>();
+
+            entries.push(ErrorCodeEntry { doc, name });
+        }
+
+        Ok(ErrorCodesInput { entries })
+    }
+}
+
+/// Macro for defining error codes shared between Rust and ASM.
 ///
-/// Automatically adds `#[repr(u32)]` to the enum. Each variant must have a doc
-/// comment that will become the ASM comment. Variant names are converted from
-/// PascalCase to SCREAMING_SNAKE_CASE and prefixed with `E_`.
+/// Creates an `Error` enum with `#[repr(u32)]` and auto-numbered variants starting at 1.
+/// Variant names are SCREAMING_SNAKE_CASE. ASM names have `E_` prefix added.
 ///
 /// # Example
-///
 /// ```ignore
-/// #[error_codes]
-/// pub enum ErrorCodes {
+/// error_codes! {
 ///     /// An invalid number of accounts were passed.
-///     NAccounts,
+///     N_ACCOUNTS_INVALID,
 ///     /// The user account has nonzero data length.
-///     UserData,
+///     USER_HAS_DATA,
 /// }
 /// ```
 ///
-/// Generates ASM:
-///
-/// ```text
-/// # Error codes.
-/// # ------------
-/// .equ E_N_ACCOUNTS, 1 # An invalid number of accounts were passed.
-/// .equ E_USER_DATA, 2 # The user account has nonzero data length.
-/// ```
-#[proc_macro_attribute]
-pub fn error_codes(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(item as DeriveInput);
-    let name = &input.ident;
-    let vis = &input.vis;
-    let attrs = &input.attrs;
+/// Generates:
+/// - Rust: `enum Error { N_ACCOUNTS_INVALID, USER_HAS_DATA }` with `From<Error> for u32`
+/// - ASM: `.equ E_N_ACCOUNTS_INVALID, 1` and `.equ E_USER_HAS_DATA, 2`
+#[proc_macro]
+pub fn error_codes(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as ErrorCodesInput);
 
-    let variants = match &input.data {
-        Data::Enum(data) => &data.variants,
-        _ => {
-            return syn::Error::new_spanned(&input, "error_codes can only be applied to enums")
-                .to_compile_error()
-                .into();
-        }
-    };
-
-    let mut error_entries = Vec::new();
     let mut variant_defs = Vec::new();
+    let mut asm_lines = Vec::new();
 
-    for (idx, variant) in variants.iter().enumerate() {
-        // Ensure no fields.
-        if !matches!(variant.fields, Fields::Unit) {
-            return syn::Error::new_spanned(
-                &variant.fields,
-                "error_codes variants must be unit variants (no fields)",
-            )
-            .to_compile_error()
-            .into();
-        }
-
-        // Extract doc comment.
-        let doc_comment = extract_doc_comment(&variant.attrs);
-        let doc_comment = match doc_comment {
-            Some(doc) => doc,
-            None => {
-                return syn::Error::new_spanned(
-                    &variant.ident,
-                    format!("Variant `{}` must have a doc comment", variant.ident),
-                )
-                .to_compile_error()
-                .into();
-            }
-        };
-
-        // Validate doc comment.
-        if let Err(e) = validate_doc_comment(&doc_comment) {
-            return syn::Error::new_spanned(
-                &variant.ident,
-                format!("Variant `{}`: {}", variant.ident, e),
-            )
-            .to_compile_error()
-            .into();
-        }
-
-        // Convert variant name to SCREAMING_SNAKE_CASE for ASM.
-        let asm_name = format!("E_{}", variant.ident.to_string().to_case(Case::UpperSnake));
-
-        // Error codes start at 1.
+    for (idx, entry) in input.entries.iter().enumerate() {
+        let doc = &entry.doc;
+        let variant_name = &entry.name;
+        // Just add E_ prefix for ASM.
+        let asm_name = format!("E_{}", entry.name);
         let value = idx + 1;
 
-        error_entries.push((asm_name, value, doc_comment));
-
-        // Preserve variant with its attributes.
-        let variant_ident = &variant.ident;
-        let variant_attrs = &variant.attrs;
         variant_defs.push(quote! {
-            #(#variant_attrs)*
-            #variant_ident
+            #[doc = #doc]
+            #variant_name
         });
-    }
 
-    // Generate the to_asm() implementation.
-    let asm_lines: Vec<String> = error_entries
-        .iter()
-        .map(|(name, value, comment)| asm_equ_line(name, value, comment))
-        .collect();
+        asm_lines.push(asm_equ_line(&asm_name, &value, doc));
+    }
 
     let header = asm_header("Error codes.");
     let body = asm_lines.join("\n");
 
     let expanded = quote! {
-        #(#attrs)*
         #[repr(u32)]
-        #vis enum #name {
+        #[allow(non_camel_case_types)]
+        pub enum Error {
             #(#variant_defs),*
         }
 
-        impl From<#name> for u32 {
-            fn from(e: #name) -> u32 {
+        impl From<Error> for u32 {
+            fn from(e: Error) -> u32 {
                 e as u32
             }
         }
 
-        impl #name {
+        impl Error {
             /// Generate ASM constants for this enum.
             pub fn to_asm() -> alloc::string::String {
                 alloc::format!("{}\n{}\n", #header, #body)
