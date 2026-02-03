@@ -209,7 +209,6 @@ struct ConstantDef {
 struct ConstantGroup {
     doc: String,
     name: Ident,
-    prefix: Option<String>,
     constants: Vec<ConstantDef>,
 }
 
@@ -232,30 +231,12 @@ impl Parse for AsmConstantsInput {
                 return Err(input.error(format!("Group doc comment: {}", e)));
             }
 
-            // Parse group name (always pub).
+            // Parse group name.
             let name: Ident = input.parse()?;
 
             // Parse module body.
             let content;
             braced!(content in input);
-
-            // Check for optional prefix.
-            let prefix = if content.peek(Ident) {
-                let ident: Ident = content.parse()?;
-                if ident == "prefix" {
-                    content.parse::<Token![=]>()?;
-                    let prefix_lit: syn::LitStr = content.parse()?;
-                    content.parse::<Token![,]>()?;
-                    Some(prefix_lit.value())
-                } else {
-                    return Err(syn::Error::new(
-                        ident.span(),
-                        "Expected 'prefix' or constant",
-                    ));
-                }
-            } else {
-                None
-            };
 
             // Parse constants.
             let mut constants = Vec::new();
@@ -289,7 +270,6 @@ impl Parse for AsmConstantsInput {
             groups.push(ConstantGroup {
                 doc,
                 name,
-                prefix,
                 constants,
             });
         }
@@ -301,37 +281,30 @@ impl Parse for AsmConstantsInput {
 /// Macro for defining groups of constants shared between Rust and ASM.
 ///
 /// Constants must specify their Rust type. Values are validated at compile time
-/// to fit within i32 range (sBPF immediate constraint).
-///
-/// See <https://docs.rs/solana-sbpf/> for sBPF documentation. Immediates are
-/// sign-extended from 32-bit, so values must fit in i32 range.
+/// to fit within i32 range (sBPF immediate constraint). The prefix is automatically
+/// joined with an underscore.
 ///
 /// # Example
 /// ```ignore
 /// constant_group! {
-///     /// Memory map.
-///     memory_map {
+///     /// Input buffer layout.
+///     input_buffer {
 ///         /// Number of accounts expected.
 ///         N_ACCOUNTS: u64 = 2,
-///         /// Offset to instruction data.
-///         IX_DATA: usize = 8,
-///     }
-///
-///     /// Stack frame offsets.
-///     stack_offsets {
-///         prefix = "SF_",
-///         /// Offset to user pubkey.
-///         USER_PUBKEY: u64 = 0,
 ///     }
 /// }
+/// // Usage: input_buffer::to_asm("IB") -> ".equ IB_N_ACCOUNTS, 2 # ..."
 /// ```
+///
+/// To extend a group with ASM-only constants, use `extend_constant_group!`.
 #[proc_macro]
 pub fn constant_group(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as AsmConstantsInput);
 
     let modules = input.groups.iter().map(|group| {
         let mod_name = &group.name;
-        let prefix = group.prefix.as_deref().unwrap_or("");
+        let max_line_len = MAX_LINE_LEN;
+        let header = asm_header(&group.doc);
 
         // Generate Rust constants with i32 bounds checking for ASM compatibility.
         let const_defs = group.constants.iter().map(|c| {
@@ -351,26 +324,39 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
             }
         });
 
-        // Generate ASM output.
-        let header = asm_header(&group.doc);
-
-        let asm_lines: Vec<String> = group
-            .constants
-            .iter()
-            .map(|c| {
-                let full_name = format!("{}{}", prefix, c.name);
-                asm_equ_line(&full_name, &c.value, &c.doc)
-            })
-            .collect();
-        let body = asm_lines.join("\n");
+        let const_names: Vec<String> = group.constants.iter().map(|c| c.name.to_string()).collect();
+        let const_values: Vec<String> = group.constants.iter().map(|c| c.value.to_string()).collect();
+        let const_docs: Vec<String> = group.constants.iter().map(|c| c.doc.clone()).collect();
 
         quote! {
             pub mod #mod_name {
                 #(#const_defs)*
 
-                /// Generate ASM constants for this module.
-                pub fn to_asm() -> alloc::string::String {
-                    alloc::format!("{}\n{}\n", #header, #body)
+                /// Generate ASM constants for this module with the given prefix.
+                /// Prefix is automatically joined with underscore (e.g., "IB" -> "IB_NAME").
+                pub fn to_asm(prefix: &str) -> alloc::string::String {
+                    use alloc::string::String;
+                    use alloc::format;
+
+                    let mut result = String::from(#header);
+                    result.push('\n');
+
+                    let names = [#(#const_names),*];
+                    let values = [#(#const_values),*];
+                    let docs = [#(#const_docs),*];
+
+                    for i in 0..names.len() {
+                        let full_name = format!("{}_{}", prefix, names[i]);
+                        let inline = format!(".equ {}, {} # {}", full_name, values[i], docs[i]);
+                        if inline.len() <= #max_line_len {
+                            result.push_str(&inline);
+                        } else {
+                            result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, values[i]));
+                        }
+                        result.push('\n');
+                    }
+
+                    result
                 }
             }
         }
@@ -378,6 +364,142 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         #(#modules)*
+    };
+
+    TokenStream::from(expanded)
+}
+
+/// ASM-only constant (no Rust type needed).
+struct AsmConstantDef {
+    doc: String,
+    name: Ident,
+    value: LitInt,
+}
+
+/// Input for extend_constant_group! macro.
+struct ExtendConstantGroupInput {
+    name: Ident,
+    prefix: String,
+    constants: Vec<AsmConstantDef>,
+}
+
+impl Parse for ExtendConstantGroupInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // Parse module name.
+        let name: Ident = input.parse()?;
+
+        // Parse body.
+        let content;
+        braced!(content in input);
+
+        // Parse prefix = "..."
+        let ident: Ident = content.parse()?;
+        if ident != "prefix" {
+            return Err(syn::Error::new(
+                ident.span(),
+                "First item must be 'prefix = \"...\"'",
+            ));
+        }
+        content.parse::<Token![=]>()?;
+        let prefix_lit: syn::LitStr = content.parse()?;
+        let prefix = prefix_lit.value();
+        content.parse::<Token![,]>()?;
+
+        // Parse constants (ASM-only, no type needed).
+        let mut constants = Vec::new();
+        while !content.is_empty() {
+            let const_attrs = content.call(syn::Attribute::parse_outer)?;
+            let const_doc = extract_doc_comment(&const_attrs)
+                .ok_or_else(|| content.error("Constant must have a doc comment"))?;
+
+            if let Err(e) = validate_doc_comment(&const_doc) {
+                return Err(content.error(e));
+            }
+
+            let const_name: Ident = content.parse()?;
+            content.parse::<Token![=]>()?;
+            let const_value: LitInt = content.parse()?;
+
+            // Optional trailing comma.
+            let _ = content.parse::<Token![,]>();
+
+            constants.push(AsmConstantDef {
+                doc: const_doc,
+                name: const_name,
+                value: const_value,
+            });
+        }
+
+        Ok(ExtendConstantGroupInput {
+            name,
+            prefix,
+            constants,
+        })
+    }
+}
+
+/// Macro for extending a constant group with ASM-only constants.
+///
+/// This creates a module that re-exports the base group's constants from
+/// `crate::common::{name}` and adds ASM-only constants. The `to_asm()` function
+/// combines both under one header. The prefix is automatically joined with an underscore.
+///
+/// # Example
+/// ```ignore
+/// extend_constant_group!(input_buffer {
+///     prefix = "IB",
+///     /// Offset to number of accounts field.
+///     N_ACCOUNTS_OFF = 0,
+/// });
+/// // Creates `input_buffer` module that:
+/// // - Re-exports all constants from crate::common::input_buffer
+/// // - Adds ASM-only constants (N_ACCOUNTS_OFF)
+/// // - to_asm() outputs all constants with "IB_" prefix under one header
+/// ```
+#[proc_macro]
+pub fn extend_constant_group(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as ExtendConstantGroupInput);
+
+    let mod_name = &input.name;
+    let prefix = &input.prefix;
+    let max_line_len = MAX_LINE_LEN;
+
+    let const_names: Vec<String> = input.constants.iter().map(|c| c.name.to_string()).collect();
+    let const_values: Vec<String> = input.constants.iter().map(|c| c.value.to_string()).collect();
+    let const_docs: Vec<String> = input.constants.iter().map(|c| c.doc.clone()).collect();
+
+    let expanded = quote! {
+        pub mod #mod_name {
+            use alloc::string::String;
+            use alloc::format;
+
+            // Re-export base group's constants.
+            pub use crate::common::#mod_name::*;
+
+            /// Generate combined ASM (base + extension) with prefix.
+            pub fn to_asm() -> String {
+                // Base group adds header and its constants.
+                let mut result = crate::common::#mod_name::to_asm(#prefix);
+
+                // Add extension constants (no separate header).
+                let names = [#(#const_names),*];
+                let values = [#(#const_values),*];
+                let docs = [#(#const_docs),*];
+
+                for i in 0..names.len() {
+                    let full_name = format!("{}_{}", #prefix, names[i]);
+                    let inline = format!(".equ {}, {} # {}", full_name, values[i], docs[i]);
+                    if inline.len() <= #max_line_len {
+                        result.push_str(&inline);
+                    } else {
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, values[i]));
+                    }
+                    result.push('\n');
+                }
+
+                result
+            }
+        }
     };
 
     TokenStream::from(expanded)

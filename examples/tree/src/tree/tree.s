@@ -1,6 +1,7 @@
 # Input buffer layout.
 # --------------------
-.equ N_ACCOUNTS, 2 # Number of accounts expected.
+.equ IB_N_ACCOUNTS, 2 # Number of accounts expected.
+.equ IB_N_ACCOUNTS_OFF, 0 # Number of accounts passed in input.
 
 # Error codes.
 # ------------
