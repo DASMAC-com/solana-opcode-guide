@@ -8,7 +8,7 @@ members = [
   "memo",
   "transfer",
   "tree",
-  "tree/build-macros",
+  "tree/macros",
   "tree/interface",
   "utils/build-examples",
   "utils/deps/build",

@@ -1,4 +1,4 @@
-use build_macros::{constant_group, error_codes};
+use macros::{constant_group, error_codes};
 
 #[error_codes]
 pub enum Error {

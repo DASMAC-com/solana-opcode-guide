@@ -246,11 +246,11 @@ impl Parse for AsmConstantsInput {
 
 /// Macro for defining groups of constants shared between Rust and ASM.
 ///
-/// Constants must specify their Rust type. Values are validated at compile time since they must
-/// [fit in an `i32`][i32-imm], except for [`i64` immediates in `lddw`][lddw-bypass].
+/// Constants must specify their Rust type. Values are validated at compile time
+/// to fit within i32 range (sBPF immediate constraint).
 ///
-/// [i32-imm](https://github.com/anza-xya/sbpf/blob/v0.14.2/src/assembler.rs#L262-L264)
-/// [lddw-bypass](https://github.com/alnoki/sbpf/blob/v0.14.2/src/assembler.rs#L484-L500)
+/// See <https://docs.rs/solana-sbpf/> for sBPF documentation. Immediates are
+/// sign-extended from 32-bit, so values must fit in i32 range.
 ///
 /// # Example
 /// ```ignore
@@ -263,11 +263,11 @@ impl Parse for AsmConstantsInput {
 ///         IX_DATA: usize = 8,
 ///     }
 ///
-///     /// Another group.
-///     my_group {
-///         prefix = "MY_PREFIX",
-///         /// Foo constant.
-///         FOO: u32 = 1,
+///     /// Error codes.
+///     error_codes {
+///         prefix = "E_",
+///         /// An invalid number of accounts were passed.
+///         N_ACCOUNTS: u32 = 1,
 ///     }
 /// }
 /// ```
