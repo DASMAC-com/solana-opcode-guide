@@ -666,6 +666,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+dependencies = [
+ "build-macros",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3589,11 +3596,11 @@ dependencies = [
 name = "tree"
 version = "0.1.0"
 dependencies = [
+ "common",
  "mollusk-svm",
  "pinocchio",
  "solana-sdk",
  "test-utils",
- "types",
 ]
 
 [[package]]
@@ -3601,13 +3608,6 @@ name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
-
-[[package]]
-name = "types"
-version = "0.1.0"
-dependencies = [
- "build-macros",
-]
 
 [[package]]
 name = "unicode-ident"
