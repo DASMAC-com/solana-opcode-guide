@@ -1,9 +1,9 @@
 [build-dependencies]
-common = { path = "common", features = ["std"] }
+interface.path = "interface"
 
 [dependencies]
 pinocchio.workspace = true
-common.path = "common"
+interface.path = "interface"
 
 [dev-dependencies]
 mollusk-svm.workspace = true

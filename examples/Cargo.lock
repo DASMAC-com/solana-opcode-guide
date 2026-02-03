@@ -666,13 +666,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "build-macros",
-]
-
-[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1225,6 +1218,13 @@ checksum = "0ad4bb2b565bca0645f4d68c5c9af97fba094e9791da685bf83cb5f3ce74acf2"
 dependencies = [
  "equivalent",
  "hashbrown 0.16.1",
+]
+
+[[package]]
+name = "interface"
+version = "0.1.0"
+dependencies = [
+ "build-macros",
 ]
 
 [[package]]
@@ -3596,7 +3596,7 @@ dependencies = [
 name = "tree"
 version = "0.1.0"
 dependencies = [
- "common",
+ "interface",
  "mollusk-svm",
  "pinocchio",
  "solana-sdk",

@@ -9,7 +9,7 @@ members = [
   "transfer",
   "tree",
   "tree/build-macros",
-  "tree/common",
+  "tree/interface",
   "utils/build-examples",
   "utils/deps/build",
   "utils/deps/program"

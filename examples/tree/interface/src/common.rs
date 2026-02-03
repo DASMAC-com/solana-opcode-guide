@@ -1,14 +1,3 @@
-#![no_std]
-
-extern crate alloc;
-
-#[cfg(feature = "std")]
-mod injection;
-#[cfg(feature = "std")]
-pub use injection::inject_asm;
-#[cfg(feature = "std")]
-extern crate std;
-
 use build_macros::{asm_constants, AsmErrorCodes};
 
 #[derive(AsmErrorCodes)]
