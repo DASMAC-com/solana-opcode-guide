@@ -47,15 +47,9 @@ Rust:
 
 Start with the [quickstart](quickstart) to set up your environment and run the
 above program, then follow the [examples](examples/index) in order to
-incrementally learn more advanced [SBPF][isa] concepts.
-
-See also the following pages:
-
-| Page                   | Content                                           |
-| ---------------------- | ------------------------------------------------- |
-| [Resources](resources) | Curated resource links                            |
-| [Opcodes](opcodes)     | [SBPF opcode][isa] reference linked with examples |
-| [Syscalls](syscalls)   | [Solana syscalls] reference linked with examples  |
+incrementally learn more advanced [SBPF][isa] concepts. See also the
+[indices](indices/) for additional reference material, including a full list
+of [SBPF opcodes][isa] and [Solana syscalls] used in the examples.
 
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [anchor]: https://www.anchor-lang.com/docs
