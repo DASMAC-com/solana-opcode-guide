@@ -1,6 +1,7 @@
 use interface::*;
 use pinocchio::{
-    entrypoint::InstructionContext, entrypoint::MaybeAccount, error::ProgramError,
+    entrypoint::{InstructionContext, MaybeAccount},
+    error::ProgramError,
     lazy_program_entrypoint, no_allocator, nostd_panic_handler, ProgramResult,
 };
 
@@ -8,7 +9,7 @@ use pinocchio::{
 macro_rules! if_err {
     ($cond:expr, $variant:ident) => {
         if $cond {
-            return Err(ProgramError::Custom(Error::$variant.into()));
+            err!($variant);
         }
     };
 }
@@ -16,7 +17,7 @@ macro_rules! if_err {
 /// Return the given error.
 macro_rules! err {
     ($variant:ident) => {
-        return Err(ProgramError::Custom(Error::$variant.into()));
+        return Err(ProgramError::Custom(Error::$variant.into()))
     };
 }
 
@@ -35,5 +36,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
         MaybeAccount::Account(account) => account,
         MaybeAccount::Duplicated(_) => err!(TREE_DUPLICATE),
     };
+    // SAFETY: all accounts have been read.
+    let instruction_data = context.instruction_data_unchecked();
+    let program_id = context.program_id_unchecked();
     Ok(())
 }
