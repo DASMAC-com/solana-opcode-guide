@@ -1,4 +1,4 @@
-use crate::ErrorCodes;
+use crate::{memory_map, ErrorCodes};
 use std::fs;
 use std::path::Path;
 
@@ -15,8 +15,8 @@ pub fn inject_asm(asm_path: &Path) {
         .expect("Could not find '.globl entrypoint' in assembly file");
 
     let after_global = &content[global_pos..];
-    let constants = ErrorCodes::to_asm();
-    let new_content = std::format!("{}\n{}", constants, after_global);
+    let constants = std::format!("{}\n{}", memory_map::to_asm(), ErrorCodes::to_asm());
+    let new_content = std::format!("{}{}", constants, after_global);
 
     if new_content != content {
         fs::write(asm_path, new_content).expect("Failed to write assembly file");

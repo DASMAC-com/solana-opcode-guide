@@ -1,7 +1,11 @@
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Lit, Meta};
+use syn::{
+    braced,
+    parse::{Parse, ParseStream},
+    parse_macro_input, Data, DeriveInput, Fields, Ident, Lit, LitInt, Meta, Token, Visibility,
+};
 
 /// Derive macro for generating ASM error code constants from an enum.
 ///
@@ -135,4 +139,174 @@ fn extract_doc_comment(attrs: &[syn::Attribute]) -> Option<String> {
     } else {
         Some(doc_parts.join(" "))
     }
+}
+
+// ============================================================================
+// asm_constants! macro
+// ============================================================================
+
+struct ConstantDef {
+    doc: String,
+    name: Ident,
+    value: LitInt,
+}
+
+struct ConstantGroup {
+    doc: String,
+    vis: Visibility,
+    name: Ident,
+    prefix: Option<String>,
+    constants: Vec<ConstantDef>,
+}
+
+struct AsmConstantsInput {
+    groups: Vec<ConstantGroup>,
+}
+
+impl Parse for AsmConstantsInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut groups = Vec::new();
+
+        while !input.is_empty() {
+            // Parse doc comments for the module.
+            let attrs = input.call(syn::Attribute::parse_outer)?;
+            let doc = extract_doc_comment(&attrs)
+                .ok_or_else(|| input.error("Module must have a doc comment"))?;
+
+            // Parse visibility and `mod`.
+            let vis: Visibility = input.parse()?;
+            input.parse::<Token![mod]>()?;
+            let name: Ident = input.parse()?;
+
+            // Parse module body.
+            let content;
+            braced!(content in input);
+
+            // Check for optional prefix.
+            let prefix = if content.peek(Ident) {
+                let ident: Ident = content.parse()?;
+                if ident == "prefix" {
+                    content.parse::<Token![=]>()?;
+                    let prefix_lit: syn::LitStr = content.parse()?;
+                    content.parse::<Token![,]>()?;
+                    Some(prefix_lit.value())
+                } else {
+                    return Err(syn::Error::new(ident.span(), "Expected 'prefix' or constant"));
+                }
+            } else {
+                None
+            };
+
+            // Parse constants.
+            let mut constants = Vec::new();
+            while !content.is_empty() {
+                let const_attrs = content.call(syn::Attribute::parse_outer)?;
+                let const_doc = extract_doc_comment(&const_attrs)
+                    .ok_or_else(|| content.error("Constant must have a doc comment"))?;
+
+                let const_name: Ident = content.parse()?;
+                content.parse::<Token![=]>()?;
+                let const_value: LitInt = content.parse()?;
+
+                // Optional trailing comma.
+                let _ = content.parse::<Token![,]>();
+
+                constants.push(ConstantDef {
+                    doc: const_doc,
+                    name: const_name,
+                    value: const_value,
+                });
+            }
+
+            groups.push(ConstantGroup {
+                doc,
+                vis,
+                name,
+                prefix,
+                constants,
+            });
+        }
+
+        Ok(AsmConstantsInput { groups })
+    }
+}
+
+/// Macro for defining groups of ASM constants.
+///
+/// # Example
+/// ```ignore
+/// asm_constants! {
+///     /// Memory map.
+///     pub mod memory_map {
+///         /// Number of accounts expected.
+///         N_ACCOUNTS = 2,
+///         /// Offset to instruction data.
+///         IX_DATA = 8,
+///     }
+///
+///     /// Error codes.
+///     pub mod error_codes {
+///         prefix = "E_",
+///         /// An invalid number of accounts were passed.
+///         N_ACCOUNTS = 1,
+///     }
+/// }
+/// ```
+#[proc_macro]
+pub fn asm_constants(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as AsmConstantsInput);
+
+    let modules = input.groups.iter().map(|group| {
+        let vis = &group.vis;
+        let mod_name = &group.name;
+        let prefix = group.prefix.as_deref().unwrap_or("");
+
+        // Generate Rust constants.
+        let const_defs = group.constants.iter().map(|c| {
+            let name = &c.name;
+            let value = &c.value;
+            let doc = &c.doc;
+            quote! {
+                #[doc = #doc]
+                pub const #name: u64 = #value;
+            }
+        });
+
+        // Generate ASM output.
+        let header_text = &group.doc;
+        let header_line = "-".repeat(header_text.len());
+        let header = format!("# {}\n# {}", header_text, header_line);
+
+        let asm_lines: Vec<String> = group
+            .constants
+            .iter()
+            .map(|c| {
+                format!(
+                    ".equ {}{}, {} # {}",
+                    prefix,
+                    c.name.to_string(),
+                    c.value,
+                    c.doc
+                )
+            })
+            .collect();
+        let body = asm_lines.join("\n");
+
+        quote! {
+            #vis mod #mod_name {
+                #(#const_defs)*
+
+                /// Generate ASM constants for this module.
+                pub fn to_asm() -> alloc::string::String {
+                    alloc::format!("{}\n{}\n", #header, #body)
+                }
+            }
+        }
+    });
+
+    let expanded = quote! {
+        #(#modules)*
+    };
+
+    TokenStream::from(expanded)
 }

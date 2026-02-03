@@ -1,7 +1,6 @@
 #![no_std]
 
 extern crate alloc;
-use build_macros::AsmErrorCodes;
 
 #[cfg(feature = "std")]
 mod injection;
@@ -10,6 +9,8 @@ pub use injection::inject_asm;
 #[cfg(feature = "std")]
 extern crate std;
 
+use build_macros::{asm_constants, AsmErrorCodes};
+
 #[derive(AsmErrorCodes)]
 #[repr(u64)]
 pub enum ErrorCodes {
@@ -17,4 +18,12 @@ pub enum ErrorCodes {
     NAccounts,
     /// The user account has nonzero data length.
     UserData,
+}
+
+asm_constants! {
+    /// Memory map.
+    pub mod memory_map {
+        /// Number of accounts expected.
+        N_ACCOUNTS = 2,
+    }
 }
