@@ -1,5 +1,5 @@
-# Memory map layout.
-# ------------------
+# Input buffer layout.
+# --------------------
 .equ N_ACCOUNTS, 2 # Number of accounts expected.
 
 # Error codes.

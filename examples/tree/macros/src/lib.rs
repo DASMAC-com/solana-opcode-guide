@@ -7,6 +7,12 @@ use syn::{
     parse_macro_input, Data, DeriveInput, Fields, Ident, Lit, LitInt, Meta, Token,
 };
 
+/// Maximum line length for ASM output.
+const MAX_LINE_LEN: usize = 75;
+
+/// Maximum comment length (accounting for `# ` prefix).
+const MAX_COMMENT_LEN: usize = MAX_LINE_LEN - "# ".len();
+
 /// Attribute macro for defining error code enums shared between Rust and ASM.
 ///
 /// Automatically adds `#[repr(u64)]` to the enum. Each variant must have a doc
@@ -14,6 +20,7 @@ use syn::{
 /// PascalCase to SCREAMING_SNAKE_CASE and prefixed with `E_`.
 ///
 /// # Example
+///
 /// ```ignore
 /// #[error_codes]
 /// pub enum ErrorCodes {
@@ -25,6 +32,7 @@ use syn::{
 /// ```
 ///
 /// Generates ASM:
+///
 /// ```text
 /// # Error codes.
 /// # ------------
@@ -75,14 +83,11 @@ pub fn error_codes(_attr: TokenStream, item: TokenStream) -> TokenStream {
             }
         };
 
-        // Validate doc comment ends with period.
-        if !doc_comment.ends_with('.') {
+        // Validate doc comment.
+        if let Err(e) = validate_doc_comment(&doc_comment) {
             return syn::Error::new_spanned(
                 &variant.ident,
-                format!(
-                    "Doc comment for `{}` must end with a period: {:?}",
-                    variant.ident, doc_comment
-                ),
+                format!("Variant `{}`: {}", variant.ident, e),
             )
             .to_compile_error()
             .into();
@@ -108,10 +113,10 @@ pub fn error_codes(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // Generate the to_asm() implementation.
     let asm_lines: Vec<String> = error_entries
         .iter()
-        .map(|(name, value, comment)| format!(".equ {}, {} # {}", name, value, comment))
+        .map(|(name, value, comment)| asm_equ_line(name, value, comment))
         .collect();
 
-    let header = "# Error codes.\n# ------------";
+    let header = asm_header("Error codes.");
     let body = asm_lines.join("\n");
 
     let expanded = quote! {
@@ -130,6 +135,39 @@ pub fn error_codes(_attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
+}
+
+/// Generate an ASM section header with auto-width dashes.
+fn asm_header(title: &str) -> String {
+    let dash_len = title.len().min(MAX_COMMENT_LEN);
+    format!("# {}\n# {}", title, "-".repeat(dash_len))
+}
+
+/// Validate a doc comment: must end with period and fit within max length.
+fn validate_doc_comment(comment: &str) -> Result<(), String> {
+    if !comment.ends_with('.') {
+        return Err(format!("Doc comment must end with a period: {:?}", comment));
+    }
+    if comment.len() > MAX_COMMENT_LEN {
+        return Err(format!(
+            "Doc comment exceeds max length of {} chars (got {}): {:?}",
+            MAX_COMMENT_LEN,
+            comment.len(),
+            comment
+        ));
+    }
+    Ok(())
+}
+
+/// Format an ASM .equ line. If inline comment would exceed max line length,
+/// put the comment on its own line above.
+fn asm_equ_line(name: &str, value: impl std::fmt::Display, comment: &str) -> String {
+    let inline = format!(".equ {}, {} # {}", name, value, comment);
+    if inline.len() <= MAX_LINE_LEN {
+        inline
+    } else {
+        format!("# {}\n.equ {}, {}", comment, name, value)
+    }
 }
 
 /// Extract the doc comment from attributes.
@@ -183,6 +221,11 @@ impl Parse for AsmConstantsInput {
             let doc = extract_doc_comment(&attrs)
                 .ok_or_else(|| input.error("Module must have a doc comment"))?;
 
+            // Validate group doc comment.
+            if let Err(e) = validate_doc_comment(&doc) {
+                return Err(input.error(format!("Group doc comment: {}", e)));
+            }
+
             // Parse group name (always pub).
             let name: Ident = input.parse()?;
 
@@ -214,6 +257,11 @@ impl Parse for AsmConstantsInput {
                 let const_attrs = content.call(syn::Attribute::parse_outer)?;
                 let const_doc = extract_doc_comment(&const_attrs)
                     .ok_or_else(|| content.error("Constant must have a doc comment"))?;
+
+                // Validate constant doc comment.
+                if let Err(e) = validate_doc_comment(&const_doc) {
+                    return Err(content.error(e));
+                }
 
                 let const_name: Ident = content.parse()?;
                 content.parse::<Token![:]>()?;
@@ -263,11 +311,11 @@ impl Parse for AsmConstantsInput {
 ///         IX_DATA: usize = 8,
 ///     }
 ///
-///     /// Error codes.
-///     error_codes {
-///         prefix = "E_",
-///         /// An invalid number of accounts were passed.
-///         N_ACCOUNTS: u32 = 1,
+///     /// Stack frame offsets.
+///     stack_offsets {
+///         prefix = "SF_",
+///         /// Offset to user pubkey.
+///         USER_PUBKEY: u64 = 0,
 ///     }
 /// }
 /// ```
@@ -298,21 +346,14 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
         });
 
         // Generate ASM output.
-        let header_text = &group.doc;
-        let header_line = "-".repeat(header_text.len());
-        let header = format!("# {}\n# {}", header_text, header_line);
+        let header = asm_header(&group.doc);
 
         let asm_lines: Vec<String> = group
             .constants
             .iter()
             .map(|c| {
-                format!(
-                    ".equ {}{}, {} # {}",
-                    prefix,
-                    c.name.to_string(),
-                    c.value,
-                    c.doc
-                )
+                let full_name = format!("{}{}", prefix, c.name);
+                asm_equ_line(&full_name, &c.value, &c.doc)
             })
             .collect();
         let body = asm_lines.join("\n");

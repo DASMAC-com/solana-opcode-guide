@@ -9,8 +9,8 @@ pub enum Error {
 }
 
 constant_group! {
-    /// Memory map layout.
-    memory_map {
+    /// Input buffer layout.
+    input_buffer {
         /// Number of accounts expected.
         N_ACCOUNTS: u64 = 2,
     }

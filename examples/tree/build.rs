@@ -12,7 +12,7 @@ fn main() {
     // Generate the constants and insert them before the entrypoint marker.
     let constants = format!(
         "{}\n{}",
-        interface::memory_map::to_asm(),
+        interface::input_buffer::to_asm(),
         interface::Error::to_asm(),
     );
     let new_content = format!("{}\n{}", constants, &content[marker_pos..]);
