@@ -1,3 +1,8 @@
+# Error codes.
+# ------------
+.equ E_N_ACCOUNTS, 1 # An invalid number of accounts were passed.
+.equ E_USER_DATA, 2 # The user account has nonzero data length.
+
 .globl entrypoint
 
 entrypoint:

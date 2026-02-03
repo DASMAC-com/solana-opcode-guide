@@ -1,5 +1,9 @@
+[build-dependencies]
+types = { path = "types", features = ["std"] }
+
 [dependencies]
 pinocchio.workspace = true
+types.path = "types"
 
 [dev-dependencies]
 mollusk-svm.workspace = true
