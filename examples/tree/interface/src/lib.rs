@@ -1,7 +1,7 @@
 extern crate alloc;
 
 mod asm;
-mod common;
+pub mod common;
 
 pub use asm::*;
 pub use common::*;

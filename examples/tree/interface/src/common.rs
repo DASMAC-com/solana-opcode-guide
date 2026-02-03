@@ -15,3 +15,8 @@ constant_group! {
         N_ACCOUNTS: u64 = 2,
     }
 }
+
+#[repr(C, packed)]
+struct InstructionData {
+    discriminator: u8,
+}

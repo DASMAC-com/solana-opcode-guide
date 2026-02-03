@@ -1,3 +1,4 @@
+use interface::*;
 use std::{fs, path::Path};
 
 const ENTRYPOINT_START: &str = ".globl entrypoint";
@@ -10,11 +11,7 @@ fn main() {
     let marker_pos = content.find(ENTRYPOINT_START).unwrap();
 
     // Generate the constants and insert them before the entrypoint marker.
-    let constants = format!(
-        "{}\n{}",
-        interface::input_buffer::to_asm(),
-        interface::Error::to_asm(),
-    );
+    let constants = format!("{}\n{}", input_buffer::to_asm(), Error::to_asm(),);
     let new_content = format!("{}\n{}", constants, &content[marker_pos..]);
     if new_content != content {
         fs::write(&asm_path, new_content).unwrap();

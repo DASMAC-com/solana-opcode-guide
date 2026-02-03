@@ -15,7 +15,7 @@ const MAX_COMMENT_LEN: usize = MAX_LINE_LEN - "# ".len();
 
 /// Attribute macro for defining error code enums shared between Rust and ASM.
 ///
-/// Automatically adds `#[repr(u64)]` to the enum. Each variant must have a doc
+/// Automatically adds `#[repr(u32)]` to the enum. Each variant must have a doc
 /// comment that will become the ASM comment. Variant names are converted from
 /// PascalCase to SCREAMING_SNAKE_CASE and prefixed with `E_`.
 ///
@@ -121,9 +121,15 @@ pub fn error_codes(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         #(#attrs)*
-        #[repr(u64)]
+        #[repr(u32)]
         #vis enum #name {
             #(#variant_defs),*
+        }
+
+        impl From<#name> for u32 {
+            fn from(e: #name) -> u32 {
+                e as u32
+            }
         }
 
         impl #name {

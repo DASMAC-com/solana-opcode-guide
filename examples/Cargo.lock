@@ -1215,6 +1215,7 @@ name = "interface"
 version = "0.1.0"
 dependencies = [
  "macros",
+ "pinocchio",
 ]
 
 [[package]]
