@@ -1,18 +1,17 @@
-use build_macros::{asm_constants, AsmErrorCodes};
+use build_macros::{constant_group, error_codes};
 
-#[derive(AsmErrorCodes)]
-#[repr(u64)]
-pub enum ErrorCodes {
+#[error_codes]
+pub enum Error {
     /// An invalid number of accounts were passed.
     NAccounts,
     /// The user account has nonzero data length.
     UserData,
 }
 
-asm_constants! {
-    /// Memory map.
-    pub mod memory_map {
+constant_group! {
+    /// Memory map layout.
+    memory_map {
         /// Number of accounts expected.
-        N_ACCOUNTS = 2,
+        N_ACCOUNTS: u64 = 2,
     }
 }

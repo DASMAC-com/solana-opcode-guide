@@ -13,7 +13,7 @@ fn main() {
     let constants = format!(
         "{}\n{}",
         interface::memory_map::to_asm(),
-        interface::ErrorCodes::to_asm(),
+        interface::Error::to_asm(),
     );
     let new_content = format!("{}\n{}", constants, &content[marker_pos..]);
     if new_content != content {

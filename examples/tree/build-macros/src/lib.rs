@@ -4,18 +4,18 @@ use quote::quote;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    parse_macro_input, Data, DeriveInput, Fields, Ident, Lit, LitInt, Meta, Token, Visibility,
+    parse_macro_input, Data, DeriveInput, Fields, Ident, Lit, LitInt, Meta, Token,
 };
 
-/// Derive macro for generating ASM error code constants from an enum.
+/// Attribute macro for defining error code enums shared between Rust and ASM.
 ///
-/// Each variant must have a doc comment that will become the ASM comment.
-/// Variant names are converted from PascalCase to SCREAMING_SNAKE_CASE
-/// and prefixed with `E_`.
+/// Automatically adds `#[repr(u64)]` to the enum. Each variant must have a doc
+/// comment that will become the ASM comment. Variant names are converted from
+/// PascalCase to SCREAMING_SNAKE_CASE and prefixed with `E_`.
 ///
 /// # Example
 /// ```ignore
-/// #[derive(AsmErrorCodes)]
+/// #[error_codes]
 /// pub enum ErrorCodes {
 ///     /// An invalid number of accounts were passed.
 ///     NAccounts,
@@ -24,35 +24,38 @@ use syn::{
 /// }
 /// ```
 ///
-/// Generates:
+/// Generates ASM:
 /// ```text
 /// # Error codes.
 /// # ------------
 /// .equ E_N_ACCOUNTS, 1 # An invalid number of accounts were passed.
 /// .equ E_USER_DATA, 2 # The user account has nonzero data length.
 /// ```
-#[proc_macro_derive(AsmErrorCodes)]
-pub fn derive_asm_error_codes(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+#[proc_macro_attribute]
+pub fn error_codes(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as DeriveInput);
     let name = &input.ident;
+    let vis = &input.vis;
+    let attrs = &input.attrs;
 
     let variants = match &input.data {
         Data::Enum(data) => &data.variants,
         _ => {
-            return syn::Error::new_spanned(&input, "AsmErrorCodes can only be derived for enums")
+            return syn::Error::new_spanned(&input, "error_codes can only be applied to enums")
                 .to_compile_error()
                 .into();
         }
     };
 
     let mut error_entries = Vec::new();
+    let mut variant_defs = Vec::new();
 
     for (idx, variant) in variants.iter().enumerate() {
         // Ensure no fields.
         if !matches!(variant.fields, Fields::Unit) {
             return syn::Error::new_spanned(
                 &variant.fields,
-                "AsmErrorCodes variants must be unit variants (no fields)",
+                "error_codes variants must be unit variants (no fields)",
             )
             .to_compile_error()
             .into();
@@ -85,16 +88,21 @@ pub fn derive_asm_error_codes(input: TokenStream) -> TokenStream {
             .into();
         }
 
-        // Convert variant name to SCREAMING_SNAKE_CASE.
-        let asm_name = format!(
-            "E_{}",
-            variant.ident.to_string().to_case(Case::UpperSnake)
-        );
+        // Convert variant name to SCREAMING_SNAKE_CASE for ASM.
+        let asm_name = format!("E_{}", variant.ident.to_string().to_case(Case::UpperSnake));
 
         // Error codes start at 1.
         let value = idx + 1;
 
         error_entries.push((asm_name, value, doc_comment));
+
+        // Preserve variant with its attributes.
+        let variant_ident = &variant.ident;
+        let variant_attrs = &variant.attrs;
+        variant_defs.push(quote! {
+            #(#variant_attrs)*
+            #variant_ident
+        });
     }
 
     // Generate the to_asm() implementation.
@@ -107,6 +115,12 @@ pub fn derive_asm_error_codes(input: TokenStream) -> TokenStream {
     let body = asm_lines.join("\n");
 
     let expanded = quote! {
+        #(#attrs)*
+        #[repr(u64)]
+        #vis enum #name {
+            #(#variant_defs),*
+        }
+
         impl #name {
             /// Generate ASM constants for this enum.
             pub fn to_asm() -> alloc::string::String {
@@ -141,19 +155,15 @@ fn extract_doc_comment(attrs: &[syn::Attribute]) -> Option<String> {
     }
 }
 
-// ============================================================================
-// asm_constants! macro
-// ============================================================================
-
 struct ConstantDef {
     doc: String,
     name: Ident,
+    ty: syn::Type,
     value: LitInt,
 }
 
 struct ConstantGroup {
     doc: String,
-    vis: Visibility,
     name: Ident,
     prefix: Option<String>,
     constants: Vec<ConstantDef>,
@@ -173,9 +183,7 @@ impl Parse for AsmConstantsInput {
             let doc = extract_doc_comment(&attrs)
                 .ok_or_else(|| input.error("Module must have a doc comment"))?;
 
-            // Parse visibility and `mod`.
-            let vis: Visibility = input.parse()?;
-            input.parse::<Token![mod]>()?;
+            // Parse group name (always pub).
             let name: Ident = input.parse()?;
 
             // Parse module body.
@@ -191,7 +199,10 @@ impl Parse for AsmConstantsInput {
                     content.parse::<Token![,]>()?;
                     Some(prefix_lit.value())
                 } else {
-                    return Err(syn::Error::new(ident.span(), "Expected 'prefix' or constant"));
+                    return Err(syn::Error::new(
+                        ident.span(),
+                        "Expected 'prefix' or constant",
+                    ));
                 }
             } else {
                 None
@@ -205,6 +216,8 @@ impl Parse for AsmConstantsInput {
                     .ok_or_else(|| content.error("Constant must have a doc comment"))?;
 
                 let const_name: Ident = content.parse()?;
+                content.parse::<Token![:]>()?;
+                let const_ty: syn::Type = content.parse()?;
                 content.parse::<Token![=]>()?;
                 let const_value: LitInt = content.parse()?;
 
@@ -214,13 +227,13 @@ impl Parse for AsmConstantsInput {
                 constants.push(ConstantDef {
                     doc: const_doc,
                     name: const_name,
+                    ty: const_ty,
                     value: const_value,
                 });
             }
 
             groups.push(ConstantGroup {
                 doc,
-                vis,
                 name,
                 prefix,
                 constants,
@@ -231,44 +244,56 @@ impl Parse for AsmConstantsInput {
     }
 }
 
-/// Macro for defining groups of ASM constants.
+/// Macro for defining groups of constants shared between Rust and ASM.
+///
+/// Constants must specify their Rust type. Values are validated at compile time
+/// to fit within i32 range (sBPF immediate constraint).
+///
+/// See <https://docs.rs/solana-sbpf/> for sBPF documentation. Immediates are
+/// sign-extended from 32-bit, so values must fit in i32 range.
 ///
 /// # Example
 /// ```ignore
-/// asm_constants! {
+/// constant_group! {
 ///     /// Memory map.
-///     pub mod memory_map {
+///     memory_map {
 ///         /// Number of accounts expected.
-///         N_ACCOUNTS = 2,
+///         N_ACCOUNTS: u64 = 2,
 ///         /// Offset to instruction data.
-///         IX_DATA = 8,
+///         IX_DATA: usize = 8,
 ///     }
 ///
 ///     /// Error codes.
-///     pub mod error_codes {
+///     error_codes {
 ///         prefix = "E_",
 ///         /// An invalid number of accounts were passed.
-///         N_ACCOUNTS = 1,
+///         N_ACCOUNTS: u32 = 1,
 ///     }
 /// }
 /// ```
 #[proc_macro]
-pub fn asm_constants(input: TokenStream) -> TokenStream {
+pub fn constant_group(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as AsmConstantsInput);
 
     let modules = input.groups.iter().map(|group| {
-        let vis = &group.vis;
         let mod_name = &group.name;
         let prefix = group.prefix.as_deref().unwrap_or("");
 
-        // Generate Rust constants.
+        // Generate Rust constants with i32 bounds checking for ASM compatibility.
         let const_defs = group.constants.iter().map(|c| {
             let name = &c.name;
+            let ty = &c.ty;
             let value = &c.value;
             let doc = &c.doc;
+            let assert_name = Ident::new(&format!("_ASSERT_{}_FITS_I32", name), name.span());
             quote! {
                 #[doc = #doc]
-                pub const #name: u64 = #value;
+                pub const #name: #ty = #value;
+
+                const #assert_name: () = assert!(
+                    (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
+                    "ASM immediate must fit in i32 range"
+                );
             }
         });
 
@@ -293,7 +318,7 @@ pub fn asm_constants(input: TokenStream) -> TokenStream {
         let body = asm_lines.join("\n");
 
         quote! {
-            #vis mod #mod_name {
+            pub mod #mod_name {
                 #(#const_defs)*
 
                 /// Generate ASM constants for this module.
