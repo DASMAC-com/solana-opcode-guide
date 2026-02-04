@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
     braced,
-    parse::{Parse, ParseStream},
+    parse::{discouraged::Speculative, Parse, ParseStream},
     parse_macro_input, Ident, Lit, LitInt, Meta, Token,
 };
 
@@ -234,7 +234,9 @@ impl Parse for ConstantGroup {
 
         // Reject multiple groups in a single macro invocation.
         if !input.is_empty() {
-            return Err(input.error("Only one constant group per macro invocation; use separate constant_group! calls"));
+            return Err(input.error(
+                "Only one constant group per macro invocation; use separate constant_group! calls",
+            ));
         }
 
         Ok(ConstantGroup {
@@ -291,7 +293,11 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
     });
 
     let const_names: Vec<String> = group.constants.iter().map(|c| c.name.to_string()).collect();
-    let const_values: Vec<String> = group.constants.iter().map(|c| c.value.to_string()).collect();
+    let const_values: Vec<String> = group
+        .constants
+        .iter()
+        .map(|c| c.value.to_string())
+        .collect();
     let const_docs: Vec<String> = group.constants.iter().map(|c| c.doc.clone()).collect();
 
     let expanded = quote! {
@@ -339,12 +345,17 @@ struct AsmConstantDef {
 
 /// Kind of ASM constant.
 enum AsmConstantKind {
-    /// Direct value (i32 validated).
-    Value(LitInt),
+    /// Literal value (i32 validated) - preserves original representation (hex, etc.).
+    Literal(LitInt),
+    /// Expression value (i32 validated) - computed at runtime, shown as decimal.
+    Expr(syn::Expr),
     /// Offset derived from struct field path (i16 validated).
     /// Name gets `_OFF` suffix appended.
     /// Supports nested fields like `Struct.field1.field2.field3`.
-    Offset { struct_name: Ident, field_path: Vec<Ident> },
+    Offset {
+        struct_name: Ident,
+        field_path: Vec<Ident>,
+    },
 }
 
 /// Input for asm_constant_group! macro.
@@ -390,12 +401,26 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
                 }
                 // Append _OFF suffix to the name.
                 let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
-                (full_name, AsmConstantKind::Offset { struct_name, field_path })
+                (
+                    full_name,
+                    AsmConstantKind::Offset {
+                        struct_name,
+                        field_path,
+                    },
+                )
             } else {
                 // Regular NAME = value syntax.
                 content.parse::<Token![=]>()?;
-                let value: LitInt = content.parse()?;
-                (ident, AsmConstantKind::Value(value))
+                // Try to parse as literal first (to preserve hex/binary representation),
+                // otherwise parse as expression (for constants like NON_DUP_MARKER).
+                let fork = content.fork();
+                if let Ok(lit) = fork.parse::<LitInt>() {
+                    content.advance_to(&fork);
+                    (ident, AsmConstantKind::Literal(lit))
+                } else {
+                    let expr: syn::Expr = content.parse()?;
+                    (ident, AsmConstantKind::Expr(expr))
+                }
             }
         } else {
             return Err(lookahead.error());
@@ -514,7 +539,7 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
         const_docs.push(doc.clone());
 
         match &c.kind {
-            AsmConstantKind::Value(value) => {
+            AsmConstantKind::Literal(value) => {
                 // Preserve original literal representation (hex, binary, etc.).
                 const_value_strs.push(Some(value.to_string()));
                 const_defs.push(quote! {
@@ -527,7 +552,25 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
                     );
                 });
             }
-            AsmConstantKind::Offset { struct_name, field_path } => {
+            AsmConstantKind::Expr(expr) => {
+                // Expression (e.g., constant from another crate) - computed at runtime.
+                // Use super::* to access imports from parent scope.
+                const_value_strs.push(None);
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i64 = { use super::*; #expr as i64 };
+
+                    const #assert_name: () = assert!(
+                        ({ use super::*; #expr } as i64) >= (i32::MIN as i64)
+                            && ({ use super::*; #expr } as i64) <= (i32::MAX as i64),
+                        "ASM immediate must fit in i32 range"
+                    );
+                });
+            }
+            AsmConstantKind::Offset {
+                struct_name,
+                field_path,
+            } => {
                 // Offsets are computed at runtime, no literal to preserve.
                 const_value_strs.push(None);
                 const_defs.push(quote! {
@@ -553,12 +596,13 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
     };
 
     // Generate value string options for preserving hex/binary literals.
-    let value_str_opts: Vec<_> = const_value_strs.iter().map(|opt| {
-        match opt {
+    let value_str_opts: Vec<_> = const_value_strs
+        .iter()
+        .map(|opt| match opt {
             Some(s) => quote! { Some(#s) },
             None => quote! { None },
-        }
-    }).collect();
+        })
+        .collect();
 
     let expanded = quote! {
         pub mod #mod_name {
@@ -688,7 +732,7 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
         const_docs.push(doc.clone());
 
         match &c.kind {
-            AsmConstantKind::Value(value) => {
+            AsmConstantKind::Literal(value) => {
                 // Preserve original literal representation (hex, binary, etc.).
                 const_value_strs.push(Some(value.to_string()));
                 const_defs.push(quote! {
@@ -701,7 +745,25 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                     );
                 });
             }
-            AsmConstantKind::Offset { struct_name, field_path } => {
+            AsmConstantKind::Expr(expr) => {
+                // Expression (e.g., constant from another crate) - computed at runtime.
+                // Use super::* to access imports from parent scope.
+                const_value_strs.push(None);
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i32 = { use super::*; #expr as i32 };
+
+                    const #assert_name: () = assert!(
+                        ({ use super::*; #expr } as i64) >= (i32::MIN as i64)
+                            && ({ use super::*; #expr } as i64) <= (i32::MAX as i64),
+                        "ASM immediate must fit in i32 range"
+                    );
+                });
+            }
+            AsmConstantKind::Offset {
+                struct_name,
+                field_path,
+            } => {
                 // Offsets are computed at runtime, no literal to preserve.
                 const_value_strs.push(None);
                 const_defs.push(quote! {
@@ -722,12 +784,13 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
     let const_idents: Vec<_> = input.constants.iter().map(|c| &c.name).collect();
 
     // Generate value string options for preserving hex/binary literals.
-    let value_str_opts: Vec<_> = const_value_strs.iter().map(|opt| {
-        match opt {
+    let value_str_opts: Vec<_> = const_value_strs
+        .iter()
+        .map(|opt| match opt {
             Some(s) => quote! { Some(#s) },
             None => quote! { None },
-        }
-    }).collect();
+        })
+        .collect();
 
     let expanded = quote! {
         pub mod #mod_name {
