@@ -39,8 +39,6 @@ fn happy_path_setup(
     (setup, instruction, accounts)
 }
 
-// --- Test case definitions ---
-
 #[derive(Clone, Copy)]
 enum Case {
     NoAccounts,
@@ -61,7 +59,7 @@ impl Case {
         match self {
             Self::NoAccounts => "No accounts passed",
             Self::TooManyAccounts => "Too many accounts passed",
-            Self::UserDataLen => "User has non-zero data length",
+            Self::UserDataLen => "User has nonzero data length",
             Self::TreeDuplicate => "Tree account is duplicate",
         }
     }
@@ -75,8 +73,6 @@ impl Case {
         }
     }
 }
-
-// --- Test runners that return CU consumption ---
 
 fn run_no_accounts(lang: ProgramLanguage) -> u64 {
     let (setup, mut instruction, mut accounts) = happy_path_setup(lang);
@@ -139,7 +135,6 @@ fn run_user_data_len(lang: ProgramLanguage) -> u64 {
 fn run_tree_duplicate(lang: ProgramLanguage) -> u64 {
     let (setup, mut instruction, mut accounts) = happy_path_setup(lang);
 
-    // Make tree account a duplicate of user.
     instruction.accounts[AccountIndex::Tree as usize] =
         instruction.accounts[AccountIndex::User as usize].clone();
     accounts[AccountIndex::Tree as usize] = accounts[AccountIndex::User as usize].clone();
@@ -155,8 +150,6 @@ fn run_tree_duplicate(lang: ProgramLanguage) -> u64 {
         )
         .compute_units_consumed
 }
-
-// --- Individual tests for each case/implementation ---
 
 #[test]
 fn test_asm_no_accounts() {
@@ -197,8 +190,6 @@ fn test_rs_user_data_len() {
 fn test_rs_tree_duplicate() {
     run_tree_duplicate(ProgramLanguage::Rust);
 }
-
-// --- Compute unit comparison table ---
 
 #[test]
 fn test_fast_fails() {

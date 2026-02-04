@@ -11,7 +11,17 @@ performance.
 
 ## Input buffer checks
 
-<!-- @include: ../../../examples/tree/artifacts/tests/fast_fails/result.txt{1,6} -->
+::: code-group
+
+<<< ../../../examples/tree/src/tree/tree.s{asm} [Assembly]
+
+<<< ../../../examples/tree/src/program.rs [Rust]
+
+:::
+
+<!--
+@include: ../../../examples/tree/artifacts/tests/fast_fails/result.txt{1,6}
+-->
 
 ## :white_check_mark: All tests
 
