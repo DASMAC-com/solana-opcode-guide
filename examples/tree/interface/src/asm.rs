@@ -29,6 +29,7 @@ struct EmptyInputAccount {
     rent_epoch: u64,
 }
 
+#[repr(C, packed)]
 struct InputBuffer {
     n_accounts: u64,
     user: EmptyInputAccount,
