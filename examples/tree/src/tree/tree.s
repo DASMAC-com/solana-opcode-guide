@@ -27,8 +27,7 @@ entrypoint:
     ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF] # Get user data length.
     jne r2, DATA_LEN_ZERO, e_user_data_len # Error if user has data.
     ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF] # Load tree non-dup marker.
-    # Error if tree is duplicate account.
-    jne r2, IB_NON_DUP_MARKER, e_tree_duplicate
+    jne r2, IB_NON_DUP_MARKER, e_tree_duplicate # Error if duplicate.
     ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
     add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
     and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
