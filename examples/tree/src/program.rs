@@ -32,12 +32,12 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     let user = unsafe { context.next_account_unchecked().assume_account() };
     if_err!(!user.is_data_empty(), USER_DATA_LEN);
     // SAFETY: number of accounts has been checked.
-    let tree = match unsafe { context.next_account_unchecked() } {
+    let _tree = match unsafe { context.next_account_unchecked() } {
         MaybeAccount::Account(account) => account,
         MaybeAccount::Duplicated(_) => err!(TREE_DUPLICATE),
     };
     // SAFETY: all accounts have been read.
-    let instruction_data = unsafe { context.instruction_data_unchecked() };
-    let program_id = unsafe { context.program_id_unchecked() };
+    let _instruction_data = unsafe { context.instruction_data_unchecked() };
+    let _program_id = unsafe { context.program_id_unchecked() };
     Ok(())
 }

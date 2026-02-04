@@ -23,6 +23,9 @@ entrypoint:
     jne r2, IB_N_ACCOUNTS, e_n_accounts # Error if invalid number.
     ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF] # Get user data length.
     jne r2, DATA_LENGTH_ZERO, e_user_data_len # Error if user has data.
+    ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF] # Load tree non-dup marker.
+    # Error if tree is duplicate account.
+    jne r2, IB_NON_DUP_MARKER, e_tree_duplicate
     exit
 
 e_n_accounts:
@@ -31,3 +34,8 @@ e_n_accounts:
 
 e_user_data_len:
     mov64 r0, E_USER_DATA_LEN
+    exit
+
+e_tree_duplicate:
+    mov64 r0, E_TREE_DUPLICATE
+    exit
