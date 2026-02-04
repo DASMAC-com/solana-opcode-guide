@@ -10,7 +10,7 @@
 .equ IB_N_ACCOUNTS_OFF, 0 # Number of accounts field.
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
 .equ IB_NON_DUP_MARKER, 0xff # Non-duplicate marker value.
-.equ IB_TREE_NON_DUP_MARKER_OFF, 104 # Tree non-duplicate marker field.
+.equ IB_TREE_NON_DUP_MARKER_OFF, 10344 # Tree non-duplicate marker field.
 
 # Miscellaneous constants.
 # ------------------------

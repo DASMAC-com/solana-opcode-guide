@@ -1,7 +1,8 @@
 extern crate alloc;
 
 use macros::{asm_constant_group, extend_constant_group};
-use pinocchio::Address;
+use pinocchio::account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE};
+use pinocchio::entrypoint::NON_DUP_MARKER;
 
 extend_constant_group!(input_buffer {
     prefix = "IB",
@@ -10,9 +11,9 @@ extend_constant_group!(input_buffer {
     /// User data length field.
     offset!(USER_DATA_LEN, InputBuffer.user.header.data_len),
     /// Non-duplicate marker value.
-    NON_DUP_MARKER = 0xff,
+    NON_DUP_MARKER = NON_DUP_MARKER,
     /// Tree non-duplicate marker field.
-    offset!(TREE_NON_DUP_MARKER, InputBuffer.tree_header.non_dup_marker),
+    offset!(TREE_NON_DUP_MARKER, InputBuffer.tree_header.borrow_state),
 });
 
 asm_constant_group! {
@@ -24,27 +25,15 @@ asm_constant_group! {
 }
 
 #[repr(C, packed)]
-struct InputAccountHeader {
-    non_dup_marker: u8,
-    is_signer: bool,
-    is_writable: bool,
-    is_executable: bool,
-    original_data_len: u32,
-    pubkey: Address,
-    owner: Address,
-    lamports: u64,
-    data_len: u64,
-}
-
-#[repr(C, packed)]
-struct EmptyInputAccount {
-    header: InputAccountHeader,
+struct EmptyRuntimeAccount {
+    header: RuntimeAccountHeader,
+    data: [u8; MAX_PERMITTED_DATA_INCREASE],
     rent_epoch: u64,
 }
 
 #[repr(C, packed)]
 struct InputBuffer {
     n_accounts: u64,
-    user: EmptyInputAccount,
-    tree_header: InputAccountHeader,
+    user: EmptyRuntimeAccount,
+    tree_header: RuntimeAccountHeader,
 }
