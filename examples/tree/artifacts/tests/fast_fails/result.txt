@@ -1,11 +1,10 @@
-### :evergreen_tree: Parsing
 | Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
 |------|-----------|------------|----------|------------|
 | No accounts passed | 4 | 5 | +1 | +25.0% |
 | Too many accounts passed | 4 | 5 | +1 | +25.0% |
 | User has non-zero data length | 6 | 10 | +4 | +66.7% |
 | Tree account is duplicate | 8 | 16 | +8 | +100.0% |
-test tests::test_print_compute_units_table ... ok
+test tests::test_fast_fails ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 4 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1

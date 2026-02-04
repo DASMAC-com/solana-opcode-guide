@@ -201,8 +201,7 @@ fn test_rs_tree_duplicate() {
 // --- Compute unit comparison table ---
 
 #[test]
-fn test_print_compute_units_table() {
-    println!("\n### :evergreen_tree: Parsing\n");
+fn test_fast_fails() {
     println!("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |");
     println!("|------|-----------|------------|----------|------------|");
 
