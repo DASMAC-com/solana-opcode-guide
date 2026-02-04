@@ -184,69 +184,64 @@ struct ConstantGroup {
     constants: Vec<ConstantDef>,
 }
 
-struct AsmConstantsInput {
-    groups: Vec<ConstantGroup>,
-}
-
-impl Parse for AsmConstantsInput {
+impl Parse for ConstantGroup {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut groups = Vec::new();
+        // Parse doc comments for the module.
+        let attrs = input.call(syn::Attribute::parse_outer)?;
+        let doc = extract_doc_comment(&attrs)
+            .ok_or_else(|| input.error("Module must have a doc comment"))?;
 
-        while !input.is_empty() {
-            // Parse doc comments for the module.
-            let attrs = input.call(syn::Attribute::parse_outer)?;
-            let doc = extract_doc_comment(&attrs)
-                .ok_or_else(|| input.error("Module must have a doc comment"))?;
+        // Validate group doc comment.
+        if let Err(e) = validate_doc_comment(&doc) {
+            return Err(input.error(format!("Group doc comment: {}", e)));
+        }
 
-            // Validate group doc comment.
-            if let Err(e) = validate_doc_comment(&doc) {
-                return Err(input.error(format!("Group doc comment: {}", e)));
+        // Parse group name.
+        let name: Ident = input.parse()?;
+
+        // Parse module body.
+        let content;
+        braced!(content in input);
+
+        // Parse constants.
+        let mut constants = Vec::new();
+        while !content.is_empty() {
+            let const_attrs = content.call(syn::Attribute::parse_outer)?;
+            let const_doc = extract_doc_comment(&const_attrs)
+                .ok_or_else(|| content.error("Constant must have a doc comment"))?;
+
+            // Validate constant doc comment.
+            if let Err(e) = validate_doc_comment(&const_doc) {
+                return Err(content.error(e));
             }
 
-            // Parse group name.
-            let name: Ident = input.parse()?;
+            let const_name: Ident = content.parse()?;
+            content.parse::<Token![:]>()?;
+            let const_ty: syn::Type = content.parse()?;
+            content.parse::<Token![=]>()?;
+            let const_value: LitInt = content.parse()?;
 
-            // Parse module body.
-            let content;
-            braced!(content in input);
+            // Optional trailing comma.
+            let _ = content.parse::<Token![,]>();
 
-            // Parse constants.
-            let mut constants = Vec::new();
-            while !content.is_empty() {
-                let const_attrs = content.call(syn::Attribute::parse_outer)?;
-                let const_doc = extract_doc_comment(&const_attrs)
-                    .ok_or_else(|| content.error("Constant must have a doc comment"))?;
-
-                // Validate constant doc comment.
-                if let Err(e) = validate_doc_comment(&const_doc) {
-                    return Err(content.error(e));
-                }
-
-                let const_name: Ident = content.parse()?;
-                content.parse::<Token![:]>()?;
-                let const_ty: syn::Type = content.parse()?;
-                content.parse::<Token![=]>()?;
-                let const_value: LitInt = content.parse()?;
-
-                // Optional trailing comma.
-                let _ = content.parse::<Token![,]>();
-
-                constants.push(ConstantDef {
-                    doc: const_doc,
-                    name: const_name,
-                    ty: const_ty,
-                    value: const_value,
-                });
-            }
-
-            groups.push(ConstantGroup {
-                doc,
-                name,
-                constants,
+            constants.push(ConstantDef {
+                doc: const_doc,
+                name: const_name,
+                ty: const_ty,
+                value: const_value,
             });
         }
 
-        Ok(AsmConstantsInput { groups })
+        // Reject multiple groups in a single macro invocation.
+        if !input.is_empty() {
+            return Err(input.error("Only one constant group per macro invocation; use separate constant_group! calls"));
+        }
+
+        Ok(ConstantGroup {
+            doc,
+            name,
+            constants,
+        })
     }
 }
 
@@ -271,71 +266,65 @@ impl Parse for AsmConstantsInput {
 /// To extend a group with ASM-only constants, use `extend_constant_group!`.
 #[proc_macro]
 pub fn constant_group(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as AsmConstantsInput);
+    let group = parse_macro_input!(input as ConstantGroup);
 
-    let modules = input.groups.iter().map(|group| {
-        let mod_name = &group.name;
-        let max_line_len = MAX_LINE_LEN;
-        let header = asm_header(&group.doc);
+    let mod_name = &group.name;
+    let max_line_len = MAX_LINE_LEN;
+    let header = asm_header(&group.doc);
 
-        // Generate Rust constants with i32 bounds checking for ASM compatibility.
-        let const_defs = group.constants.iter().map(|c| {
-            let name = &c.name;
-            let ty = &c.ty;
-            let value = &c.value;
-            let doc = &c.doc;
-            let assert_name = Ident::new(&format!("_ASSERT_{}_FITS_I32", name), name.span());
-            quote! {
-                #[doc = #doc]
-                pub const #name: #ty = #value;
-
-                const #assert_name: () = assert!(
-                    (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
-                    "ASM immediate must fit in i32 range"
-                );
-            }
-        });
-
-        let const_names: Vec<String> = group.constants.iter().map(|c| c.name.to_string()).collect();
-        let const_values: Vec<String> = group.constants.iter().map(|c| c.value.to_string()).collect();
-        let const_docs: Vec<String> = group.constants.iter().map(|c| c.doc.clone()).collect();
-
+    // Generate Rust constants with i32 bounds checking for ASM compatibility.
+    let const_defs = group.constants.iter().map(|c| {
+        let name = &c.name;
+        let ty = &c.ty;
+        let value = &c.value;
+        let doc = &c.doc;
+        let assert_name = Ident::new(&format!("_ASSERT_{}_FITS_I32", name), name.span());
         quote! {
-            pub mod #mod_name {
-                #(#const_defs)*
+            #[doc = #doc]
+            pub const #name: #ty = #value;
 
-                /// Generate ASM constants for this module with the given prefix.
-                /// Prefix is automatically joined with underscore (e.g., "IB" -> "IB_NAME").
-                pub fn to_asm(prefix: &str) -> alloc::string::String {
-                    use alloc::string::String;
-                    use alloc::format;
-
-                    let mut result = String::from(#header);
-                    result.push('\n');
-
-                    let names = [#(#const_names),*];
-                    let values = [#(#const_values),*];
-                    let docs = [#(#const_docs),*];
-
-                    for i in 0..names.len() {
-                        let full_name = format!("{}_{}", prefix, names[i]);
-                        let inline = format!(".equ {}, {} # {}", full_name, values[i], docs[i]);
-                        if inline.len() <= #max_line_len {
-                            result.push_str(&inline);
-                        } else {
-                            result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, values[i]));
-                        }
-                        result.push('\n');
-                    }
-
-                    result
-                }
-            }
+            const #assert_name: () = assert!(
+                (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
+                "ASM immediate must fit in i32 range"
+            );
         }
     });
 
+    let const_names: Vec<String> = group.constants.iter().map(|c| c.name.to_string()).collect();
+    let const_values: Vec<String> = group.constants.iter().map(|c| c.value.to_string()).collect();
+    let const_docs: Vec<String> = group.constants.iter().map(|c| c.doc.clone()).collect();
+
     let expanded = quote! {
-        #(#modules)*
+        pub mod #mod_name {
+            #(#const_defs)*
+
+            /// Generate ASM constants for this module with the given prefix.
+            /// Prefix is automatically joined with underscore (e.g., "IB" -> "IB_NAME").
+            pub fn to_asm(prefix: &str) -> alloc::string::String {
+                use alloc::string::String;
+                use alloc::format;
+
+                let mut result = String::from(#header);
+                result.push('\n');
+
+                let names = [#(#const_names),*];
+                let values = [#(#const_values),*];
+                let docs = [#(#const_docs),*];
+
+                for i in 0..names.len() {
+                    let full_name = format!("{}_{}", prefix, names[i]);
+                    let inline = format!(".equ {}, {} # {}", full_name, values[i], docs[i]);
+                    if inline.len() <= #max_line_len {
+                        result.push_str(&inline);
+                    } else {
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, values[i]));
+                    }
+                    result.push('\n');
+                }
+
+                result
+            }
+        }
     };
 
     TokenStream::from(expanded)

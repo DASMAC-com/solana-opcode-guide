@@ -37,7 +37,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
         MaybeAccount::Duplicated(_) => err!(TREE_DUPLICATE),
     };
     // SAFETY: all accounts have been read.
-    let instruction_data = context.instruction_data_unchecked();
-    let program_id = context.program_id_unchecked();
+    let instruction_data = unsafe { context.instruction_data_unchecked() };
+    let program_id = unsafe { context.program_id_unchecked() };
     Ok(())
 }
