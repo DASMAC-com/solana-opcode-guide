@@ -1,0 +1,20 @@
+# Error codes.
+# ------------
+.equ E_N_ACCOUNTS, 1 # An invalid number of accounts were passed.
+.equ E_USER_DATA_LEN, 2 # The user account has nonzero data length.
+.equ E_TREE_DUPLICATE, 3 # The tree account is a duplicate.
+
+# Input buffer layout.
+# --------------------
+.equ IB_N_ACCOUNTS, 2 # Expected number of accounts.
+.equ IB_N_ACCOUNTS_OFF, 0 # Number of accounts field.
+.equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
+.equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
+.equ IB_TREE_NON_DUP_MARKER_OFF, 10344 # Tree non-duplicate marker field.
+.equ IB_TREE_DATA_LEN_OFF, 10424 # Tree data length field.
+
+# Miscellaneous constants.
+# ------------------------
+.equ DATA_LEN_ZERO, 0 # Data length of zero.
+.equ DATA_LEN_AND_MASK, -8 # And mask for data length alignment.
+.equ MAX_DATA_PAD, 7 # Maximum possible data length padding.

@@ -21,9 +21,11 @@ macro_rules! err {
     };
 }
 
-lazy_program_entrypoint!(process_instruction);
 nostd_panic_handler!();
 no_allocator!();
+
+// ANCHOR: check-input-buffer
+lazy_program_entrypoint!(process_instruction);
 
 pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     // Verify the input memory map: user has no data, tree is not duplicate.
@@ -36,6 +38,8 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
         MaybeAccount::Account(account) => account,
         MaybeAccount::Duplicated(_) => err!(TREE_DUPLICATE),
     };
+    // ANCHOR_END: check-input-buffer
+
     // SAFETY: all accounts have been read.
     let _instruction_data = unsafe { context.instruction_data_unchecked() };
     let _program_id = unsafe { context.program_id_unchecked() };

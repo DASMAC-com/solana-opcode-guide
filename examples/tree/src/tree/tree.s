@@ -1,3 +1,4 @@
+# ANCHOR: constants
 # Error codes.
 # ------------
 .equ E_N_ACCOUNTS, 1 # An invalid number of accounts were passed.
@@ -18,7 +19,9 @@
 .equ DATA_LEN_ZERO, 0 # Data length of zero.
 .equ DATA_LEN_AND_MASK, -8 # And mask for data length alignment.
 .equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
+# ANCHOR_END: constants
 
+# ANCHOR: check-input-buffer
 .globl entrypoint
 
 entrypoint:
@@ -28,6 +31,8 @@ entrypoint:
     jne r2, DATA_LEN_ZERO, e_user_data_len # Error if user has data.
     ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF] # Load tree non-dup marker.
     jne r2, IB_NON_DUP_MARKER, e_tree_duplicate # Error if duplicate.
+    # ANCHOR_END: check-input-buffer
+
     ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
     add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
     and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.

@@ -1,0 +1,9 @@
+.globl entrypoint
+
+entrypoint:
+    ldxdw r2, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
+    jne r2, IB_N_ACCOUNTS, e_n_accounts # Error if invalid number.
+    ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF] # Get user data length.
+    jne r2, DATA_LEN_ZERO, e_user_data_len # Error if user has data.
+    ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF] # Load tree non-dup marker.
+    jne r2, IB_NON_DUP_MARKER, e_tree_duplicate # Error if duplicate.

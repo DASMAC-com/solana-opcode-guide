@@ -13,9 +13,9 @@ performance.
 
 ::: code-group
 
-<<< ../../../examples/tree/src/tree/tree.s{asm} [Assembly]
+<<< ../../../examples/tree/artifacts/snippets/asm/check-input-buffer.txt{asm} [Assembly]
 
-<<< ../../../examples/tree/src/program.rs [Rust]
+<<< ../../../examples/tree/artifacts/snippets/rs/check-input-buffer.txt{rs} [Rust]
 
 :::
 
