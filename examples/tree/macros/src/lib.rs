@@ -501,6 +501,8 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
     let mut const_defs = Vec::new();
     let mut const_names = Vec::new();
     let mut const_docs = Vec::new();
+    // Track value representations: Some(literal_str) for values, None for offsets.
+    let mut const_value_strs: Vec<Option<String>> = Vec::new();
 
     for c in &input.constants {
         let name = &c.name;
@@ -513,6 +515,8 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
 
         match &c.kind {
             AsmConstantKind::Value(value) => {
+                // Preserve original literal representation (hex, binary, etc.).
+                const_value_strs.push(Some(value.to_string()));
                 const_defs.push(quote! {
                     #[doc = #doc]
                     pub const #name: i64 = #value;
@@ -524,6 +528,8 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
                 });
             }
             AsmConstantKind::Offset { struct_name, field_path } => {
+                // Offsets are computed at runtime, no literal to preserve.
+                const_value_strs.push(None);
                 const_defs.push(quote! {
                     #[doc = #doc]
                     pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i16;
@@ -546,6 +552,14 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
         None => quote! { String::from(names[i]) },
     };
 
+    // Generate value string options for preserving hex/binary literals.
+    let value_str_opts: Vec<_> = const_value_strs.iter().map(|opt| {
+        match opt {
+            Some(s) => quote! { Some(#s) },
+            None => quote! { None },
+        }
+    }).collect();
+
     let expanded = quote! {
         pub mod #mod_name {
             use alloc::string::String;
@@ -558,17 +572,23 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
                 let mut result = String::from(#header);
                 result.push('\n');
 
-                let names = [#(#const_names),*];
-                let values = [#(#const_idents as i64),*];
-                let docs = [#(#const_docs),*];
+                let names: &[&str] = &[#(#const_names),*];
+                let computed_values: &[i64] = &[#(#const_idents as i64),*];
+                let literal_values: &[Option<&str>] = &[#(#value_str_opts),*];
+                let docs: &[&str] = &[#(#const_docs),*];
 
                 for i in 0..names.len() {
                     let full_name = #name_format;
-                    let inline = format!(".equ {}, {} # {}", full_name, values[i], docs[i]);
+                    // Use original literal if available, otherwise use computed value.
+                    let value_str = match literal_values[i] {
+                        Some(lit) => String::from(lit),
+                        None => format!("{}", computed_values[i]),
+                    };
+                    let inline = format!(".equ {}, {} # {}", full_name, value_str, docs[i]);
                     if inline.len() <= #max_line_len {
                         result.push_str(&inline);
                     } else {
-                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, values[i]));
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, value_str));
                     }
                     result.push('\n');
                 }
@@ -655,6 +675,8 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
     let mut const_defs = Vec::new();
     let mut const_names = Vec::new();
     let mut const_docs = Vec::new();
+    // Track value representations: Some(literal_str) for values, None for offsets.
+    let mut const_value_strs: Vec<Option<String>> = Vec::new();
 
     for c in &input.constants {
         let name = &c.name;
@@ -667,7 +689,8 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
 
         match &c.kind {
             AsmConstantKind::Value(value) => {
-                // Direct value - validate i32 range.
+                // Preserve original literal representation (hex, binary, etc.).
+                const_value_strs.push(Some(value.to_string()));
                 const_defs.push(quote! {
                     #[doc = #doc]
                     pub const #name: i32 = #value;
@@ -679,8 +702,8 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                 });
             }
             AsmConstantKind::Offset { struct_name, field_path } => {
-                // Offset from struct field path - validate i16 range.
-                // Use super:: to access struct from parent module.
+                // Offsets are computed at runtime, no literal to preserve.
+                const_value_strs.push(None);
                 const_defs.push(quote! {
                     #[doc = #doc]
                     pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #(#field_path).*)  as i16;
@@ -698,6 +721,14 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
     // Collect const idents for ASM output.
     let const_idents: Vec<_> = input.constants.iter().map(|c| &c.name).collect();
 
+    // Generate value string options for preserving hex/binary literals.
+    let value_str_opts: Vec<_> = const_value_strs.iter().map(|opt| {
+        match opt {
+            Some(s) => quote! { Some(#s) },
+            None => quote! { None },
+        }
+    }).collect();
+
     let expanded = quote! {
         pub mod #mod_name {
             use alloc::string::String;
@@ -714,17 +745,23 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                 let mut result = crate::common::#mod_name::to_asm(#prefix);
 
                 // Add extension constants (no separate header).
-                let names = [#(#const_names),*];
-                let values = [#(#const_idents as i64),*];
-                let docs = [#(#const_docs),*];
+                let names: &[&str] = &[#(#const_names),*];
+                let computed_values: &[i64] = &[#(#const_idents as i64),*];
+                let literal_values: &[Option<&str>] = &[#(#value_str_opts),*];
+                let docs: &[&str] = &[#(#const_docs),*];
 
                 for i in 0..names.len() {
                     let full_name = format!("{}_{}", #prefix, names[i]);
-                    let inline = format!(".equ {}, {} # {}", full_name, values[i], docs[i]);
+                    // Use original literal if available, otherwise use computed value.
+                    let value_str = match literal_values[i] {
+                        Some(lit) => String::from(lit),
+                        None => format!("{}", computed_values[i]),
+                    };
+                    let inline = format!(".equ {}, {} # {}", full_name, value_str, docs[i]);
                     if inline.len() <= #max_line_len {
                         result.push_str(&inline);
                     } else {
-                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, values[i]));
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, value_str));
                     }
                     result.push('\n');
                 }
