@@ -13,15 +13,17 @@ performance.
 
 ::: code-group
 
+<!-- markdownlint-disable MD013 -->
+
 <<< ../../../examples/tree/artifacts/snippets/asm/check-input-buffer.txt{asm} [Assembly]
 
 <<< ../../../examples/tree/artifacts/snippets/rs/check-input-buffer.txt{rs} [Rust]
 
 :::
 
-<!--
-@include: ../../../examples/tree/artifacts/tests/fast_fails/result.txt{1,6}
--->
+<!-- @include: ../../../examples/tree/artifacts/tests/fast_fails/result.txt{1,6} -->
+
+<!-- markdownlint-enable MD013 -->
 
 ## :white_check_mark: All tests
 
