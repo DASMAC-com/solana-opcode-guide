@@ -10,6 +10,8 @@ extend_constant_group!(input_buffer {
     prefix = "IB",
     /// Number of accounts field.
     offset!(N_ACCOUNTS, InputBuffer.n_accounts),
+    /// User address field.
+    offset!(USER_ADDRESS, InputBuffer.user.header.address),
     /// User data length field.
     offset!(USER_DATA_LEN, InputBuffer.user.header.data_len),
     /// Non-duplicate marker value.

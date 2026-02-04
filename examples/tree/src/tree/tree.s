@@ -9,6 +9,7 @@
 # --------------------
 .equ IB_N_ACCOUNTS, 2 # Expected number of accounts.
 .equ IB_N_ACCOUNTS_OFF, 0 # Number of accounts field.
+.equ IB_USER_ADDRESS_OFF, 16 # User address field.
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
 .equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
 .equ IB_TREE_NON_DUP_MARKER_OFF, 10344 # Tree non-duplicate marker field.
@@ -36,6 +37,14 @@ entrypoint:
     ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
     add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
     and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
+
+    # Test setting return data.
+    add64 r1, IB_USER_ADDRESS_OFF
+    mov64 r2, 32
+    call sol_set_return_data
+
+    mov64 r0, 0
+
     exit
 
 e_n_accounts:
