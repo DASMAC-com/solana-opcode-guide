@@ -11,7 +11,12 @@ fn main() {
     let marker_pos = content.find(ENTRYPOINT_START).unwrap();
 
     // Generate the constants and insert them before the entrypoint marker.
-    let constants = format!("{}\n{}", input_buffer::to_asm(), Error::to_asm());
+    let constants = format!(
+        "{}\n{}\n{}",
+        Error::to_asm(),
+        input_buffer::to_asm(),
+        misc::to_asm()
+    );
     let new_content = format!("{}\n{}", constants, &content[marker_pos..]);
     if new_content != content {
         fs::write(&asm_path, new_content).unwrap();

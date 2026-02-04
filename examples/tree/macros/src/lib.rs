@@ -341,9 +341,244 @@ struct AsmConstantDef {
 enum AsmConstantKind {
     /// Direct value (i32 validated).
     Value(LitInt),
-    /// Offset derived from struct field (i16 validated).
+    /// Offset derived from struct field path (i16 validated).
     /// Name gets `_OFF` suffix appended.
-    Offset { struct_name: Ident, field_name: Ident },
+    /// Supports nested fields like `Struct.field1.field2.field3`.
+    Offset { struct_name: Ident, field_path: Vec<Ident> },
+}
+
+/// Input for asm_constant_group! macro.
+struct AsmConstantGroupInput {
+    doc: String,
+    name: Ident,
+    prefix: Option<String>,
+    constants: Vec<AsmConstantDef>,
+}
+
+/// Parse ASM constants (shared between asm_constant_group! and extend_constant_group!).
+fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>> {
+    let mut constants = Vec::new();
+    while !content.is_empty() {
+        let const_attrs = content.call(syn::Attribute::parse_outer)?;
+        let const_doc = extract_doc_comment(&const_attrs)
+            .ok_or_else(|| content.error("Constant must have a doc comment"))?;
+
+        if let Err(e) = validate_doc_comment(&const_doc) {
+            return Err(content.error(e));
+        }
+
+        // Check for offset!(NAME, Struct.field) syntax.
+        let lookahead = content.lookahead1();
+        let (const_name, kind) = if lookahead.peek(Ident) {
+            let ident: Ident = content.parse()?;
+            if ident == "offset" {
+                // Parse offset!(NAME, Struct.field.nested.path)
+                content.parse::<Token![!]>()?;
+                let inner;
+                syn::parenthesized!(inner in content);
+                let base_name: Ident = inner.parse()?;
+                inner.parse::<Token![,]>()?;
+                let struct_name: Ident = inner.parse()?;
+                // Parse field path (one or more fields separated by dots).
+                let mut field_path = Vec::new();
+                while inner.peek(Token![.]) {
+                    inner.parse::<Token![.]>()?;
+                    field_path.push(inner.parse::<Ident>()?);
+                }
+                if field_path.is_empty() {
+                    return Err(inner.error("Expected at least one field after struct name"));
+                }
+                // Append _OFF suffix to the name.
+                let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
+                (full_name, AsmConstantKind::Offset { struct_name, field_path })
+            } else {
+                // Regular NAME = value syntax.
+                content.parse::<Token![=]>()?;
+                let value: LitInt = content.parse()?;
+                (ident, AsmConstantKind::Value(value))
+            }
+        } else {
+            return Err(lookahead.error());
+        };
+
+        // Optional trailing comma.
+        let _ = content.parse::<Token![,]>();
+
+        constants.push(AsmConstantDef {
+            doc: const_doc,
+            name: const_name,
+            kind,
+        });
+    }
+    Ok(constants)
+}
+
+impl Parse for AsmConstantGroupInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // Parse doc comment for the group.
+        let attrs = input.call(syn::Attribute::parse_outer)?;
+        let doc = extract_doc_comment(&attrs)
+            .ok_or_else(|| input.error("Group must have a doc comment"))?;
+
+        if let Err(e) = validate_doc_comment(&doc) {
+            return Err(input.error(format!("Group doc comment: {}", e)));
+        }
+
+        // Parse group name.
+        let name: Ident = input.parse()?;
+
+        // Parse body.
+        let content;
+        braced!(content in input);
+
+        // Parse optional prefix = "..."
+        let prefix = if content.peek(Ident) {
+            let fork = content.fork();
+            let ident: Ident = fork.parse()?;
+            if ident == "prefix" && fork.peek(Token![=]) {
+                // Advance the actual stream.
+                content.parse::<Ident>()?;
+                content.parse::<Token![=]>()?;
+                let prefix_lit: syn::LitStr = content.parse()?;
+                content.parse::<Token![,]>()?;
+                Some(prefix_lit.value())
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // Parse constants.
+        let constants = parse_asm_constants(&content)?;
+
+        // Reject multiple groups.
+        if !input.is_empty() {
+            return Err(input.error("Only one group per macro invocation"));
+        }
+
+        Ok(AsmConstantGroupInput {
+            doc,
+            name,
+            prefix,
+            constants,
+        })
+    }
+}
+
+/// Macro for defining ASM-only constant groups.
+///
+/// Constants don't need types - values are `i64`, offsets are `i16`.
+/// All values are validated at compile time to fit within i32 range (sBPF constraint).
+///
+/// Supports two constant syntaxes:
+/// - `NAME = value` - direct value (i64, validated for i32 range)
+/// - `offset!(NAME, Struct.field)` - offset (i16, validated for i16 range, `_OFF` suffix added)
+///
+/// # Example
+/// ```ignore
+/// asm_constant_group! {
+///     /// Miscellaneous constants.
+///     misc {
+///         prefix = "M",
+///         /// Data length of zero.
+///         DATA_LENGTH_ZERO = 0,
+///     }
+/// }
+/// // Creates `misc` module with:
+/// // - pub const DATA_LENGTH_ZERO: i64 = 0;
+/// // - to_asm() outputs ".equ M_DATA_LENGTH_ZERO, 0 # ..."
+/// ```
+#[proc_macro]
+pub fn asm_constant_group(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as AsmConstantGroupInput);
+
+    let mod_name = &input.name;
+    let max_line_len = MAX_LINE_LEN;
+    let header = asm_header(&input.doc);
+
+    // Generate constant definitions and collect info for ASM.
+    let mut const_defs = Vec::new();
+    let mut const_names = Vec::new();
+    let mut const_docs = Vec::new();
+
+    for c in &input.constants {
+        let name = &c.name;
+        let doc = &c.doc;
+        let name_str = name.to_string();
+        let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
+
+        const_names.push(name_str);
+        const_docs.push(doc.clone());
+
+        match &c.kind {
+            AsmConstantKind::Value(value) => {
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i64 = #value;
+
+                    const #assert_name: () = assert!(
+                        (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
+                        "ASM immediate must fit in i32 range"
+                    );
+                });
+            }
+            AsmConstantKind::Offset { struct_name, field_path } => {
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i16;
+
+                    const #assert_name: () = assert!(
+                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i16::MIN as i64)
+                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i16::MAX as i64),
+                        "Offset must fit in i16 range"
+                    );
+                });
+            }
+        }
+    }
+
+    let const_idents: Vec<_> = input.constants.iter().map(|c| &c.name).collect();
+
+    // Generate name formatting logic based on whether prefix is present.
+    let name_format = match &input.prefix {
+        Some(prefix) => quote! { format!("{}_{}", #prefix, names[i]) },
+        None => quote! { String::from(names[i]) },
+    };
+
+    let expanded = quote! {
+        pub mod #mod_name {
+            use alloc::string::String;
+            use alloc::format;
+
+            #(#const_defs)*
+
+            /// Generate ASM constants.
+            pub fn to_asm() -> String {
+                let mut result = String::from(#header);
+                result.push('\n');
+
+                let names = [#(#const_names),*];
+                let values = [#(#const_idents as i64),*];
+                let docs = [#(#const_docs),*];
+
+                for i in 0..names.len() {
+                    let full_name = #name_format;
+                    let inline = format!(".equ {}, {} # {}", full_name, values[i], docs[i]);
+                    if inline.len() <= #max_line_len {
+                        result.push_str(&inline);
+                    } else {
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, values[i]));
+                    }
+                    result.push('\n');
+                }
+
+                result
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
 }
 
 /// Input for extend_constant_group! macro.
@@ -375,56 +610,8 @@ impl Parse for ExtendConstantGroupInput {
         let prefix = prefix_lit.value();
         content.parse::<Token![,]>()?;
 
-        // Parse constants (ASM-only, no type needed).
-        // Supports two syntaxes:
-        //   NAME = value -> direct value (i32 validated)
-        //   offset!(NAME, Struct.field) -> offset (i16 validated, _OFF suffix)
-        let mut constants = Vec::new();
-        while !content.is_empty() {
-            let const_attrs = content.call(syn::Attribute::parse_outer)?;
-            let const_doc = extract_doc_comment(&const_attrs)
-                .ok_or_else(|| content.error("Constant must have a doc comment"))?;
-
-            if let Err(e) = validate_doc_comment(&const_doc) {
-                return Err(content.error(e));
-            }
-
-            // Check for offset!(NAME, Struct.field) syntax.
-            let lookahead = content.lookahead1();
-            let (const_name, kind) = if lookahead.peek(Ident) {
-                let ident: Ident = content.parse()?;
-                if ident == "offset" {
-                    // Parse offset!(NAME, Struct.field)
-                    content.parse::<Token![!]>()?;
-                    let inner;
-                    syn::parenthesized!(inner in content);
-                    let base_name: Ident = inner.parse()?;
-                    inner.parse::<Token![,]>()?;
-                    let struct_name: Ident = inner.parse()?;
-                    inner.parse::<Token![.]>()?;
-                    let field_name: Ident = inner.parse()?;
-                    // Append _OFF suffix to the name.
-                    let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
-                    (full_name, AsmConstantKind::Offset { struct_name, field_name })
-                } else {
-                    // Regular NAME = value syntax.
-                    content.parse::<Token![=]>()?;
-                    let value: LitInt = content.parse()?;
-                    (ident, AsmConstantKind::Value(value))
-                }
-            } else {
-                return Err(lookahead.error());
-            };
-
-            // Optional trailing comma.
-            let _ = content.parse::<Token![,]>();
-
-            constants.push(AsmConstantDef {
-                doc: const_doc,
-                name: const_name,
-                kind,
-            });
-        }
+        // Parse constants using shared parser.
+        let constants = parse_asm_constants(&content)?;
 
         Ok(ExtendConstantGroupInput {
             name,
@@ -491,16 +678,16 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                     );
                 });
             }
-            AsmConstantKind::Offset { struct_name, field_name } => {
-                // Offset from struct field - validate i16 range.
+            AsmConstantKind::Offset { struct_name, field_path } => {
+                // Offset from struct field path - validate i16 range.
                 // Use super:: to access struct from parent module.
                 const_defs.push(quote! {
                     #[doc = #doc]
-                    pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #field_name) as i16;
+                    pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #(#field_path).*)  as i16;
 
                     const #assert_name: () = assert!(
-                        (core::mem::offset_of!(super::#struct_name, #field_name) as i64) >= (i16::MIN as i64)
-                            && (core::mem::offset_of!(super::#struct_name, #field_name) as i64) <= (i16::MAX as i64),
+                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i16::MIN as i64)
+                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i16::MAX as i64),
                         "Offset must fit in i16 range"
                     );
                 });

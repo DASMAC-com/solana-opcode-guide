@@ -1,14 +1,23 @@
 extern crate alloc;
 
-use macros::extend_constant_group;
-
+use macros::{asm_constant_group, extend_constant_group};
 use pinocchio::Address;
 
 extend_constant_group!(input_buffer {
     prefix = "IB",
     /// Number of accounts field.
     offset!(N_ACCOUNTS, InputBuffer.n_accounts),
+    /// User data length field.
+    offset!(USER_DATA_LEN, InputBuffer.user.header.data_len),
 });
+
+asm_constant_group! {
+    /// Miscellaneous constants.
+    misc {
+        /// Data length of zero.
+        DATA_LENGTH_ZERO = 0,
+    }
+}
 
 #[repr(C, packed)]
 struct InputAccountHeader {
