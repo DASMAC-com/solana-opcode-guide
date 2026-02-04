@@ -92,20 +92,20 @@ pub fn error_codes(input: TokenStream) -> TokenStream {
     let body = asm_lines.join("\n");
 
     let expanded = quote! {
-        #[repr(u32)]
-        #[allow(non_camel_case_types)]
-        pub enum Error {
-            #(#variant_defs),*
-        }
-
-        impl From<Error> for u32 {
-            fn from(e: Error) -> u32 {
-                e as u32
+        pub mod error_codes {
+            #[repr(u32)]
+            #[allow(non_camel_case_types)]
+            pub enum error {
+                #(#variant_defs),*
             }
-        }
 
-        impl Error {
-            /// Generate ASM constants for this enum.
+            impl From<error> for u32 {
+                fn from(e: error) -> u32 {
+                    e as u32
+                }
+            }
+
+            /// Generate ASM constants for error codes.
             pub fn to_asm() -> alloc::string::String {
                 alloc::format!("{}\n{}\n", #header, #body)
             }

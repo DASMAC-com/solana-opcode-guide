@@ -6,4 +6,4 @@ mod asm;
 mod common;
 
 pub use asm::*;
-pub use common::Error;
+pub use common::error_codes;

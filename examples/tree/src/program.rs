@@ -17,7 +17,7 @@ macro_rules! if_err {
 /// Return the given error.
 macro_rules! err {
     ($variant:ident) => {
-        return Err(ProgramError::Custom(Error::$variant.into()))
+        return Err(ProgramError::Custom(error_codes::error::$variant.into()))
     };
 }
 
@@ -30,7 +30,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     if_err!(context.remaining() != input_buffer::N_ACCOUNTS, N_ACCOUNTS);
     // SAFETY: number of accounts has been checked.
     let user = unsafe { context.next_account_unchecked().assume_account() };
-    if_err!(user.data_len() != 0, USER_DATA_LEN);
+    if_err!(!user.is_data_empty(), USER_DATA_LEN);
     // SAFETY: number of accounts has been checked.
     let tree = match unsafe { context.next_account_unchecked() } {
         MaybeAccount::Account(account) => account,
