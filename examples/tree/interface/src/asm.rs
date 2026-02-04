@@ -6,8 +6,8 @@ use pinocchio::Address;
 
 extend_constant_group!(input_buffer {
     prefix = "IB",
-    /// Number of accounts passed in input.
-    N_ACCOUNTS_OFF = 0,
+    /// Number of accounts field.
+    offset!(N_ACCOUNTS, InputBuffer.n_accounts),
 });
 
 #[repr(C, packed)]

@@ -12,7 +12,7 @@ error_codes! {
 constant_group! {
     /// Input buffer layout.
     input_buffer {
-        /// Number of accounts expected.
+        /// Expected number of accounts.
         N_ACCOUNTS: u64 = 2,
     }
 }

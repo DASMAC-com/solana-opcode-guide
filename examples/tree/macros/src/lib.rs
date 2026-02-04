@@ -334,7 +334,16 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
 struct AsmConstantDef {
     doc: String,
     name: Ident,
-    value: LitInt,
+    kind: AsmConstantKind,
+}
+
+/// Kind of ASM constant.
+enum AsmConstantKind {
+    /// Direct value (i32 validated).
+    Value(LitInt),
+    /// Offset derived from struct field (i16 validated).
+    /// Name gets `_OFF` suffix appended.
+    Offset { struct_name: Ident, field_name: Ident },
 }
 
 /// Input for extend_constant_group! macro.
@@ -367,6 +376,9 @@ impl Parse for ExtendConstantGroupInput {
         content.parse::<Token![,]>()?;
 
         // Parse constants (ASM-only, no type needed).
+        // Supports two syntaxes:
+        //   NAME = value -> direct value (i32 validated)
+        //   offset!(NAME, Struct.field) -> offset (i16 validated, _OFF suffix)
         let mut constants = Vec::new();
         while !content.is_empty() {
             let const_attrs = content.call(syn::Attribute::parse_outer)?;
@@ -377,9 +389,32 @@ impl Parse for ExtendConstantGroupInput {
                 return Err(content.error(e));
             }
 
-            let const_name: Ident = content.parse()?;
-            content.parse::<Token![=]>()?;
-            let const_value: LitInt = content.parse()?;
+            // Check for offset!(NAME, Struct.field) syntax.
+            let lookahead = content.lookahead1();
+            let (const_name, kind) = if lookahead.peek(Ident) {
+                let ident: Ident = content.parse()?;
+                if ident == "offset" {
+                    // Parse offset!(NAME, Struct.field)
+                    content.parse::<Token![!]>()?;
+                    let inner;
+                    syn::parenthesized!(inner in content);
+                    let base_name: Ident = inner.parse()?;
+                    inner.parse::<Token![,]>()?;
+                    let struct_name: Ident = inner.parse()?;
+                    inner.parse::<Token![.]>()?;
+                    let field_name: Ident = inner.parse()?;
+                    // Append _OFF suffix to the name.
+                    let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
+                    (full_name, AsmConstantKind::Offset { struct_name, field_name })
+                } else {
+                    // Regular NAME = value syntax.
+                    content.parse::<Token![=]>()?;
+                    let value: LitInt = content.parse()?;
+                    (ident, AsmConstantKind::Value(value))
+                }
+            } else {
+                return Err(lookahead.error());
+            };
 
             // Optional trailing comma.
             let _ = content.parse::<Token![,]>();
@@ -387,7 +422,7 @@ impl Parse for ExtendConstantGroupInput {
             constants.push(AsmConstantDef {
                 doc: const_doc,
                 name: const_name,
-                value: const_value,
+                kind,
             });
         }
 
@@ -405,17 +440,21 @@ impl Parse for ExtendConstantGroupInput {
 /// `crate::common::{name}` and adds ASM-only constants. The `to_asm()` function
 /// combines both under one header. The prefix is automatically joined with an underscore.
 ///
+/// Supports two constant syntaxes:
+/// - `NAME = value` - direct value (validated for i32 range)
+/// - `offset!(NAME, Struct.field)` - offset (validated for i16 range, `_OFF` suffix added)
+///
 /// # Example
 /// ```ignore
 /// extend_constant_group!(input_buffer {
 ///     prefix = "IB",
 ///     /// Offset to number of accounts field.
-///     N_ACCOUNTS_OFF = 0,
+///     offset!(N_ACCOUNTS, InputBuffer.n_accounts),
 /// });
 /// // Creates `input_buffer` module that:
 /// // - Re-exports all constants from crate::common::input_buffer
-/// // - Adds ASM-only constants (N_ACCOUNTS_OFF)
-/// // - to_asm() outputs all constants with "IB_" prefix under one header
+/// // - Adds N_ACCOUNTS_OFF constant derived from offset_of!(InputBuffer, n_accounts)
+/// // - to_asm() outputs ".equ IB_N_ACCOUNTS_OFF, 0 # ..."
 /// ```
 #[proc_macro]
 pub fn extend_constant_group(input: TokenStream) -> TokenStream {
@@ -425,9 +464,52 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
     let prefix = &input.prefix;
     let max_line_len = MAX_LINE_LEN;
 
-    let const_names: Vec<String> = input.constants.iter().map(|c| c.name.to_string()).collect();
-    let const_values: Vec<String> = input.constants.iter().map(|c| c.value.to_string()).collect();
-    let const_docs: Vec<String> = input.constants.iter().map(|c| c.doc.clone()).collect();
+    // Generate constant definitions and collect info for ASM.
+    let mut const_defs = Vec::new();
+    let mut const_names = Vec::new();
+    let mut const_docs = Vec::new();
+
+    for c in &input.constants {
+        let name = &c.name;
+        let doc = &c.doc;
+        let name_str = name.to_string();
+        let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
+
+        const_names.push(name_str);
+        const_docs.push(doc.clone());
+
+        match &c.kind {
+            AsmConstantKind::Value(value) => {
+                // Direct value - validate i32 range.
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i32 = #value;
+
+                    const #assert_name: () = assert!(
+                        (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
+                        "ASM immediate must fit in i32 range"
+                    );
+                });
+            }
+            AsmConstantKind::Offset { struct_name, field_name } => {
+                // Offset from struct field - validate i16 range.
+                // Use super:: to access struct from parent module.
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #field_name) as i16;
+
+                    const #assert_name: () = assert!(
+                        (core::mem::offset_of!(super::#struct_name, #field_name) as i64) >= (i16::MIN as i64)
+                            && (core::mem::offset_of!(super::#struct_name, #field_name) as i64) <= (i16::MAX as i64),
+                        "Offset must fit in i16 range"
+                    );
+                });
+            }
+        }
+    }
+
+    // Collect const idents for ASM output.
+    let const_idents: Vec<_> = input.constants.iter().map(|c| &c.name).collect();
 
     let expanded = quote! {
         pub mod #mod_name {
@@ -437,6 +519,8 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
             // Re-export base group's constants.
             pub use crate::common::#mod_name::*;
 
+            #(#const_defs)*
+
             /// Generate combined ASM (base + extension) with prefix.
             pub fn to_asm() -> String {
                 // Base group adds header and its constants.
@@ -444,7 +528,7 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
 
                 // Add extension constants (no separate header).
                 let names = [#(#const_names),*];
-                let values = [#(#const_values),*];
+                let values = [#(#const_idents as i64),*];
                 let docs = [#(#const_docs),*];
 
                 for i in 0..names.len() {
