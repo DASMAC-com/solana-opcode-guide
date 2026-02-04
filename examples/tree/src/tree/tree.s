@@ -9,6 +9,8 @@
 .equ IB_N_ACCOUNTS, 2 # Expected number of accounts.
 .equ IB_N_ACCOUNTS_OFF, 0 # Number of accounts field.
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
+.equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
+.equ IB_TREE_NON_DUP_MARKER_OFF, 104 # Tree non-duplicate marker field.
 
 # Miscellaneous constants.
 # ------------------------
@@ -20,8 +22,12 @@ entrypoint:
     ldxdw r2, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
     jne r2, IB_N_ACCOUNTS, e_n_accounts # Error if invalid number.
     ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF] # Get user data length.
+    jne r2, DATA_LENGTH_ZERO, e_user_data_len # Error if user has data.
     exit
 
 e_n_accounts:
     mov64 r0, E_N_ACCOUNTS
     exit
+
+e_user_data_len:
+    mov64 r0, E_USER_DATA_LEN

@@ -9,6 +9,10 @@ extend_constant_group!(input_buffer {
     offset!(N_ACCOUNTS, InputBuffer.n_accounts),
     /// User data length field.
     offset!(USER_DATA_LEN, InputBuffer.user.header.data_len),
+    /// Non-duplicate marker value.
+    NON_DUP_MARKER = 0xff,
+    /// Tree non-duplicate marker field.
+    offset!(TREE_NON_DUP_MARKER, InputBuffer.tree_header.non_dup_marker),
 });
 
 asm_constant_group! {
