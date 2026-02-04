@@ -78,11 +78,11 @@ pub fn error_codes(input: TokenStream) -> TokenStream {
         let variant_name = &entry.name;
         // Just add E_ prefix for ASM.
         let asm_name = format!("E_{}", entry.name);
-        let value = idx + 1;
+        let value = (idx + 1) as u32;
 
         variant_defs.push(quote! {
             #[doc = #doc]
-            #variant_name
+            #variant_name = #value
         });
 
         asm_lines.push(asm_equ_line(&asm_name, &value, doc));

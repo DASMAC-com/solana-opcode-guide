@@ -1,0 +1,4 @@
+#[test]
+fn test_asm_user_data_len() {
+    run_user_data_len(ProgramLanguage::Assembly);
+}
