@@ -9,6 +9,10 @@ This example implements a [red-black tree][wikipedia tree page] in both
 paths side-by-side for a comprehensive breakdown of assembly vs Rust
 performance.
 
+## Input buffer checks
+
+<!-- @include: ../../../examples/tree/artifacts/tests/fast_fails/result.txt{1,6} -->
+
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`
