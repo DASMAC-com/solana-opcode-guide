@@ -11,6 +11,9 @@ macro_rules! asm_groups {
 }
 
 fn main() {
+    // Collect all constant groups.
+    let groups = asm_groups![error_codes, input_buffer, cpi, misc];
+
     // Read in the assembly file.
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let manifest_path = Path::new(manifest_dir);
@@ -28,9 +31,6 @@ fn main() {
         anchor_start < anchor_end,
         "ANCHOR: constants must come before ANCHOR_END: constants"
     );
-
-    // Collect all constant groups.
-    let groups = asm_groups![error_codes, input_buffer, misc];
 
     // Check for duplicate constant names.
     let mut seen = HashSet::new();

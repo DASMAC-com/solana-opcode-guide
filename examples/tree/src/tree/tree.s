@@ -19,6 +19,10 @@
 # Program ID field for empty tree account.
 .equ IB_PACKED_PROGRAM_ID_OFF, 20688
 
+# CPI-related constants.
+# ----------------------
+.equ CPI_N_ACCOUNTS, 2 # User and tree accounts must sign.
+
 # Miscellaneous constants.
 # ------------------------
 .equ DATA_LEN_ZERO, 0 # Data length of zero.
@@ -54,6 +58,7 @@ entrypoint:
     exit
 
 initialize:
+    # Program ID at r2 + IB_PACKED_PROGRAM_ID_OFF
     exit
 
 e_n_accounts:

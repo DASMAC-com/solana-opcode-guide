@@ -3,4 +3,4 @@
     and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
     add64 r2, r1 # Get input buffer pointer shifted for tree data.
     # Get instruction data length.
-    ldxdw r3, [r2 + IB_INSTRUCTION_DATA_LEN_OFF]
+    ldxdw r3, [r2 + IB_PACKED_INSTRUCTION_DATA_LEN_OFF]

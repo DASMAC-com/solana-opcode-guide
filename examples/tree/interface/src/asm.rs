@@ -1,9 +1,11 @@
 extern crate alloc;
 
+use crate::bindings::*;
 use macros::{asm_constant_group, extend_constant_group};
 use pinocchio::{
     account::{RuntimeAccount, MAX_PERMITTED_DATA_INCREASE},
     entrypoint::NON_DUP_MARKER,
+    sysvars::rent::Rent,
     Address,
 };
 
@@ -62,4 +64,28 @@ struct PackedInputBuffer {
     instruction_data_len: u64,
     instruction_data: [u8; 0],
     program_id: Address,
+}
+
+/// User and tree accounts must sign CPI.
+const CPI_N_ACCOUNTS: usize = 2;
+/// The tree account is a PDA.
+const CPI_N_PDA_SIGNERS: usize = 1;
+/// The bump seed is required for tree PDA signer.
+const CPI_N_SEEDS: usize = 1;
+
+// Instead of hard-coding the number of accounts, derive it from createaccountinstruction data.
+#[repr(C)]
+struct InitStackFrame {
+    /// Zero-initialized on stack.
+    system_program_address: Address,
+    instruction: SolInstruction,
+    account_metas: [SolAccountMeta; CPI_N_ACCOUNTS],
+    /// Like CreateAccountInstructionData.
+    instruction_data: u8,
+    account_infos: [SolAccountInfo; CPI_N_ACCOUNTS],
+    pda: Address,
+    rent: Rent,
+    signers_seeds: [SolSignerSeeds; CPI_N_PDA_SIGNERS],
+    signer_seeds: [SolSignerSeed; CPI_N_SEEDS],
+    bump_seed: u8,
 }
