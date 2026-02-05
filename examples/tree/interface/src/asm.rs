@@ -3,8 +3,6 @@ extern crate alloc;
 use crate::bindings;
 use crate::common;
 use crate::common::CreateAccountInstructionData;
-use core::char::MAX;
-use core::mem::size_of;
 use macros::{asm_constant_group, extend_constant_group};
 use pinocchio::{
     account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE},
@@ -16,17 +14,17 @@ use pinocchio::{
 extend_constant_group!(input_buffer {
     prefix = "IB",
     /// Number of accounts field.
-    offset!(N_ACCOUNTS, InputBuffer.n_accounts),
+    offset!(N_ACCOUNTS, InputBufferHeader.n_accounts),
     /// User address field.
-    offset!(USER_ADDRESS, InputBuffer.user.header.address),
+    offset!(USER_ADDRESS, InputBufferHeader.user.header.address),
     /// User data length field.
-    offset!(USER_DATA_LEN, InputBuffer.user.header.data_len),
+    offset!(USER_DATA_LEN, InputBufferHeader.user.header.data_len),
     /// Non-duplicate marker value.
     NON_DUP_MARKER = NON_DUP_MARKER,
     /// Tree non-duplicate marker field.
-    offset!(TREE_NON_DUP_MARKER, InputBuffer.tree_header.borrow_state),
+    offset!(TREE_NON_DUP_MARKER, InputBufferHeader.tree_header.borrow_state),
     /// Tree data length field.
-    offset!(TREE_DATA_LEN, InputBuffer.tree_header.data_len),
+    offset!(TREE_DATA_LEN, InputBufferHeader.tree_header.data_len),
     /// Instruction data length field for empty tree account.
     offset!(INIT_INSTRUCTION_DATA_LEN, InitInputBuffer.instruction_data_len),
     /// Program ID field for initialize instruction.
@@ -64,7 +62,8 @@ type SystemProgramRuntimeAccount =
     RuntimeAccount<{ runtime_data_size(common::input_buffer::SYSTEM_PROGRAM_DATA_LEN as i64) }>;
 
 #[repr(C, packed)]
-struct InputBuffer {
+/// Input buffer header for all instructions.
+struct InputBufferHeader {
     n_accounts: u64,
     user: EmptyRuntimeAccount,
     tree_header: RuntimeAccountHeader,
