@@ -52,7 +52,7 @@ entrypoint:
     # ----------------------------
     ldxdw r2, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
     jeq r2, IB_N_ACCOUNTS_GENERAL, general # Fast path to general case.
-    jeq r3, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
+    jeq r2, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
     mov64 r0, E_N_ACCOUNTS # Else fail.
     exit
     # ANCHOR_END: entrypoint-branching
@@ -83,7 +83,7 @@ initialize:
     # ----------------------------------------------------------------
     ldxb r2, [r1 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
     jne r2, IB_NON_DUP_MARKER, e_system_program_duplicate
-    ldxdw r2, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN]
+    ldxdw r2, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r2, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
     # Error if instruction data provided.

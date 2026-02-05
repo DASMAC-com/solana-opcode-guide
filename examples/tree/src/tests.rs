@@ -11,97 +11,60 @@ use test_utils::{setup_test, ProgramLanguage};
 enum AccountIndex {
     User = 0,
     Tree = 1,
+    SystemProgram = 2,
 }
 
-fn happy_path_setup(
-    program_language: ProgramLanguage,
-) -> (test_utils::TestSetup, Instruction, Vec<(Pubkey, Account)>) {
-    let setup = setup_test(program_language);
-    let (system_program, _) = program::keyed_account_for_system_program();
-
-    let user_pubkey = Pubkey::new_unique();
-    let tree_pubkey = Pubkey::new_unique();
-
-    let instruction = Instruction::new_with_bytes(
-        setup.program_id,
-        &[],
-        vec![
-            AccountMeta::new(user_pubkey, true),
-            AccountMeta::new(tree_pubkey, false),
-        ],
-    );
-
-    let accounts = vec![
-        (user_pubkey, Account::new(1_000_000, 0, &system_program)),
-        (tree_pubkey, Account::new(0, 0, &system_program)),
-    ];
-
-    (setup, instruction, accounts)
-}
+// ============================================================================
+// Entrypoint branching
+// ============================================================================
 
 #[derive(Clone, Copy)]
-enum Case {
+enum EntrypointCase {
     NoAccounts,
-    TooManyAccounts,
-    UserDataLen,
-    TreeDuplicate,
+    OneAccount,
+    FourAccounts,
 }
 
-impl Case {
-    const PARSING_CASES: &'static [Case] = &[
-        Case::NoAccounts,
-        Case::TooManyAccounts,
-        Case::UserDataLen,
-        Case::TreeDuplicate,
+impl EntrypointCase {
+    const CASES: &'static [Self] = &[
+        Self::NoAccounts,
+        Self::OneAccount,
+        Self::FourAccounts,
     ];
 
     const fn name(&self) -> &'static str {
         match self {
-            Self::NoAccounts => "No accounts passed",
-            Self::TooManyAccounts => "Too many accounts passed",
-            Self::UserDataLen => "User has nonzero data length",
-            Self::TreeDuplicate => "Tree account is duplicate",
+            Self::NoAccounts => "No accounts",
+            Self::OneAccount => "One account",
+            Self::FourAccounts => "Four accounts",
+        }
+    }
+
+    const fn n_accounts(&self) -> usize {
+        match self {
+            Self::NoAccounts => 0,
+            Self::OneAccount => 1,
+            Self::FourAccounts => 4,
         }
     }
 
     fn run(&self, lang: ProgramLanguage) -> u64 {
-        match self {
-            Self::NoAccounts => run_no_accounts(lang),
-            Self::TooManyAccounts => run_too_many_accounts(lang),
-            Self::UserDataLen => run_user_data_len(lang),
-            Self::TreeDuplicate => run_tree_duplicate(lang),
-        }
+        run_entrypoint(lang, self.n_accounts())
     }
 }
 
-fn run_no_accounts(lang: ProgramLanguage) -> u64 {
-    let (setup, mut instruction, mut accounts) = happy_path_setup(lang);
+fn run_entrypoint(lang: ProgramLanguage, n_accounts: usize) -> u64 {
+    let setup = setup_test(lang);
 
-    instruction.accounts.clear();
-    accounts.clear();
+    let account_metas: Vec<AccountMeta> = (0..n_accounts)
+        .map(|_| AccountMeta::new(Pubkey::new_unique(), false))
+        .collect();
+    let accounts: Vec<(Pubkey, Account)> = account_metas
+        .iter()
+        .map(|meta| (meta.pubkey, Account::default()))
+        .collect();
 
-    setup
-        .mollusk
-        .process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[Check::err(ProgramError::Custom(
-                error_codes::error::N_ACCOUNTS.into(),
-            ))],
-        )
-        .compute_units_consumed
-}
-
-fn run_too_many_accounts(lang: ProgramLanguage) -> u64 {
-    let (setup, mut instruction, mut accounts) = happy_path_setup(lang);
-
-    instruction
-        .accounts
-        .push(AccountMeta::new_readonly(Pubkey::new_unique(), false));
-    accounts.push((
-        instruction.accounts.last().unwrap().pubkey,
-        Account::default(),
-    ));
+    let instruction = Instruction::new_with_bytes(setup.program_id, &[], account_metas);
 
     setup
         .mollusk
@@ -110,42 +73,6 @@ fn run_too_many_accounts(lang: ProgramLanguage) -> u64 {
             &accounts,
             &[Check::err(ProgramError::Custom(
                 error_codes::error::N_ACCOUNTS.into(),
-            ))],
-        )
-        .compute_units_consumed
-}
-
-fn run_user_data_len(lang: ProgramLanguage) -> u64 {
-    let (setup, instruction, mut accounts) = happy_path_setup(lang);
-
-    accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
-
-    setup
-        .mollusk
-        .process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[Check::err(ProgramError::Custom(
-                error_codes::error::USER_DATA_LEN.into(),
-            ))],
-        )
-        .compute_units_consumed
-}
-
-fn run_tree_duplicate(lang: ProgramLanguage) -> u64 {
-    let (setup, mut instruction, mut accounts) = happy_path_setup(lang);
-
-    instruction.accounts[AccountIndex::Tree as usize] =
-        instruction.accounts[AccountIndex::User as usize].clone();
-    accounts[AccountIndex::Tree as usize] = accounts[AccountIndex::User as usize].clone();
-
-    setup
-        .mollusk
-        .process_and_validate_instruction(
-            &instruction,
-            &accounts,
-            &[Check::err(ProgramError::Custom(
-                error_codes::error::TREE_DUPLICATE.into(),
             ))],
         )
         .compute_units_consumed
@@ -153,50 +80,40 @@ fn run_tree_duplicate(lang: ProgramLanguage) -> u64 {
 
 #[test]
 fn test_asm_no_accounts() {
-    run_no_accounts(ProgramLanguage::Assembly);
+    EntrypointCase::NoAccounts.run(ProgramLanguage::Assembly);
 }
 
 #[test]
-fn test_asm_too_many_accounts() {
-    run_too_many_accounts(ProgramLanguage::Assembly);
+fn test_asm_one_account() {
+    EntrypointCase::OneAccount.run(ProgramLanguage::Assembly);
 }
 
 #[test]
-fn test_asm_user_data_len() {
-    run_user_data_len(ProgramLanguage::Assembly);
-}
-
-#[test]
-fn test_asm_tree_duplicate() {
-    run_tree_duplicate(ProgramLanguage::Assembly);
+fn test_asm_four_accounts() {
+    EntrypointCase::FourAccounts.run(ProgramLanguage::Assembly);
 }
 
 #[test]
 fn test_rs_no_accounts() {
-    run_no_accounts(ProgramLanguage::Rust);
+    EntrypointCase::NoAccounts.run(ProgramLanguage::Rust);
 }
 
 #[test]
-fn test_rs_too_many_accounts() {
-    run_too_many_accounts(ProgramLanguage::Rust);
+fn test_rs_one_account() {
+    EntrypointCase::OneAccount.run(ProgramLanguage::Rust);
 }
 
 #[test]
-fn test_rs_user_data_len() {
-    run_user_data_len(ProgramLanguage::Rust);
+fn test_rs_four_accounts() {
+    EntrypointCase::FourAccounts.run(ProgramLanguage::Rust);
 }
 
 #[test]
-fn test_rs_tree_duplicate() {
-    run_tree_duplicate(ProgramLanguage::Rust);
-}
-
-#[test]
-fn test_fast_fails() {
+fn test_entrypoint_branching() {
     println!("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |");
     println!("|------|-----------|------------|----------|------------|");
 
-    for case in Case::PARSING_CASES {
+    for case in EntrypointCase::CASES {
         let asm_cu = case.run(ProgramLanguage::Assembly);
         let rs_cu = case.run(ProgramLanguage::Rust);
         let overhead = rs_cu as i64 - asm_cu as i64;
@@ -217,32 +134,36 @@ fn test_fast_fails() {
 }
 
 // ============================================================================
-// Initialize operation tests
+// Initialize input checks
 // ============================================================================
 
-/// Setup for initialize instruction (empty instruction data, correct PDA).
 fn init_setup(
     program_language: ProgramLanguage,
 ) -> (test_utils::TestSetup, Instruction, Vec<(Pubkey, Account)>) {
     let setup = setup_test(program_language);
-    let (system_program, _) = program::keyed_account_for_system_program();
+    let (system_program_pubkey, system_program_account) =
+        program::keyed_account_for_system_program();
 
     let user_pubkey = Pubkey::new_unique();
-    // Derive the correct PDA for the tree account.
-    let (tree_pda, _bump) = Pubkey::find_program_address(&[], &setup.program_id);
+    let tree_pubkey = Pubkey::new_unique();
 
     let instruction = Instruction::new_with_bytes(
         setup.program_id,
-        &[], // Empty instruction data triggers initialize path
+        &[],
         vec![
             AccountMeta::new(user_pubkey, true),
-            AccountMeta::new(tree_pda, false),
+            AccountMeta::new(tree_pubkey, false),
+            AccountMeta::new_readonly(system_program_pubkey, false),
         ],
     );
 
     let accounts = vec![
-        (user_pubkey, Account::new(1_000_000, 0, &system_program)),
-        (tree_pda, Account::new(0, 0, &system_program)),
+        (
+            user_pubkey,
+            Account::new(1_000_000, 0, &system_program_pubkey),
+        ),
+        (tree_pubkey, Account::new(0, 0, &system_program_pubkey)),
+        (system_program_pubkey, system_program_account),
     ];
 
     (setup, instruction, accounts)
@@ -250,34 +171,50 @@ fn init_setup(
 
 #[derive(Clone, Copy)]
 enum InitCase {
-    PdaMismatch,
+    UserDataLen,
+    TreeDuplicate,
+    TreeDataLen,
+    SystemProgramDuplicate,
+    SystemProgramDataLen,
+    InstructionData,
 }
 
 impl InitCase {
-    const CASES: &'static [InitCase] = &[InitCase::PdaMismatch];
+    const CASES: &'static [Self] = &[
+        Self::UserDataLen,
+        Self::TreeDuplicate,
+        Self::TreeDataLen,
+        Self::SystemProgramDuplicate,
+        Self::SystemProgramDataLen,
+        Self::InstructionData,
+    ];
 
     const fn name(&self) -> &'static str {
         match self {
-            Self::PdaMismatch => "PDA mismatch",
+            Self::UserDataLen => "User has nonzero data length",
+            Self::TreeDuplicate => "Tree account is duplicate",
+            Self::TreeDataLen => "Tree has nonzero data length",
+            Self::SystemProgramDuplicate => "System program is duplicate",
+            Self::SystemProgramDataLen => "System program wrong data length",
+            Self::InstructionData => "Non-empty instruction data",
         }
     }
 
     fn run(&self, lang: ProgramLanguage) -> u64 {
         match self {
-            Self::PdaMismatch => run_init_pda_mismatch(lang),
+            Self::UserDataLen => run_init_user_data_len(lang),
+            Self::TreeDuplicate => run_init_tree_duplicate(lang),
+            Self::TreeDataLen => run_init_tree_data_len(lang),
+            Self::SystemProgramDuplicate => run_init_system_program_duplicate(lang),
+            Self::SystemProgramDataLen => run_init_system_program_data_len(lang),
+            Self::InstructionData => run_init_instruction_data(lang),
         }
     }
 }
 
-fn run_init_pda_mismatch(lang: ProgramLanguage) -> u64 {
-    let (setup, mut instruction, mut accounts) = init_setup(lang);
-    let (system_program, _) = program::keyed_account_for_system_program();
-
-    // Replace tree PDA with a random pubkey (not the correct PDA).
-    let wrong_tree_pubkey = Pubkey::new_unique();
-    instruction.accounts[AccountIndex::Tree as usize] = AccountMeta::new(wrong_tree_pubkey, false);
-    accounts[AccountIndex::Tree as usize] =
-        (wrong_tree_pubkey, Account::new(0, 0, &system_program));
+fn run_init_user_data_len(lang: ProgramLanguage) -> u64 {
+    let (setup, instruction, mut accounts) = init_setup(lang);
+    accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
 
     setup
         .mollusk
@@ -285,31 +222,164 @@ fn run_init_pda_mismatch(lang: ProgramLanguage) -> u64 {
             &instruction,
             &accounts,
             &[Check::err(ProgramError::Custom(
-                error_codes::error::PDA_MISMATCH.into(),
+                error_codes::error::USER_DATA_LEN.into(),
+            ))],
+        )
+        .compute_units_consumed
+}
+
+fn run_init_tree_duplicate(lang: ProgramLanguage) -> u64 {
+    let (setup, mut instruction, mut accounts) = init_setup(lang);
+    instruction.accounts[AccountIndex::Tree as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::Tree as usize] = accounts[AccountIndex::User as usize].clone();
+
+    setup
+        .mollusk
+        .process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[Check::err(ProgramError::Custom(
+                error_codes::error::TREE_DUPLICATE.into(),
+            ))],
+        )
+        .compute_units_consumed
+}
+
+fn run_init_tree_data_len(lang: ProgramLanguage) -> u64 {
+    let (setup, instruction, mut accounts) = init_setup(lang);
+    accounts[AccountIndex::Tree as usize].1.data = vec![1u8; 1];
+
+    setup
+        .mollusk
+        .process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[Check::err(ProgramError::Custom(
+                error_codes::error::TREE_DATA_LEN.into(),
+            ))],
+        )
+        .compute_units_consumed
+}
+
+fn run_init_system_program_duplicate(lang: ProgramLanguage) -> u64 {
+    let (setup, mut instruction, mut accounts) = init_setup(lang);
+    instruction.accounts[AccountIndex::SystemProgram as usize] =
+        instruction.accounts[AccountIndex::User as usize].clone();
+    accounts[AccountIndex::SystemProgram as usize] =
+        accounts[AccountIndex::User as usize].clone();
+
+    setup
+        .mollusk
+        .process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[Check::err(ProgramError::Custom(
+                error_codes::error::SYSTEM_PROGRAM_DUPLICATE.into(),
+            ))],
+        )
+        .compute_units_consumed
+}
+
+fn run_init_system_program_data_len(lang: ProgramLanguage) -> u64 {
+    let (setup, instruction, mut accounts) = init_setup(lang);
+    accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
+
+    setup
+        .mollusk
+        .process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[Check::err(ProgramError::Custom(
+                error_codes::error::SYSTEM_PROGRAM_DATA_LEN.into(),
+            ))],
+        )
+        .compute_units_consumed
+}
+
+fn run_init_instruction_data(lang: ProgramLanguage) -> u64 {
+    let (setup, mut instruction, accounts) = init_setup(lang);
+    instruction.data = vec![1u8; 1];
+
+    setup
+        .mollusk
+        .process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[Check::err(ProgramError::Custom(
+                error_codes::error::INSTRUCTION_DATA.into(),
             ))],
         )
         .compute_units_consumed
 }
 
 #[test]
-fn test_rs_init_pda_mismatch() {
-    run_init_pda_mismatch(ProgramLanguage::Rust);
+fn test_rs_init_user_data_len() {
+    run_init_user_data_len(ProgramLanguage::Rust);
 }
 
 #[test]
-#[should_panic] // ASM doesn't have PDA check yet
-fn test_asm_init_pda_mismatch() {
-    run_init_pda_mismatch(ProgramLanguage::Assembly);
+fn test_rs_init_tree_duplicate() {
+    run_init_tree_duplicate(ProgramLanguage::Rust);
 }
 
 #[test]
-fn test_init_fails() {
-    println!("\n| Init Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |");
-    println!("|-----------|-----------|------------|----------|------------|");
+fn test_rs_init_tree_data_len() {
+    run_init_tree_data_len(ProgramLanguage::Rust);
+}
+
+#[test]
+fn test_rs_init_system_program_duplicate() {
+    run_init_system_program_duplicate(ProgramLanguage::Rust);
+}
+
+#[test]
+fn test_rs_init_system_program_data_len() {
+    run_init_system_program_data_len(ProgramLanguage::Rust);
+}
+
+#[test]
+fn test_rs_init_instruction_data() {
+    run_init_instruction_data(ProgramLanguage::Rust);
+}
+
+#[test]
+fn test_asm_init_user_data_len() {
+    run_init_user_data_len(ProgramLanguage::Assembly);
+}
+
+#[test]
+fn test_asm_init_tree_duplicate() {
+    run_init_tree_duplicate(ProgramLanguage::Assembly);
+}
+
+#[test]
+fn test_asm_init_tree_data_len() {
+    run_init_tree_data_len(ProgramLanguage::Assembly);
+}
+
+#[test]
+fn test_asm_init_system_program_duplicate() {
+    run_init_system_program_duplicate(ProgramLanguage::Assembly);
+}
+
+#[test]
+fn test_asm_init_system_program_data_len() {
+    run_init_system_program_data_len(ProgramLanguage::Assembly);
+}
+
+#[test]
+fn test_asm_init_instruction_data() {
+    run_init_instruction_data(ProgramLanguage::Assembly);
+}
+
+#[test]
+fn test_initialize_input_checks() {
+    println!("\n| Init Case | Rust (CUs) |");
+    println!("|-----------|------------|");
 
     for case in InitCase::CASES {
-        // Only run Rust for now since ASM doesn't have init logic yet.
         let rs_cu = case.run(ProgramLanguage::Rust);
-        println!("| {} | N/A | {} | N/A | N/A |", case.name(), rs_cu);
+        println!("| {} | {} |", case.name(), rs_cu);
     }
 }

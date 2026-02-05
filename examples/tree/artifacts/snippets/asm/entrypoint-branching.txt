@@ -5,6 +5,6 @@ entrypoint:
     # ----------------------------
     ldxdw r2, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
     jeq r2, IB_N_ACCOUNTS_GENERAL, general # Fast path to general case.
-    jeq r3, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
+    jeq r2, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
     mov64 r0, E_N_ACCOUNTS # Else fail.
     exit
