@@ -25,32 +25,46 @@ macro_rules! err {
 nostd_panic_handler!();
 no_allocator!();
 
-// ANCHOR: check-input-buffer
+// ANCHOR: entrypoint-branch
 lazy_program_entrypoint!(process_instruction);
 
 pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
-    // Verify the input memory map: user has no data, tree is not duplicate.
-    if_err!(context.remaining() != input_buffer::N_ACCOUNTS, N_ACCOUNTS);
+    match context.remaining() {
+        input_buffer::N_ACCOUNTS_GENERAL => Ok(()),
+        input_buffer::N_ACCOUNTS_INIT => initialize(context),
+        _ => err!(N_ACCOUNTS),
+    }
+}
+// ANCHOR_END: entrypoint-branch
+
+#[inline(always)]
+fn initialize(mut context: InstructionContext) -> ProgramResult {
+    // Verify user has no data.
     // SAFETY: number of accounts has been checked.
     let user = unsafe { context.next_account_unchecked().assume_account() };
     if_err!(!user.is_data_empty(), USER_DATA_LEN);
+
+    // Verify tree is non-duplicate and has no data.
     // SAFETY: number of accounts has been checked.
     let tree = match unsafe { context.next_account_unchecked() } {
         MaybeAccount::Account(account) => account,
         MaybeAccount::Duplicated(_) => err!(TREE_DUPLICATE),
     };
-    // SAFETY: all accounts have been read.
-    let instruction_data = unsafe { context.instruction_data_unchecked() };
-    let program_id = unsafe { context.program_id_unchecked() };
-    // ANCHOR_END: check-input-buffer
+    if_err!(!tree.is_data_empty(), TREE_DATA_LEN);
 
-    // ANCHOR: initialize-tree
-    if instruction_data.is_empty() {
-        let (expected_pda, bump) = Address::find_program_address(&[], program_id);
-        if_err!(!address_eq(tree.address(), &expected_pda), PDA_MISMATCH);
-        // ANCHOR_END: initialize-tree
-    } else {
-        // Other instruction logic here...
+    // Verify system program is non-duplicate and has expected data length.
+    let system_program = match unsafe { context.next_account_unchecked() } {
+        MaybeAccount::Account(account) => account,
+        MaybeAccount::Duplicated(_) => err!(SYSTEM_PROGRAM_DUPLICATE),
     };
+    if_err!(
+        system_program.data_len() != input_buffer::SYSTEM_PROGRAM_DATA_LEN,
+        SYSTEM_PROGRAM_DATA_LEN
+    );
+
+    // Verify tree PDA.
+    let program_id = unsafe { context.program_id_unchecked() };
+    let (expected_pda, bump) = Address::find_program_address(&[], program_id);
+    if_err!(!address_eq(tree.address(), &expected_pda), PDA_MISMATCH);
     Ok(())
 }

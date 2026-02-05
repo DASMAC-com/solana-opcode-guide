@@ -175,7 +175,9 @@ struct ConstantDef {
     doc: String,
     name: Ident,
     ty: syn::Type,
-    value: LitInt,
+    value: syn::Expr,
+    /// Original literal string for ASM output (preserves hex/binary).
+    literal_repr: Option<String>,
 }
 
 struct ConstantGroup {
@@ -216,10 +218,43 @@ impl Parse for ConstantGroup {
             }
 
             let const_name: Ident = content.parse()?;
-            content.parse::<Token![:]>()?;
-            let const_ty: syn::Type = content.parse()?;
-            content.parse::<Token![=]>()?;
-            let const_value: LitInt = content.parse()?;
+
+            // Support both `NAME: type = value` and `NAME = expr` forms.
+            let (const_ty, const_value, literal_repr) = if content.peek(Token![:]) {
+                // NAME: type = value
+                content.parse::<Token![:]>()?;
+                let ty: syn::Type = content.parse()?;
+                content.parse::<Token![=]>()?;
+
+                // Try literal first to preserve hex/binary representation.
+                let fork = content.fork();
+                if let Ok(lit) = fork.parse::<LitInt>() {
+                    content.advance_to(&fork);
+                    let repr = lit.to_string();
+                    let expr = syn::Expr::Lit(syn::ExprLit {
+                        attrs: vec![],
+                        lit: Lit::Int(lit),
+                    });
+                    (ty, expr, Some(repr))
+                } else {
+                    let expr: syn::Expr = content.parse()?;
+                    (ty, expr, None)
+                }
+            } else {
+                // NAME = expr (type inferred from `as Type` cast).
+                content.parse::<Token![=]>()?;
+                let expr: syn::Expr = content.parse()?;
+
+                let ty = if let syn::Expr::Cast(cast) = &expr {
+                    (*cast.ty).clone()
+                } else {
+                    return Err(content.error(
+                        "Expression must include `as Type` when type annotation is omitted",
+                    ));
+                };
+
+                (ty, expr, None)
+            };
 
             // Optional trailing comma.
             let _ = content.parse::<Token![,]>();
@@ -229,6 +264,7 @@ impl Parse for ConstantGroup {
                 name: const_name,
                 ty: const_ty,
                 value: const_value,
+                literal_repr,
             });
         }
 
@@ -249,9 +285,12 @@ impl Parse for ConstantGroup {
 
 /// Macro for defining groups of constants shared between Rust and ASM.
 ///
-/// Constants must specify their Rust type. Values are validated at compile time
-/// to fit within i32 range (sBPF immediate constraint). The prefix is automatically
-/// joined with an underscore.
+/// Values are validated at compile time to fit within i32 range (sBPF immediate constraint).
+/// The prefix is automatically joined with an underscore.
+///
+/// Two syntaxes are supported:
+/// - `NAME: type = value` — explicit type, literal values preserve hex/binary in ASM.
+/// - `NAME = expr as Type` — type inferred from `as` cast, value computed at build time.
 ///
 /// # Example
 /// ```ignore
@@ -260,9 +299,10 @@ impl Parse for ConstantGroup {
 ///     input_buffer {
 ///         /// Number of accounts expected.
 ///         N_ACCOUNTS: u64 = 2,
+///         /// Expected data length of system program account.
+///         SYSTEM_PROGRAM_DATA_LEN = b"system_program".len() as u64,
 ///     }
 /// }
-/// // Usage: input_buffer::to_asm("IB") -> ".equ IB_N_ACCOUNTS, 2 # ..."
 /// ```
 ///
 /// To extend a group with ASM-only constants, use `extend_constant_group!`.
@@ -275,30 +315,55 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
     let header = asm_header(&group.doc);
 
     // Generate Rust constants with i32 bounds checking for ASM compatibility.
-    let const_defs = group.constants.iter().map(|c| {
+    let mut const_defs = Vec::new();
+    let mut const_value_strs: Vec<Option<String>> = Vec::new();
+
+    for c in &group.constants {
         let name = &c.name;
         let ty = &c.ty;
         let value = &c.value;
         let doc = &c.doc;
         let assert_name = Ident::new(&format!("_ASSERT_{}_FITS_I32", name), name.span());
-        quote! {
-            #[doc = #doc]
-            pub const #name: #ty = #value;
 
-            const #assert_name: () = assert!(
-                (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
-                "ASM immediate must fit in i32 range"
-            );
+        const_value_strs.push(c.literal_repr.clone());
+
+        if c.literal_repr.is_some() {
+            // Literal value - no scope wrapper needed.
+            const_defs.push(quote! {
+                #[doc = #doc]
+                pub const #name: #ty = #value;
+
+                const #assert_name: () = assert!(
+                    (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
+                    "ASM immediate must fit in i32 range"
+                );
+            });
+        } else {
+            // Expression value - use super::* for scope access.
+            const_defs.push(quote! {
+                #[doc = #doc]
+                pub const #name: #ty = { use super::*; #value };
+
+                const #assert_name: () = assert!(
+                    ({ use super::*; #value } as i64) >= (i32::MIN as i64)
+                        && ({ use super::*; #value } as i64) <= (i32::MAX as i64),
+                    "ASM immediate must fit in i32 range"
+                );
+            });
         }
-    });
+    }
 
     let const_names: Vec<String> = group.constants.iter().map(|c| c.name.to_string()).collect();
-    let const_values: Vec<String> = group
-        .constants
-        .iter()
-        .map(|c| c.value.to_string())
-        .collect();
+    let const_idents: Vec<&Ident> = group.constants.iter().map(|c| &c.name).collect();
     let const_docs: Vec<String> = group.constants.iter().map(|c| c.doc.clone()).collect();
+
+    let value_str_opts: Vec<_> = const_value_strs
+        .iter()
+        .map(|opt| match opt {
+            Some(s) => quote! { Some(#s) },
+            None => quote! { None },
+        })
+        .collect();
 
     let expanded = quote! {
         pub mod #mod_name {
@@ -314,16 +379,22 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
                 result.push('\n');
 
                 let names = [#(#const_names),*];
-                let values = [#(#const_values),*];
+                let computed_values: &[i64] = &[#(#const_idents as i64),*];
+                let literal_values: &[Option<&str>] = &[#(#value_str_opts),*];
                 let docs = [#(#const_docs),*];
 
                 for i in 0..names.len() {
                     let full_name = format!("{}_{}", prefix, names[i]);
-                    let inline = format!(".equ {}, {} # {}", full_name, values[i], docs[i]);
+                    // Use original literal if available, otherwise use computed value.
+                    let value_str = match literal_values[i] {
+                        Some(lit) => String::from(lit),
+                        None => format!("{}", computed_values[i]),
+                    };
+                    let inline = format!(".equ {}, {} # {}", full_name, value_str, docs[i]);
                     if inline.len() <= #max_line_len {
                         result.push_str(&inline);
                     } else {
-                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, values[i]));
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, value_str));
                     }
                     result.push('\n');
                 }

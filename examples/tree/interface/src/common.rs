@@ -4,10 +4,16 @@ use pinocchio::Address;
 error_codes! {
     /// An invalid number of accounts were passed.
     N_ACCOUNTS,
-    /// The user account has nonzero data length.
+    /// The user account has invalid data length.
     USER_DATA_LEN,
+    /// The tree account has invalid data length.
+    TREE_DATA_LEN,
+    /// The System Program account has invalid data length.
+    SYSTEM_PROGRAM_DATA_LEN,
     /// The tree account is a duplicate.
     TREE_DUPLICATE,
+    /// The System Program account is a duplicate.
+    SYSTEM_PROGRAM_DUPLICATE,
     /// The passed PDA does not match the expected address.
     PDA_MISMATCH,
 }
@@ -15,8 +21,12 @@ error_codes! {
 constant_group! {
     /// Input buffer layout.
     input_buffer {
-        /// Expected number of accounts.
-        N_ACCOUNTS: u64 = 2,
+        /// Expected number of accounts for general instructions.
+        N_ACCOUNTS_GENERAL: u64 = 2,
+        /// Expected number of accounts for tree initialization.
+        N_ACCOUNTS_INIT: u64 = 3,
+        /// Expected data length of system program account.
+        SYSTEM_PROGRAM_DATA_LEN: usize = b"system_program".len(),
     }
 }
 
