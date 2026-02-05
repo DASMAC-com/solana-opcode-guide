@@ -44,7 +44,7 @@
 .equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
 # ANCHOR_END: constants
 
-# ANCHOR: entrypoint-branch
+# ANCHOR: entrypoint-branching
 .globl entrypoint
 
 entrypoint:
@@ -55,7 +55,7 @@ entrypoint:
     jeq r3, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
     mov64 r0, E_N_ACCOUNTS # Else fail.
     exit
-    # ANCHOR_END: entrypoint-branch
+    # ANCHOR_END: entrypoint-branching
 
 general:
     ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
@@ -64,6 +64,7 @@ general:
     add64 r2, r1 # Get input buffer pointer shifted for tree data.
     exit
 
+# ANCHOR: initialize-input-checks
 initialize:
 
     # Error if user has data.
@@ -89,6 +90,7 @@ initialize:
     # -----------------------------------
     ldxdw r2, [r1 + IB_INIT_INSTRUCTION_DATA_LEN_OFF]
     jne r2, DATA_LEN_ZERO, e_instruction_data
+    # ANCHOR_END: initialize-input-checks
 
     exit
 

@@ -40,7 +40,7 @@ unsafe fn next_account_non_duplicate(
     }
 }
 
-// ANCHOR: entrypoint-branch
+// ANCHOR: entrypoint-branching
 nostd_panic_handler!();
 no_allocator!();
 lazy_program_entrypoint!(process_instruction);
@@ -48,13 +48,13 @@ lazy_program_entrypoint!(process_instruction);
 pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     match context.remaining() {
         input_buffer::N_ACCOUNTS_GENERAL => Ok(()),
-        // SAFETY: number of accounts has been checked.
-        input_buffer::N_ACCOUNTS_INIT => unsafe { initialize(context) },
+        input_buffer::N_ACCOUNTS_INIT => initialize(context),
         _ => err(error::N_ACCOUNTS),
     }
 }
-// ANCHOR_END: entrypoint-branch
+// ANCHOR_END: entrypoint-branching
 
+// ANCHOR: initialize-input-checks
 #[inline(always)]
 fn initialize(mut context: InstructionContext) -> ProgramResult {
     // Verify user has no data.
@@ -82,6 +82,7 @@ fn initialize(mut context: InstructionContext) -> ProgramResult {
         unsafe { context.instruction_data_unchecked().is_empty() },
         error::INSTRUCTION_DATA,
     )?;
+    // ANCHOR_END: initialize-input-checks
 
     // Verify tree PDA.
     let program_id = unsafe { context.program_id_unchecked() };

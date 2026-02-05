@@ -1,0 +1,27 @@
+#[inline(always)]
+fn initialize(mut context: InstructionContext) -> ProgramResult {
+    // Verify user has no data.
+    // SAFETY: number of accounts has been checked.
+    let user = unsafe { context.next_account_unchecked().assume_account() };
+    ensure_is_data_empty(&user, error::USER_DATA_LEN)?;
+
+    // Verify tree is non-duplicate and has no data.
+    // SAFETY: number of accounts has been checked.
+    let tree = unsafe { next_account_non_duplicate(&mut context, error::TREE_DUPLICATE) }?;
+    ensure_is_data_empty(&tree, error::TREE_DATA_LEN)?;
+
+    // Verify system program is non-duplicate and has expected data length.
+    // SAFETY: number of accounts has been checked.
+    let system_program =
+        unsafe { next_account_non_duplicate(&mut context, error::SYSTEM_PROGRAM_DUPLICATE) }?;
+    ensure(
+        system_program.data_len() == input_buffer::SYSTEM_PROGRAM_DATA_LEN,
+        error::SYSTEM_PROGRAM_DATA_LEN,
+    )?;
+
+    // Verify no instruction data provided.
+    // SAFETY: all accounts have been consumed.
+    ensure(
+        unsafe { context.instruction_data_unchecked().is_empty() },
+        error::INSTRUCTION_DATA,
+    )?;
