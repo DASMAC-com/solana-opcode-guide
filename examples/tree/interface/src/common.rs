@@ -1,4 +1,5 @@
 use macros::{constant_group, error_codes};
+use pinocchio::Address;
 
 error_codes! {
     /// An invalid number of accounts were passed.
@@ -17,26 +18,20 @@ constant_group! {
     }
 }
 
-struct InitInstructionData {}
-
-struct GetInstructionData {
-    key: u16,
-}
-
-struct InsertInstructionData {
-    key: u16,
-    value: u16,
-}
-
-struct RemoveInstructionData {
-    key: u16,
-}
-
 /// Value in r0.
 #[repr(C, packed)]
 struct Return {
-    /// If a value is removed from the tree, it's placed here.
+    /// If a value is retrieved from the tree, it's encoded in high bits.
     maybe_value: u16,
-    /// 0 for success, nonzero for error.
+    /// Nonzero iff error.
     status: u16,
+}
+
+#[repr(C, packed)]
+/// For CPI to create tree account.
+pub struct CreateAccountInstructionData {
+    instruction_tag: u32,
+    lamports: u64,
+    space: u64,
+    owner: Address,
 }

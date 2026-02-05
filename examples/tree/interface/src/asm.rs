@@ -1,6 +1,7 @@
 extern crate alloc;
 
 use crate::bindings::*;
+use crate::common::*;
 use macros::{asm_constant_group, extend_constant_group};
 use pinocchio::{
     account::{RuntimeAccount, MAX_PERMITTED_DATA_INCREASE},
@@ -73,19 +74,17 @@ const CPI_N_PDA_SIGNERS: usize = 1;
 /// The bump seed is required for tree PDA signer.
 const CPI_N_SEEDS: usize = 1;
 
-// Instead of hard-coding the number of accounts, derive it from createaccountinstruction data.
 #[repr(C)]
 struct InitStackFrame {
     /// Zero-initialized on stack.
     system_program_address: Address,
     instruction: SolInstruction,
     account_metas: [SolAccountMeta; CPI_N_ACCOUNTS],
-    /// Like CreateAccountInstructionData.
-    instruction_data: u8,
     account_infos: [SolAccountInfo; CPI_N_ACCOUNTS],
-    pda: Address,
-    rent: Rent,
     signers_seeds: [SolSignerSeeds; CPI_N_PDA_SIGNERS],
     signer_seeds: [SolSignerSeed; CPI_N_SEEDS],
+    pda: Address,
+    rent: Rent,
+    instruction_data: CreateAccountInstructionData,
     bump_seed: u8,
 }

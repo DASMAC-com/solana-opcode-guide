@@ -1,7 +1,7 @@
 /// Generated from Agave using bindgen.
 use pinocchio::Address;
 
-/// SolInstruction from cpi.h
+/// SolInstruction from cpi.h.
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SolInstruction {
@@ -17,7 +17,7 @@ pub struct SolInstruction {
     pub data_len: u64,
 }
 
-/// SolAccountMeta from cpi.h
+/// SolAccountMeta from cpi.h.
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SolAccountMeta {
@@ -29,7 +29,7 @@ pub struct SolAccountMeta {
     pub is_signer: bool,
 }
 
-/// SolAccountInfo from entrypoint.h
+/// SolAccountInfo from entrypoint.h.
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SolAccountInfo {
@@ -53,7 +53,7 @@ pub struct SolAccountInfo {
     pub executable: bool,
 }
 
-/// SolSignerSeed from pubkey.h
+/// SolSignerSeed from pubkey.h.
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SolSignerSeed {
@@ -63,7 +63,7 @@ pub struct SolSignerSeed {
     pub len: u64,
 }
 
-/// SolSignerSeeds from pubkey.h
+/// SolSignerSeeds from pubkey.h.
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SolSignerSeeds {
