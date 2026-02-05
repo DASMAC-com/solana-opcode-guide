@@ -9,7 +9,7 @@ use pinocchio::{
 
 #[inline(always)]
 /// Return an error code for early return at call site.
-fn err(error_code: error) -> Result<(), ProgramError> {
+fn err<T>(error_code: error) -> Result<T, ProgramError> {
     Err(ProgramError::Custom(error_code.into()))
 }
 
