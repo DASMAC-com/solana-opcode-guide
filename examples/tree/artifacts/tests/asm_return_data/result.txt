@@ -1,4 +1,3 @@
-test tests::test_rs_user_data_len ... ok
 warning: struct `InitInstructionData` is never constructed
   --> tree/interface/src/common.rs:20:8
    |
@@ -28,6 +27,3 @@ warning: struct `Return` is never constructed
    |        ^^^^^^
 warning: `interface` (lib) generated 5 warnings
 warning: `interface` (lib) generated 5 warnings (5 duplicates)
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 10 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2

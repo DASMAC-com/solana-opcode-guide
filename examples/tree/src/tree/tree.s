@@ -37,14 +37,6 @@ entrypoint:
     ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
     add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
     and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
-
-    # Test setting return data.
-    add64 r1, IB_USER_ADDRESS_OFF
-    mov64 r2, 32
-    call sol_set_return_data
-
-    mov64 r0, 0
-
     exit
 
 e_n_accounts:

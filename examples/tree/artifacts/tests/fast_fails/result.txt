@@ -5,6 +5,35 @@
 | User has nonzero data length | 6 | 10 | +4 | +66.7% |
 | Tree account is duplicate | 8 | 16 | +8 | +100.0% |
 test tests::test_fast_fails ... ok
+warning: struct `InitInstructionData` is never constructed
+  --> tree/interface/src/common.rs:20:8
+   |
+20 | struct InitInstructionData {}
+   |        ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+warning: struct `GetInstructionData` is never constructed
+  --> tree/interface/src/common.rs:22:8
+   |
+22 | struct GetInstructionData {
+   |        ^^^^^^^^^^^^^^^^^^
+warning: struct `InsertInstructionData` is never constructed
+  --> tree/interface/src/common.rs:26:8
+   |
+26 | struct InsertInstructionData {
+   |        ^^^^^^^^^^^^^^^^^^^^^
+warning: struct `RemoveInstructionData` is never constructed
+  --> tree/interface/src/common.rs:31:8
+   |
+31 | struct RemoveInstructionData {
+   |        ^^^^^^^^^^^^^^^^^^^^^
+warning: struct `Return` is never constructed
+  --> tree/interface/src/common.rs:37:8
+   |
+37 | struct Return {
+   |        ^^^^^^
+warning: `interface` (lib) generated 5 warnings
+warning: `interface` (lib) generated 5 warnings (5 duplicates)
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 4 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1

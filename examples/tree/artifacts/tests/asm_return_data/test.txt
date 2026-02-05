@@ -1,0 +1,15 @@
+#[test]
+fn test_asm_return_data() {
+    let (setup, instruction, accounts) = happy_path_setup(ProgramLanguage::Assembly);
+    let user_pubkey = instruction.accounts[AccountIndex::User as usize].pubkey;
+
+    let result = setup
+        .mollusk
+        .process_and_validate_instruction(&instruction, &accounts, &[Check::success()]);
+
+    assert_eq!(
+        result.return_data,
+        user_pubkey.to_bytes(),
+        "return data should be user pubkey"
+    );
+}

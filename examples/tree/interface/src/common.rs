@@ -16,3 +16,27 @@ constant_group! {
         N_ACCOUNTS: u64 = 2,
     }
 }
+
+struct InitInstructionData {}
+
+struct GetInstructionData {
+    key: u16,
+}
+
+struct InsertInstructionData {
+    key: u16,
+    value: u16,
+}
+
+struct RemoveInstructionData {
+    key: u16,
+}
+
+/// Value in r0.
+#[repr(C, packed)]
+struct Return {
+    /// If a value is removed from the tree, it's placed here.
+    maybe_value: u16,
+    /// 0 for success, nonzero for error.
+    status: u16,
+}
