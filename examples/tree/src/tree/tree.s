@@ -30,6 +30,10 @@
 .equ IB_INIT_INSTRUCTION_DATA_LEN_OFF, 31032
 # Program ID field for initialize instruction.
 .equ IB_INIT_PROGRAM_ID_OFF, 31040
+# System Program non-duplicate marker field.
+.equ IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
+# System Program data length field.
+.equ IB_SYSTEM_PROGRAM_DATA_LEN_OFF, 20760
 
 # Miscellaneous constants.
 # ------------------------
@@ -56,22 +60,48 @@ general:
     add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
     and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
     add64 r2, r1 # Get input buffer pointer shifted for tree data.
-    # Get instruction data length.
-    ldxdw r3, [r2 + IB_PACKED_INSTRUCTION_DATA_LEN_OFF]
     exit
 
 initialize:
-    ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF] # Get user data length.
-    jne r2, DATA_LEN_ZERO, e_user_data_len # Error if user has data.
-    ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF] # Load tree non-dup marker.
-    jne r2, IB_NON_DUP_MARKER, e_tree_duplicate # Error if duplicate.
-    ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
+
+    # Error if user has data.
+    # -----------------------
+    ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF]
+    jne r2, DATA_LEN_ZERO, e_user_data_len
+
+    # Error if tree is duplicate or has data.
+    # ---------------------------------------
+    ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
+    jne r2, IB_NON_DUP_MARKER, e_tree_duplicate
+    ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF]
+    jne r2, DATA_LEN_ZERO, e_tree_data_len
+
+    # Error if System Program is duplicate or has invalid data length.
+    # ----------------------------------------------------------------
+    ldxb r2, [r1 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
+    jne r2, IB_NON_DUP_MARKER, e_system_program_duplicate
+    ldxdw r2, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN]
+    jne r2, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
+
+    # Error if has instruction data
     exit
 
-e_user_data_len:
-    mov64 r0, E_USER_DATA_LEN
+e_system_program_data_len:
+    mov64 r0, E_SYSTEM_PROGRAM_DATA_LEN
+    exit
+
+e_system_program_duplicate:
+    mov64 r0, E_SYSTEM_PROGRAM_DUPLICATE
+    exit
+
+e_tree_data_len:
+    mov64 r0, E_TREE_DATA_LEN
     exit
 
 e_tree_duplicate:
     mov64 r0, E_TREE_DUPLICATE
+    exit
+
+e_user_data_len:
+    mov64 r0, E_USER_DATA_LEN
     exit

@@ -29,6 +29,10 @@
 .equ IB_INIT_INSTRUCTION_DATA_LEN_OFF, 31032
 # Program ID field for initialize instruction.
 .equ IB_INIT_PROGRAM_ID_OFF, 31040
+# System Program non-duplicate marker field.
+.equ IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
+# System Program data length field.
+.equ IB_SYSTEM_PROGRAM_DATA_LEN_OFF, 20760
 
 # Miscellaneous constants.
 # ------------------------
