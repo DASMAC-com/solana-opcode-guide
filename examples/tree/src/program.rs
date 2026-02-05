@@ -42,12 +42,10 @@ unsafe fn next_account_non_duplicate(
 // ANCHOR: entrypoint-branching
 no_allocator!();
 nostd_panic_handler!();
+
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input: *mut u8) -> u64 {
-    match process_instruction(input) {
-        Ok(_) => SUCCESS,
-        Err(error) => error.into(),
-    }
+    0
 }
 
 #[inline(always)]

@@ -47,15 +47,6 @@ constant_group! {
     }
 }
 
-/// Value in r0.
-#[repr(C, packed)]
-struct Return {
-    /// If a value is retrieved from the tree, it's encoded in high bits.
-    maybe_value: u16,
-    /// Nonzero iff error.
-    status: u16,
-}
-
 #[repr(C, packed)]
 /// Input buffer header for all instructions.
 pub struct InputBufferHeader {
@@ -90,13 +81,4 @@ type SystemProgramRuntimeAccount =
 /// Compute the data buffer size for a runtime account with the given data length.
 const fn runtime_data_size(data_len: usize) -> usize {
     MAX_PERMITTED_DATA_INCREASE + data_len.next_multiple_of(misc::BPF_ALIGN_OF_U128)
-}
-
-#[repr(C, packed)]
-/// For CPI to create tree account.
-pub struct CreateAccountInstructionData {
-    instruction_tag: u32,
-    lamports: u64,
-    space: u64,
-    owner: Address,
 }

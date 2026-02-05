@@ -466,7 +466,11 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
                 let docs = [#(#const_docs),*];
 
                 for i in 0..names.len() {
-                    let full_name = format!("{}_{}", prefix, names[i]);
+                    let full_name = if prefix.is_empty() {
+                        String::from(names[i])
+                    } else {
+                        format!("{}_{}", prefix, names[i])
+                    };
                     // Use original literal if available, otherwise use computed value.
                     let value_str = match literal_values[i] {
                         Some(lit) => String::from(lit),
@@ -801,7 +805,7 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
 /// Input for extend_constant_group! macro.
 struct ExtendConstantGroupInput {
     name: Ident,
-    prefix: String,
+    prefix: Option<String>,
     constants: Vec<AsmConstantDef>,
 }
 
@@ -814,18 +818,22 @@ impl Parse for ExtendConstantGroupInput {
         let content;
         braced!(content in input);
 
-        // Parse prefix = "..."
-        let ident: Ident = content.parse()?;
-        if ident != "prefix" {
-            return Err(syn::Error::new(
-                ident.span(),
-                "First item must be 'prefix = \"...\"'",
-            ));
-        }
-        content.parse::<Token![=]>()?;
-        let prefix_lit: syn::LitStr = content.parse()?;
-        let prefix = prefix_lit.value();
-        content.parse::<Token![,]>()?;
+        // Parse optional prefix = "..."
+        let prefix = if content.peek(Ident) {
+            let fork = content.fork();
+            let ident: Ident = fork.parse()?;
+            if ident == "prefix" && fork.peek(Token![=]) {
+                content.parse::<Ident>()?;
+                content.parse::<Token![=]>()?;
+                let prefix_lit: syn::LitStr = content.parse()?;
+                content.parse::<Token![,]>()?;
+                Some(prefix_lit.value())
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
         // Parse constants using shared parser.
         let constants = parse_asm_constants(&content)?;
@@ -865,7 +873,6 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ExtendConstantGroupInput);
 
     let mod_name = &input.name;
-    let prefix = &input.prefix;
     let max_line_len = MAX_LINE_LEN;
 
     // Generate constant definitions and collect info for ASM.
@@ -936,6 +943,16 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
     // Collect const idents for ASM output.
     let const_idents: Vec<_> = input.constants.iter().map(|c| &c.name).collect();
 
+    // Generate name formatting logic based on whether prefix is present.
+    let base_prefix = match &input.prefix {
+        Some(prefix) => quote! { #prefix },
+        None => quote! { "" },
+    };
+    let name_format = match &input.prefix {
+        Some(prefix) => quote! { format!("{}_{}", #prefix, names[i]) },
+        None => quote! { String::from(names[i]) },
+    };
+
     // Generate value string options for preserving hex/binary literals.
     let value_str_opts: Vec<_> = const_value_strs
         .iter()
@@ -955,10 +972,10 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
 
             #(#const_defs)*
 
-            /// Generate combined ASM (base + extension) with prefix.
+            /// Generate combined ASM (base + extension).
             pub fn to_asm() -> String {
                 // Base group adds header and its constants.
-                let mut result = crate::common::#mod_name::to_asm(#prefix);
+                let mut result = crate::common::#mod_name::to_asm(#base_prefix);
 
                 // Add extension constants (no separate header).
                 let names: &[&str] = &[#(#const_names),*];
@@ -967,7 +984,7 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                 let docs: &[&str] = &[#(#const_docs),*];
 
                 for i in 0..names.len() {
-                    let full_name = format!("{}_{}", #prefix, names[i]);
+                    let full_name = #name_format;
                     // Use original literal if available, otherwise use computed value.
                     let value_str = match literal_values[i] {
                         Some(lit) => String::from(lit),

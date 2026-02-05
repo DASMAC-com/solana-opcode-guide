@@ -1,9 +1,8 @@
 extern crate alloc;
 
-use crate::bindings;
-use crate::common::{CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
+use crate::common::{InitInputBuffer, InputBufferHeader};
 use macros::extend_constant_group;
-use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
+use pinocchio::entrypoint::NON_DUP_MARKER;
 
 extend_constant_group!(input_buffer {
     prefix = "IB",
@@ -28,31 +27,8 @@ extend_constant_group!(input_buffer {
 });
 
 extend_constant_group!(misc {
-    prefix = "MISC",
     /// And mask for data length alignment.
     DATA_LEN_AND_MASK = -8,
     /// Maximum possible data length padding.
     MAX_DATA_PAD = 7,
 });
-
-/// User and tree accounts must sign CPI.
-const CPI_N_ACCOUNTS: usize = 2;
-/// The tree account is a PDA.
-const CPI_N_PDA_SIGNERS: usize = 1;
-/// The bump seed is required for tree PDA signer.
-const CPI_N_SEEDS: usize = 1;
-
-#[repr(C)]
-struct InitStackFrame {
-    /// Zero-initialized on stack.
-    system_program_address: Address,
-    instruction: bindings::SolInstruction,
-    account_metas: [bindings::SolAccountMeta; CPI_N_ACCOUNTS],
-    account_infos: [bindings::SolAccountInfo; CPI_N_ACCOUNTS],
-    signers_seeds: [bindings::SolSignerSeeds; CPI_N_PDA_SIGNERS],
-    signer_seeds: [bindings::SolSignerSeed; CPI_N_SEEDS],
-    pda: Address,
-    rent: Rent,
-    instruction_data: CreateAccountInstructionData,
-    bump_seed: u8,
-}
