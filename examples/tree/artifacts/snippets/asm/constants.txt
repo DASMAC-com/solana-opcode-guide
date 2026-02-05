@@ -3,6 +3,8 @@
 .equ E_N_ACCOUNTS, 1 # An invalid number of accounts were passed.
 .equ E_USER_DATA_LEN, 2 # The user account has nonzero data length.
 .equ E_TREE_DUPLICATE, 3 # The tree account is a duplicate.
+# The passed PDA does not match the expected address.
+.equ E_PDA_MISMATCH, 4
 
 # Input buffer layout.
 # --------------------
@@ -17,10 +19,6 @@
 .equ IB_PACKED_INSTRUCTION_DATA_LEN_OFF, 20680
 # Program ID field for empty tree account.
 .equ IB_PACKED_PROGRAM_ID_OFF, 20688
-
-# CPI-related constants.
-# ----------------------
-.equ CPI_N_ACCOUNTS, 2 # User and tree accounts must sign.
 
 # Miscellaneous constants.
 # ------------------------

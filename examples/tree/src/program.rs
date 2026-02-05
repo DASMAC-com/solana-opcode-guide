@@ -1,8 +1,9 @@
 use interface::*;
 use pinocchio::{
+    address::address_eq,
     entrypoint::{InstructionContext, MaybeAccount},
     error::ProgramError,
-    lazy_program_entrypoint, no_allocator, nostd_panic_handler, ProgramResult,
+    lazy_program_entrypoint, no_allocator, nostd_panic_handler, Address, ProgramResult,
 };
 
 /// If condition is true, return the given error.
@@ -34,14 +35,22 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     let user = unsafe { context.next_account_unchecked().assume_account() };
     if_err!(!user.is_data_empty(), USER_DATA_LEN);
     // SAFETY: number of accounts has been checked.
-    let _tree = match unsafe { context.next_account_unchecked() } {
+    let tree = match unsafe { context.next_account_unchecked() } {
         MaybeAccount::Account(account) => account,
         MaybeAccount::Duplicated(_) => err!(TREE_DUPLICATE),
     };
+    // SAFETY: all accounts have been read.
+    let instruction_data = unsafe { context.instruction_data_unchecked() };
+    let program_id = unsafe { context.program_id_unchecked() };
     // ANCHOR_END: check-input-buffer
 
-    // SAFETY: all accounts have been read.
-    let _instruction_data = unsafe { context.instruction_data_unchecked() };
-    let _program_id = unsafe { context.program_id_unchecked() };
+    // ANCHOR: initialize-tree
+    if instruction_data.is_empty() {
+        let (expected_pda, bump) = Address::find_program_address(&[], program_id);
+        if_err!(!address_eq(tree.address(), &expected_pda), PDA_MISMATCH);
+        // ANCHOR_END: initialize-tree
+    } else {
+        // Other instruction logic here...
+    };
     Ok(())
 }

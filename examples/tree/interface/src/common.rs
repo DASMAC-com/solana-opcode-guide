@@ -8,6 +8,8 @@ error_codes! {
     USER_DATA_LEN,
     /// The tree account is a duplicate.
     TREE_DUPLICATE,
+    /// The passed PDA does not match the expected address.
+    PDA_MISMATCH,
 }
 
 constant_group! {

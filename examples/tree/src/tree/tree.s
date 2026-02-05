@@ -4,6 +4,8 @@
 .equ E_N_ACCOUNTS, 1 # An invalid number of accounts were passed.
 .equ E_USER_DATA_LEN, 2 # The user account has nonzero data length.
 .equ E_TREE_DUPLICATE, 3 # The tree account is a duplicate.
+# The passed PDA does not match the expected address.
+.equ E_PDA_MISMATCH, 4
 
 # Input buffer layout.
 # --------------------
@@ -19,10 +21,6 @@
 # Program ID field for empty tree account.
 .equ IB_PACKED_PROGRAM_ID_OFF, 20688
 
-# CPI-related constants.
-# ----------------------
-.equ CPI_N_ACCOUNTS, 2 # User and tree accounts must sign.
-
 # Miscellaneous constants.
 # ------------------------
 .equ DATA_LEN_ZERO, 0 # Data length of zero.
@@ -34,22 +32,24 @@
 .globl entrypoint
 
 entrypoint:
+    # Check input buffer accounts.
+    # ----------------------------
     ldxdw r2, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
     jne r2, IB_N_ACCOUNTS, e_n_accounts # Error if invalid number.
     ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF] # Get user data length.
     jne r2, DATA_LEN_ZERO, e_user_data_len # Error if user has data.
     ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF] # Load tree non-dup marker.
     jne r2, IB_NON_DUP_MARKER, e_tree_duplicate # Error if duplicate.
-    # ANCHOR_END: check-input-buffer
 
-    # ANCHOR: parse-input-buffer-tail
+    # Parse input buffer tail.
+    # ------------------------
     ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
     add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
     and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
     add64 r2, r1 # Get input buffer pointer shifted for tree data.
     # Get instruction data length.
     ldxdw r3, [r2 + IB_PACKED_INSTRUCTION_DATA_LEN_OFF]
-    # ANCHOR_END: parse-input-buffer-tail
+    # ANCHOR_END: check-input-buffer
 
     jeq r3, DATA_LEN_ZERO, initialize # Initialize if no instruction data.
 

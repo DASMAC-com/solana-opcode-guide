@@ -1,9 +1,20 @@
 .globl entrypoint
 
 entrypoint:
+    # Check input buffer accounts.
+    # ----------------------------
     ldxdw r2, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
     jne r2, IB_N_ACCOUNTS, e_n_accounts # Error if invalid number.
     ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF] # Get user data length.
     jne r2, DATA_LEN_ZERO, e_user_data_len # Error if user has data.
     ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF] # Load tree non-dup marker.
     jne r2, IB_NON_DUP_MARKER, e_tree_duplicate # Error if duplicate.
+
+    # Parse input buffer tail.
+    # ------------------------
+    ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
+    add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
+    and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
+    add64 r2, r1 # Get input buffer pointer shifted for tree data.
+    # Get instruction data length.
+    ldxdw r3, [r2 + IB_PACKED_INSTRUCTION_DATA_LEN_OFF]

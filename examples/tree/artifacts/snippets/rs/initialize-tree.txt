@@ -1,0 +1,3 @@
+    if instruction_data.is_empty() {
+        let (expected_pda, bump) = Address::find_program_address(&[], program_id);
+        if_err!(!address_eq(tree.address(), &expected_pda), PDA_MISMATCH);
