@@ -171,13 +171,26 @@ fn extract_doc_comment(attrs: &[syn::Attribute]) -> Option<String> {
     }
 }
 
+enum ConstantKind {
+    /// Regular constant with explicit type and value.
+    Value {
+        ty: syn::Type,
+        value: syn::Expr,
+        /// Original literal string for ASM output (preserves hex/binary).
+        literal_repr: Option<String>,
+    },
+    /// Offset derived from struct field path (i16 validated).
+    /// Name gets `_OFF` suffix appended.
+    Offset {
+        struct_name: Ident,
+        field_path: Vec<Ident>,
+    },
+}
+
 struct ConstantDef {
     doc: String,
     name: Ident,
-    ty: syn::Type,
-    value: syn::Expr,
-    /// Original literal string for ASM output (preserves hex/binary).
-    literal_repr: Option<String>,
+    kind: ConstantKind,
 }
 
 struct ConstantGroup {
@@ -217,10 +230,35 @@ impl Parse for ConstantGroup {
                 return Err(content.error(e));
             }
 
-            let const_name: Ident = content.parse()?;
+            let ident: Ident = content.parse()?;
 
-            // Support both `NAME: type = value` and `NAME = expr` forms.
-            let (const_ty, const_value, literal_repr) = if content.peek(Token![:]) {
+            // Support `offset!(NAME, Struct.field)`, `NAME: type = value`,
+            // and `NAME = expr as Type` forms.
+            let (const_name, kind) = if ident == "offset" {
+                // offset!(NAME, Struct.field.nested.path)
+                content.parse::<Token![!]>()?;
+                let inner;
+                syn::parenthesized!(inner in content);
+                let base_name: Ident = inner.parse()?;
+                inner.parse::<Token![,]>()?;
+                let struct_name: Ident = inner.parse()?;
+                let mut field_path = Vec::new();
+                while inner.peek(Token![.]) {
+                    inner.parse::<Token![.]>()?;
+                    field_path.push(inner.parse::<Ident>()?);
+                }
+                if field_path.is_empty() {
+                    return Err(inner.error("Expected at least one field after struct name"));
+                }
+                let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
+                (
+                    full_name,
+                    ConstantKind::Offset {
+                        struct_name,
+                        field_path,
+                    },
+                )
+            } else if content.peek(Token![:]) {
                 // NAME: type = value
                 content.parse::<Token![:]>()?;
                 let ty: syn::Type = content.parse()?;
@@ -235,10 +273,24 @@ impl Parse for ConstantGroup {
                         attrs: vec![],
                         lit: Lit::Int(lit),
                     });
-                    (ty, expr, Some(repr))
+                    (
+                        ident,
+                        ConstantKind::Value {
+                            ty,
+                            value: expr,
+                            literal_repr: Some(repr),
+                        },
+                    )
                 } else {
                     let expr: syn::Expr = content.parse()?;
-                    (ty, expr, None)
+                    (
+                        ident,
+                        ConstantKind::Value {
+                            ty,
+                            value: expr,
+                            literal_repr: None,
+                        },
+                    )
                 }
             } else {
                 // NAME = expr (type inferred from `as Type` cast).
@@ -253,7 +305,14 @@ impl Parse for ConstantGroup {
                     ));
                 };
 
-                (ty, expr, None)
+                (
+                    ident,
+                    ConstantKind::Value {
+                        ty,
+                        value: expr,
+                        literal_repr: None,
+                    },
+                )
             };
 
             // Optional trailing comma.
@@ -262,9 +321,7 @@ impl Parse for ConstantGroup {
             constants.push(ConstantDef {
                 doc: const_doc,
                 name: const_name,
-                ty: const_ty,
-                value: const_value,
-                literal_repr,
+                kind,
             });
         }
 
@@ -320,36 +377,61 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
 
     for c in &group.constants {
         let name = &c.name;
-        let ty = &c.ty;
-        let value = &c.value;
         let doc = &c.doc;
-        let assert_name = Ident::new(&format!("_ASSERT_{}_FITS_I32", name), name.span());
 
-        const_value_strs.push(c.literal_repr.clone());
+        match &c.kind {
+            ConstantKind::Value {
+                ty,
+                value,
+                literal_repr,
+            } => {
+                let assert_name =
+                    Ident::new(&format!("_ASSERT_{}_FITS_I32", name), name.span());
+                const_value_strs.push(literal_repr.clone());
 
-        if c.literal_repr.is_some() {
-            // Literal value - no scope wrapper needed.
-            const_defs.push(quote! {
-                #[doc = #doc]
-                pub const #name: #ty = #value;
+                if literal_repr.is_some() {
+                    // Literal value - no scope wrapper needed.
+                    const_defs.push(quote! {
+                        #[doc = #doc]
+                        pub const #name: #ty = #value;
 
-                const #assert_name: () = assert!(
-                    (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
-                    "ASM immediate must fit in i32 range"
-                );
-            });
-        } else {
-            // Expression value - use super::* for scope access.
-            const_defs.push(quote! {
-                #[doc = #doc]
-                pub const #name: #ty = { use super::*; #value };
+                        const #assert_name: () = assert!(
+                            (#value as i64) >= (i32::MIN as i64) && (#value as i64) <= (i32::MAX as i64),
+                            "ASM immediate must fit in i32 range"
+                        );
+                    });
+                } else {
+                    // Expression value - use super::* for scope access.
+                    const_defs.push(quote! {
+                        #[doc = #doc]
+                        pub const #name: #ty = { use super::*; #value };
 
-                const #assert_name: () = assert!(
-                    ({ use super::*; #value } as i64) >= (i32::MIN as i64)
-                        && ({ use super::*; #value } as i64) <= (i32::MAX as i64),
-                    "ASM immediate must fit in i32 range"
-                );
-            });
+                        const #assert_name: () = assert!(
+                            ({ use super::*; #value } as i64) >= (i32::MIN as i64)
+                                && ({ use super::*; #value } as i64) <= (i32::MAX as i64),
+                            "ASM immediate must fit in i32 range"
+                        );
+                    });
+                }
+            }
+            ConstantKind::Offset {
+                struct_name,
+                field_path,
+            } => {
+                let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
+                const_value_strs.push(None);
+
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i16;
+
+                    const #assert_name: () = assert!(
+                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i16::MIN as i64)
+                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i16::MAX as i64),
+                        "Offset must fit in i16 range"
+                    );
+                });
+            }
         }
     }
 

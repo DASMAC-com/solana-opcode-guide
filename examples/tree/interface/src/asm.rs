@@ -1,20 +1,12 @@
 extern crate alloc;
 
 use crate::bindings;
-use crate::common;
-use crate::common::CreateAccountInstructionData;
-use macros::{asm_constant_group, extend_constant_group};
-use pinocchio::{
-    account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE},
-    entrypoint::NON_DUP_MARKER,
-    sysvars::rent::Rent,
-    Address,
-};
+use crate::common::{CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
+use macros::extend_constant_group;
+use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
 extend_constant_group!(input_buffer {
     prefix = "IB",
-    /// Number of accounts field.
-    offset!(N_ACCOUNTS, InputBufferHeader.n_accounts),
     /// User address field.
     offset!(USER_ADDRESS, InputBufferHeader.user.header.address),
     /// User data length field.
@@ -35,54 +27,13 @@ extend_constant_group!(input_buffer {
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.system_program.header.data_len),
 });
 
-asm_constant_group! {
-    /// Miscellaneous constants.
-    misc {
-        /// Data length of zero.
-        DATA_LEN_ZERO = 0,
-        /// And mask for data length alignment.
-        DATA_LEN_AND_MASK = -8,
-        /// Maximum possible data length padding.
-        MAX_DATA_PAD = 7,
-    }
-}
-
-/// Compute the data buffer size for a runtime account with the given data length.
-const fn runtime_data_size(data_len: i64) -> usize {
-    MAX_PERMITTED_DATA_INCREASE
-        + (((data_len + misc::MAX_DATA_PAD) & misc::DATA_LEN_AND_MASK) as usize)
-}
-
-#[repr(C)]
-struct RuntimeAccount<const DATA_SIZE: usize> {
-    header: RuntimeAccountHeader,
-    data: [u8; DATA_SIZE],
-    rent_epoch: u64,
-}
-
-type EmptyRuntimeAccount = RuntimeAccount<{ runtime_data_size(misc::DATA_LEN_ZERO) }>;
-type SystemProgramRuntimeAccount =
-    RuntimeAccount<{ runtime_data_size(common::input_buffer::SYSTEM_PROGRAM_DATA_LEN as i64) }>;
-
-#[repr(C, packed)]
-/// Input buffer header for all instructions.
-struct InputBufferHeader {
-    n_accounts: u64,
-    user: EmptyRuntimeAccount,
-    tree_header: RuntimeAccountHeader,
-}
-
-#[repr(C, packed)]
-/// Input buffer for tree initialization instruction.
-struct InitInputBuffer {
-    n_accounts: u64,
-    user: EmptyRuntimeAccount,
-    tree: EmptyRuntimeAccount,
-    system_program: SystemProgramRuntimeAccount,
-    /// No actual instruction data follows.
-    instruction_data_len: u64,
-    program_id: Address,
-}
+extend_constant_group!(misc {
+    prefix = "MISC",
+    /// And mask for data length alignment.
+    DATA_LEN_AND_MASK = -8,
+    /// Maximum possible data length padding.
+    MAX_DATA_PAD = 7,
+});
 
 /// User and tree accounts must sign CPI.
 const CPI_N_ACCOUNTS: usize = 2;

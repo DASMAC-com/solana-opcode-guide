@@ -1,10 +1,9 @@
 use interface::{error_codes::error, input_buffer};
 use pinocchio::{
     address::address_eq,
-    entrypoint::{InstructionContext, MaybeAccount},
+    entrypoint::{lazy::InstructionContext, MaybeAccount},
     error::ProgramError,
-    lazy_program_entrypoint, no_allocator, nostd_panic_handler, AccountView, Address,
-    ProgramResult,
+    no_allocator, nostd_panic_handler, AccountView, Address, ProgramResult, SUCCESS,
 };
 
 #[inline(always)]
@@ -41,16 +40,19 @@ unsafe fn next_account_non_duplicate(
 }
 
 // ANCHOR: entrypoint-branching
-nostd_panic_handler!();
 no_allocator!();
-lazy_program_entrypoint!(process_instruction);
-
-pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
-    match context.remaining() {
-        input_buffer::N_ACCOUNTS_GENERAL => Ok(()),
-        input_buffer::N_ACCOUNTS_INIT => initialize(context),
-        _ => err(error::N_ACCOUNTS),
+nostd_panic_handler!();
+#[no_mangle]
+pub unsafe extern "C" fn entrypoint(input: *mut u8) -> u64 {
+    match process_instruction(input) {
+        Ok(_) => SUCCESS,
+        Err(error) => error.into(),
     }
+}
+
+#[inline(always)]
+pub fn process_instruction(input: *mut u8) -> ProgramResult {
+    Ok(())
 }
 // ANCHOR_END: entrypoint-branching
 
