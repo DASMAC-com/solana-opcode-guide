@@ -1,16 +1,17 @@
 #[inline(always)]
+/// SAFETY: Called by entrypoint after verifying the right number of accounts for initialization.
 fn initialize(mut context: InstructionContext) -> ProgramResult {
-    // Verify user has no data.
+    // Error if user has data.
     // SAFETY: number of accounts has been checked.
     let user = unsafe { context.next_account_unchecked().assume_account() };
     ensure_is_data_empty(&user, error::USER_DATA_LEN)?;
 
-    // Verify tree is non-duplicate and has no data.
+    // Error if tree is duplicate or has data.
     // SAFETY: number of accounts has been checked.
     let tree = unsafe { next_account_non_duplicate(&mut context, error::TREE_DUPLICATE) }?;
     ensure_is_data_empty(&tree, error::TREE_DATA_LEN)?;
 
-    // Verify system program is non-duplicate and has expected data length.
+    // Error if System Program is duplicate or has invalid data length.
     // SAFETY: number of accounts has been checked.
     let system_program =
         unsafe { next_account_non_duplicate(&mut context, error::SYSTEM_PROGRAM_DUPLICATE) }?;
@@ -19,7 +20,7 @@ fn initialize(mut context: InstructionContext) -> ProgramResult {
         error::SYSTEM_PROGRAM_DATA_LEN,
     )?;
 
-    // Verify no instruction data provided.
+    // Error if instruction data provided.
     // SAFETY: all accounts have been consumed.
     ensure(
         unsafe { context.instruction_data_unchecked().is_empty() },
