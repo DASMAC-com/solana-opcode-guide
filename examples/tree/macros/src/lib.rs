@@ -105,6 +105,12 @@ pub fn error_codes(input: TokenStream) -> TokenStream {
                 }
             }
 
+            impl From<error> for u64 {
+                fn from(e: error) -> u64 {
+                    e as u64
+                }
+            }
+
             /// Generate ASM constants for error codes.
             pub fn to_asm() -> alloc::string::String {
                 alloc::format!("{}\n{}\n", #header, #body)

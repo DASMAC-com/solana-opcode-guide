@@ -1,3 +1,4 @@
+use core::mem::transmute;
 use interface::{error_codes::error, input_buffer};
 use pinocchio::{
     address::address_eq,
@@ -44,13 +45,14 @@ no_allocator!();
 nostd_panic_handler!();
 
 #[no_mangle]
-pub unsafe extern "C" fn entrypoint(input: *mut u8) -> u64 {
-    0
-}
-
-#[inline(always)]
-pub fn process_instruction(input: *mut u8) -> ProgramResult {
-    Ok(())
+pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
+    match *transmute::<*mut u8, *const u64>(
+        input_buffer_ptr.add(input_buffer::N_ACCOUNTS_OFF as usize),
+    ) {
+        input_buffer::N_ACCOUNTS_GENERAL => SUCCESS,
+        input_buffer::N_ACCOUNTS_INIT => SUCCESS,
+        _ => error::N_ACCOUNTS.into(),
+    }
 }
 // ANCHOR_END: entrypoint-branching
 

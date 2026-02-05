@@ -1,3 +1,4 @@
+#![allow(warnings)]
 /// Generated from Agave using bindgen.
 use pinocchio::Address;
 
