@@ -1,9 +1,12 @@
+nostd_panic_handler!();
+no_allocator!();
 lazy_program_entrypoint!(process_instruction);
 
 pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     match context.remaining() {
         input_buffer::N_ACCOUNTS_GENERAL => Ok(()),
-        input_buffer::N_ACCOUNTS_INIT => initialize(context),
-        _ => err!(N_ACCOUNTS),
+        // SAFETY: number of accounts has been checked.
+        input_buffer::N_ACCOUNTS_INIT => unsafe { initialize(context) },
+        _ => err(error::N_ACCOUNTS),
     }
 }
