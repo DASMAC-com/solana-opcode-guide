@@ -4,6 +4,7 @@ use macros::{asm_constant_group, extend_constant_group};
 use pinocchio::{
     account::{RuntimeAccount, MAX_PERMITTED_DATA_INCREASE},
     entrypoint::NON_DUP_MARKER,
+    Address,
 };
 
 extend_constant_group!(input_buffer {
@@ -20,6 +21,8 @@ extend_constant_group!(input_buffer {
     offset!(TREE_NON_DUP_MARKER, InputBuffer.tree_header.borrow_state),
     /// Tree data length field.
     offset!(TREE_DATA_LEN, InputBuffer.tree_header.data_len),
+    /// Instruction data length field for empty tree account.
+    offset!(INSTRUCTION_DATA_LEN, PackedInputBuffer.instruction_data_len),
 });
 
 asm_constant_group! {
@@ -46,4 +49,15 @@ struct InputBuffer {
     n_accounts: u64,
     user: EmptyRuntimeAccount,
     tree_header: RuntimeAccount,
+}
+
+#[repr(C, packed)]
+/// Input buffer for empty tree account and no instruction data (during initialization).
+struct PackedInputBuffer {
+    n_accounts: u64,
+    user: EmptyRuntimeAccount,
+    tree: EmptyRuntimeAccount,
+    instruction_data_len: u64,
+    instruction_data: [u8; 0],
+    program_id: Address,
 }

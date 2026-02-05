@@ -14,6 +14,8 @@
 .equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
 .equ IB_TREE_NON_DUP_MARKER_OFF, 10344 # Tree non-duplicate marker field.
 .equ IB_TREE_DATA_LEN_OFF, 10424 # Tree data length field.
+# Instruction data length field for empty tree account.
+.equ IB_INSTRUCTION_DATA_LEN_OFF, 20680
 
 # Miscellaneous constants.
 # ------------------------
@@ -34,9 +36,16 @@ entrypoint:
     jne r2, IB_NON_DUP_MARKER, e_tree_duplicate # Error if duplicate.
     # ANCHOR_END: check-input-buffer
 
+    # ANCHOR: tree-data-length
     ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
     add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
     and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
+    add64 r2, r1 # Get input buffer pointer shifted for tree data.
+    # ANCHOR_END: tree-data-length
+
+    # Get instruction data length.
+    ldxw r0, [r2 + IB_INSTRUCTION_DATA_LEN_OFF]
+
     exit
 
 e_n_accounts:

@@ -1,0 +1,4 @@
+    ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
+    add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
+    and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
+    add64 r2, r1 # Get input buffer pointer shifted for tree data.
