@@ -27,9 +27,9 @@
 .equ IB_TREE_NON_DUP_MARKER_OFF, 10344 # Tree non-duplicate marker field.
 .equ IB_TREE_DATA_LEN_OFF, 10424 # Tree data length field.
 # Instruction data length field for empty tree account.
-.equ IB_PACKED_INSTRUCTION_DATA_LEN_OFF, 20680
-# Program ID field for empty tree account.
-.equ IB_PACKED_PROGRAM_ID_OFF, 20688
+.equ IB_INIT_INSTRUCTION_DATA_LEN_OFF, 31032
+# Program ID field for initialize instruction.
+.equ IB_INIT_PROGRAM_ID_OFF, 31040
 
 # Miscellaneous constants.
 # ------------------------
@@ -38,7 +38,7 @@
 .equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
 # ANCHOR_END: constants
 
-# ANCHOR: check-input-buffer
+# ANCHOR: entrypoint-branch
 .globl entrypoint
 
 entrypoint:
@@ -49,7 +49,7 @@ entrypoint:
     jeq r3, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
     mov64 r0, E_N_ACCOUNTS # Else fail.
     exit
-    # ANCHOR_END: check-input-buffer
+    # ANCHOR_END: entrypoint-branch
 
 general:
     ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.

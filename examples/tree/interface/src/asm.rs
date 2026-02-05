@@ -1,10 +1,13 @@
 extern crate alloc;
 
-use crate::bindings::*;
-use crate::common::*;
+use crate::bindings;
+use crate::common;
+use crate::common::CreateAccountInstructionData;
+use core::char::MAX;
+use core::mem::size_of;
 use macros::{asm_constant_group, extend_constant_group};
 use pinocchio::{
-    account::{RuntimeAccount, MAX_PERMITTED_DATA_INCREASE},
+    account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE},
     entrypoint::NON_DUP_MARKER,
     sysvars::rent::Rent,
     Address,
@@ -25,9 +28,10 @@ extend_constant_group!(input_buffer {
     /// Tree data length field.
     offset!(TREE_DATA_LEN, InputBuffer.tree_header.data_len),
     /// Instruction data length field for empty tree account.
-    offset!(PACKED_INSTRUCTION_DATA_LEN, PackedInputBuffer.instruction_data_len),
-    /// Program ID field for empty tree account.
-    offset!(PACKED_PROGRAM_ID, PackedInputBuffer.program_id),
+    offset!(INIT_INSTRUCTION_DATA_LEN, InitInputBuffer.instruction_data_len),
+    /// Program ID field for initialize instruction.
+    offset!(INIT_PROGRAM_ID, InitInputBuffer.program_id),
+
 });
 
 asm_constant_group! {
@@ -42,28 +46,39 @@ asm_constant_group! {
     }
 }
 
-#[repr(C, packed)]
-struct EmptyRuntimeAccount {
-    header: RuntimeAccount,
-    data: [u8; MAX_PERMITTED_DATA_INCREASE],
+/// Compute the data buffer size for a runtime account with the given data length.
+const fn runtime_data_size(data_len: i64) -> usize {
+    MAX_PERMITTED_DATA_INCREASE
+        + (((data_len + misc::MAX_DATA_PAD) & misc::DATA_LEN_AND_MASK) as usize)
+}
+
+#[repr(C)]
+struct RuntimeAccount<const DATA_SIZE: usize> {
+    header: RuntimeAccountHeader,
+    data: [u8; DATA_SIZE],
     rent_epoch: u64,
 }
+
+type EmptyRuntimeAccount = RuntimeAccount<{ runtime_data_size(misc::DATA_LEN_ZERO) }>;
+type SystemProgramRuntimeAccount =
+    RuntimeAccount<{ runtime_data_size(common::input_buffer::SYSTEM_PROGRAM_DATA_LEN as i64) }>;
 
 #[repr(C, packed)]
 struct InputBuffer {
     n_accounts: u64,
     user: EmptyRuntimeAccount,
-    tree_header: RuntimeAccount,
+    tree_header: RuntimeAccountHeader,
 }
 
 #[repr(C, packed)]
-/// Input buffer for empty tree account and no instruction data (during initialization).
-struct PackedInputBuffer {
+/// Input buffer for tree initialization instruction.
+struct InitInputBuffer {
     n_accounts: u64,
     user: EmptyRuntimeAccount,
     tree: EmptyRuntimeAccount,
+    system_program: SystemProgramRuntimeAccount,
+    /// No actual instruction data follows.
     instruction_data_len: u64,
-    instruction_data: [u8; 0],
     program_id: Address,
 }
 
@@ -78,11 +93,11 @@ const CPI_N_SEEDS: usize = 1;
 struct InitStackFrame {
     /// Zero-initialized on stack.
     system_program_address: Address,
-    instruction: SolInstruction,
-    account_metas: [SolAccountMeta; CPI_N_ACCOUNTS],
-    account_infos: [SolAccountInfo; CPI_N_ACCOUNTS],
-    signers_seeds: [SolSignerSeeds; CPI_N_PDA_SIGNERS],
-    signer_seeds: [SolSignerSeed; CPI_N_SEEDS],
+    instruction: bindings::SolInstruction,
+    account_metas: [bindings::SolAccountMeta; CPI_N_ACCOUNTS],
+    account_infos: [bindings::SolAccountInfo; CPI_N_ACCOUNTS],
+    signers_seeds: [bindings::SolSignerSeeds; CPI_N_PDA_SIGNERS],
+    signer_seeds: [bindings::SolSignerSeed; CPI_N_SEEDS],
     pda: Address,
     rent: Rent,
     instruction_data: CreateAccountInstructionData,
