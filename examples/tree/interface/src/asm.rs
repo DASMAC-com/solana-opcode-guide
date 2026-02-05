@@ -22,7 +22,9 @@ extend_constant_group!(input_buffer {
     /// Tree data length field.
     offset!(TREE_DATA_LEN, InputBuffer.tree_header.data_len),
     /// Instruction data length field for empty tree account.
-    offset!(INSTRUCTION_DATA_LEN, PackedInputBuffer.instruction_data_len),
+    offset!(PACKED_INSTRUCTION_DATA_LEN, PackedInputBuffer.instruction_data_len),
+    /// Program ID field for empty tree account.
+    offset!(PACKED_PROGRAM_ID, PackedInputBuffer.program_id),
 });
 
 asm_constant_group! {

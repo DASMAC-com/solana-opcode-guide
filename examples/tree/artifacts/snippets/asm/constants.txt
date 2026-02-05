@@ -14,7 +14,9 @@
 .equ IB_TREE_NON_DUP_MARKER_OFF, 10344 # Tree non-duplicate marker field.
 .equ IB_TREE_DATA_LEN_OFF, 10424 # Tree data length field.
 # Instruction data length field for empty tree account.
-.equ IB_INSTRUCTION_DATA_LEN_OFF, 20680
+.equ IB_PACKED_INSTRUCTION_DATA_LEN_OFF, 20680
+# Program ID field for empty tree account.
+.equ IB_PACKED_PROGRAM_ID_OFF, 20688
 
 # Miscellaneous constants.
 # ------------------------
