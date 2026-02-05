@@ -215,3 +215,101 @@ fn test_fast_fails() {
         );
     }
 }
+
+// ============================================================================
+// Initialize operation tests
+// ============================================================================
+
+/// Setup for initialize instruction (empty instruction data, correct PDA).
+fn init_setup(
+    program_language: ProgramLanguage,
+) -> (test_utils::TestSetup, Instruction, Vec<(Pubkey, Account)>) {
+    let setup = setup_test(program_language);
+    let (system_program, _) = program::keyed_account_for_system_program();
+
+    let user_pubkey = Pubkey::new_unique();
+    // Derive the correct PDA for the tree account.
+    let (tree_pda, _bump) = Pubkey::find_program_address(&[], &setup.program_id);
+
+    let instruction = Instruction::new_with_bytes(
+        setup.program_id,
+        &[], // Empty instruction data triggers initialize path
+        vec![
+            AccountMeta::new(user_pubkey, true),
+            AccountMeta::new(tree_pda, false),
+        ],
+    );
+
+    let accounts = vec![
+        (user_pubkey, Account::new(1_000_000, 0, &system_program)),
+        (tree_pda, Account::new(0, 0, &system_program)),
+    ];
+
+    (setup, instruction, accounts)
+}
+
+#[derive(Clone, Copy)]
+enum InitCase {
+    PdaMismatch,
+}
+
+impl InitCase {
+    const CASES: &'static [InitCase] = &[InitCase::PdaMismatch];
+
+    const fn name(&self) -> &'static str {
+        match self {
+            Self::PdaMismatch => "PDA mismatch",
+        }
+    }
+
+    fn run(&self, lang: ProgramLanguage) -> u64 {
+        match self {
+            Self::PdaMismatch => run_init_pda_mismatch(lang),
+        }
+    }
+}
+
+fn run_init_pda_mismatch(lang: ProgramLanguage) -> u64 {
+    let (setup, mut instruction, mut accounts) = init_setup(lang);
+    let (system_program, _) = program::keyed_account_for_system_program();
+
+    // Replace tree PDA with a random pubkey (not the correct PDA).
+    let wrong_tree_pubkey = Pubkey::new_unique();
+    instruction.accounts[AccountIndex::Tree as usize] = AccountMeta::new(wrong_tree_pubkey, false);
+    accounts[AccountIndex::Tree as usize] =
+        (wrong_tree_pubkey, Account::new(0, 0, &system_program));
+
+    setup
+        .mollusk
+        .process_and_validate_instruction(
+            &instruction,
+            &accounts,
+            &[Check::err(ProgramError::Custom(
+                error_codes::error::PDA_MISMATCH.into(),
+            ))],
+        )
+        .compute_units_consumed
+}
+
+#[test]
+fn test_rs_init_pda_mismatch() {
+    run_init_pda_mismatch(ProgramLanguage::Rust);
+}
+
+#[test]
+#[should_panic] // ASM doesn't have PDA check yet
+fn test_asm_init_pda_mismatch() {
+    run_init_pda_mismatch(ProgramLanguage::Assembly);
+}
+
+#[test]
+fn test_init_fails() {
+    println!("\n| Init Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |");
+    println!("|-----------|-----------|------------|----------|------------|");
+
+    for case in InitCase::CASES {
+        // Only run Rust for now since ASM doesn't have init logic yet.
+        let rs_cu = case.run(ProgramLanguage::Rust);
+        println!("| {} | N/A | {} | N/A | N/A |", case.name(), rs_cu);
+    }
+}
