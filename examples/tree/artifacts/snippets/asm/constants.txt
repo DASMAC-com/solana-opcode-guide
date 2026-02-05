@@ -8,8 +8,10 @@
 .equ E_TREE_DUPLICATE, 5 # The tree account is a duplicate.
 # The System Program account is a duplicate.
 .equ E_SYSTEM_PROGRAM_DUPLICATE, 6
+# Instruction data provided during initialization instruction.
+.equ E_INSTRUCTION_DATA, 7
 # The passed PDA does not match the expected address.
-.equ E_PDA_MISMATCH, 7
+.equ E_PDA_MISMATCH, 8
 
 # Input buffer layout.
 # --------------------

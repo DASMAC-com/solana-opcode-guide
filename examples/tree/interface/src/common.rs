@@ -14,6 +14,8 @@ error_codes! {
     TREE_DUPLICATE,
     /// The System Program account is a duplicate.
     SYSTEM_PROGRAM_DUPLICATE,
+    /// Instruction data provided during initialization instruction.
+    INSTRUCTION_DATA,
     /// The passed PDA does not match the expected address.
     PDA_MISMATCH,
 }

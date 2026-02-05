@@ -9,8 +9,10 @@
 .equ E_TREE_DUPLICATE, 5 # The tree account is a duplicate.
 # The System Program account is a duplicate.
 .equ E_SYSTEM_PROGRAM_DUPLICATE, 6
+# Instruction data provided during initialization instruction.
+.equ E_INSTRUCTION_DATA, 7
 # The passed PDA does not match the expected address.
-.equ E_PDA_MISMATCH, 7
+.equ E_PDA_MISMATCH, 8
 
 # Input buffer layout.
 # --------------------
@@ -83,7 +85,15 @@ initialize:
     ldxdw r2, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN]
     jne r2, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
-    # Error if has instruction data
+    # Error if instruction data provided.
+    # -----------------------------------
+    ldxdw r2, [r1 + IB_INIT_INSTRUCTION_DATA_LEN_OFF]
+    jne r2, DATA_LEN_ZERO, e_instruction_data
+
+    exit
+
+e_instruction_data:
+    mov64 r0, E_INSTRUCTION_DATA
     exit
 
 e_system_program_data_len:

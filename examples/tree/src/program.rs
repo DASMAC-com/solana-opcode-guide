@@ -56,7 +56,7 @@ pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
 // ANCHOR_END: entrypoint-branch
 
 #[inline(always)]
-unsafe fn initialize(mut context: InstructionContext) -> ProgramResult {
+fn initialize(mut context: InstructionContext) -> ProgramResult {
     // Verify user has no data.
     // SAFETY: number of accounts has been checked.
     let user = unsafe { context.next_account_unchecked().assume_account() };
@@ -74,6 +74,13 @@ unsafe fn initialize(mut context: InstructionContext) -> ProgramResult {
     ensure(
         system_program.data_len() == input_buffer::SYSTEM_PROGRAM_DATA_LEN,
         error::SYSTEM_PROGRAM_DATA_LEN,
+    )?;
+
+    // Verify no instruction data provided.
+    // SAFETY: all accounts have been consumed.
+    ensure(
+        unsafe { context.instruction_data_unchecked().is_empty() },
+        error::INSTRUCTION_DATA,
     )?;
 
     // Verify tree PDA.
