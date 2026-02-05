@@ -42,6 +42,8 @@ constant_group! {
     misc {
         /// Data length of zero.
         DATA_LEN_ZERO: usize = 0,
+        /// Data alignment during runtime.
+        BPF_ALIGN_OF_U128: usize = 8,
     }
 }
 
@@ -52,15 +54,6 @@ struct Return {
     maybe_value: u16,
     /// Nonzero iff error.
     status: u16,
-}
-
-#[repr(C, packed)]
-/// For CPI to create tree account.
-pub struct CreateAccountInstructionData {
-    instruction_tag: u32,
-    lamports: u64,
-    space: u64,
-    owner: Address,
 }
 
 #[repr(C, packed)]
@@ -84,7 +77,7 @@ pub struct InitInputBuffer {
 }
 
 #[repr(C)]
-struct RuntimeAccount<const DATA_SIZE: usize> {
+pub struct RuntimeAccount<const DATA_SIZE: usize> {
     pub header: RuntimeAccountHeader,
     pub data: [u8; DATA_SIZE],
     pub rent_epoch: u64,
@@ -96,6 +89,14 @@ type SystemProgramRuntimeAccount =
 
 /// Compute the data buffer size for a runtime account with the given data length.
 const fn runtime_data_size(data_len: usize) -> usize {
-    MAX_PERMITTED_DATA_INCREASE
-        + (((data_len + misc::MAX_DATA_PAD) & misc::DATA_LEN_AND_MASK) as usize)
+    MAX_PERMITTED_DATA_INCREASE + data_len.next_multiple_of(misc::BPF_ALIGN_OF_U128)
+}
+
+#[repr(C, packed)]
+/// For CPI to create tree account.
+pub struct CreateAccountInstructionData {
+    instruction_tag: u32,
+    lamports: u64,
+    space: u64,
+    owner: Address,
 }
