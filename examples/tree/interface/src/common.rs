@@ -21,7 +21,6 @@ error_codes! {
 constant_group! {
     /// Input buffer layout.
     input_buffer {
-        prefix = "IB",
         /// Expected number of accounts for general instructions.
         N_ACCOUNTS_GENERAL: u64 = 2,
         /// Expected number of accounts for tree initialization.

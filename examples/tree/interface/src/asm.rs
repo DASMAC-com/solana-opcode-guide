@@ -12,6 +12,7 @@ use pinocchio::{
 };
 
 extend_constant_group!(input_buffer {
+    prefix = "IB",
     /// Number of accounts field.
     offset!(N_ACCOUNTS, InputBufferHeader.n_accounts),
     /// User address field.
@@ -32,7 +33,6 @@ extend_constant_group!(input_buffer {
     offset!(SYSTEM_PROGRAM_NON_DUP_MARKER, InitInputBuffer.system_program.header.borrow_state),
     /// System Program data length field.
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.system_program.header.data_len),
-
 });
 
 asm_constant_group! {
