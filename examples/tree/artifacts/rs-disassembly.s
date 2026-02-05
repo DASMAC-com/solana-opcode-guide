@@ -11,31 +11,44 @@ fn_0000:
 
 entrypoint:
   add64 r10, -64
-  ldxdw r3, [r1+0]
-  jeq r3, 2, jmp_01c8
-  mov64 r2, 1
-  jne r3, 3, jmp_01b8
+  ldxdw r2, [r1+0]
+  jeq r2, 2, jmp_0228
+  mov64 r6, 1
+  jne r2, 3, jmp_0218
   ldxb r2, [r1+8]
-  jne r2, 255, jmp_0238
-  mov64 r2, 2
-  ldxdw r3, [r1+88]
-  jne r3, 0, jmp_01b8
-  add64 r1, r3
+  jne r2, 255, jmp_0268
+  mov64 r6, 2
+  ldxdw r2, [r1+88]
+  jne r2, 0, jmp_0218
+  add64 r1, r2
   add64 r1, 10351
   and64 r1, -8
-  mov64 r2, 3
-  ldxb r3, [r1+0]
-  jne r3, 255, jmp_01b8
+  mov64 r6, 5
+  ldxb r2, [r1+0]
+  jne r2, 255, jmp_0218
+  mov64 r6, 3
   ldxdw r2, [r1+80]
-  mov64 r6, r1
+  jne r2, 0, jmp_0218
   mov64 r3, r1
   add64 r3, r2
   add64 r3, 10343
   and64 r3, -8
-  ldxdw r1, [r3+0]
-  add64 r3, r1
-  add64 r3, 8
+  mov64 r6, 6
+  ldxb r2, [r3+0]
+  jne r2, 255, jmp_0218
+  mov64 r6, 4
+  ldxdw r2, [r3+80]
+  jne r2, 14, jmp_0218
+  add64 r3, r2
+  add64 r3, 10343
+  and64 r3, -8
+  mov64 r6, 7
+  ldxdw r2, [r3+0]
+  jne r2, 0, jmp_0218
+  mov64 r7, r1
   stb [r10+15], 255
+  add64 r3, 8
+  mov64 r6, 8
   mov64 r4, r10
   add64 r4, 16
   mov64 r5, r10
@@ -43,57 +56,56 @@ entrypoint:
   mov64 r1, 8
   mov64 r2, 0
   call sol_try_find_program_address
-  jne r0, 0, jmp_01d8
-  mov64 r2, 4
+  jne r0, 0, jmp_0238
   ldxdw r1, [r10+16]
-  ldxdw r3, [r6+8]
-  jne r3, r1, jmp_01b8
+  ldxdw r2, [r7+8]
+  jne r2, r1, jmp_0218
   ldxdw r1, [r10+24]
-  ldxdw r3, [r6+16]
-  jne r3, r1, jmp_01b8
+  ldxdw r2, [r7+16]
+  jne r2, r1, jmp_0218
   ldxdw r1, [r10+32]
-  ldxdw r3, [r6+24]
-  jne r3, r1, jmp_01b8
+  ldxdw r2, [r7+24]
+  jne r2, r1, jmp_0218
   ldxdw r1, [r10+40]
   mov64 r0, 0
-  ldxdw r3, [r6+32]
-  jeq r3, r1, jmp_01d0
+  ldxdw r2, [r7+32]
+  jeq r2, r1, jmp_0230
 
-jmp_01b8:
-  mov64 r0, r2
-  ja jmp_01d0
+jmp_0218:
+  mov64 r0, r6
+  ja jmp_0230
 
-jmp_01c8:
+jmp_0228:
   mov64 r0, 0
 
-jmp_01d0:
+jmp_0230:
   exit
 
-jmp_01d8:
-  mov32 r1, 1072
+jmp_0238:
+  mov32 r1, 1168
   hor64 r1, 0
   stxdw [r10+16], r1
-  mov32 r2, 1088
+  mov32 r2, 1184
+  hor64 r2, 0
+  ja jmp_0290
+
+jmp_0268:
+  mov32 r1, 1208
+  hor64 r1, 0
+  stxdw [r10+16], r1
+  mov32 r2, 1224
   hor64 r2, 0
 
-jmp_0200:
+jmp_0290:
   stdw [r10+48], 0
   stdw [r10+24], 1
   stdw [r10+40], 0
   stdw [r10+32], 8
   mov64 r1, r10
   add64 r1, 16
-  call fn_0268
+  call fn_02c8
 
-jmp_0238:
-  mov32 r1, 1112
-  hor64 r1, 0
-  stxdw [r10+16], r1
-  mov32 r2, 1128
-  hor64 r2, 0
-  ja jmp_0200
-
-fn_0268:
+fn_02c8:
   add64 r10, -64
   stxdw [r10+48], r2
   stxdw [r10+40], r1

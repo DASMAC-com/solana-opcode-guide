@@ -2,14 +2,15 @@ use super::*;
 use solana_sdk::instruction::AccountMeta;
 
 #[derive(Clone, Copy)]
-enum EntrypointCase {
+pub(super) enum EntrypointCase {
     NoAccounts,
     OneAccount,
     FourAccounts,
 }
 
 impl EntrypointCase {
-    const CASES: &'static [Self] = &[Self::NoAccounts, Self::OneAccount, Self::FourAccounts];
+    pub(super) const CASES: &'static [Self] =
+        &[Self::NoAccounts, Self::OneAccount, Self::FourAccounts];
 
     const fn n_accounts(&self) -> usize {
         match self {
@@ -48,9 +49,4 @@ impl TestCase for EntrypointCase {
             error_codes::error::N_ACCOUNTS,
         )
     }
-}
-
-#[test]
-fn test_entrypoint_branching() {
-    print_comparison_table(EntrypointCase::CASES);
 }

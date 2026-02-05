@@ -35,7 +35,7 @@ fn init_setup(
 }
 
 #[derive(Clone, Copy)]
-enum InitCase {
+pub(super) enum InitCase {
     UserDataLen,
     TreeDuplicate,
     TreeDataLen,
@@ -45,7 +45,7 @@ enum InitCase {
 }
 
 impl InitCase {
-    const CASES: &'static [Self] = &[
+    pub(super) const CASES: &'static [Self] = &[
         Self::UserDataLen,
         Self::TreeDuplicate,
         Self::TreeDataLen,
@@ -137,9 +137,4 @@ impl TestCase for InitCase {
             }
         }
     }
-}
-
-#[test]
-fn test_initialize_input_checks() {
-    print_comparison_table(InitCase::CASES);
 }

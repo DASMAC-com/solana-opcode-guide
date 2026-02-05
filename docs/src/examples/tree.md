@@ -9,19 +9,33 @@ This example implements a [red-black tree][wikipedia tree page] in both
 paths side-by-side for a comprehensive breakdown of assembly vs Rust
 performance.
 
-## Input buffer checks
+## Entrypoint branching
 
 ::: code-group
 
 <!-- markdownlint-disable MD013 -->
 
-<<< ../../../examples/tree/artifacts/snippets/asm/check-input-buffer.txt{asm} [Assembly]
+<<< ../../../examples/tree/artifacts/snippets/asm/entrypoint-branching.txt{asm} [Assembly]
 
-<<< ../../../examples/tree/artifacts/snippets/rs/check-input-buffer.txt{rs} [Rust]
+<<< ../../../examples/tree/artifacts/snippets/rs/entrypoint-branching.txt{rs} [Rust]
 
 :::
 
-<!-- @include: ../../../examples/tree/artifacts/tests/fast_fails/result.txt{1,6} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/entrypoint_branching/result.txt{1,5} -->
+
+## Initialize input checks
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/initialize-input-checks.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/initialize-input-checks.txt{rs} [Rust]
+
+:::
+
+<!-- @include: ../../../examples/tree/artifacts/tests/initialize_input_checks/result.txt{1,8} -->
 
 <!-- markdownlint-enable MD013 -->
 

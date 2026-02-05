@@ -5,7 +5,7 @@ lazy_program_entrypoint!(process_instruction);
 pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
     match context.remaining() {
         input_buffer::N_ACCOUNTS_GENERAL => Ok(()),
-        input_buffer::N_ACCOUNTS_INIT => initialize(context),
+        input_buffer::N_ACCOUNTS_INIT => Ok(()),
         _ => err(error::N_ACCOUNTS),
     }
 }
