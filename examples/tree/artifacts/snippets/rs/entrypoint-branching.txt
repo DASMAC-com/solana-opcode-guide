@@ -3,12 +3,9 @@ nostd_panic_handler!();
 
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
-    let n_accounts = ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF);
-    if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
-        return general(input_buffer_ptr);
-    } else if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
-        initialize(input_buffer_ptr)
-    } else {
-        error::N_ACCOUNTS.into()
+    match ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF) {
+        input_buffer::N_ACCOUNTS_GENERAL => general(input_buffer_ptr),
+        input_buffer::N_ACCOUNTS_INIT => initialize(input_buffer_ptr),
+        _ => error::N_ACCOUNTS.into(),
     }
 }
