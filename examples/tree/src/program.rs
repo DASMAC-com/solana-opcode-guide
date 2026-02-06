@@ -4,6 +4,7 @@ use pinocchio::{
     address::address_eq,
     entrypoint::{lazy::InstructionContext, MaybeAccount, NON_DUP_MARKER},
     error::ProgramError,
+    hint::unlikely,
     no_allocator, nostd_panic_handler, AccountView, Address, ProgramResult, SUCCESS,
 };
 
@@ -54,59 +55,66 @@ unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
 
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
-    match ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF) {
-        input_buffer::N_ACCOUNTS_GENERAL => general(input_buffer_ptr),
-        input_buffer::N_ACCOUNTS_INIT => initialize(input_buffer_ptr).into(),
-        _ => error::N_ACCOUNTS.into(),
+    let n_accounts = ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF);
+    if n_accounts == input_buffer::N_ACCOUNTS_GENERAL {
+        general(input_buffer_ptr)
+    } else if n_accounts == input_buffer::N_ACCOUNTS_INIT {
+        initialize(input_buffer_ptr)
+    } else {
+        error::N_ACCOUNTS.into()
     }
 }
 // ANCHOR_END: entrypoint-branching
 
 #[inline(always)]
 unsafe fn general(input_buffer_ptr: *mut u8) -> u64 {
-    if ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) == 5 {
-        1
+    if ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) == 67 {
+        6677
     } else {
-        3
+        666777
     }
 }
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]
+#[cold]
 unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Error if user has data.
-    if ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) != misc::DATA_LEN_ZERO {
+    if unlikely(ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) != misc::DATA_LEN_ZERO) {
         return error::USER_DATA_LEN.into();
     }
 
     // Error if tree is duplicate or has data.
-    if ldxb(input_buffer_ptr, input_buffer::TREE_NON_DUP_MARKER_OFF) != NON_DUP_MARKER {
+    if unlikely(ldxb(input_buffer_ptr, input_buffer::TREE_NON_DUP_MARKER_OFF) != NON_DUP_MARKER) {
         return error::TREE_DUPLICATE.into();
     }
-    if ldxdw(input_buffer_ptr, input_buffer::TREE_DATA_LEN_OFF) != misc::DATA_LEN_ZERO {
+    if unlikely(ldxdw(input_buffer_ptr, input_buffer::TREE_DATA_LEN_OFF) != misc::DATA_LEN_ZERO) {
         return error::TREE_DATA_LEN.into();
     }
 
     // Error if System Program is duplicate or has invalid data length.
-    if ldxb(
-        input_buffer_ptr,
-        input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
-    ) != NON_DUP_MARKER
-    {
+    if unlikely(
+        ldxb(
+            input_buffer_ptr,
+            input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
+        ) != NON_DUP_MARKER,
+    ) {
         return error::SYSTEM_PROGRAM_DUPLICATE.into();
     }
-    if ldxdw(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF)
-        != input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64
-    {
+    if unlikely(
+        ldxdw(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF)
+            != input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
+    ) {
         return error::SYSTEM_PROGRAM_DATA_LEN.into();
     }
 
     // Error if instruction data provided.
-    if ldxdw(
-        input_buffer_ptr,
-        input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
-    ) != misc::DATA_LEN_ZERO
-    {
+    if unlikely(
+        ldxdw(
+            input_buffer_ptr,
+            input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
+        ) != misc::DATA_LEN_ZERO,
+    ) {
         return error::INSTRUCTION_DATA.into();
     }
     // ANCHOR_END: initialize-input-checks
