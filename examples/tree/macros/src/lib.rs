@@ -588,11 +588,6 @@ enum AsmConstantKind {
         field_path_tokens: proc_macro2::TokenStream,
         array_index: Option<ArrayIndexInfo>,
     },
-    /// Size of a type (i64, validated for i32 range).
-    /// Name is auto-generated as `SIZE_OF_<SCREAMING_SNAKE_TYPE_NAME>`.
-    SizeOf {
-        type_path: syn::Type,
-    },
 }
 
 /// Input for asm_constant_group! macro.
@@ -810,19 +805,6 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
                         array_index: parsed.array_index,
                     },
                 )
-            } else if ident == "size_of" {
-                // size_of!(Type) - auto-generates SIZE_OF_<SCREAMING_SNAKE_NAME>.
-                content.parse::<Token![!]>()?;
-                let inner;
-                syn::parenthesized!(inner in content);
-                let type_path: syn::Type = inner.parse()?;
-
-                let type_name = extract_type_name(&type_path)
-                    .ok_or_else(|| content.error("Expected a type path for size_of!"))?;
-                let screaming = type_name.to_case(Case::UpperSnake);
-                let const_name =
-                    Ident::new(&format!("SIZE_OF_{}", screaming), ident.span());
-                (const_name, AsmConstantKind::SizeOf { type_path })
             } else {
                 // Regular NAME = value syntax.
                 content.parse::<Token![=]>()?;
@@ -960,30 +942,6 @@ fn gen_stack_frame_offset_code(
     (const_def, None)
 }
 
-/// Generate code for a `size_of!` constant.
-///
-/// Returns `(const_def_tokens, literal_repr)` where literal_repr is always `None`.
-fn gen_size_of_code(
-    name: &Ident,
-    doc: &str,
-    type_path: &syn::Type,
-) -> (proc_macro2::TokenStream, Option<String>) {
-    let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
-
-    let const_def = quote! {
-        #[doc = #doc]
-        pub const #name: i64 = { use super::*; core::mem::size_of::<#type_path>() as i64 };
-
-        const #assert_name: () = assert!(
-            ({ use super::*; core::mem::size_of::<#type_path>() } as i64) >= (i32::MIN as i64)
-                && ({ use super::*; core::mem::size_of::<#type_path>() } as i64) <= (i32::MAX as i64),
-            "ASM immediate must fit in i32 range"
-        );
-    };
-
-    (const_def, None)
-}
-
 /// Macro for defining ASM-only constant groups.
 ///
 /// Constants don't need types - values are `i64`, offsets are `i16`.
@@ -1090,11 +1048,6 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
                     array_index,
                     &input.align,
                 );
-                const_value_strs.push(literal_repr);
-                const_defs.push(const_def);
-            }
-            AsmConstantKind::SizeOf { type_path } => {
-                let (const_def, literal_repr) = gen_size_of_code(name, doc, type_path);
                 const_value_strs.push(literal_repr);
                 const_defs.push(const_def);
             }
@@ -1298,11 +1251,6 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                 const_value_strs.push(literal_repr);
                 const_defs.push(const_def);
             }
-            AsmConstantKind::SizeOf { type_path } => {
-                let (const_def, literal_repr) = gen_size_of_code(name, doc, type_path);
-                const_value_strs.push(literal_repr);
-                const_defs.push(const_def);
-            }
         }
     }
 
@@ -1361,6 +1309,123 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                         result.push_str(&inline);
                     } else {
                         result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, value_str));
+                    }
+                    result.push('\n');
+                }
+
+                result
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
+}
+
+/// Input for size_of! macro.
+struct SizeOfInput {
+    types: Vec<syn::Type>,
+}
+
+impl Parse for SizeOfInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut types = Vec::new();
+        while !input.is_empty() {
+            let ty: syn::Type = input.parse()?;
+            types.push(ty);
+            // Optional trailing comma.
+            let _ = input.parse::<Token![,]>();
+        }
+        Ok(SizeOfInput { types })
+    }
+}
+
+/// Macro for generating type size constants for ASM.
+///
+/// Takes a list of types and generates `SIZE_OF_<SCREAMING_SNAKE_NAME>` constants.
+/// Creates a `sizes` module with a `to_asm()` function for build-time ASM generation.
+///
+/// # Example
+/// ```ignore
+/// size_of! {
+///     u8,
+///     SolAccountMeta,
+///     Rent,
+/// }
+/// ```
+///
+/// Generates ASM:
+/// ```text
+/// # Type sizes.
+/// # -----------
+/// .equ SIZE_OF_U8, 1 # Size of u8.
+/// .equ SIZE_OF_SOL_ACCOUNT_META, 24 # Size of SolAccountMeta.
+/// .equ SIZE_OF_RENT, 17 # Size of Rent.
+/// ```
+#[proc_macro]
+pub fn size_of(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as SizeOfInput);
+
+    let max_line_len = MAX_LINE_LEN;
+    let header = asm_header("Type sizes.");
+
+    let mut const_defs = Vec::new();
+    let mut const_name_strs = Vec::new();
+    let mut const_doc_strs = Vec::new();
+
+    for ty in &input.types {
+        let type_name = extract_type_name(ty)
+            .unwrap_or_else(|| panic!("Expected a named type path in size_of!"));
+        let screaming = type_name.to_case(Case::UpperSnake);
+        let name_str = format!("SIZE_OF_{}", screaming);
+        let name = Ident::new(&name_str, proc_macro2::Span::call_site());
+        let assert_name = Ident::new(
+            &format!("_ASSERT_{}_FITS", name_str),
+            proc_macro2::Span::call_site(),
+        );
+        let doc = format!("Size of {}.", type_name);
+
+        const_defs.push(quote! {
+            #[doc = #doc]
+            pub const #name: i64 = { use super::*; core::mem::size_of::<#ty>() as i64 };
+
+            const #assert_name: () = assert!(
+                ({ use super::*; core::mem::size_of::<#ty>() } as i64) >= (i32::MIN as i64)
+                    && ({ use super::*; core::mem::size_of::<#ty>() } as i64) <= (i32::MAX as i64),
+                "ASM immediate must fit in i32 range"
+            );
+        });
+
+        const_name_strs.push(name_str);
+        const_doc_strs.push(doc);
+    }
+
+    let const_idents: Vec<_> = const_name_strs
+        .iter()
+        .map(|n| Ident::new(n, proc_macro2::Span::call_site()))
+        .collect();
+
+    let expanded = quote! {
+        pub mod sizes {
+            use alloc::string::String;
+            use alloc::format;
+
+            #(#const_defs)*
+
+            /// Generate ASM constants for type sizes.
+            pub fn to_asm() -> String {
+                let mut result = String::from(#header);
+                result.push('\n');
+
+                let names: &[&str] = &[#(#const_name_strs),*];
+                let values: &[i64] = &[#(#const_idents as i64),*];
+                let docs: &[&str] = &[#(#const_doc_strs),*];
+
+                for i in 0..names.len() {
+                    let inline = format!(".equ {}, {} # {}", names[i], values[i], docs[i]);
+                    if inline.len() <= #max_line_len {
+                        result.push_str(&inline);
+                    } else {
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], names[i], values[i]));
                     }
                     result.push('\n');
                 }

@@ -42,7 +42,6 @@
 .equ BPF_ALIGN_OF_U128, 8 # Data alignment during runtime.
 .equ DATA_LEN_AND_MASK, -8 # And mask for data length alignment.
 .equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
-.equ SIZE_OF_U_8, 1 # Foo.
 
 # Init stack frame layout.
 # ------------------------
@@ -58,3 +57,15 @@
 .equ SF_RENT_OFF, -80 # Rent sysvar.
 .equ SF_INSTRUCTION_DATA_OFF, -64 # Instruction data.
 .equ SF_BUMP_SEED_OFF, -8 # Bump seed.
+
+# Type sizes.
+# -----------
+.equ SIZE_OF_SOL_INSTRUCTION, 40 # Size of SolInstruction.
+.equ SIZE_OF_SOL_ACCOUNT_META, 16 # Size of SolAccountMeta.
+.equ SIZE_OF_SOL_ACCOUNT_INFO, 56 # Size of SolAccountInfo.
+.equ SIZE_OF_SOL_SIGNER_SEED, 16 # Size of SolSignerSeed.
+.equ SIZE_OF_SOL_SIGNER_SEEDS, 16 # Size of SolSignerSeeds.
+# Size of CreateAccountInstructionData.
+.equ SIZE_OF_CREATE_ACCOUNT_INSTRUCTION_DATA, 52
+.equ SIZE_OF_RENT, 16 # Size of Rent.
+.equ SIZE_OF_ADDRESS, 32 # Size of Address.

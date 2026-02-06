@@ -2,7 +2,7 @@ extern crate alloc;
 
 use crate::bindings;
 use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
-use macros::{asm_constant_group, extend_constant_group, stack_frame};
+use macros::{asm_constant_group, extend_constant_group, size_of, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
 extend_constant_group!(input_buffer {
@@ -32,8 +32,6 @@ extend_constant_group!(misc {
     DATA_LEN_AND_MASK = -8,
     /// Maximum possible data length padding.
     MAX_DATA_PAD = 7,
-    /// Foo.
-    size_of!(u8),
 });
 
 #[stack_frame]
@@ -83,4 +81,15 @@ asm_constant_group! {
         /// Bump seed.
         stack_frame_offset!(BUMP_SEED, InitStackFrame.bump_seed),
     }
+}
+
+size_of! {
+    bindings::SolInstruction,
+    bindings::SolAccountMeta,
+    bindings::SolAccountInfo,
+    bindings::SolSignerSeed,
+    bindings::SolSignerSeeds,
+    CreateAccountInstructionData,
+    Rent,
+    Address,
 }
