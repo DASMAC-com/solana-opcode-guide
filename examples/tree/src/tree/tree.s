@@ -120,7 +120,7 @@ initialize:
     jne r2, DATA_LEN_ZERO, e_instruction_data
     # ANCHOR_END: initialize-input-checks
 
-    # ANCHOR: init-check-pda
+    # ANCHOR: initialize-check-pda
     # Compute PDA.
     # ------------
     mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Indicate no signer seeds.
@@ -148,7 +148,7 @@ initialize:
     ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_3]
     ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_3]
     jne r5, r6, e_pda_mismatch
-    # ANCHOR_END: init-check-pda
+    # ANCHOR_END: initialize-check-pda
 
     # Initialize signer seed for PDA bump key.
     # ----------------------------------------

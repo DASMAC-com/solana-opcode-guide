@@ -1,0 +1,27 @@
+    # Compute PDA.
+    # ------------
+    mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Indicate no signer seeds.
+    mov64 r3, r1 # Get input buffer pointer.
+    add64 r3, IB_INIT_PROGRAM_ID_OFF # Point at program ID in input buffer.
+    mov64 r4, r10 # Get stack frame pointer.
+    add64 r4, SF_INIT_PDA_OFF # Point to PDA region on stack.
+    mov64 r5, r10 # Get stack frame pointer.
+    add64 r4, SF_INIT_BUMP_SEED_OFF # Point to bump seed region on stack.
+    call sol_try_find_program_address # Find PDA.
+
+    # Compare computed PDA against passed account.
+    # --------------------------------------------
+    mov64 r3, r1 # Get input buffer pointer.
+    add64 r3, IB_TREE_ADDRESS_OFF # Point at tree address.
+    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_0]
+    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_0]
+    jne r5, r6, e_pda_mismatch
+    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_1]
+    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_1]
+    jne r5, r6, e_pda_mismatch
+    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_2]
+    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_2]
+    jne r5, r6, e_pda_mismatch
+    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_3]
+    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_3]
+    jne r5, r6, e_pda_mismatch
