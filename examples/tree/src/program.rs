@@ -4,7 +4,7 @@ use pinocchio::{
     address::address_eq,
     entrypoint::{lazy::InstructionContext, MaybeAccount, NON_DUP_MARKER},
     error::ProgramError,
-    hint::unlikely,
+    hint::{likely, unlikely},
     no_allocator, nostd_panic_handler, AccountView, Address, ProgramResult, SUCCESS,
 };
 
@@ -45,10 +45,12 @@ unsafe fn next_account_non_duplicate(
 no_allocator!();
 nostd_panic_handler!();
 
+#[inline(always)]
 unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
     *transmute::<*const u8, *const u64>(ptr.add(offset as usize))
 }
 
+#[inline(always)]
 unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
     *ptr.add(offset as usize)
 }
@@ -56,13 +58,13 @@ unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
     let n_accounts = ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF);
-    if n_accounts == input_buffer::N_ACCOUNTS_GENERAL {
-        general(input_buffer_ptr)
-    } else if n_accounts == input_buffer::N_ACCOUNTS_INIT {
-        initialize(input_buffer_ptr)
-    } else {
-        error::N_ACCOUNTS.into()
-    }
+    if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
+        return general(input_buffer_ptr);
+    };
+    if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
+        return initialize(input_buffer_ptr);
+    };
+    error::N_ACCOUNTS.into()
 }
 // ANCHOR_END: entrypoint-branching
 
