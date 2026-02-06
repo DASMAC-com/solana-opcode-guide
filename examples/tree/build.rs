@@ -12,7 +12,15 @@ macro_rules! asm_groups {
 
 fn main() {
     // Collect all constant groups.
-    let groups = asm_groups![error_codes, input_buffer, misc, init_stack_frame, sizes];
+    let groups = asm_groups![
+        error_codes,
+        sizes,
+        data,
+        pubkey_chunk,
+        input_buffer,
+        init_stack_frame,
+        cpi
+    ];
 
     // Read in the assembly file.
     let manifest_dir = env!("CARGO_MANIFEST_DIR");

@@ -3,9 +3,7 @@ extern crate alloc;
 use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
-use crate::common::{
-    cpi, CpiAccountIndex, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader,
-};
+use crate::common::{CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
 use macros::{asm_constant_group, extend_constant_group, sizes, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
@@ -13,12 +11,29 @@ sizes! {
     u8,
 }
 
-extend_constant_group!(misc {
+extend_constant_group!(data {
+    /// No offset.
+    OFFSET_ZERO = 0,
     /// And mask for data length alignment.
     DATA_LEN_AND_MASK = -8,
     /// Maximum possible data length padding.
     MAX_DATA_PAD = 7,
 });
+
+asm_constant_group! {
+    /// Pubkey chunking offsets.
+    pubkey_chunk {
+        prefix = "PUBKEY_CHUNK",
+        /// Offset for the first 8 bytes.
+        OFF_0 = 0,
+        /// Offset for the second 8 bytes.
+        OFF_1 = 8,
+        /// Offset for the third 8 bytes.
+        OFF_2 = 16,
+        /// Offset for the fourth 8 bytes.
+        OFF_3 = 24,
+    }
+}
 
 extend_constant_group!(input_buffer {
     prefix = "IB",
@@ -30,6 +45,8 @@ extend_constant_group!(input_buffer {
     NON_DUP_MARKER = NON_DUP_MARKER,
     /// Tree non-duplicate marker field.
     offset!(TREE_NON_DUP_MARKER, InputBufferHeader.tree_header.borrow_state),
+    /// Tree address field.
+    offset!(TREE_ADDRESS, InputBufferHeader.tree_header.address),
     /// Tree data length field.
     offset!(TREE_DATA_LEN, InputBufferHeader.tree_header.data_len),
     /// Instruction data length field for empty tree account.
@@ -40,6 +57,12 @@ extend_constant_group!(input_buffer {
     offset!(SYSTEM_PROGRAM_NON_DUP_MARKER, InitInputBuffer.system_program.header.borrow_state),
     /// System Program data length field.
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.system_program.header.data_len),
+});
+
+extend_constant_group!(cpi {
+    prefix = "CPI",
+    /// Number of seeds for PDA generation.
+    N_SEEDS_TRY_FIND_PDA = 0,
 });
 
 #[stack_frame]
@@ -63,5 +86,11 @@ asm_constant_group! {
         prefix = "SF_INIT",
         /// Bump seed.
         stack_frame_offset!(BUMP_SEED, InitStackFrame.bump_seed),
+        /// Bump signer seed address field.
+        stack_frame_offset!(SIGNER_SEED_ADDR, InitStackFrame.signer_seeds[0].addr),
+        /// Bump signer seed length field.
+        stack_frame_offset!(SIGNER_SEED_LEN, InitStackFrame.signer_seeds[0].len),
+        /// PDA address field.
+        stack_frame_offset!(PDA, InitStackFrame.pda),
     }
 }

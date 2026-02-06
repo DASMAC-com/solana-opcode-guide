@@ -65,8 +65,8 @@ pub struct CreateAccountInstructionData {
 }
 
 constant_group! {
-    /// Miscellaneous constants.
-    misc {
+    /// Data layout constants.
+    data {
         /// Data length of zero.
         DATA_LEN_ZERO: u64 = 0,
         /// Data alignment during runtime.
@@ -101,11 +101,11 @@ pub struct RuntimeAccount<const DATA_SIZE: usize> {
     pub rent_epoch: u64,
 }
 
-type EmptyRuntimeAccount = RuntimeAccount<{ runtime_data_size(misc::DATA_LEN_ZERO as usize) }>;
+type EmptyRuntimeAccount = RuntimeAccount<{ runtime_data_size(data::DATA_LEN_ZERO as usize) }>;
 type SystemProgramRuntimeAccount =
     RuntimeAccount<{ runtime_data_size(input_buffer::SYSTEM_PROGRAM_DATA_LEN) }>;
 
 /// Compute the data buffer size for a runtime account with the given data length.
 const fn runtime_data_size(data_len: usize) -> usize {
-    MAX_PERMITTED_DATA_INCREASE + data_len.next_multiple_of(misc::BPF_ALIGN_OF_U128)
+    MAX_PERMITTED_DATA_INCREASE + data_len.next_multiple_of(data::BPF_ALIGN_OF_U128)
 }

@@ -1,5 +1,5 @@
 use core::mem::transmute;
-use interface::{error_codes::error, input_buffer, misc};
+use interface::{data, error_codes::error, input_buffer};
 use pinocchio::{
     address::address_eq,
     entrypoint::{lazy::InstructionContext, MaybeAccount, NON_DUP_MARKER},
@@ -67,7 +67,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     ensure_ldxdw!(
         input_buffer_ptr,
         input_buffer::USER_DATA_LEN_OFF,
-        misc::DATA_LEN_ZERO,
+        data::DATA_LEN_ZERO,
         error::USER_DATA_LEN
     );
 
@@ -81,7 +81,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     ensure_ldxdw!(
         input_buffer_ptr,
         input_buffer::TREE_DATA_LEN_OFF,
-        misc::DATA_LEN_ZERO,
+        data::DATA_LEN_ZERO,
         error::TREE_DATA_LEN
     );
 
@@ -103,7 +103,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     ensure_ldxdw!(
         input_buffer_ptr,
         input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
-        misc::DATA_LEN_ZERO,
+        data::DATA_LEN_ZERO,
         error::INSTRUCTION_DATA
     );
     // ANCHOR_END: initialize-input-checks
