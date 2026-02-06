@@ -41,7 +41,7 @@ constant_group! {
     /// Miscellaneous constants.
     misc {
         /// Data length of zero.
-        DATA_LEN_ZERO: usize = 0,
+        DATA_LEN_ZERO: u64 = 0,
         /// Data alignment during runtime.
         BPF_ALIGN_OF_U128: usize = 8,
     }
@@ -74,7 +74,7 @@ pub struct RuntimeAccount<const DATA_SIZE: usize> {
     pub rent_epoch: u64,
 }
 
-type EmptyRuntimeAccount = RuntimeAccount<{ runtime_data_size(misc::DATA_LEN_ZERO) }>;
+type EmptyRuntimeAccount = RuntimeAccount<{ runtime_data_size(misc::DATA_LEN_ZERO as usize) }>;
 type SystemProgramRuntimeAccount =
     RuntimeAccount<{ runtime_data_size(input_buffer::SYSTEM_PROGRAM_DATA_LEN) }>;
 

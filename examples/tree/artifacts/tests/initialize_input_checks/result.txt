@@ -1,121 +1,45 @@
 | Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
 |------|-----------|------------|----------|------------|
-| User has nonzero data length | 7 | 13 | +6 | +85.7% |
-| Tree account is duplicate | 9 | 19 | +10 | +111.1% |
-| Tree has nonzero data length | 11 | 22 | +11 | +100.0% |
-| System program is duplicate | 13 | 30 | +17 | +130.8% |
-| System program wrong data length | 15 | 33 | +18 | +120.0% |
-| Non-empty instruction data | 17 | 40 | +23 | +135.3% |
+| User has nonzero data length | 7 | 7 | +0 | +0.0% |
+| Tree account is duplicate | 9 | 10 | +1 | +11.1% |
+| Tree has nonzero data length | 11 | 13 | +2 | +18.2% |
+| System program is duplicate | 13 | 16 | +3 | +23.1% |
+| System program wrong data length | 15 | 19 | +4 | +26.7% |
+| Non-empty instruction data | 17 | 23 | +6 | +35.3% |
 test tests::test_initialize_input_checks ... ok
-warning: constant `CPI_N_ACCOUNTS` is never used
-  --> tree/interface/src/asm.rs:88:7
-   |
-88 | const CPI_N_ACCOUNTS: usize = 2;
-   |       ^^^^^^^^^^^^^^
-   |
-   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
-warning: constant `CPI_N_PDA_SIGNERS` is never used
-  --> tree/interface/src/asm.rs:90:7
-   |
-90 | const CPI_N_PDA_SIGNERS: usize = 1;
-   |       ^^^^^^^^^^^^^^^^^
-warning: constant `CPI_N_SEEDS` is never used
-  --> tree/interface/src/asm.rs:92:7
-   |
-92 | const CPI_N_SEEDS: usize = 1;
-   |       ^^^^^^^^^^^
-warning: struct `InitStackFrame` is never constructed
-  --> tree/interface/src/asm.rs:95:8
-   |
-95 | struct InitStackFrame {
-   |        ^^^^^^^^^^^^^^
-warning: struct `SolInstruction` is never constructed
- --> tree/interface/src/bindings.rs:7:12
-  |
-7 | pub struct SolInstruction {
-  |            ^^^^^^^^^^^^^^
-warning: struct `SolAccountMeta` is never constructed
-  --> tree/interface/src/bindings.rs:23:12
-   |
-23 | pub struct SolAccountMeta {
-   |            ^^^^^^^^^^^^^^
-warning: struct `SolAccountInfo` is never constructed
-  --> tree/interface/src/bindings.rs:35:12
-   |
-35 | pub struct SolAccountInfo {
-   |            ^^^^^^^^^^^^^^
-warning: struct `SolSignerSeed` is never constructed
-  --> tree/interface/src/bindings.rs:59:12
-   |
-59 | pub struct SolSignerSeed {
-   |            ^^^^^^^^^^^^^
-warning: struct `SolSignerSeeds` is never constructed
-  --> tree/interface/src/bindings.rs:69:12
-   |
-69 | pub struct SolSignerSeeds {
-   |            ^^^^^^^^^^^^^^
-warning: struct `Return` is never constructed
-  --> tree/interface/src/common.rs:37:8
-   |
-37 | struct Return {
-   |        ^^^^^^
-warning: struct `CreateAccountInstructionData` is never constructed
-  --> tree/interface/src/common.rs:46:12
-   |
-46 | pub struct CreateAccountInstructionData {
-   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: `interface` (lib) generated 11 warnings
-warning: `interface` (lib) generated 11 warnings (11 duplicates)
-warning: variable does not need to be mutable
-  --> tree/src/program.rs:48:28
-   |
-48 | pub fn process_instruction(mut context: InstructionContext) -> ProgramResult {
-   |                            ----^^^^^^^
-   |                            |
-   |                            help: remove this `mut`
-   |
-   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
-warning: unused variable: `bump`
-  --> tree/src/program.rs:90:24
-   |
-90 |     let (expected_pda, bump) = Address::find_program_address(&[], program_id);
-   |                        ^^^^ help: if this is intentional, prefix it with an underscore: `_bump`
-   |
-   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
-warning: `tree` (lib test) generated 2 warnings (run `cargo fix --lib -p tree --tests` to apply 1 suggestion)
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 7 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 13 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 7 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 9 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x5
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 19 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 10 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x5
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 11 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x3
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 22 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 13 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x3
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 13 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 30 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 16 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 15 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x4
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 33 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 19 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x4
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 17 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x7
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 40 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 23 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x7

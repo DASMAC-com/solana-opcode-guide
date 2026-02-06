@@ -1,28 +1,37 @@
 #[inline(always)]
-/// SAFETY: Called by entrypoint after verifying the right number of accounts for initialization.
-fn initialize(mut context: InstructionContext) -> ProgramResult {
+unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Error if user has data.
-    // SAFETY: number of accounts has been checked.
-    let user = unsafe { context.next_account_unchecked().assume_account() };
-    ensure_is_data_empty(&user, error::USER_DATA_LEN)?;
+    if ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) != misc::DATA_LEN_ZERO {
+        return error::USER_DATA_LEN.into();
+    }
 
     // Error if tree is duplicate or has data.
-    // SAFETY: number of accounts has been checked.
-    let tree = unsafe { next_account_non_duplicate(&mut context, error::TREE_DUPLICATE) }?;
-    ensure_is_data_empty(&tree, error::TREE_DATA_LEN)?;
+    if ldxb(input_buffer_ptr, input_buffer::TREE_NON_DUP_MARKER_OFF) != NON_DUP_MARKER {
+        return error::TREE_DUPLICATE.into();
+    }
+    if ldxdw(input_buffer_ptr, input_buffer::TREE_DATA_LEN_OFF) != misc::DATA_LEN_ZERO {
+        return error::TREE_DATA_LEN.into();
+    }
 
     // Error if System Program is duplicate or has invalid data length.
-    // SAFETY: number of accounts has been checked.
-    let system_program =
-        unsafe { next_account_non_duplicate(&mut context, error::SYSTEM_PROGRAM_DUPLICATE) }?;
-    ensure(
-        system_program.data_len() == input_buffer::SYSTEM_PROGRAM_DATA_LEN,
-        error::SYSTEM_PROGRAM_DATA_LEN,
-    )?;
+    if ldxb(
+        input_buffer_ptr,
+        input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
+    ) != NON_DUP_MARKER
+    {
+        return error::SYSTEM_PROGRAM_DUPLICATE.into();
+    }
+    if ldxdw(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF)
+        != input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64
+    {
+        return error::SYSTEM_PROGRAM_DATA_LEN.into();
+    }
 
     // Error if instruction data provided.
-    // SAFETY: all accounts have been consumed.
-    ensure(
-        unsafe { context.instruction_data_unchecked().is_empty() },
-        error::INSTRUCTION_DATA,
-    )?;
+    if ldxdw(
+        input_buffer_ptr,
+        input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
+    ) != misc::DATA_LEN_ZERO
+    {
+        return error::INSTRUCTION_DATA.into();
+    }

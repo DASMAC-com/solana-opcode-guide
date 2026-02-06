@@ -1,13 +1,19 @@
 no_allocator!();
 nostd_panic_handler!();
 
+unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
+    *transmute::<*const u8, *const u64>(ptr.add(offset as usize))
+}
+
+unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
+    *ptr.add(offset as usize)
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
-    match *transmute::<*mut u8, *const u64>(
-        input_buffer_ptr.add(input_buffer::N_ACCOUNTS_OFF as usize),
-    ) {
+    match ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF) {
         input_buffer::N_ACCOUNTS_GENERAL => SUCCESS,
-        input_buffer::N_ACCOUNTS_INIT => SUCCESS,
+        input_buffer::N_ACCOUNTS_INIT => initialize(input_buffer_ptr).into(),
         _ => error::N_ACCOUNTS.into(),
     }
 }
