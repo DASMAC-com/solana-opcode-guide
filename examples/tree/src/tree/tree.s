@@ -93,6 +93,10 @@ initialize:
     jne r2, DATA_LEN_ZERO, e_instruction_data
     # ANCHOR_END: initialize-input-checks
 
+    # Initialize signer seed for PDA bump key.
+    # ----------------------------------------
+    mov64 r2, r10 # Get stack frame pointer.
+
     exit
 
 e_instruction_data:
