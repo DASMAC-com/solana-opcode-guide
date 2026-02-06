@@ -4,8 +4,10 @@ use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
 use crate::common::{CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
-use macros::{asm_constant_group, extend_constant_group, sizes, stack_frame};
+use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
+
+pubkey_chunk_group!();
 
 sizes! {
     u8,
@@ -19,21 +21,6 @@ extend_constant_group!(data {
     /// Maximum possible data length padding.
     MAX_DATA_PAD = 7,
 });
-
-asm_constant_group! {
-    /// Pubkey chunking offsets.
-    pubkey_chunk {
-        prefix = "PUBKEY_CHUNK",
-        /// Offset for the first 8 bytes.
-        OFF_0 = 0,
-        /// Offset for the second 8 bytes.
-        OFF_1 = 8,
-        /// Offset for the third 8 bytes.
-        OFF_2 = 16,
-        /// Offset for the fourth 8 bytes.
-        OFF_3 = 24,
-    }
-}
 
 extend_constant_group!(input_buffer {
     prefix = "IB",

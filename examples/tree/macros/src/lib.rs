@@ -1443,6 +1443,94 @@ pub fn sizes(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
+/// Macro for generating pubkey chunking offset constants.
+///
+/// A pubkey (Address) is 32 bytes. For 8-byte register loads, it is
+/// accessed in 4 chunks of 8 bytes each. This macro generates a
+/// `pubkey_chunk` module with `OFF_0` through `OFF_3` constants
+/// and a `to_asm()` function.
+///
+/// # Example
+/// ```ignore
+/// pubkey_chunk_group!();
+/// ```
+///
+/// Generates ASM:
+/// ```text
+/// # Pubkey chunking offsets.
+/// # ------------------------
+/// .equ PUBKEY_CHUNK_OFF_0, 0 # Offset for the first 8 bytes.
+/// .equ PUBKEY_CHUNK_OFF_1, 8 # Offset for the second 8 bytes.
+/// .equ PUBKEY_CHUNK_OFF_2, 16 # Offset for the third 8 bytes.
+/// .equ PUBKEY_CHUNK_OFF_3, 24 # Offset for the fourth 8 bytes.
+/// ```
+#[proc_macro]
+pub fn pubkey_chunk_group(_input: TokenStream) -> TokenStream {
+    const PUBKEY_SIZE: usize = 32;
+    const CHUNK_SIZE: usize = BPF_ALIGN as usize;
+    const N_CHUNKS: usize = PUBKEY_SIZE / CHUNK_SIZE;
+    const ORDINALS: [&str; N_CHUNKS] = ["first", "second", "third", "fourth"];
+
+    let max_line_len = MAX_LINE_LEN;
+    let header = asm_header("Pubkey chunking offsets.");
+
+    let mut const_defs = Vec::new();
+    let mut const_name_strs = Vec::new();
+    let mut const_doc_strs = Vec::new();
+
+    for i in 0..N_CHUNKS {
+        let offset = (i * CHUNK_SIZE) as i64;
+        let name_str = format!("PUBKEY_CHUNK_OFF_{}", i);
+        let name = Ident::new(&format!("OFF_{}", i), proc_macro2::Span::call_site());
+        let doc = format!("Offset for the {} 8 bytes.", ORDINALS[i]);
+
+        const_defs.push(quote! {
+            #[doc = #doc]
+            pub const #name: i64 = #offset;
+        });
+
+        const_name_strs.push(name_str);
+        const_doc_strs.push(doc);
+    }
+
+    let const_idents: Vec<_> = (0..N_CHUNKS)
+        .map(|i| Ident::new(&format!("OFF_{}", i), proc_macro2::Span::call_site()))
+        .collect();
+
+    let expanded = quote! {
+        pub mod pubkey_chunk {
+            use alloc::string::String;
+            use alloc::format;
+
+            #(#const_defs)*
+
+            /// Generate ASM constants for pubkey chunking offsets.
+            pub fn to_asm() -> String {
+                let mut result = String::from(#header);
+                result.push('\n');
+
+                let names: &[&str] = &[#(#const_name_strs),*];
+                let values: &[i64] = &[#(#const_idents as i64),*];
+                let docs: &[&str] = &[#(#const_doc_strs),*];
+
+                for i in 0..names.len() {
+                    let inline = format!(".equ {}, {} # {}", names[i], values[i], docs[i]);
+                    if inline.len() <= #max_line_len {
+                        result.push_str(&inline);
+                    } else {
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], names[i], values[i]));
+                    }
+                    result.push('\n');
+                }
+
+                result
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
+}
+
 /// Attribute macro for stack frame structs.
 ///
 /// Adds `#[repr(C, align(8))]` to ensure C layout and 8-byte alignment.
