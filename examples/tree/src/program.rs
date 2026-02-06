@@ -56,6 +56,16 @@ pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
 }
 // ANCHOR_END: entrypoint-branching
 
+#[inline(always)]
+fn general_branch() -> u64 {
+    10
+}
+
+#[inline(always)]
+fn initialize_branch() -> u64 {
+    5
+}
+
 // ANCHOR: initialize-input-checks
 #[inline(always)]
 /// SAFETY: Called by entrypoint after verifying the right number of accounts for initialization.
