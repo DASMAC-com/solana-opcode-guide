@@ -55,7 +55,7 @@ unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
     match ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF) {
-        input_buffer::N_ACCOUNTS_GENERAL => SUCCESS,
+        input_buffer::N_ACCOUNTS_GENERAL => general(input_buffer_ptr),
         input_buffer::N_ACCOUNTS_INIT => initialize(input_buffer_ptr).into(),
         _ => error::N_ACCOUNTS.into(),
     }
@@ -63,8 +63,12 @@ pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
 // ANCHOR_END: entrypoint-branching
 
 #[inline(always)]
-fn general_branch() -> u64 {
-    SUCCESS
+unsafe fn general(input_buffer_ptr: *mut u8) -> u64 {
+    if ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) == 5 {
+        1
+    } else {
+        3
+    }
 }
 
 // ANCHOR: initialize-input-checks
