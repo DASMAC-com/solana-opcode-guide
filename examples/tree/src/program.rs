@@ -40,10 +40,13 @@ nostd_panic_handler!();
 
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
-    match ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF) {
-        input_buffer::N_ACCOUNTS_GENERAL => general(input_buffer_ptr),
-        input_buffer::N_ACCOUNTS_INIT => initialize(input_buffer_ptr),
-        _ => error::N_ACCOUNTS.into(),
+    let n_accounts = ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF);
+    if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
+        general(input_buffer_ptr)
+    } else if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
+        initialize(input_buffer_ptr)
+    } else {
+        error::N_ACCOUNTS.into()
     }
 }
 // ANCHOR_END: entrypoint-branching
@@ -59,7 +62,6 @@ unsafe fn general(input_buffer_ptr: *mut u8) -> u64 {
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]
-#[cold]
 unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Error if user has data.
     ensure_ldxdw!(

@@ -1,5 +1,4 @@
 #[inline(always)]
-#[cold]
 unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Error if user has data.
     ensure_ldxdw!(
