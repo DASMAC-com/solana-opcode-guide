@@ -707,6 +707,24 @@ fn extract_type_name(ty: &syn::Type) -> Option<String> {
     }
 }
 
+/// Convert a type name to UPPER_SNAKE_CASE for ASM constants.
+///
+/// Uses `convert_case` but fixes primitive types like `u8`, `i16` etc.
+/// where the default conversion inserts an unwanted underscore (`U_8` → `U8`).
+fn type_name_to_upper_snake(name: &str) -> String {
+    let s = name.to_case(Case::UpperSnake);
+    // Primitive types: single letter + digits (e.g. U_8, I_16, F_32).
+    // Remove the underscore between the letter and digits.
+    if s.starts_with(|c: char| c.is_ascii_uppercase())
+        && s.as_bytes().get(1) == Some(&b'_')
+        && s[2..].chars().all(|c| c.is_ascii_digit())
+    {
+        format!("{}{}", &s[..1], &s[2..])
+    } else {
+        s
+    }
+}
+
 /// Parse optional `prefix = "..."` and `align = expr` group header parameters.
 ///
 /// Both are optional and can appear in any order before the first constant definition.
@@ -1321,12 +1339,12 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-/// Input for size_of! macro.
-struct SizeOfInput {
+/// Input for sizes! macro.
+struct SizesInput {
     types: Vec<syn::Type>,
 }
 
-impl Parse for SizeOfInput {
+impl Parse for SizesInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut types = Vec::new();
         while !input.is_empty() {
@@ -1335,18 +1353,18 @@ impl Parse for SizeOfInput {
             // Optional trailing comma.
             let _ = input.parse::<Token![,]>();
         }
-        Ok(SizeOfInput { types })
+        Ok(SizesInput { types })
     }
 }
 
 /// Macro for generating type size constants for ASM.
 ///
-/// Takes a list of types and generates `SIZE_OF_<SCREAMING_SNAKE_NAME>` constants.
+/// Takes a list of types and generates `SIZE_OF_<UPPER_SNAKE_NAME>` constants.
 /// Creates a `sizes` module with a `to_asm()` function for build-time ASM generation.
 ///
 /// # Example
 /// ```ignore
-/// size_of! {
+/// sizes! {
 ///     u8,
 ///     SolAccountMeta,
 ///     Rent,
@@ -1362,8 +1380,8 @@ impl Parse for SizeOfInput {
 /// .equ SIZE_OF_RENT, 17 # Size of Rent.
 /// ```
 #[proc_macro]
-pub fn size_of(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as SizeOfInput);
+pub fn sizes(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as SizesInput);
 
     let max_line_len = MAX_LINE_LEN;
     let header = asm_header("Type sizes.");
@@ -1374,8 +1392,8 @@ pub fn size_of(input: TokenStream) -> TokenStream {
 
     for ty in &input.types {
         let type_name = extract_type_name(ty)
-            .unwrap_or_else(|| panic!("Expected a named type path in size_of!"));
-        let screaming = type_name.to_case(Case::UpperSnake);
+            .unwrap_or_else(|| panic!("Expected a named type path in sizes!"));
+        let screaming = type_name_to_upper_snake(&type_name);
         let name_str = format!("SIZE_OF_{}", screaming);
         let name = Ident::new(&name_str, proc_macro2::Span::call_site());
         let assert_name = Ident::new(

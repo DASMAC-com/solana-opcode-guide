@@ -61,15 +61,7 @@
 
 # Type sizes.
 # -----------
-.equ SIZE_OF_SOL_INSTRUCTION, 40 # Size of SolInstruction.
-.equ SIZE_OF_SOL_ACCOUNT_META, 16 # Size of SolAccountMeta.
-.equ SIZE_OF_SOL_ACCOUNT_INFO, 56 # Size of SolAccountInfo.
-.equ SIZE_OF_SOL_SIGNER_SEED, 16 # Size of SolSignerSeed.
-.equ SIZE_OF_SOL_SIGNER_SEEDS, 16 # Size of SolSignerSeeds.
-# Size of CreateAccountInstructionData.
-.equ SIZE_OF_CREATE_ACCOUNT_INSTRUCTION_DATA, 52
-.equ SIZE_OF_RENT, 16 # Size of Rent.
-.equ SIZE_OF_ADDRESS, 32 # Size of Address.
+.equ SIZE_OF_U8, 1 # Size of u8.
 # ANCHOR_END: constants
 
 # ANCHOR: entrypoint-branching

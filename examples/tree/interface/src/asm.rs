@@ -2,8 +2,19 @@ extern crate alloc;
 
 use crate::bindings;
 use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
-use macros::{asm_constant_group, extend_constant_group, size_of, stack_frame};
+use macros::{asm_constant_group, extend_constant_group, sizes, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
+
+sizes! {
+    u8,
+}
+
+extend_constant_group!(misc {
+    /// And mask for data length alignment.
+    DATA_LEN_AND_MASK = -8,
+    /// Maximum possible data length padding.
+    MAX_DATA_PAD = 7,
+});
 
 extend_constant_group!(input_buffer {
     prefix = "IB",
@@ -25,13 +36,6 @@ extend_constant_group!(input_buffer {
     offset!(SYSTEM_PROGRAM_NON_DUP_MARKER, InitInputBuffer.system_program.header.borrow_state),
     /// System Program data length field.
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.system_program.header.data_len),
-});
-
-extend_constant_group!(misc {
-    /// And mask for data length alignment.
-    DATA_LEN_AND_MASK = -8,
-    /// Maximum possible data length padding.
-    MAX_DATA_PAD = 7,
 });
 
 #[stack_frame]
@@ -81,15 +85,4 @@ asm_constant_group! {
         /// Bump seed.
         stack_frame_offset!(BUMP_SEED, InitStackFrame.bump_seed),
     }
-}
-
-size_of! {
-    bindings::SolInstruction,
-    bindings::SolAccountMeta,
-    bindings::SolAccountInfo,
-    bindings::SolSignerSeed,
-    bindings::SolSignerSeeds,
-    CreateAccountInstructionData,
-    Rent,
-    Address,
 }
