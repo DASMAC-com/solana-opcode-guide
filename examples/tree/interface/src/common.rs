@@ -41,12 +41,21 @@ constant_group! {
     /// CPI-specific constants.
     cpi {
         /// User and tree accounts must sign CPI.
-        CPI_N_ACCOUNTS: usize = 2,
+        N_ACCOUNTS: usize = 2,
         /// The tree account is a PDA.
-        CPI_N_PDA_SIGNERS: usize = 1,
+        N_PDA_SIGNERS: usize = 1,
         /// The bump seed is required for tree PDA signer.
-        CPI_N_SEEDS: usize = 1,
+        N_SEEDS: usize = 1,
     }
+}
+
+#[repr(C, packed)]
+/// For CPI to create tree account.
+pub struct CreateAccountInstructionData {
+    instruction_tag: u32,
+    lamports: u64,
+    space: u64,
+    owner: Address,
 }
 
 constant_group! {

@@ -1,8 +1,9 @@
 extern crate alloc;
 
-use crate::common::{InitInputBuffer, InputBufferHeader};
+use crate::bindings;
+use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
 use macros::extend_constant_group;
-use pinocchio::entrypoint::NON_DUP_MARKER;
+use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
 extend_constant_group!(input_buffer {
     prefix = "IB",
@@ -32,3 +33,18 @@ extend_constant_group!(misc {
     /// Maximum possible data length padding.
     MAX_DATA_PAD = 7,
 });
+
+#[repr(C)]
+struct InitStackFrame {
+    /// Zero-initialized on stack.
+    system_program_address: Address,
+    instruction: bindings::SolInstruction,
+    account_metas: [bindings::SolAccountMeta; cpi::N_ACCOUNTS],
+    account_infos: [bindings::SolAccountInfo; cpi::N_ACCOUNTS],
+    signers_seeds: [bindings::SolSignerSeeds; cpi::N_PDA_SIGNERS],
+    signer_seeds: [bindings::SolSignerSeed; cpi::N_SEEDS],
+    pda: Address,
+    rent: Rent,
+    instruction_data: CreateAccountInstructionData,
+    bump_seed: u8,
+}
