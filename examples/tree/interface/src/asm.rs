@@ -2,7 +2,7 @@ extern crate alloc;
 
 use crate::bindings;
 use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
-use macros::extend_constant_group;
+use macros::{asm_constant_group, extend_constant_group, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
 extend_constant_group!(input_buffer {
@@ -32,9 +32,11 @@ extend_constant_group!(misc {
     DATA_LEN_AND_MASK = -8,
     /// Maximum possible data length padding.
     MAX_DATA_PAD = 7,
+    /// Foo.
+    size_of!(u8),
 });
 
-#[repr(C)]
+#[stack_frame]
 struct InitStackFrame {
     /// Zero-initialized on stack.
     system_program_address: Address,
@@ -46,5 +48,39 @@ struct InitStackFrame {
     pda: Address,
     rent: Rent,
     instruction_data: CreateAccountInstructionData,
+    /// Padding for alignment.
+    _pad: [u8; 4],
     bump_seed: u8,
+}
+
+asm_constant_group! {
+    /// Init stack frame layout.
+    init_stack_frame {
+        prefix = "SF",
+        align = misc::BPF_ALIGN_OF_U128,
+        /// System program address.
+        stack_frame_offset!(SYSTEM_PROGRAM_ADDRESS, InitStackFrame.system_program_address),
+        /// CPI instruction.
+        stack_frame_offset!(INSTRUCTION, InitStackFrame.instruction),
+        /// First account meta.
+        stack_frame_offset!(ACCOUNT_META_0, InitStackFrame.account_metas[0]),
+        /// Second account meta.
+        stack_frame_offset!(ACCOUNT_META_1, InitStackFrame.account_metas[1]),
+        /// First account info.
+        stack_frame_offset!(ACCOUNT_INFO_0, InitStackFrame.account_infos[0]),
+        /// Second account info.
+        stack_frame_offset!(ACCOUNT_INFO_1, InitStackFrame.account_infos[1]),
+        /// Signer seeds array.
+        stack_frame_offset!(SIGNERS_SEEDS, InitStackFrame.signers_seeds),
+        /// Signer seed entry.
+        stack_frame_offset!(SIGNER_SEEDS, InitStackFrame.signer_seeds),
+        /// PDA address.
+        stack_frame_offset!(PDA, InitStackFrame.pda),
+        /// Rent sysvar.
+        stack_frame_offset!(RENT, InitStackFrame.rent),
+        /// Instruction data.
+        stack_frame_offset!(INSTRUCTION_DATA, InitStackFrame.instruction_data),
+        /// Bump seed.
+        stack_frame_offset!(BUMP_SEED, InitStackFrame.bump_seed),
+    }
 }

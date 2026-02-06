@@ -43,6 +43,22 @@
 .equ BPF_ALIGN_OF_U128, 8 # Data alignment during runtime.
 .equ DATA_LEN_AND_MASK, -8 # And mask for data length alignment.
 .equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
+.equ SIZE_OF_U_8, 1 # Foo.
+
+# Init stack frame layout.
+# ------------------------
+.equ SF_SYSTEM_PROGRAM_ADDRESS_OFF, -360 # System program address.
+.equ SF_INSTRUCTION_OFF, -328 # CPI instruction.
+.equ SF_ACCOUNT_META_0_OFF, -288 # First account meta.
+.equ SF_ACCOUNT_META_1_OFF, -272 # Second account meta.
+.equ SF_ACCOUNT_INFO_0_OFF, -256 # First account info.
+.equ SF_ACCOUNT_INFO_1_OFF, -200 # Second account info.
+.equ SF_SIGNERS_SEEDS_OFF, -144 # Signer seeds array.
+.equ SF_SIGNER_SEEDS_OFF, -128 # Signer seed entry.
+.equ SF_PDA_OFF, -112 # PDA address.
+.equ SF_RENT_OFF, -80 # Rent sysvar.
+.equ SF_INSTRUCTION_DATA_OFF, -64 # Instruction data.
+.equ SF_BUMP_SEED_OFF, -8 # Bump seed.
 # ANCHOR_END: constants
 
 # ANCHOR: entrypoint-branching
