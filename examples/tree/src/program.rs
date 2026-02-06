@@ -9,51 +9,34 @@ use pinocchio::{
 };
 
 #[inline(always)]
-/// Return an error code for early return at call site.
-fn err<T>(error_code: error) -> Result<T, ProgramError> {
-    Err(ProgramError::Custom(error_code.into()))
+unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
+    *ptr.add(offset as usize)
 }
 
-#[inline(always)]
-/// Ensure a condition is met else return error code for early return at call site.
-fn ensure(condition: bool, error_code: error) -> Result<(), ProgramError> {
-    if condition {
-        Ok(())
-    } else {
-        err(error_code)
-    }
+macro_rules! ensure_ldxb {
+    ($ptr:expr, $offset:expr, $expected:expr, $error:expr) => {
+        if unlikely(ldxb($ptr, $offset) != $expected) {
+            return $error.into();
+        }
+    };
 }
-
-#[inline(always)]
-/// Ensure an account has empty data else return error code for early return at call site.
-fn ensure_is_data_empty(account: &AccountView, error_code: error) -> Result<(), ProgramError> {
-    ensure(account.is_data_empty(), error_code)
-}
-
-#[inline(always)]
-unsafe fn next_account_non_duplicate(
-    context: &mut InstructionContext,
-    error_code: error,
-) -> Result<AccountView, ProgramError> {
-    match unsafe { context.next_account_unchecked() } {
-        MaybeAccount::Account(account) => Ok(account),
-        MaybeAccount::Duplicated(_) => err(error_code),
-    }
-}
-
-// ANCHOR: entrypoint-branching
-no_allocator!();
-nostd_panic_handler!();
 
 #[inline(always)]
 unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
     *transmute::<*const u8, *const u64>(ptr.add(offset as usize))
 }
 
-#[inline(always)]
-unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
-    *ptr.add(offset as usize)
+macro_rules! ensure_ldxdw {
+    ($ptr:expr, $offset:expr, $expected:expr, $error:expr) => {
+        if unlikely(ldxdw($ptr, $offset) != $expected) {
+            return $error.into();
+        }
+    };
 }
+
+// ANCHOR: entrypoint-branching
+no_allocator!();
+nostd_panic_handler!();
 
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
@@ -82,43 +65,48 @@ unsafe fn general(input_buffer_ptr: *mut u8) -> u64 {
 #[cold]
 unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Error if user has data.
-    if unlikely(ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) != misc::DATA_LEN_ZERO) {
-        return error::USER_DATA_LEN.into();
-    }
+    ensure_ldxdw!(
+        input_buffer_ptr,
+        input_buffer::USER_DATA_LEN_OFF,
+        misc::DATA_LEN_ZERO,
+        error::USER_DATA_LEN
+    );
 
     // Error if tree is duplicate or has data.
-    if unlikely(ldxb(input_buffer_ptr, input_buffer::TREE_NON_DUP_MARKER_OFF) != NON_DUP_MARKER) {
-        return error::TREE_DUPLICATE.into();
-    }
-    if unlikely(ldxdw(input_buffer_ptr, input_buffer::TREE_DATA_LEN_OFF) != misc::DATA_LEN_ZERO) {
-        return error::TREE_DATA_LEN.into();
-    }
+    ensure_ldxb!(
+        input_buffer_ptr,
+        input_buffer::TREE_NON_DUP_MARKER_OFF,
+        NON_DUP_MARKER,
+        error::TREE_DUPLICATE
+    );
+    ensure_ldxdw!(
+        input_buffer_ptr,
+        input_buffer::TREE_DATA_LEN_OFF,
+        misc::DATA_LEN_ZERO,
+        error::TREE_DATA_LEN
+    );
 
     // Error if System Program is duplicate or has invalid data length.
-    if unlikely(
-        ldxb(
-            input_buffer_ptr,
-            input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
-        ) != NON_DUP_MARKER,
-    ) {
-        return error::SYSTEM_PROGRAM_DUPLICATE.into();
-    }
-    if unlikely(
-        ldxdw(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF)
-            != input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
-    ) {
-        return error::SYSTEM_PROGRAM_DATA_LEN.into();
-    }
+    ensure_ldxb!(
+        input_buffer_ptr,
+        input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
+        NON_DUP_MARKER,
+        error::SYSTEM_PROGRAM_DUPLICATE
+    );
+    ensure_ldxdw!(
+        input_buffer_ptr,
+        input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF,
+        input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
+        error::SYSTEM_PROGRAM_DATA_LEN
+    );
 
     // Error if instruction data provided.
-    if unlikely(
-        ldxdw(
-            input_buffer_ptr,
-            input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
-        ) != misc::DATA_LEN_ZERO,
-    ) {
-        return error::INSTRUCTION_DATA.into();
-    }
+    ensure_ldxdw!(
+        input_buffer_ptr,
+        input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
+        misc::DATA_LEN_ZERO,
+        error::INSTRUCTION_DATA
+    );
     // ANCHOR_END: initialize-input-checks
 
     SUCCESS

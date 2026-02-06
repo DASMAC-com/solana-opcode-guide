@@ -2,40 +2,45 @@
 #[cold]
 unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Error if user has data.
-    if unlikely(ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) != misc::DATA_LEN_ZERO) {
-        return error::USER_DATA_LEN.into();
-    }
+    ensure_ldxdw!(
+        input_buffer_ptr,
+        input_buffer::USER_DATA_LEN_OFF,
+        misc::DATA_LEN_ZERO,
+        error::USER_DATA_LEN
+    );
 
     // Error if tree is duplicate or has data.
-    if unlikely(ldxb(input_buffer_ptr, input_buffer::TREE_NON_DUP_MARKER_OFF) != NON_DUP_MARKER) {
-        return error::TREE_DUPLICATE.into();
-    }
-    if unlikely(ldxdw(input_buffer_ptr, input_buffer::TREE_DATA_LEN_OFF) != misc::DATA_LEN_ZERO) {
-        return error::TREE_DATA_LEN.into();
-    }
+    ensure_ldxb!(
+        input_buffer_ptr,
+        input_buffer::TREE_NON_DUP_MARKER_OFF,
+        NON_DUP_MARKER,
+        error::TREE_DUPLICATE
+    );
+    ensure_ldxdw!(
+        input_buffer_ptr,
+        input_buffer::TREE_DATA_LEN_OFF,
+        misc::DATA_LEN_ZERO,
+        error::TREE_DATA_LEN
+    );
 
     // Error if System Program is duplicate or has invalid data length.
-    if unlikely(
-        ldxb(
-            input_buffer_ptr,
-            input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
-        ) != NON_DUP_MARKER,
-    ) {
-        return error::SYSTEM_PROGRAM_DUPLICATE.into();
-    }
-    if unlikely(
-        ldxdw(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF)
-            != input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
-    ) {
-        return error::SYSTEM_PROGRAM_DATA_LEN.into();
-    }
+    ensure_ldxb!(
+        input_buffer_ptr,
+        input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
+        NON_DUP_MARKER,
+        error::SYSTEM_PROGRAM_DUPLICATE
+    );
+    ensure_ldxdw!(
+        input_buffer_ptr,
+        input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF,
+        input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
+        error::SYSTEM_PROGRAM_DATA_LEN
+    );
 
     // Error if instruction data provided.
-    if unlikely(
-        ldxdw(
-            input_buffer_ptr,
-            input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
-        ) != misc::DATA_LEN_ZERO,
-    ) {
-        return error::INSTRUCTION_DATA.into();
-    }
+    ensure_ldxdw!(
+        input_buffer_ptr,
+        input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
+        misc::DATA_LEN_ZERO,
+        error::INSTRUCTION_DATA
+    );
