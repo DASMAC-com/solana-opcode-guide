@@ -1,5 +1,5 @@
-use tree_interface::*;
 use std::{collections::HashSet, fs, path::Path};
+use tree_interface::*;
 
 const CONSTANTS_ANCHOR_START: &str = "# ANCHOR: constants";
 const CONSTANTS_ANCHOR_END: &str = "# ANCHOR_END: constants";
