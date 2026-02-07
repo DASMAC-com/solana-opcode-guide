@@ -1,13 +1,13 @@
 mod entrypoint;
 mod init;
 
-use tree_interface::error_codes;
 use mollusk_svm::result::ProgramResult as MolluskResult;
 use solana_sdk::account::Account;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use test_utils::{setup_test, ProgramLanguage, TestSetup};
+use tree_interface::error_codes;
 
 const USER_LAMPORTS: u64 = 1_000_000;
 
