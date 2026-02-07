@@ -517,6 +517,7 @@ dependencies = [
  "regex",
  "solana-rent",
  "solana-sdk",
+ "tree-interface",
 ]
 
 [[package]]
@@ -1211,14 +1212,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "interface"
-version = "0.1.0"
-dependencies = [
- "macros",
- "pinocchio",
-]
-
-[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1758,6 +1751,7 @@ version = "0.1.0"
 dependencies = [
  "pinocchio",
  "pinocchio-system",
+ "tree-interface",
 ]
 
 [[package]]
@@ -3597,11 +3591,19 @@ dependencies = [
 name = "tree"
 version = "0.1.0"
 dependencies = [
- "interface",
  "mollusk-svm",
  "pinocchio",
  "solana-sdk",
  "test-utils",
+ "tree-interface",
+]
+
+[[package]]
+name = "tree-interface"
+version = "0.1.0"
+dependencies = [
+ "macros",
+ "pinocchio",
 ]
 
 [[package]]

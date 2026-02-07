@@ -1,7 +1,7 @@
 use core::mem::transmute;
 #[cfg(target_os = "solana")]
 use core::mem::MaybeUninit;
-use interface::{data, error_codes::error, input_buffer};
+use tree_interface::{data, error_codes::error, input_buffer};
 use pinocchio::{
     address::address_eq,
     entrypoint::NON_DUP_MARKER,
@@ -9,7 +9,7 @@ use pinocchio::{
     no_allocator, nostd_panic_handler, Address, SUCCESS,
 };
 #[cfg(target_os = "solana")]
-use {core::ptr::null, interface::cpi, pinocchio::syscalls::sol_try_find_program_address};
+use {core::ptr::null, tree_interface::cpi, pinocchio::syscalls::sol_try_find_program_address};
 
 #[inline(always)]
 unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {

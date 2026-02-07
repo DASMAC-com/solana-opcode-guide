@@ -1,7 +1,7 @@
 mod entrypoint;
 mod init;
 
-use interface::error_codes;
+use tree_interface::error_codes;
 use mollusk_svm::result::ProgramResult as MolluskResult;
 use solana_sdk::account::Account;
 use solana_sdk::instruction::Instruction;

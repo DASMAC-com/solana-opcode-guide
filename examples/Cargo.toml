@@ -18,6 +18,7 @@ resolver = "2"
 
 [workspace.dependencies]
 cargo-manifest = "0.19.1"
+tree-interface = { path = "tree/interface" }
 convert_case = "0.11.0"
 fib-rs = "1.0.0"
 mollusk-svm = "0.10.1"

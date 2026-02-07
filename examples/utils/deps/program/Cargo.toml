@@ -1,4 +1,5 @@
 [dependencies]
+tree-interface.workspace = true
 pinocchio.workspace = true
 pinocchio-system.workspace = true
 

@@ -1,4 +1,4 @@
-use interface::*;
+use tree_interface::*;
 use std::{collections::HashSet, fs, path::Path};
 
 const CONSTANTS_ANCHOR_START: &str = "# ANCHOR: constants";

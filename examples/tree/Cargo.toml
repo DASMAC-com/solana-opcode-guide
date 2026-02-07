@@ -1,9 +1,9 @@
 [build-dependencies]
-interface.path = "interface"
+tree-interface.workspace = true
 
 [dependencies]
 pinocchio.workspace = true
-interface.path = "interface"
+tree-interface.workspace = true
 
 [dev-dependencies]
 mollusk-svm.workspace = true
