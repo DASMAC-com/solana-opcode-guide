@@ -443,8 +443,7 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
                 value,
                 literal_repr,
             } => {
-                let assert_name =
-                    Ident::new(&format!("_ASSERT_{}_FITS_I32", name), name.span());
+                let assert_name = Ident::new(&format!("_ASSERT_{}_FITS_I32", name), name.span());
                 const_value_strs.push(literal_repr.clone());
 
                 if literal_repr.is_some() {
@@ -1423,8 +1422,8 @@ pub fn sizes(input: TokenStream) -> TokenStream {
     let mut const_doc_strs = Vec::new();
 
     for ty in &input.types {
-        let type_name = extract_type_name(ty)
-            .unwrap_or_else(|| panic!("Expected a named type path in sizes!"));
+        let type_name =
+            extract_type_name(ty).unwrap_or_else(|| panic!("Expected a named type path in sizes!"));
         let screaming = type_name_to_upper_snake(&type_name);
         let name_str = format!("SIZE_OF_{}", screaming);
         let name = Ident::new(&name_str, proc_macro2::Span::call_site());

@@ -10,7 +10,7 @@
         bump.as_mut_ptr(),
     );
     let pda = pda.assume_init();
-    let bump = bump.assume_init();
+    let _bump = bump.assume_init();
 
     // Compare result with passed PDA.
     if !address_eq(

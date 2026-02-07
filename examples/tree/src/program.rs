@@ -1,16 +1,14 @@
-use core::{
-    mem::{transmute, MaybeUninit},
-    ptr::null,
-};
+use core::mem::{transmute, MaybeUninit};
+#[cfg(target_os = "solana")]
+use core::ptr::null;
 use interface::{cpi, data, error_codes::error, input_buffer};
 #[cfg(target_os = "solana")]
 use pinocchio::syscalls::sol_try_find_program_address;
 use pinocchio::{
     address::address_eq,
-    entrypoint::{lazy::InstructionContext, MaybeAccount, NON_DUP_MARKER},
-    error::ProgramError,
+    entrypoint::NON_DUP_MARKER,
     hint::{likely, unlikely},
-    no_allocator, nostd_panic_handler, AccountView, Address, ProgramResult, SUCCESS,
+    no_allocator, nostd_panic_handler, Address, SUCCESS,
 };
 
 #[inline(always)]
@@ -126,7 +124,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
         bump.as_mut_ptr(),
     );
     let pda = pda.assume_init();
-    let bump = bump.assume_init();
+    let _bump = bump.assume_init();
 
     // Compare result with passed PDA.
     if !address_eq(

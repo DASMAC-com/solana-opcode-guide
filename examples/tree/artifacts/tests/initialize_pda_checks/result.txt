@@ -5,52 +5,30 @@
 | PDA mismatch chunk 3 | 1536 | 1539 | +3 | +0.2% |
 | PDA mismatch chunk 4 | 1539 | 1541 | +2 | +0.1% |
 test tests::test_initialize_pda_checks ... ok
-warning: unused import: `ptr::null`
- --> tree/src/program.rs:3:5
+warning: unused import: `cpi`
+ --> tree/src/program.rs:4:17
   |
-3 |     ptr::null,
-  |     ^^^^^^^^^
+4 | use interface::{cpi, data, error_codes::error, input_buffer};
+  |                 ^^^
   |
   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
-warning: unused import: `cpi`
- --> tree/src/program.rs:5:17
-  |
-5 | use interface::{cpi, data, error_codes::error, input_buffer};
-  |                 ^^^
-warning: unused imports: `AccountView`, `MaybeAccount`, `ProgramResult`, `error::ProgramError`, and `lazy::InstructionContext`
-  --> tree/src/program.rs:10:18
-   |
-10 |     entrypoint::{lazy::InstructionContext, MaybeAccount, NON_DUP_MARKER},
-   |                  ^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^
-11 |     error::ProgramError,
-   |     ^^^^^^^^^^^^^^^^^^^
-12 |     hint::{likely, unlikely},
-13 |     no_allocator, nostd_panic_handler, AccountView, Address, ProgramResult, SUCCESS,
-   |                                        ^^^^^^^^^^^           ^^^^^^^^^^^^^
-warning: unused variable: `bump`
-   --> tree/src/program.rs:129:9
-    |
-129 |     let bump = bump.assume_init();
-    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_bump`
-    |
-    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 warning: variable does not need to be mutable
-   --> tree/src/program.rs:118:9
+   --> tree/src/program.rs:116:9
     |
-118 |     let mut pda = MaybeUninit::<Address>::uninit();
+116 |     let mut pda = MaybeUninit::<Address>::uninit();
     |         ----^^^
     |         |
     |         help: remove this `mut`
     |
     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
 warning: variable does not need to be mutable
-   --> tree/src/program.rs:119:9
+   --> tree/src/program.rs:117:9
     |
-119 |     let mut bump = MaybeUninit::<u8>::uninit();
+117 |     let mut bump = MaybeUninit::<u8>::uninit();
     |         ----^^^^
     |         |
     |         help: remove this `mut`
-warning: `tree` (lib test) generated 6 warnings (run `cargo fix --lib -p tree --tests` to apply 5 suggestions)
+warning: `tree` (lib test) generated 3 warnings (run `cargo fix --lib -p tree --tests` to apply 3 suggestions)
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 1530 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
