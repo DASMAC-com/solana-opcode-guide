@@ -39,6 +39,22 @@ performance.
 
 <!-- markdownlint-enable MD013 -->
 
+## Initialize PDA checks
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/initialize-pda-checks.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/initialize-pda-checks.txt{rs} [Rust]
+
+:::
+
+<!-- @include: ../../../examples/tree/artifacts/tests/initialize_pda_checks/result.txt{1,6} -->
+
+<!-- markdownlint-enable MD013 -->
+
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`

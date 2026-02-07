@@ -1,4 +1,0 @@
-#[test]
-fn test_rs_no_accounts() {
-    run_no_accounts(ProgramLanguage::Rust);
-}

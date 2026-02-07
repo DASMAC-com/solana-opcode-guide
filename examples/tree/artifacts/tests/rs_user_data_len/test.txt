@@ -1,4 +1,0 @@
-#[test]
-fn test_rs_user_data_len() {
-    run_user_data_len(ProgramLanguage::Rust);
-}

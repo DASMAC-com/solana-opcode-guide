@@ -97,6 +97,6 @@ fn test_initialize_input_checks() {
 }
 
 #[test]
-fn test_initialize_pda_mismatch() {
+fn test_initialize_pda_checks() {
     print_comparison_table(init::InitCase::PDA_CASES);
 }

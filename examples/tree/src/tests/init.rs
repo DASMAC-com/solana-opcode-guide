@@ -125,10 +125,10 @@ impl TestCase for InitCase {
             Self::SystemProgramDuplicate => "System program is duplicate",
             Self::SystemProgramDataLen => "System program wrong data length",
             Self::InstructionData => "Non-empty instruction data",
-            Self::PdaMismatchChunk0 => "PDA mismatch chunk 0",
-            Self::PdaMismatchChunk1 => "PDA mismatch chunk 1",
-            Self::PdaMismatchChunk2 => "PDA mismatch chunk 2",
-            Self::PdaMismatchChunk3 => "PDA mismatch chunk 3",
+            Self::PdaMismatchChunk0 => "PDA mismatch chunk 1",
+            Self::PdaMismatchChunk1 => "PDA mismatch chunk 2",
+            Self::PdaMismatchChunk2 => "PDA mismatch chunk 3",
+            Self::PdaMismatchChunk3 => "PDA mismatch chunk 4",
         }
     }
 

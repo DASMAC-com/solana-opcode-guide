@@ -3,6 +3,7 @@ use core::{
     ptr::null,
 };
 use interface::{cpi, data, error_codes::error, input_buffer};
+#[cfg(target_os = "solana")]
 use pinocchio::syscalls::sol_try_find_program_address;
 use pinocchio::{
     address::address_eq,
@@ -112,10 +113,11 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     );
     // ANCHOR_END: initialize-input-checks
 
-    // ANCHOR: initialize-check-pda
+    // ANCHOR: initialize-pda-checks
     // Invoke syscall.
     let mut pda = MaybeUninit::<Address>::uninit();
     let mut bump = MaybeUninit::<u8>::uninit();
+    #[cfg(target_os = "solana")]
     sol_try_find_program_address(
         null(),
         cpi::N_SEEDS_TRY_FIND_PDA,
@@ -135,7 +137,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     ) {
         return error::PDA_MISMATCH.into();
     }
-    // ANCHOR_END: initialize-check-pda
+    // ANCHOR_END: initialize-pda-checks
 
     SUCCESS
 }

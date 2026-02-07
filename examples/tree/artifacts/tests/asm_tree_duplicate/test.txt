@@ -1,4 +1,0 @@
-#[test]
-fn test_asm_tree_duplicate() {
-    run_tree_duplicate(ProgramLanguage::Assembly);
-}

@@ -1,6 +1,7 @@
     // Invoke syscall.
     let mut pda = MaybeUninit::<Address>::uninit();
     let mut bump = MaybeUninit::<u8>::uninit();
+    #[cfg(target_os = "solana")]
     sol_try_find_program_address(
         null(),
         cpi::N_SEEDS_TRY_FIND_PDA,

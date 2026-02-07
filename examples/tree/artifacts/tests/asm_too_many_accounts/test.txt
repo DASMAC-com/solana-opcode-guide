@@ -1,4 +1,0 @@
-#[test]
-fn test_asm_too_many_accounts() {
-    run_too_many_accounts(ProgramLanguage::Assembly);
-}

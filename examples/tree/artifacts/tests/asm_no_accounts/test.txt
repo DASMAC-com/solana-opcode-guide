@@ -1,4 +1,0 @@
-#[test]
-fn test_asm_no_accounts() {
-    run_no_accounts(ProgramLanguage::Assembly);
-}
