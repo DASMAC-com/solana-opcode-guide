@@ -1,4 +1,6 @@
-use core::mem::{transmute, MaybeUninit};
+use core::mem::transmute;
+#[cfg(target_os = "solana")]
+use core::mem::MaybeUninit;
 use interface::{data, error_codes::error, input_buffer};
 use pinocchio::{
     address::address_eq,
@@ -110,19 +112,23 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // ANCHOR_END: initialize-input-checks
 
     // ANCHOR: initialize-pda-checks
-    // Invoke syscall.
-    let mut pda = MaybeUninit::<Address>::uninit();
-    let mut bump = MaybeUninit::<u8>::uninit();
     #[cfg(target_os = "solana")]
-    sol_try_find_program_address(
-        null(),
-        cpi::N_SEEDS_TRY_FIND_PDA,
-        input_buffer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF as usize),
-        pda.as_mut_ptr().cast(),
-        bump.as_mut_ptr(),
-    );
-    let pda = pda.assume_init();
-    let _bump = bump.assume_init();
+    // Invoke syscall.
+    let (pda, _bump) = {
+        let mut pda = MaybeUninit::<Address>::uninit();
+        let mut bump = MaybeUninit::<u8>::uninit();
+        sol_try_find_program_address(
+            null(),
+            cpi::N_SEEDS_TRY_FIND_PDA,
+            input_buffer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF as usize),
+            pda.as_mut_ptr().cast(),
+            bump.as_mut_ptr(),
+        );
+        (pda.assume_init(), bump.assume_init())
+    };
+    // Dummy block for non-Solana target, to satisfy clippy.
+    #[cfg(not(target_os = "solana"))]
+    let (pda, _bump) = (Address::default(), 0u8);
 
     // Compare result with passed PDA.
     if !address_eq(
