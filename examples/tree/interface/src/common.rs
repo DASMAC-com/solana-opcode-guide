@@ -37,12 +37,6 @@ constant_group! {
     }
 }
 
-#[repr(usize)]
-pub enum CpiAccountIndex {
-    User,
-    Tree,
-}
-
 constant_group! {
     /// CPI-specific constants.
     cpi {
