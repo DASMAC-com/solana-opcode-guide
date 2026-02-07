@@ -129,7 +129,7 @@ initialize:
     mov64 r4, r10 # Get stack frame pointer.
     add64 r4, SF_INIT_PDA_OFF # Point to PDA region on stack.
     mov64 r5, r10 # Get stack frame pointer.
-    add64 r4, SF_INIT_BUMP_SEED_OFF # Point to bump seed region on stack.
+    add64 r5, SF_INIT_BUMP_SEED_OFF # Point to bump seed region on stack.
     call sol_try_find_program_address # Find PDA.
 
     # Compare computed PDA against passed account.

@@ -1,5 +1,6 @@
 mod entrypoint;
 mod init;
+mod pda;
 
 use interface::error_codes;
 use mollusk_svm::result::ProgramResult as MolluskResult;
@@ -94,4 +95,9 @@ fn test_entrypoint_branching() {
 #[test]
 fn test_initialize_input_checks() {
     print_comparison_table(init::InitCase::CASES);
+}
+
+#[test]
+fn test_initialize_pda_mismatch() {
+    pda::test_pda_mismatch_chunks(ProgramLanguage::Assembly);
 }

@@ -54,8 +54,8 @@ extend_constant_group!(cpi {
 
 #[stack_frame]
 struct InitStackFrame {
-    /// Zero-initialized on stack.
     bump_seed: u8,
+    /// Zero-initialized on stack.
     system_program_address: Address,
     instruction: SolInstruction,
     account_metas: [SolAccountMeta; cpi::N_ACCOUNTS],

@@ -1,4 +1,4 @@
-use core::mem::transmute;
+use core::mem::{transmute, MaybeUninit};
 use interface::{data, error_codes::error, input_buffer};
 use pinocchio::{
     address::address_eq,
@@ -107,6 +107,9 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
         error::INSTRUCTION_DATA
     );
     // ANCHOR_END: initialize-input-checks
+
+    let pda = MaybeUninit::<Address>::uninit();
+    let bump = MaybeUninit::<u8>::uninit();
 
     SUCCESS
 }
