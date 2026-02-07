@@ -26,7 +26,7 @@ macro_rules! ensure_ldxb {
 
 #[inline(always)]
 unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
-    *transmute::<*const u8, *const u64>(ptr.add(offset as usize))
+    *ptr.add(offset as usize).cast()
 }
 
 macro_rules! ensure_ldxdw {
