@@ -46,12 +46,15 @@ pub enum CpiAccountIndex {
 constant_group! {
     /// CPI-specific constants.
     cpi {
+        prefix = "CPI",
         /// User and tree accounts must sign CPI.
         N_ACCOUNTS: usize = 2,
         /// The tree account is a PDA.
         N_PDA_SIGNERS: usize = 1,
         /// The bump seed is required for tree PDA signer.
         N_SEEDS: usize = 1,
+        /// Number of seeds for PDA generation.
+        N_SEEDS_TRY_FIND_PDA: u64 = 0,
     }
 }
 

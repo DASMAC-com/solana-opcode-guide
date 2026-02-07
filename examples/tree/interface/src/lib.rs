@@ -7,4 +7,5 @@ mod bindings;
 mod common;
 
 pub use asm::*;
+pub use common::cpi;
 pub use common::error_codes;

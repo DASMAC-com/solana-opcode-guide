@@ -1,5 +1,9 @@
-use core::mem::{transmute, MaybeUninit};
-use interface::{data, error_codes::error, input_buffer};
+use core::{
+    mem::{transmute, MaybeUninit},
+    ptr::null,
+};
+use interface::{cpi, data, error_codes::error, input_buffer};
+use pinocchio::syscalls::sol_try_find_program_address;
 use pinocchio::{
     address::address_eq,
     entrypoint::{lazy::InstructionContext, MaybeAccount, NON_DUP_MARKER},
@@ -108,8 +112,30 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     );
     // ANCHOR_END: initialize-input-checks
 
-    let pda = MaybeUninit::<Address>::uninit();
-    let bump = MaybeUninit::<u8>::uninit();
+    // ANCHOR: initialize-check-pda
+    // Invoke syscall.
+    let mut pda = MaybeUninit::<Address>::uninit();
+    let mut bump = MaybeUninit::<u8>::uninit();
+    sol_try_find_program_address(
+        null(),
+        cpi::N_SEEDS_TRY_FIND_PDA,
+        input_buffer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF as usize),
+        pda.as_mut_ptr().cast(),
+        bump.as_mut_ptr(),
+    );
+    let pda = pda.assume_init();
+    let bump = bump.assume_init();
+
+    // Compare result with passed PDA.
+    if !address_eq(
+        &pda,
+        transmute::<*const u8, &Address>(
+            input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF as usize),
+        ),
+    ) {
+        return error::PDA_MISMATCH.into();
+    }
+    // ANCHOR_END: initialize-check-pda
 
     SUCCESS
 }

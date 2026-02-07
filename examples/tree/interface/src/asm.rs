@@ -3,7 +3,7 @@ extern crate alloc;
 use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
-use crate::common::{CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
+use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
@@ -44,12 +44,6 @@ extend_constant_group!(input_buffer {
     offset!(SYSTEM_PROGRAM_NON_DUP_MARKER, InitInputBuffer.system_program.header.borrow_state),
     /// System Program data length field.
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.system_program.header.data_len),
-});
-
-extend_constant_group!(cpi {
-    prefix = "CPI",
-    /// Number of seeds for PDA generation.
-    N_SEEDS_TRY_FIND_PDA = 0,
 });
 
 #[stack_frame]

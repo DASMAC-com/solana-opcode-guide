@@ -229,6 +229,7 @@ struct ConstantDef {
 struct ConstantGroup {
     doc: String,
     name: Ident,
+    prefix: Option<String>,
     constants: Vec<ConstantDef>,
 }
 
@@ -250,6 +251,9 @@ impl Parse for ConstantGroup {
         // Parse module body.
         let content;
         braced!(content in input);
+
+        // Parse optional header parameter: prefix = "..."
+        let prefix = parse_group_params(&content)?;
 
         // Parse constants.
         let mut constants = Vec::new();
@@ -388,6 +392,7 @@ impl Parse for ConstantGroup {
         Ok(ConstantGroup {
             doc,
             name,
+            prefix,
             constants,
         })
     }
@@ -517,10 +522,43 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
         })
         .collect();
 
-    let expanded = quote! {
-        pub mod #mod_name {
-            #(#const_defs)*
+    // Generate to_asm function signature based on whether prefix is baked in.
+    let to_asm_fn = if let Some(ref prefix) = group.prefix {
+        let name_format = quote! { format!("{}_{}", #prefix, names[i]) };
+        quote! {
+            /// Generate ASM constants for this module.
+            pub fn to_asm() -> alloc::string::String {
+                use alloc::string::String;
+                use alloc::format;
 
+                let mut result = String::from(#header);
+                result.push('\n');
+
+                let names = [#(#const_names),*];
+                let computed_values: &[i64] = &[#(#const_idents as i64),*];
+                let literal_values: &[Option<&str>] = &[#(#value_str_opts),*];
+                let docs = [#(#const_docs),*];
+
+                for i in 0..names.len() {
+                    let full_name = #name_format;
+                    let value_str = match literal_values[i] {
+                        Some(lit) => String::from(lit),
+                        None => format!("{}", computed_values[i]),
+                    };
+                    let inline = format!(".equ {}, {} # {}", full_name, value_str, docs[i]);
+                    if inline.len() <= #max_line_len {
+                        result.push_str(&inline);
+                    } else {
+                        result.push_str(&format!("# {}\n.equ {}, {}", docs[i], full_name, value_str));
+                    }
+                    result.push('\n');
+                }
+
+                result
+            }
+        }
+    } else {
+        quote! {
             /// Generate ASM constants for this module with the given prefix.
             /// Prefix is automatically joined with underscore (e.g., "IB" -> "IB_NAME").
             pub fn to_asm(prefix: &str) -> alloc::string::String {
@@ -541,7 +579,6 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
                     } else {
                         format!("{}_{}", prefix, names[i])
                     };
-                    // Use original literal if available, otherwise use computed value.
                     let value_str = match literal_values[i] {
                         Some(lit) => String::from(lit),
                         None => format!("{}", computed_values[i]),
@@ -557,6 +594,14 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
 
                 result
             }
+        }
+    };
+
+    let expanded = quote! {
+        pub mod #mod_name {
+            #(#const_defs)*
+
+            #to_asm_fn
         }
     };
 
