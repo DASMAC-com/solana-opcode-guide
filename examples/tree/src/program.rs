@@ -1,3 +1,4 @@
+use core::mem::transmute;
 use pinocchio::{
     address::address_eq,
     entrypoint::NON_DUP_MARKER,
@@ -7,10 +8,7 @@ use pinocchio::{
 use tree_interface::{data, error_codes::error, input_buffer};
 #[cfg(target_os = "solana")]
 use {
-    core::{
-        mem::{transmute, MaybeUninit},
-        ptr::null,
-    },
+    core::{mem::MaybeUninit, ptr::null},
     pinocchio::syscalls::sol_try_find_program_address,
     tree_interface::cpi,
 };
@@ -30,7 +28,7 @@ macro_rules! ensure_ldxb {
 
 #[inline(always)]
 unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
-    *ptr.add(offset as usize).cast()
+    *ptr.add(offset as usize).cast::<u64>()
 }
 
 macro_rules! ensure_ldxdw {
