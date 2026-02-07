@@ -89,7 +89,7 @@ pub fn error_codes(input: TokenStream) -> TokenStream {
             #variant_name = #value
         });
 
-        asm_lines.push(asm_equ_line(&asm_name, &value, doc));
+        asm_lines.push(asm_equ_line(&asm_name, value, doc));
     }
 
     let header = asm_header("Error codes.");
@@ -1522,11 +1522,11 @@ pub fn pubkey_chunk_group(_input: TokenStream) -> TokenStream {
     let mut const_name_strs = Vec::new();
     let mut const_doc_strs = Vec::new();
 
-    for i in 0..N_CHUNKS {
+    for (i, ordinal) in ORDINALS.iter().enumerate() {
         let offset = (i * CHUNK_SIZE) as i64;
         let name_str = format!("PUBKEY_CHUNK_OFF_{}", i);
         let name = Ident::new(&format!("OFF_{}", i), proc_macro2::Span::call_site());
-        let doc = format!("Offset for the {} 8 bytes.", ORDINALS[i]);
+        let doc = format!("Offset for the {} 8 bytes.", ordinal);
 
         const_defs.push(quote! {
             #[doc = #doc]

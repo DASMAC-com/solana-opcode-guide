@@ -1,7 +1,7 @@
 use core::mem::{transmute, MaybeUninit};
 #[cfg(target_os = "solana")]
 use core::ptr::null;
-use interface::{cpi, data, error_codes::error, input_buffer};
+use interface::{data, error_codes::error, input_buffer};
 #[cfg(target_os = "solana")]
 use pinocchio::syscalls::sol_try_find_program_address;
 use pinocchio::{
@@ -129,6 +129,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Compare result with passed PDA.
     if !address_eq(
         &pda,
+        #[allow(clippy::transmute_ptr_to_ref)]
         transmute::<*const u8, &Address>(
             input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF as usize),
         ),
