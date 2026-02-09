@@ -35,6 +35,10 @@
 # Input buffer layout.
 # --------------------
 .equ IB_N_ACCOUNTS_OFF, 0 # Number of accounts field.
+.equ IB_USER_ACCOUNT_OFF, 8 # User runtime account.
+.equ IB_TREE_ACCOUNT_OFF, 10344 # Tree runtime account header.
+# System Program runtime account header.
+.equ IB_SYSTEM_PROGRAM_ACCOUNT_OFF, 20680
 # Expected number of accounts for general instructions.
 .equ IB_N_ACCOUNTS_GENERAL, 2
 # Expected number of accounts for tree initialization.

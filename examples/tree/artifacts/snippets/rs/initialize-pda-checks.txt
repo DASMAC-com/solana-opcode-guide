@@ -4,7 +4,8 @@
         let mut pda = MaybeUninit::<Address>::uninit();
         let mut bump = MaybeUninit::<u8>::uninit();
         sol_try_find_program_address(
-            null(),
+            // Pass a declared pointer instead of null to prevent unnecessary register assignment.
+            input_buffer_ptr,
             cpi::N_SEEDS_TRY_FIND_PDA,
             input_buffer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF as usize),
             pda.as_mut_ptr().cast(),

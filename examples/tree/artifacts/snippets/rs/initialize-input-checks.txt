@@ -1,45 +1,31 @@
 #[inline(always)]
 unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Error if user has data.
-    ensure_ldxdw!(
-        input_buffer_ptr,
-        input_buffer::USER_DATA_LEN_OFF,
-        data::DATA_LEN_ZERO,
-        error::USER_DATA_LEN
-    );
+    let user = account_at(input_buffer_ptr, input_buffer::USER_ACCOUNT_OFF);
+    if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
 
     // Error if tree is duplicate or has data.
-    ensure_ldxb!(
-        input_buffer_ptr,
-        input_buffer::TREE_NON_DUP_MARKER_OFF,
-        NON_DUP_MARKER,
-        error::TREE_DUPLICATE
-    );
-    ensure_ldxdw!(
-        input_buffer_ptr,
-        input_buffer::TREE_DATA_LEN_OFF,
-        data::DATA_LEN_ZERO,
-        error::TREE_DATA_LEN
-    );
+    let tree = account_at(input_buffer_ptr, input_buffer::TREE_ACCOUNT_OFF);
+    if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
+    if_err!(!tree.is_data_empty(), error::TREE_DATA_LEN);
 
     // Error if System Program is duplicate or has invalid data length.
-    ensure_ldxb!(
-        input_buffer_ptr,
-        input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
-        NON_DUP_MARKER,
+    let system_program = account_at(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF);
+    if_err!(
+        is_duplicate(&system_program),
         error::SYSTEM_PROGRAM_DUPLICATE
     );
-    ensure_ldxdw!(
-        input_buffer_ptr,
-        input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF,
-        input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
+    if_err!(
+        system_program.data_len() != input_buffer::SYSTEM_PROGRAM_DATA_LEN,
         error::SYSTEM_PROGRAM_DATA_LEN
     );
 
     // Error if instruction data provided.
-    ensure_ldxdw!(
+    let instruction_data_len = ldxdw(
         input_buffer_ptr,
         input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
-        data::DATA_LEN_ZERO,
+    );
+    if_err!(
+        instruction_data_len != data::DATA_LEN_ZERO,
         error::INSTRUCTION_DATA
     );

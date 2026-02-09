@@ -1,9 +1,8 @@
 use core::mem::transmute;
 use pinocchio::{
     address::address_eq,
-    entrypoint::NON_DUP_MARKER,
     hint::{likely, unlikely},
-    no_allocator, nostd_panic_handler, Address, SUCCESS,
+    no_allocator, nostd_panic_handler, AccountView, Address, SUCCESS,
 };
 use tree_interface::{data, error_codes::error, input_buffer};
 #[cfg(target_os = "solana")]
@@ -14,16 +13,8 @@ use {
 };
 
 #[inline(always)]
-unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
-    *ptr.add(offset as usize)
-}
-
-macro_rules! ensure_ldxb {
-    ($ptr:expr, $offset:expr, $expected:expr, $error:expr) => {
-        if unlikely(ldxb($ptr, $offset) != $expected) {
-            return $error.into();
-        }
-    };
+unsafe fn account_at(input_buffer_ptr: *mut u8, offset: i16) -> AccountView {
+    AccountView::new_unchecked(input_buffer_ptr.add(offset as usize).cast())
 }
 
 #[inline(always)]
@@ -31,9 +22,16 @@ unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
     *ptr.add(offset as usize).cast::<u64>()
 }
 
-macro_rules! ensure_ldxdw {
-    ($ptr:expr, $offset:expr, $expected:expr, $error:expr) => {
-        if unlikely(ldxdw($ptr, $offset) != $expected) {
+/// Checks if the account is a duplicate by checking if it's borrowed, since this is equivalent
+/// via the underlying API due to the borrow state implementation.
+#[inline(always)]
+fn is_duplicate(account: &AccountView) -> bool {
+    account.is_borrowed()
+}
+
+macro_rules! if_err {
+    ($condition:expr, $error:expr) => {
+        if unlikely($condition) {
             return $error.into();
         }
     };
@@ -69,46 +67,32 @@ unsafe fn general(input_buffer_ptr: *mut u8) -> u64 {
 #[inline(always)]
 unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     // Error if user has data.
-    ensure_ldxdw!(
-        input_buffer_ptr,
-        input_buffer::USER_DATA_LEN_OFF,
-        data::DATA_LEN_ZERO,
-        error::USER_DATA_LEN
-    );
+    let user = account_at(input_buffer_ptr, input_buffer::USER_ACCOUNT_OFF);
+    if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
 
     // Error if tree is duplicate or has data.
-    ensure_ldxb!(
-        input_buffer_ptr,
-        input_buffer::TREE_NON_DUP_MARKER_OFF,
-        NON_DUP_MARKER,
-        error::TREE_DUPLICATE
-    );
-    ensure_ldxdw!(
-        input_buffer_ptr,
-        input_buffer::TREE_DATA_LEN_OFF,
-        data::DATA_LEN_ZERO,
-        error::TREE_DATA_LEN
-    );
+    let tree = account_at(input_buffer_ptr, input_buffer::TREE_ACCOUNT_OFF);
+    if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
+    if_err!(!tree.is_data_empty(), error::TREE_DATA_LEN);
 
     // Error if System Program is duplicate or has invalid data length.
-    ensure_ldxb!(
-        input_buffer_ptr,
-        input_buffer::SYSTEM_PROGRAM_NON_DUP_MARKER_OFF,
-        NON_DUP_MARKER,
+    let system_program = account_at(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF);
+    if_err!(
+        is_duplicate(&system_program),
         error::SYSTEM_PROGRAM_DUPLICATE
     );
-    ensure_ldxdw!(
-        input_buffer_ptr,
-        input_buffer::SYSTEM_PROGRAM_DATA_LEN_OFF,
-        input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
+    if_err!(
+        system_program.data_len() != input_buffer::SYSTEM_PROGRAM_DATA_LEN,
         error::SYSTEM_PROGRAM_DATA_LEN
     );
 
     // Error if instruction data provided.
-    ensure_ldxdw!(
+    let instruction_data_len = ldxdw(
         input_buffer_ptr,
         input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
-        data::DATA_LEN_ZERO,
+    );
+    if_err!(
+        instruction_data_len != data::DATA_LEN_ZERO,
         error::INSTRUCTION_DATA
     );
     // ANCHOR_END: initialize-input-checks
@@ -120,7 +104,8 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
         let mut pda = MaybeUninit::<Address>::uninit();
         let mut bump = MaybeUninit::<u8>::uninit();
         sol_try_find_program_address(
-            null(),
+            // Pass a declared pointer instead of null to prevent unnecessary register assignment.
+            input_buffer_ptr,
             cpi::N_SEEDS_TRY_FIND_PDA,
             input_buffer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF as usize),
             pda.as_mut_ptr().cast(),

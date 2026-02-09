@@ -28,6 +28,12 @@ constant_group! {
     input_buffer {
         /// Number of accounts field.
         offset!(N_ACCOUNTS, InputBufferHeader.n_accounts),
+        /// User runtime account.
+        offset!(USER_ACCOUNT, InputBufferHeader.user),
+        /// Tree runtime account header.
+        offset!(TREE_ACCOUNT, InputBufferHeader.tree_header),
+        /// System Program runtime account header.
+        offset!(SYSTEM_PROGRAM_ACCOUNT, InitInputBuffer.system_program),
         /// Expected number of accounts for general instructions.
         N_ACCOUNTS_GENERAL: u64 = 2,
         /// Expected number of accounts for tree initialization.
