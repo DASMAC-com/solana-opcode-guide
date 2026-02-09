@@ -7,9 +7,7 @@ use pinocchio::{
 use tree_interface::{data, error_codes::error, input_buffer};
 #[cfg(target_os = "solana")]
 use {
-    core::{mem::MaybeUninit, ptr::null},
-    pinocchio::syscalls::sol_try_find_program_address,
-    tree_interface::cpi,
+    core::mem::MaybeUninit, pinocchio::syscalls::sol_try_find_program_address, tree_interface::cpi,
 };
 
 #[inline(always)]
@@ -42,12 +40,15 @@ no_allocator!();
 nostd_panic_handler!();
 
 #[no_mangle]
-pub unsafe extern "C" fn entrypoint(input_buffer_ptr: *mut u8) -> u64 {
+pub unsafe extern "C" fn entrypoint(
+    input_buffer_ptr: *mut u8,
+    instruction_data_ptr: *mut u8,
+) -> u64 {
     let n_accounts = ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF);
     if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
         general(input_buffer_ptr)
     } else if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
-        initialize(input_buffer_ptr)
+        initialize(input_buffer_ptr, instruction_data_ptr)
     } else {
         error::N_ACCOUNTS.into()
     }
@@ -65,7 +66,7 @@ unsafe fn general(input_buffer_ptr: *mut u8) -> u64 {
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]
-unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
+unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
     // Error if user has data.
     let user = account_at(input_buffer_ptr, input_buffer::USER_ACCOUNT_OFF);
     if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
@@ -87,10 +88,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     );
 
     // Error if instruction data provided.
-    let instruction_data_len = ldxdw(
-        input_buffer_ptr,
-        input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
-    );
+    let instruction_data_len = ldxdw(instruction_data_ptr, -(size_of::<u64>() as i16));
     if_err!(
         instruction_data_len != data::DATA_LEN_ZERO,
         error::INSTRUCTION_DATA

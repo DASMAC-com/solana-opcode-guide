@@ -17,6 +17,7 @@
 # Type sizes.
 # -----------
 .equ SIZE_OF_U8, 1 # Size of u8.
+.equ SIZE_OF_U64, 8 # Size of u64.
 
 # Data layout constants.
 # ----------------------
@@ -82,18 +83,18 @@
 entrypoint:
     # Check input buffer accounts.
     # ----------------------------
-    ldxdw r2, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
-    jeq r2, IB_N_ACCOUNTS_GENERAL, general # Fast path to general case.
-    jeq r2, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
+    ldxdw r9, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
+    jeq r9, IB_N_ACCOUNTS_GENERAL, general # Fast path to general case.
+    jeq r9, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
     mov64 r0, E_N_ACCOUNTS # Else fail.
     exit
     # ANCHOR_END: entrypoint-branching
 
 general:
-    ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
-    add64 r2, MAX_DATA_PAD # Speculatively add max possible padding.
-    and64 r2, DATA_LEN_AND_MASK # Get data length plus required padding.
-    add64 r2, r1 # Get input buffer pointer shifted for tree data.
+    ldxdw r9, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
+    add64 r9, MAX_DATA_PAD # Speculatively add max possible padding.
+    and64 r9, DATA_LEN_AND_MASK # Get data length plus required padding.
+    add64 r9, r1 # Get input buffer pointer shifted for tree data.
     exit
 
 # ANCHOR: initialize-input-checks
@@ -101,33 +102,42 @@ initialize:
 
     # Error if user has data.
     # -----------------------
-    ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF]
-    jne r2, DATA_LEN_ZERO, e_user_data_len
+    ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
+    jne r9, DATA_LEN_ZERO, e_user_data_len
 
     # Error if tree is duplicate or has data.
     # ---------------------------------------
-    ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
-    jne r2, IB_NON_DUP_MARKER, e_tree_duplicate
-    ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF]
-    jne r2, DATA_LEN_ZERO, e_tree_data_len
+    ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
+    ldxdw r9, [r1 + IB_TREE_DATA_LEN_OFF]
+    jne r9, DATA_LEN_ZERO, e_tree_data_len
 
     # Error if System Program is duplicate or has invalid data length.
     # ----------------------------------------------------------------
-    ldxb r2, [r1 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
-    jne r2, IB_NON_DUP_MARKER, e_system_program_duplicate
-    ldxdw r2, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
-    jne r2, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
+    ldxb r9, [r1 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_system_program_duplicate
+    ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
+    jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
     # Error if instruction data provided.
     # -----------------------------------
-    ldxdw r2, [r1 + IB_INIT_INSTRUCTION_DATA_LEN_OFF]
-    jne r2, DATA_LEN_ZERO, e_instruction_data
+    # Use the instruction data pointer in r2 from SIMD-0321, which is
+    # equivalent to the following static offset for static and verified
+    # account data lengths:
+    # ```
+    # ldxdw r9, [r1 + IB_INIT_INSTRUCTION_DATA_LEN_OFF]
+    # ```
+    ldxdw r9, [r2 - SIZE_OF_U64]
+    jne r9, DATA_LEN_ZERO, e_instruction_data
     # ANCHOR_END: initialize-input-checks
 
     # ANCHOR: initialize-pda-checks
     # Compute PDA.
-    # ------------
-    mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Indicate no signer seeds.
+    # ---------------------------------------------------------------------
+    # Skip assignment for r1, since no seeds need to be parsed and this
+    # argument is effectively ignored.
+    # ---------------------------------------------------------------------
+    mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Declare no seeds to parse.
     mov64 r3, r1 # Get input buffer pointer.
     add64 r3, IB_INIT_PROGRAM_ID_OFF # Point at program ID in input buffer.
     mov64 r4, r10 # Get stack frame pointer.
@@ -138,27 +148,26 @@ initialize:
 
     # Compare computed PDA against passed account.
     # --------------------------------------------
-    mov64 r3, r1 # Get input buffer pointer.
-    add64 r3, IB_TREE_ADDRESS_OFF # Point at tree address.
-    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_0]
-    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_0]
-    jne r5, r6, e_pda_mismatch
-    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_1]
-    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_1]
-    jne r5, r6, e_pda_mismatch
-    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_2]
-    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_2]
-    jne r5, r6, e_pda_mismatch
-    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_3]
-    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_3]
-    jne r5, r6, e_pda_mismatch
+    mov64 r9, r1 # Get input buffer pointer.
+    add64 r9, IB_TREE_ADDRESS_OFF # Point at tree address.
+    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_0]
+    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_0]
+    jne r8, r7, e_pda_mismatch
+    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_1]
+    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_1]
+    jne r8, r7, e_pda_mismatch
+    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_2]
+    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_2]
+    jne r8, r7, e_pda_mismatch
+    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_3]
+    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_3]
+    jne r8, r7, e_pda_mismatch
     # ANCHOR_END: initialize-pda-checks
 
     # Initialize signer seed for PDA bump key.
     # ----------------------------------------
-    mov64 r2, r10 # Get stack frame pointer.
-    add64 r2, SF_INIT_BUMP_SEED_OFF # Point at bump seed on stack.
-    stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r2 # Store in signer seed.
+    # Store pointer to bump seed.
+    stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
     stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
 
     exit

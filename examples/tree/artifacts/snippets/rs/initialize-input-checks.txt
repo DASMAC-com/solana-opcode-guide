@@ -1,5 +1,5 @@
 #[inline(always)]
-unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
+unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
     // Error if user has data.
     let user = account_at(input_buffer_ptr, input_buffer::USER_ACCOUNT_OFF);
     if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
@@ -21,10 +21,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8) -> u64 {
     );
 
     // Error if instruction data provided.
-    let instruction_data_len = ldxdw(
-        input_buffer_ptr,
-        input_buffer::INIT_INSTRUCTION_DATA_LEN_OFF,
-    );
+    let instruction_data_len = ldxdw(instruction_data_ptr, -(size_of::<u64>() as i16));
     if_err!(
         instruction_data_len != data::DATA_LEN_ZERO,
         error::INSTRUCTION_DATA

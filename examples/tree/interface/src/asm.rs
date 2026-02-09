@@ -11,6 +11,7 @@ pubkey_chunk_group!();
 
 sizes! {
     u8,
+    u64,
 }
 
 extend_constant_group!(data {

@@ -1,6 +1,9 @@
     # Compute PDA.
-    # ------------
-    mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Indicate no signer seeds.
+    # ---------------------------------------------------------------------
+    # Skip assignment for r1, since no seeds need to be parsed and this
+    # argument is effectively ignored.
+    # ---------------------------------------------------------------------
+    mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Declare no seeds to parse.
     mov64 r3, r1 # Get input buffer pointer.
     add64 r3, IB_INIT_PROGRAM_ID_OFF # Point at program ID in input buffer.
     mov64 r4, r10 # Get stack frame pointer.
@@ -11,17 +14,17 @@
 
     # Compare computed PDA against passed account.
     # --------------------------------------------
-    mov64 r3, r1 # Get input buffer pointer.
-    add64 r3, IB_TREE_ADDRESS_OFF # Point at tree address.
-    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_0]
-    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_0]
-    jne r5, r6, e_pda_mismatch
-    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_1]
-    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_1]
-    jne r5, r6, e_pda_mismatch
-    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_2]
-    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_2]
-    jne r5, r6, e_pda_mismatch
-    ldxdw r5, [r3 + PUBKEY_CHUNK_OFF_3]
-    ldxdw r6, [r4 + PUBKEY_CHUNK_OFF_3]
-    jne r5, r6, e_pda_mismatch
+    mov64 r9, r1 # Get input buffer pointer.
+    add64 r9, IB_TREE_ADDRESS_OFF # Point at tree address.
+    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_0]
+    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_0]
+    jne r8, r7, e_pda_mismatch
+    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_1]
+    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_1]
+    jne r8, r7, e_pda_mismatch
+    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_2]
+    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_2]
+    jne r8, r7, e_pda_mismatch
+    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_3]
+    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_3]
+    jne r8, r7, e_pda_mismatch

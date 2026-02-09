@@ -2,24 +2,30 @@ initialize:
 
     # Error if user has data.
     # -----------------------
-    ldxdw r2, [r1 + IB_USER_DATA_LEN_OFF]
-    jne r2, DATA_LEN_ZERO, e_user_data_len
+    ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
+    jne r9, DATA_LEN_ZERO, e_user_data_len
 
     # Error if tree is duplicate or has data.
     # ---------------------------------------
-    ldxb r2, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
-    jne r2, IB_NON_DUP_MARKER, e_tree_duplicate
-    ldxdw r2, [r1 + IB_TREE_DATA_LEN_OFF]
-    jne r2, DATA_LEN_ZERO, e_tree_data_len
+    ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
+    ldxdw r9, [r1 + IB_TREE_DATA_LEN_OFF]
+    jne r9, DATA_LEN_ZERO, e_tree_data_len
 
     # Error if System Program is duplicate or has invalid data length.
     # ----------------------------------------------------------------
-    ldxb r2, [r1 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
-    jne r2, IB_NON_DUP_MARKER, e_system_program_duplicate
-    ldxdw r2, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
-    jne r2, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
+    ldxb r9, [r1 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_system_program_duplicate
+    ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
+    jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
     # Error if instruction data provided.
     # -----------------------------------
-    ldxdw r2, [r1 + IB_INIT_INSTRUCTION_DATA_LEN_OFF]
-    jne r2, DATA_LEN_ZERO, e_instruction_data
+    # Use the instruction data pointer in r2 from SIMD-0321, which is
+    # equivalent to the following static offset for static and verified
+    # account data lengths:
+    # ```
+    # ldxdw r9, [r1 + IB_INIT_INSTRUCTION_DATA_LEN_OFF]
+    # ```
+    ldxdw r9, [r2 - SIZE_OF_U64]
+    jne r9, DATA_LEN_ZERO, e_instruction_data
