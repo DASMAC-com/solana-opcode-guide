@@ -128,5 +128,9 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     );
     // ANCHOR_END: initialize-pda-checks
 
+    // ANCHOR: initialize-rent
+
+    // ANCHOR_END: initialize-rent
+
     SUCCESS
 }

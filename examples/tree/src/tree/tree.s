@@ -44,7 +44,7 @@
 # Expected number of accounts for general instructions.
 .equ IB_N_ACCOUNTS_GENERAL, 2
 # Expected number of accounts for tree initialization.
-.equ IB_N_ACCOUNTS_INIT, 3
+.equ IB_N_ACCOUNTS_INIT, 4
 # Expected data length of system program account.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN, 14
 .equ IB_USER_ADDRESS_OFF, 16 # User address field.
@@ -56,14 +56,15 @@
 .equ IB_TREE_ADDRESS_OFF_2, 10368 # Tree address field (chunk index 2).
 .equ IB_TREE_ADDRESS_OFF_3, 10376 # Tree address field (chunk index 3).
 .equ IB_TREE_DATA_LEN_OFF, 10424 # Tree data length field.
-# Instruction data length field for empty tree account.
-.equ IB_INIT_INSTRUCTION_DATA_LEN_OFF, 31032
-# Program ID field for initialize instruction.
-.equ IB_INIT_PROGRAM_ID_OFF, 31040
 # System Program non-duplicate marker field.
 .equ IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
 # System Program data length field.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN_OFF, 20760
+.equ IB_FOOTER_OFF, 31032 # Footer.
+# Instruction data length field for empty tree account, inside footer.
+.equ IB_INIT_INSTRUCTION_DATA_LEN_OFF, 10352
+# Program ID field for initialize instruction, inside footer.
+.equ IB_INIT_PROGRAM_ID_OFF, 10360
 
 # Init stack frame layout.
 # ------------------------

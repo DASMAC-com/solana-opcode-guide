@@ -1,6 +1,8 @@
+use core::mem::size_of;
 use macros::{constant_group, error_codes};
 use pinocchio::{
     account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE},
+    sysvars::rent::Rent,
     Address,
 };
 
@@ -33,11 +35,11 @@ constant_group! {
         /// Tree runtime account header.
         offset!(TREE_ACCOUNT, InputBufferHeader.tree_header),
         /// System Program runtime account header.
-        offset!(SYSTEM_PROGRAM_ACCOUNT, InitInputBuffer.system_program),
+        offset!(SYSTEM_PROGRAM_ACCOUNT, InitInputBuffer.header.system_program),
         /// Expected number of accounts for general instructions.
         N_ACCOUNTS_GENERAL: u64 = 2,
         /// Expected number of accounts for tree initialization.
-        N_ACCOUNTS_INIT: u64 = 3,
+        N_ACCOUNTS_INIT: u64 = 4,
         /// Expected data length of system program account.
         SYSTEM_PROGRAM_DATA_LEN: usize = b"system_program".len(),
     }
@@ -86,12 +88,23 @@ pub struct InputBufferHeader {
 }
 
 #[repr(C, packed)]
-/// Input buffer for tree initialization instruction.
+/// Input buffer for tree initialization instruction. Broken up to fit relative offsets in i16.
 pub struct InitInputBuffer {
-    pub n_accounts: u64,
-    pub user: EmptyRuntimeAccount,
-    pub tree: EmptyRuntimeAccount,
+    pub header: InitInputBufferHeader,
+    pub footer: InitInputBufferFooter,
+}
+
+#[repr(C, packed)]
+pub struct InitInputBufferHeader {
+    pub _n_accounts: u64,
+    pub _user: EmptyRuntimeAccount,
+    pub _tree: EmptyRuntimeAccount,
     pub system_program: SystemProgramRuntimeAccount,
+}
+
+#[repr(C, packed)]
+pub struct InitInputBufferFooter {
+    pub _rent: RentRuntimeAccount,
     /// No actual instruction data follows.
     pub instruction_data_len: u64,
     pub program_id: Address,
@@ -107,6 +120,7 @@ pub struct RuntimeAccount<const DATA_SIZE: usize> {
 type EmptyRuntimeAccount = RuntimeAccount<{ runtime_data_size(data::DATA_LEN_ZERO as usize) }>;
 type SystemProgramRuntimeAccount =
     RuntimeAccount<{ runtime_data_size(input_buffer::SYSTEM_PROGRAM_DATA_LEN) }>;
+type RentRuntimeAccount = RuntimeAccount<{ runtime_data_size(size_of::<Rent>()) }>;
 
 /// Compute the data buffer size for a runtime account with the given data length.
 const fn runtime_data_size(data_len: usize) -> usize {

@@ -3,10 +3,10 @@ extern crate alloc;
 use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
-use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
-use macros::{
-    asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame,
+use crate::common::{
+    cpi, CreateAccountInstructionData, InitInputBuffer, InitInputBufferFooter, InputBufferHeader,
 };
+use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
 pubkey_chunk_group!();
@@ -39,14 +39,16 @@ extend_constant_group!(input_buffer {
     pubkey_offset!(TREE_ADDRESS, InputBufferHeader.tree_header.address),
     /// Tree data length field.
     offset!(TREE_DATA_LEN, InputBufferHeader.tree_header.data_len),
-    /// Instruction data length field for empty tree account.
-    offset!(INIT_INSTRUCTION_DATA_LEN, InitInputBuffer.instruction_data_len),
-    /// Program ID field for initialize instruction.
-    offset!(INIT_PROGRAM_ID, InitInputBuffer.program_id),
     /// System Program non-duplicate marker field.
-    offset!(SYSTEM_PROGRAM_NON_DUP_MARKER, InitInputBuffer.system_program.header.borrow_state),
+    offset!(SYSTEM_PROGRAM_NON_DUP_MARKER, InitInputBuffer.header.system_program.header.borrow_state),
     /// System Program data length field.
-    offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.system_program.header.data_len),
+    offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.header.system_program.header.data_len),
+    /// Footer.
+    offset!(FOOTER, InitInputBuffer.footer),
+    /// Instruction data length field for empty tree account, inside footer.
+    offset!(INIT_INSTRUCTION_DATA_LEN, InitInputBufferFooter.instruction_data_len),
+    /// Program ID field for initialize instruction, inside footer.
+    offset!(INIT_PROGRAM_ID, InitInputBufferFooter.program_id),
 });
 
 #[stack_frame]
