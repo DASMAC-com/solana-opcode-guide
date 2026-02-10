@@ -14,17 +14,15 @@
 
     # Compare computed PDA against passed account.
     # --------------------------------------------
-    mov64 r9, r1 # Get input buffer pointer.
-    add64 r9, IB_TREE_ADDRESS_OFF # Point at tree address.
-    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_0]
+    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_0]
     ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_0]
     jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_1]
+    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_1]
     ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_1]
     jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_2]
+    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_2]
     ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_2]
     jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_3]
+    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_3]
     ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_3]
     jne r8, r7, e_pda_mismatch

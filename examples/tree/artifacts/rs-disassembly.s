@@ -2,8 +2,8 @@
 
 entrypoint:
   add64 r10, -64
-  ldxdw r2, [r1+0]
-  jne r2, 2, jmp_0040
+  ldxdw r3, [r1+0]
+  jne r3, 2, jmp_0040
   ldxdw r1, [r1+88]
   mov64 r0, 6677
   jeq r1, 67, jmp_0038
@@ -13,18 +13,18 @@ jmp_0038:
   exit
 
 jmp_0040:
-  jne r2, 3, jmp_0178
-  ldxdw r2, [r1+88]
-  jne r2, 0, jmp_0168
-  ldxb r2, [r1+10344]
-  jne r2, 255, jmp_0188
-  ldxdw r2, [r1+10424]
-  jne r2, 0, jmp_0198
-  ldxb r2, [r1+20680]
-  jne r2, 255, jmp_01a8
-  ldxdw r2, [r1+20760]
-  jne r2, 14, jmp_01b8
-  ldxdw r2, [r1+31032]
+  jne r3, 3, jmp_0178
+  ldxdw r3, [r1+88]
+  jne r3, 0, jmp_0168
+  ldxb r3, [r1+10344]
+  jne r3, 255, jmp_0188
+  ldxdw r3, [r1+10424]
+  jne r3, 0, jmp_0198
+  ldxb r3, [r1+20680]
+  jne r3, 255, jmp_01a8
+  ldxdw r3, [r1+20760]
+  jne r3, 14, jmp_01b8
+  ldxdw r2, [r2-8]
   jne r2, 0, jmp_01c8
   mov64 r3, r1
   add64 r3, 31040

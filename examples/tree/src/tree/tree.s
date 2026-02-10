@@ -51,7 +51,10 @@
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
 .equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
 .equ IB_TREE_NON_DUP_MARKER_OFF, 10344 # Tree non-duplicate marker field.
-.equ IB_TREE_ADDRESS_OFF, 10352 # Tree address field.
+.equ IB_TREE_ADDRESS_OFF_0, 10352 # Tree address field (chunk index 0).
+.equ IB_TREE_ADDRESS_OFF_1, 10360 # Tree address field (chunk index 1).
+.equ IB_TREE_ADDRESS_OFF_2, 10368 # Tree address field (chunk index 2).
+.equ IB_TREE_ADDRESS_OFF_3, 10376 # Tree address field (chunk index 3).
 .equ IB_TREE_DATA_LEN_OFF, 10424 # Tree data length field.
 # Instruction data length field for empty tree account.
 .equ IB_INIT_INSTRUCTION_DATA_LEN_OFF, 31032
@@ -148,18 +151,16 @@ initialize:
 
     # Compare computed PDA against passed account.
     # --------------------------------------------
-    mov64 r9, r1 # Get input buffer pointer.
-    add64 r9, IB_TREE_ADDRESS_OFF # Point at tree address.
-    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_0]
+    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_0]
     ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_0]
     jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_1]
+    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_1]
     ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_1]
     jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_2]
+    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_2]
     ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_2]
     jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r9 + PUBKEY_CHUNK_OFF_3]
+    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_3]
     ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_3]
     jne r8, r7, e_pda_mismatch
     # ANCHOR_END: initialize-pda-checks

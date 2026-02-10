@@ -120,7 +120,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         &pda,
         #[allow(clippy::transmute_ptr_to_ref)]
         transmute::<*const u8, &Address>(
-            input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF as usize),
+            input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF_0 as usize),
         ),
     ) {
         return error::PDA_MISMATCH.into();

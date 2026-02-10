@@ -1,0 +1,31 @@
+| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|------|-----------|------------|----------|------------|
+| PDA mismatch chunk 1 | 1528 | 1530 | +2 | +0.1% |
+| PDA mismatch chunk 2 | 1531 | 1533 | +2 | +0.1% |
+| PDA mismatch chunk 3 | 1534 | 1536 | +2 | +0.1% |
+| PDA mismatch chunk 4 | 1537 | 1539 | +2 | +0.1% |
+test tests::test_initialize_pda_checks ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1528 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1530 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1531 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1533 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1534 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1536 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1537 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1539 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8

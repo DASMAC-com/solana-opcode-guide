@@ -4,7 +4,9 @@ use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
 use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
-use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
+use macros::{
+    asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame,
+};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
 pubkey_chunk_group!();
@@ -34,7 +36,7 @@ extend_constant_group!(input_buffer {
     /// Tree non-duplicate marker field.
     offset!(TREE_NON_DUP_MARKER, InputBufferHeader.tree_header.borrow_state),
     /// Tree address field.
-    offset!(TREE_ADDRESS, InputBufferHeader.tree_header.address),
+    pubkey_offset!(TREE_ADDRESS, InputBufferHeader.tree_header.address),
     /// Tree data length field.
     offset!(TREE_DATA_LEN, InputBufferHeader.tree_header.data_len),
     /// Instruction data length field for empty tree account.
