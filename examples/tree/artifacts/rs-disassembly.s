@@ -35,20 +35,22 @@ jmp_0040:
   mov64 r6, r1
   mov64 r2, 0
   call sol_try_find_program_address
-  mov64 r0, 8
   ldxdw r1, [r10+24]
   ldxdw r2, [r6+10352]
-  jne r1, r2, jmp_0038
+  jne r1, r2, jmp_0158
   ldxdw r1, [r10+32]
   ldxdw r2, [r6+10360]
-  jne r1, r2, jmp_0038
+  jne r1, r2, jmp_0158
   ldxdw r1, [r10+40]
   ldxdw r2, [r6+10368]
-  jne r1, r2, jmp_0038
+  jne r1, r2, jmp_0158
   ldxdw r1, [r10+48]
-  ldxdw r2, [r6+10376]
-  jne r1, r2, jmp_0038
   mov64 r0, 0
+  ldxdw r2, [r6+10376]
+  jeq r1, r2, jmp_0038
+
+jmp_0158:
+  mov64 r0, 8
   ja jmp_0038
 
 jmp_0168:

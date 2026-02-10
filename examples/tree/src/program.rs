@@ -116,15 +116,16 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     let (pda, _bump) = (Address::default(), 0u8);
 
     // Compare result with passed PDA.
-    if !address_eq(
-        &pda,
-        #[allow(clippy::transmute_ptr_to_ref)]
-        transmute::<*const u8, &Address>(
-            input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF_0 as usize),
+    if_err!(
+        !address_eq(
+            &pda,
+            #[allow(clippy::transmute_ptr_to_ref)]
+            transmute::<*const u8, &Address>(
+                input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF_0 as usize),
+            ),
         ),
-    ) {
-        return error::PDA_MISMATCH.into();
-    }
+        error::PDA_MISMATCH
+    );
     // ANCHOR_END: initialize-pda-checks
 
     SUCCESS

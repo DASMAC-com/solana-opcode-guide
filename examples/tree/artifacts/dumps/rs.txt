@@ -134,20 +134,20 @@ Disassembly of section .text
       d8 bf 16 00 00 00 00 00 00      	mov64 r6, r1
       e0 b7 02 00 00 00 00 00 00      	mov64 r2, 0x0
       e8 95 00 00 00 38 4a 50 48      	syscall 0x48504a38
-      f0 b7 00 00 00 08 00 00 00      	mov64 r0, 0x8
-      f8 9c a1 18 00 00 00 00 00      	ldxdw r1, [r10 + 0x18]
-     100 9c 62 70 28 00 00 00 00      	ldxdw r2, [r6 + 0x2870]
-     108 5d 21 e5 ff 00 00 00 00      	jne r1, r2, -0x1b <entrypoint+0x38>
-     110 9c a1 20 00 00 00 00 00      	ldxdw r1, [r10 + 0x20]
-     118 9c 62 78 28 00 00 00 00      	ldxdw r2, [r6 + 0x2878]
-     120 5d 21 e2 ff 00 00 00 00      	jne r1, r2, -0x1e <entrypoint+0x38>
-     128 9c a1 28 00 00 00 00 00      	ldxdw r1, [r10 + 0x28]
-     130 9c 62 80 28 00 00 00 00      	ldxdw r2, [r6 + 0x2880]
-     138 5d 21 df ff 00 00 00 00      	jne r1, r2, -0x21 <entrypoint+0x38>
-     140 9c a1 30 00 00 00 00 00      	ldxdw r1, [r10 + 0x30]
+      f0 9c a1 18 00 00 00 00 00      	ldxdw r1, [r10 + 0x18]
+      f8 9c 62 70 28 00 00 00 00      	ldxdw r2, [r6 + 0x2870]
+     100 5d 21 0a 00 00 00 00 00      	jne r1, r2, +0xa <entrypoint+0x158>
+     108 9c a1 20 00 00 00 00 00      	ldxdw r1, [r10 + 0x20]
+     110 9c 62 78 28 00 00 00 00      	ldxdw r2, [r6 + 0x2878]
+     118 5d 21 07 00 00 00 00 00      	jne r1, r2, +0x7 <entrypoint+0x158>
+     120 9c a1 28 00 00 00 00 00      	ldxdw r1, [r10 + 0x28]
+     128 9c 62 80 28 00 00 00 00      	ldxdw r2, [r6 + 0x2880]
+     130 5d 21 04 00 00 00 00 00      	jne r1, r2, +0x4 <entrypoint+0x158>
+     138 9c a1 30 00 00 00 00 00      	ldxdw r1, [r10 + 0x30]
+     140 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
      148 9c 62 88 28 00 00 00 00      	ldxdw r2, [r6 + 0x2888]
-     150 5d 21 dc ff 00 00 00 00      	jne r1, r2, -0x24 <entrypoint+0x38>
-     158 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
+     150 1d 21 dc ff 00 00 00 00      	jeq r1, r2, -0x24 <entrypoint+0x38>
+     158 b7 00 00 00 08 00 00 00      	mov64 r0, 0x8
      160 05 00 da ff 00 00 00 00      	ja -0x26 <entrypoint+0x38>
      168 b7 00 00 00 02 00 00 00      	mov64 r0, 0x2
      170 05 00 d8 ff 00 00 00 00      	ja -0x28 <entrypoint+0x38>
