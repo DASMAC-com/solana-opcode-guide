@@ -24,7 +24,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     let rent_sysvar = account_at(input_buffer_ptr, input_buffer::RENT_ACCOUNT_OFF);
     if_err!(is_duplicate(&rent_sysvar), error::RENT_DUPLICATE);
     if_err!(
-        !address_eq(rent_sysvar.address(), &RENT_ID,),
+        !address_eq(rent_sysvar.address(), &RENT_ID),
         error::RENT_ADDRESS
     );
 

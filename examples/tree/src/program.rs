@@ -1,4 +1,5 @@
 use core::mem::transmute;
+use core::ptr::read_unaligned;
 use pinocchio::{
     address::address_eq,
     hint::{likely, unlikely},
@@ -19,7 +20,7 @@ unsafe fn account_at(input_buffer_ptr: *mut u8, offset: i16) -> AccountView {
 
 #[inline(always)]
 unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
-    *ptr.add(offset as usize).cast::<u64>()
+    read_unaligned(ptr.add(offset as usize).cast())
 }
 
 /// Checks if the account is a duplicate by checking if it's borrowed, since this is equivalent
@@ -93,7 +94,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     let rent_sysvar = account_at(input_buffer_ptr, input_buffer::RENT_ACCOUNT_OFF);
     if_err!(is_duplicate(&rent_sysvar), error::RENT_DUPLICATE);
     if_err!(
-        !address_eq(rent_sysvar.address(), &RENT_ID,),
+        !address_eq(rent_sysvar.address(), &RENT_ID),
         error::RENT_ADDRESS
     );
 
@@ -130,10 +131,8 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     if_err!(
         !address_eq(
             &pda,
-            #[allow(clippy::transmute_ptr_to_ref)]
-            transmute::<*const u8, &Address>(
-                input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF_0 as usize),
-            ),
+            #[allow(clippy::transmute_ptr_to_ref, clippy::missing_transmute_annotations)]
+            transmute(input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF_0 as usize))
         ),
         error::PDA_MISMATCH
     );

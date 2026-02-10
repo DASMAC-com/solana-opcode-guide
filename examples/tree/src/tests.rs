@@ -116,7 +116,7 @@ fn test_entrypoint_branching() {
 
 #[test]
 fn test_initialize_input_checks() {
-    print_comparison_table(init::InitCase::CASES, true);
+    print_comparison_table(init::InitCase::CASES, false);
 }
 
 #[test]
