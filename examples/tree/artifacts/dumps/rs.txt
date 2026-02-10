@@ -130,7 +130,7 @@ Disassembly of section .text
       b8 9c 22 f8 ff 00 00 00 00      	ldxdw r2, [r2 - 0x8]
       c0 55 02 28 00 00 00 00 00      	jne r2, 0x0, +0x28 <entrypoint+0x208>
       c8 bf 13 00 00 00 00 00 00      	mov64 r3, r1
-      d0 07 03 00 00 b0 a1 00 00      	add64 r3, 0xa1b0
+      d0 07 03 00 00 b8 a1 00 00      	add64 r3, 0xa1b8
       d8 bf a4 00 00 00 00 00 00      	mov64 r4, r10
       e0 07 04 00 00 18 00 00 00      	add64 r4, 0x18
       e8 bf a5 00 00 00 00 00 00      	mov64 r5, r10

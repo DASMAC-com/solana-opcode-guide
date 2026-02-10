@@ -130,7 +130,7 @@ pub struct RuntimeAccount<const DATA_SIZE: usize> {
 type EmptyRuntimeAccount = RuntimeAccount<{ runtime_data_size(data::DATA_LEN_ZERO as usize) }>;
 type SystemProgramRuntimeAccount =
     RuntimeAccount<{ runtime_data_size(input_buffer::SYSTEM_PROGRAM_DATA_LEN) }>;
-type RentRuntimeAccount = RuntimeAccount<{ runtime_data_size(size_of::<Rent>()) }>;
+type RentRuntimeAccount = RuntimeAccount<{ runtime_data_size(input_buffer::RENT_DATA_LEN) }>;
 
 /// Compute the data buffer size for a runtime account with the given data length.
 const fn runtime_data_size(data_len: usize) -> usize {

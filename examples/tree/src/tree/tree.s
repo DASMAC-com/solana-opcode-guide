@@ -68,7 +68,7 @@
 .equ IB_RENT_NON_DUP_MARKER_OFF, 31032
 .equ IB_RENT_DATA_LEN_OFF, 31112 # Rent account data length field.
 # Program ID field for initialize instruction.
-.equ IB_INIT_PROGRAM_ID_OFF_IMM, 41392
+.equ IB_INIT_PROGRAM_ID_OFF_IMM, 41400
 
 # Init stack frame layout.
 # ------------------------
