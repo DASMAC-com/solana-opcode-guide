@@ -195,6 +195,12 @@ enum ConstantKind {
         struct_name: Ident,
         field_path: Vec<Ident>,
     },
+    /// Offset derived from struct field path (i32 validated).
+    /// Name gets `_OFF_IMM` suffix appended. For use as BPF immediate operand.
+    OffsetImmediate {
+        struct_name: Ident,
+        field_path: Vec<Ident>,
+    },
     /// Negative offset from end of a stack frame struct (i16 validated).
     /// Computed as `offset_of!(Struct, field) - size_of::<Struct>()`.
     /// Name gets `_OFF` suffix (aligned) or `_UOFF` suffix (unaligned).
@@ -316,8 +322,8 @@ impl Parse for ConstantGroup {
                 continue;
             }
 
-            // Support `offset!(NAME, Struct.field)`, `NAME: type = value`,
-            // and `NAME = expr as Type` forms.
+            // Support `offset!(NAME, Struct.field)`, `offset_immediate!(NAME, Struct.field)`,
+            // `NAME: type = value`, and `NAME = expr as Type` forms.
             let (const_name, kind) = if ident == "offset" {
                 // offset!(NAME, Struct.field.nested.path)
                 content.parse::<Token![!]>()?;
@@ -338,6 +344,30 @@ impl Parse for ConstantGroup {
                 (
                     full_name,
                     ConstantKind::Offset {
+                        struct_name,
+                        field_path,
+                    },
+                )
+            } else if ident == "offset_immediate" {
+                // offset_immediate!(NAME, Struct.field.nested.path)
+                content.parse::<Token![!]>()?;
+                let inner;
+                syn::parenthesized!(inner in content);
+                let base_name: Ident = inner.parse()?;
+                inner.parse::<Token![,]>()?;
+                let struct_name: Ident = inner.parse()?;
+                let mut field_path = Vec::new();
+                while inner.peek(Token![.]) {
+                    inner.parse::<Token![.]>()?;
+                    field_path.push(inner.parse::<Ident>()?);
+                }
+                if field_path.is_empty() {
+                    return Err(inner.error("Expected at least one field after struct name"));
+                }
+                let full_name = Ident::new(&format!("{}_OFF_IMM", base_name), base_name.span());
+                (
+                    full_name,
+                    ConstantKind::OffsetImmediate {
                         struct_name,
                         field_path,
                     },
@@ -536,6 +566,24 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
                     );
                 });
             }
+            ConstantKind::OffsetImmediate {
+                struct_name,
+                field_path,
+            } => {
+                let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
+                const_value_strs.push(None);
+
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i32 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i32;
+
+                    const #assert_name: () = assert!(
+                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i32::MIN as i64)
+                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i32::MAX as i64),
+                        "Offset immediate must fit in i32 range"
+                    );
+                });
+            }
             ConstantKind::StackFrameOffset {
                 struct_name,
                 field_path_tokens,
@@ -685,6 +733,12 @@ enum AsmConstantKind {
     /// Name gets `_OFF` suffix appended.
     /// Supports nested fields like `Struct.field1.field2.field3`.
     Offset {
+        struct_name: Ident,
+        field_path: Vec<Ident>,
+    },
+    /// Offset derived from struct field path (i32 validated).
+    /// Name gets `_OFF_IMM` suffix appended. For use as BPF immediate operand.
+    OffsetImmediate {
         struct_name: Ident,
         field_path: Vec<Ident>,
     },
@@ -940,6 +994,31 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
                 (
                     full_name,
                     AsmConstantKind::Offset {
+                        struct_name,
+                        field_path,
+                    },
+                )
+            } else if ident == "offset_immediate" {
+                // Parse offset_immediate!(NAME, Struct.field.nested.path)
+                content.parse::<Token![!]>()?;
+                let inner;
+                syn::parenthesized!(inner in content);
+                let base_name: Ident = inner.parse()?;
+                inner.parse::<Token![,]>()?;
+                let struct_name: Ident = inner.parse()?;
+                let mut field_path = Vec::new();
+                while inner.peek(Token![.]) {
+                    inner.parse::<Token![.]>()?;
+                    field_path.push(inner.parse::<Ident>()?);
+                }
+                if field_path.is_empty() {
+                    return Err(inner.error("Expected at least one field after struct name"));
+                }
+                // Append _OFF_IMM suffix to the name.
+                let full_name = Ident::new(&format!("{}_OFF_IMM", base_name), base_name.span());
+                (
+                    full_name,
+                    AsmConstantKind::OffsetImmediate {
                         struct_name,
                         field_path,
                     },
@@ -1217,6 +1296,22 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
                     );
                 });
             }
+            AsmConstantKind::OffsetImmediate {
+                struct_name,
+                field_path,
+            } => {
+                const_value_strs.push(None);
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i32 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i32;
+
+                    const #assert_name: () = assert!(
+                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i32::MIN as i64)
+                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i32::MAX as i64),
+                        "Offset immediate must fit in i32 range"
+                    );
+                });
+            }
             AsmConstantKind::StackFrameOffset {
                 struct_name,
                 field_path_tokens,
@@ -1427,6 +1522,22 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                         (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i16::MIN as i64)
                             && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i16::MAX as i64),
                         "Offset must fit in i16 range"
+                    );
+                });
+            }
+            AsmConstantKind::OffsetImmediate {
+                struct_name,
+                field_path,
+            } => {
+                const_value_strs.push(None);
+                const_defs.push(quote! {
+                    #[doc = #doc]
+                    pub const #name: i32 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i32;
+
+                    const #assert_name: () = assert!(
+                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i32::MIN as i64)
+                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i32::MAX as i64),
+                        "Offset immediate must fit in i32 range"
                     );
                 });
             }

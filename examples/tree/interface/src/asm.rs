@@ -3,10 +3,7 @@ extern crate alloc;
 use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
-use crate::common::{
-    cpi, CreateAccountInstructionData, InitInputBuffer, InitInputBufferFooter,
-    InitInputBufferHeader, InputBufferHeader,
-};
+use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
 
@@ -48,10 +45,8 @@ extend_constant_group!(input_buffer {
     offset!(RENT_NON_DUP_MARKER, InitInputBuffer.header.rent.header.borrow_state),
     /// Rent account data length field.
     offset!(RENT_DATA_LEN, InitInputBuffer.header.rent.header.data_len),
-    /// Program ID field for initialize instruction, inside footer.
-    offset!(INIT_PROGRAM_ID, InitInputBufferFooter.program_id),
-    /// Input buffer footer offset.
-    FOOTER_OFF = size_of::<InitInputBufferHeader>(),
+    /// Program ID field for initialize instruction.
+    offset_immediate!(INIT_PROGRAM_ID, InitInputBuffer.footer.program_id),
 });
 
 #[stack_frame]

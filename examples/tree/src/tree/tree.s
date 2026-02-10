@@ -67,9 +67,8 @@
 # Rent account non-duplicate marker field.
 .equ IB_RENT_NON_DUP_MARKER_OFF, 31032
 .equ IB_RENT_DATA_LEN_OFF, 31112 # Rent account data length field.
-# Program ID field for initialize instruction, inside footer.
-.equ IB_INIT_PROGRAM_ID_OFF, 8
-.equ IB_FOOTER_OFF, 41384 # Input buffer footer offset.
+# Program ID field for initialize instruction.
+.equ IB_INIT_PROGRAM_ID_OFF_IMM, 41392
 
 # Init stack frame layout.
 # ------------------------
@@ -130,9 +129,9 @@ initialize:
 
     # Error if Rent account is duplicate or has invalid length.
     # ---------------------------------------------------------
-    ldxb r9, [r6 + IB_RENT_NON_DUP_MARKER_OFF]
+    ldxb r9, [r1 + IB_RENT_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_rent_duplicate
-    ldxdw r9, [r6 + IB_RENT_DATA_LEN_OFF]
+    ldxdw r9, [r1 + IB_RENT_DATA_LEN_OFF]
     jne r9, IB_RENT_DATA_LEN, e_rent_data_len
 
     # Error if instruction data provided.
@@ -149,8 +148,7 @@ initialize:
     # ---------------------------------------------------------------------
     mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Declare no seeds to parse.
     mov64 r3, r1 # Get input buffer pointer.
-    add64 r3, IB_FOOTER_OFF # Advance to footer.
-    add64 r3, IB_INIT_PROGRAM_ID_OFF # Point at program ID in input buffer.
+    add64 r3, IB_INIT_PROGRAM_ID_OFF_IMM # Point at program ID.
     mov64 r4, r10 # Get stack frame pointer.
     add64 r4, SF_INIT_PDA_OFF # Point to PDA region on stack.
     mov64 r5, r10 # Get stack frame pointer.

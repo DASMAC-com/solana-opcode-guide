@@ -21,9 +21,9 @@ initialize:
 
     # Error if Rent account is duplicate or has invalid length.
     # ---------------------------------------------------------
-    ldxb r9, [r6 + IB_RENT_NON_DUP_MARKER_OFF]
+    ldxb r9, [r1 + IB_RENT_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_rent_duplicate
-    ldxdw r9, [r6 + IB_RENT_DATA_LEN_OFF]
+    ldxdw r9, [r1 + IB_RENT_DATA_LEN_OFF]
     jne r9, IB_RENT_DATA_LEN, e_rent_data_len
 
     # Error if instruction data provided.
