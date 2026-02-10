@@ -4,7 +4,8 @@
     # argument is effectively ignored.
     # ---------------------------------------------------------------------
     mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Declare no seeds to parse.
-    mov64 r3, r6 # Get input buffer footer pointer.
+    mov64 r3, r1 # Get input buffer pointer.
+    add64 r3, IB_FOOTER_OFF # Advance to footer.
     add64 r3, IB_INIT_PROGRAM_ID_OFF # Point at program ID in input buffer.
     mov64 r4, r10 # Get stack frame pointer.
     add64 r4, SF_INIT_PDA_OFF # Point to PDA region on stack.

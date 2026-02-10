@@ -43,14 +43,14 @@
 .equ IB_TREE_ACCOUNT_OFF, 10344 # Tree runtime account header.
 # System Program runtime account header.
 .equ IB_SYSTEM_PROGRAM_ACCOUNT_OFF, 20680
-.equ IB_RENT_ACCOUNT_OFF, 0 # Rent sysvar account header, in footer.
+.equ IB_RENT_ACCOUNT_OFF, 31032 # Rent sysvar account header, in footer.
 # Expected number of accounts for general instructions.
 .equ IB_N_ACCOUNTS_GENERAL, 2
 # Expected number of accounts for tree initialization.
 .equ IB_N_ACCOUNTS_INIT, 4
 # Expected data length of system program account.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN, 14
-.equ IB_RENT_DATA_LEN, 16 # Expected data length of rent sysvar account.
+.equ IB_RENT_DATA_LEN, 17 # Expected data length of rent sysvar account.
 .equ IB_USER_ADDRESS_OFF, 16 # User address field.
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
 .equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
@@ -64,13 +64,12 @@
 .equ IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
 # System Program data length field.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN_OFF, 20760
-.equ IB_FOOTER_OFF, 31032 # Footer.
-# Rent account non-duplicate marker field, inside footer.
-.equ IB_RENT_NON_DUP_MARKER_OFF, 0
-# Rent account data length field, inside footer.
-.equ IB_RENT_DATA_LEN_OFF, 80
+# Rent account non-duplicate marker field.
+.equ IB_RENT_NON_DUP_MARKER_OFF, 31032
+.equ IB_RENT_DATA_LEN_OFF, 31112 # Rent account data length field.
 # Program ID field for initialize instruction, inside footer.
-.equ IB_INIT_PROGRAM_ID_OFF, 10360
+.equ IB_INIT_PROGRAM_ID_OFF, 8
+.equ IB_FOOTER_OFF, 41384 # Input buffer footer offset.
 
 # Init stack frame layout.
 # ------------------------
@@ -129,11 +128,6 @@ initialize:
     ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
-    # Get input buffer footer pointer.
-    # --------------------------------
-    mov64 r6, r1
-    add64 r6, IB_FOOTER_OFF
-
     # Error if Rent account is duplicate or has invalid length.
     # ---------------------------------------------------------
     ldxb r9, [r6 + IB_RENT_NON_DUP_MARKER_OFF]
@@ -154,7 +148,8 @@ initialize:
     # argument is effectively ignored.
     # ---------------------------------------------------------------------
     mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Declare no seeds to parse.
-    mov64 r3, r6 # Get input buffer footer pointer.
+    mov64 r3, r1 # Get input buffer pointer.
+    add64 r3, IB_FOOTER_OFF # Advance to footer.
     add64 r3, IB_INIT_PROGRAM_ID_OFF # Point at program ID in input buffer.
     mov64 r4, r10 # Get stack frame pointer.
     add64 r4, SF_INIT_PDA_OFF # Point to PDA region on stack.

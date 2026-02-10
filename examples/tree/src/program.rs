@@ -87,11 +87,8 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         error::SYSTEM_PROGRAM_DATA_LEN
     );
 
-    // Get input buffer footer pointer.
-    let input_buffer_footer_ptr = input_buffer_ptr.add(input_buffer::FOOTER_OFF as usize);
-
     // Error if Rent account is duplicate or has invalid data length.
-    let rent_sysvar = account_at(input_buffer_footer_ptr, input_buffer::RENT_ACCOUNT_OFF);
+    let rent_sysvar = account_at(input_buffer_ptr, input_buffer::RENT_ACCOUNT_OFF);
     if_err!(is_duplicate(&rent_sysvar), error::RENT_DUPLICATE);
     if_err!(
         rent_sysvar.data_len() != input_buffer::RENT_DATA_LEN,
@@ -112,6 +109,8 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     let (pda, _bump) = {
         let mut pda = MaybeUninit::<Address>::uninit();
         let mut bump = MaybeUninit::<u8>::uninit();
+        // Get input buffer footer pointer.
+        let input_buffer_footer_ptr = input_buffer_ptr.add(input_buffer::FOOTER_OFF as usize);
         sol_try_find_program_address(
             // Pass a declared pointer instead of null to prevent unnecessary register assignment.
             input_buffer_ptr,

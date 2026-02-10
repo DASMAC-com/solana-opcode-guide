@@ -27,7 +27,7 @@ jmp_0040:
   ldxb r3, [r1+31032]
   jne r3, 255, jmp_01e8
   ldxdw r3, [r1+31112]
-  jne r3, 16, jmp_01f8
+  jne r3, 17, jmp_01f8
   ldxdw r2, [r2-8]
   jne r2, 0, jmp_0208
   mov64 r3, r1

@@ -99,6 +99,8 @@ pub(super) enum InitCase {
     TreeDataLen,
     SystemProgramDuplicate,
     SystemProgramDataLen,
+    RentDuplicate,
+    RentDataLen,
     InstructionData,
     PdaMismatchChunk0,
     PdaMismatchChunk1,
@@ -113,6 +115,8 @@ impl InitCase {
         Self::TreeDataLen,
         Self::SystemProgramDuplicate,
         Self::SystemProgramDataLen,
+        Self::RentDuplicate,
+        Self::RentDataLen,
         Self::InstructionData,
     ];
 
@@ -132,6 +136,8 @@ impl TestCase for InitCase {
             Self::TreeDataLen => "Tree has nonzero data length",
             Self::SystemProgramDuplicate => "System program is duplicate",
             Self::SystemProgramDataLen => "System program wrong data length",
+            Self::RentDuplicate => "Rent sysvar is duplicate",
+            Self::RentDataLen => "Rent sysvar wrong data length",
             Self::InstructionData => "Non-empty instruction data",
             Self::PdaMismatchChunk0 => "PDA mismatch chunk 1",
             Self::PdaMismatchChunk1 => "PDA mismatch chunk 2",
@@ -196,6 +202,29 @@ impl TestCase for InitCase {
                     &instruction,
                     &accounts,
                     error_codes::error::SYSTEM_PROGRAM_DATA_LEN,
+                )
+            }
+            Self::RentDuplicate => {
+                let (setup, mut instruction, mut accounts) = init_setup(lang);
+                instruction.accounts[AccountIndex::RentSysvar as usize] =
+                    instruction.accounts[AccountIndex::User as usize].clone();
+                accounts[AccountIndex::RentSysvar as usize] =
+                    accounts[AccountIndex::User as usize].clone();
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::RENT_DUPLICATE,
+                )
+            }
+            Self::RentDataLen => {
+                let (setup, instruction, mut accounts) = init_setup(lang);
+                accounts[AccountIndex::RentSysvar as usize].1.data = vec![];
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::RENT_DATA_LEN,
                 )
             }
             Self::InstructionData => {

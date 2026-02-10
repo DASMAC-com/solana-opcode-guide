@@ -19,11 +19,6 @@ initialize:
     ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
-    # Get input buffer footer pointer.
-    # --------------------------------
-    mov64 r6, r1
-    add64 r6, IB_FOOTER_OFF
-
     # Error if Rent account is duplicate or has invalid length.
     # ---------------------------------------------------------
     ldxb r9, [r6 + IB_RENT_NON_DUP_MARKER_OFF]

@@ -41,7 +41,7 @@ constant_group! {
         /// System Program runtime account header.
         offset!(SYSTEM_PROGRAM_ACCOUNT, InitInputBuffer.header.system_program),
         /// Rent sysvar account header, in footer.
-        offset!(RENT_ACCOUNT, InitInputBufferFooter.rent),
+        offset!(RENT_ACCOUNT, InitInputBuffer.header.rent),
         /// Expected number of accounts for general instructions.
         N_ACCOUNTS_GENERAL: u64 = 2,
         /// Expected number of accounts for tree initialization.
@@ -49,7 +49,9 @@ constant_group! {
         /// Expected data length of system program account.
         SYSTEM_PROGRAM_DATA_LEN: usize = b"system_program".len(),
         /// Expected data length of rent sysvar account.
-        RENT_DATA_LEN: usize = size_of::<Rent>(),
+        // Includes extra byte for deprecated burn_percent field that is still present in test
+        // framework.
+        RENT_DATA_LEN: usize = size_of::<Rent>() + size_of::<u8>(),
     }
 }
 
@@ -108,11 +110,11 @@ pub struct InitInputBufferHeader {
     pub _user: EmptyRuntimeAccount,
     pub _tree: EmptyRuntimeAccount,
     pub system_program: SystemProgramRuntimeAccount,
+    pub rent: RentRuntimeAccount,
 }
 
 #[repr(C, packed)]
 pub struct InitInputBufferFooter {
-    pub rent: RentRuntimeAccount,
     /// No actual instruction data follows.
     pub instruction_data_len: u64,
     pub program_id: Address,

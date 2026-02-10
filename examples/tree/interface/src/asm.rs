@@ -4,7 +4,8 @@ use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
 use crate::common::{
-    cpi, CreateAccountInstructionData, InitInputBuffer, InitInputBufferFooter, InputBufferHeader,
+    cpi, CreateAccountInstructionData, InitInputBuffer, InitInputBufferFooter,
+    InitInputBufferHeader, InputBufferHeader,
 };
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
@@ -43,14 +44,14 @@ extend_constant_group!(input_buffer {
     offset!(SYSTEM_PROGRAM_NON_DUP_MARKER, InitInputBuffer.header.system_program.header.borrow_state),
     /// System Program data length field.
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.header.system_program.header.data_len),
-    /// Footer.
-    offset!(FOOTER, InitInputBuffer.footer),
-    /// Rent account non-duplicate marker field, inside footer.
-    offset!(RENT_NON_DUP_MARKER, InitInputBufferFooter.rent.header.borrow_state),
-    /// Rent account data length field, inside footer.
-    offset!(RENT_DATA_LEN, InitInputBufferFooter.rent.header.data_len),
+    /// Rent account non-duplicate marker field.
+    offset!(RENT_NON_DUP_MARKER, InitInputBuffer.header.rent.header.borrow_state),
+    /// Rent account data length field.
+    offset!(RENT_DATA_LEN, InitInputBuffer.header.rent.header.data_len),
     /// Program ID field for initialize instruction, inside footer.
     offset!(INIT_PROGRAM_ID, InitInputBufferFooter.program_id),
+    /// Input buffer footer offset.
+    FOOTER_OFF = size_of::<InitInputBufferHeader>(),
 });
 
 #[stack_frame]

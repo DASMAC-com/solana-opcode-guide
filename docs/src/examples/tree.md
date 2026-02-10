@@ -21,7 +21,7 @@ performance.
 
 :::
 
-<!-- @include: ../../../examples/tree/artifacts/tests/entrypoint_branching/result.txt{1,5} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/entrypoint_branching/result.txt{1,6} -->
 
 ## Initialize input checks
 

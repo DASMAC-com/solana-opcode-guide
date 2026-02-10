@@ -126,7 +126,7 @@ Disassembly of section .text
       98 2c 13 38 79 00 00 00 00      	ldxb w3, [r1 + 0x7938]
       a0 55 03 28 00 ff 00 00 00      	jne r3, 0xff, +0x28 <entrypoint+0x1e8>
       a8 9c 13 88 79 00 00 00 00      	ldxdw r3, [r1 + 0x7988]
-      b0 55 03 28 00 10 00 00 00      	jne r3, 0x10, +0x28 <entrypoint+0x1f8>
+      b0 55 03 28 00 11 00 00 00      	jne r3, 0x11, +0x28 <entrypoint+0x1f8>
       b8 9c 22 f8 ff 00 00 00 00      	ldxdw r2, [r2 - 0x8]
       c0 55 02 28 00 00 00 00 00      	jne r2, 0x0, +0x28 <entrypoint+0x208>
       c8 bf 13 00 00 00 00 00 00      	mov64 r3, r1

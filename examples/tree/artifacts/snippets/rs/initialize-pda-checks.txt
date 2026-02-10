@@ -3,6 +3,8 @@
     let (pda, _bump) = {
         let mut pda = MaybeUninit::<Address>::uninit();
         let mut bump = MaybeUninit::<u8>::uninit();
+        // Get input buffer footer pointer.
+        let input_buffer_footer_ptr = input_buffer_ptr.add(input_buffer::FOOTER_OFF as usize);
         sol_try_find_program_address(
             // Pass a declared pointer instead of null to prevent unnecessary register assignment.
             input_buffer_ptr,
