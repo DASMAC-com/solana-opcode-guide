@@ -220,6 +220,15 @@ enum ConstantKind {
         field_path: Vec<Ident>,
         chunk_index: usize,
     },
+    /// Negative stack frame offset for pubkey chunks (i16 validated).
+    /// Computed as `offset_of!(Struct, field) + chunk_index * 8 - size_of::<Struct>()`.
+    /// Always unaligned. Name gets `_UOFF_{chunk_index}` suffix appended.
+    StackFramePubkeyChunkOffset {
+        struct_name: Ident,
+        field_path_tokens: proc_macro2::TokenStream,
+        array_index: Option<ArrayIndexInfo>,
+        chunk_index: usize,
+    },
 }
 
 /// Array index info for stack frame offset computation.
@@ -315,6 +324,43 @@ impl Parse for ConstantGroup {
                         kind: ConstantKind::PubkeyChunkOffset {
                             struct_name: struct_name.clone(),
                             field_path: field_path.clone(),
+                            chunk_index: chunk,
+                        },
+                    });
+                }
+                continue;
+            }
+
+            // stack_frame_pubkey_offset_unaligned!(NAME, Struct.field) expands to 4 chunk constants.
+            if ident == "stack_frame_pubkey_offset_unaligned" {
+                content.parse::<Token![!]>()?;
+                let inner;
+                syn::parenthesized!(inner in content);
+                let base_name: Ident = inner.parse()?;
+                inner.parse::<Token![,]>()?;
+                let struct_name: Ident = inner.parse()?;
+                let parsed = parse_stack_frame_field_path(&inner)?;
+                let _ = content.parse::<Token![,]>();
+
+                let base_doc = const_doc.trim_end_matches('.');
+                for chunk in 0..4usize {
+                    let chunk_name =
+                        Ident::new(&format!("{}_UOFF_{}", base_name, chunk), base_name.span());
+                    let chunk_doc = format!("{} (chunk index {}).", base_doc, chunk);
+                    if let Err(e) = validate_doc_comment(&chunk_doc) {
+                        return Err(content.error(e));
+                    }
+                    constants.push(ConstantDef {
+                        doc: chunk_doc,
+                        name: chunk_name,
+                        kind: ConstantKind::StackFramePubkeyChunkOffset {
+                            struct_name: struct_name.clone(),
+                            field_path_tokens: parsed.field_path_tokens.clone(),
+                            array_index: parsed.array_index.as_ref().map(|a| ArrayIndexInfo {
+                                array_field_name: a.array_field_name.clone(),
+                                index_expr: a.index_expr.clone(),
+                                inner_field_path: a.inner_field_path.clone(),
+                            }),
                             chunk_index: chunk,
                         },
                     });
@@ -615,6 +661,23 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
                     *chunk_index,
                 ));
             }
+            ConstantKind::StackFramePubkeyChunkOffset {
+                struct_name,
+                field_path_tokens,
+                array_index,
+                chunk_index,
+            } => {
+                let (const_def, literal_repr) = gen_stack_frame_pubkey_chunk_offset_code(
+                    name,
+                    doc,
+                    struct_name,
+                    field_path_tokens,
+                    array_index,
+                    *chunk_index,
+                );
+                const_value_strs.push(literal_repr);
+                const_defs.push(const_def);
+            }
         }
     }
 
@@ -759,6 +822,15 @@ enum AsmConstantKind {
     PubkeyChunkOffset {
         struct_name: Ident,
         field_path: Vec<Ident>,
+        chunk_index: usize,
+    },
+    /// Negative stack frame offset for pubkey chunks (i16 validated).
+    /// Computed as `offset_of!(Struct, field) + chunk_index * 8 - size_of::<Struct>()`.
+    /// Always unaligned. Name gets `_UOFF_{chunk_index}` suffix appended.
+    StackFramePubkeyChunkOffset {
+        struct_name: Ident,
+        field_path_tokens: proc_macro2::TokenStream,
+        array_index: Option<ArrayIndexInfo>,
         chunk_index: usize,
     },
     /// Chunk of a known pubkey/address constant.
@@ -973,6 +1045,43 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
                     kind: AsmConstantKind::PubkeyChunkOffset {
                         struct_name: struct_name.clone(),
                         field_path: field_path.clone(),
+                        chunk_index: chunk,
+                    },
+                });
+            }
+            continue;
+        }
+
+        // stack_frame_pubkey_offset_unaligned!(NAME, Struct.field) expands to 4 chunk constants.
+        if ident == "stack_frame_pubkey_offset_unaligned" {
+            content.parse::<Token![!]>()?;
+            let inner;
+            syn::parenthesized!(inner in content);
+            let base_name: Ident = inner.parse()?;
+            inner.parse::<Token![,]>()?;
+            let struct_name: Ident = inner.parse()?;
+            let parsed = parse_stack_frame_field_path(&inner)?;
+            let _ = content.parse::<Token![,]>();
+
+            let base_doc = const_doc.trim_end_matches('.');
+            for chunk in 0..4usize {
+                let chunk_name =
+                    Ident::new(&format!("{}_UOFF_{}", base_name, chunk), base_name.span());
+                let chunk_doc = format!("{} (chunk index {}).", base_doc, chunk);
+                if let Err(e) = validate_doc_comment(&chunk_doc) {
+                    return Err(content.error(e));
+                }
+                constants.push(AsmConstantDef {
+                    doc: chunk_doc,
+                    name: chunk_name,
+                    kind: AsmConstantKind::StackFramePubkeyChunkOffset {
+                        struct_name: struct_name.clone(),
+                        field_path_tokens: parsed.field_path_tokens.clone(),
+                        array_index: parsed.array_index.as_ref().map(|a| ArrayIndexInfo {
+                            array_field_name: a.array_field_name.clone(),
+                            index_expr: a.index_expr.clone(),
+                            inner_field_path: a.inner_field_path.clone(),
+                        }),
                         chunk_index: chunk,
                     },
                 });
@@ -1260,6 +1369,63 @@ fn gen_stack_frame_offset_code(
     (const_def, None)
 }
 
+/// Generate code for a `stack_frame_pubkey_offset_unaligned!` constant (single chunk).
+///
+/// Computes `offset_of!(Struct, field) + chunk_index * 8 - size_of::<Struct>()` as an i16 constant.
+fn gen_stack_frame_pubkey_chunk_offset_code(
+    name: &Ident,
+    doc: &str,
+    struct_name: &Ident,
+    field_path_tokens: &proc_macro2::TokenStream,
+    array_index: &Option<ArrayIndexInfo>,
+    chunk_index: usize,
+) -> (proc_macro2::TokenStream, Option<String>) {
+    let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
+    let fields_mod = Ident::new(&format!("__{}_fields", struct_name), struct_name.span());
+    let chunk_byte_offset = (chunk_index * BPF_ALIGN as usize) as i64;
+
+    let offset_expr = match array_index {
+        Some(info) => {
+            let array_field_name = &info.array_field_name;
+            let index_expr = &info.index_expr;
+            let inner_offset = match &info.inner_field_path {
+                Some(path) => quote! {
+                    + core::mem::offset_of!(#fields_mod::#array_field_name, #path) as i64
+                },
+                None => quote! {},
+            };
+            quote! {
+                core::mem::offset_of!(#struct_name, #field_path_tokens) as i64
+                + (#index_expr) as i64 * core::mem::size_of::<#fields_mod::#array_field_name>() as i64
+                #inner_offset
+            }
+        }
+        None => quote! {
+            core::mem::offset_of!(#struct_name, #field_path_tokens) as i64
+        },
+    };
+
+    let const_def = quote! {
+        #[doc = #doc]
+        pub const #name: i16 = {
+            use super::*;
+            (#offset_expr + #chunk_byte_offset - core::mem::size_of::<#struct_name>() as i64) as i16
+        };
+
+        const #assert_name: () = {
+            use super::*;
+            let result = #offset_expr + #chunk_byte_offset - core::mem::size_of::<#struct_name>() as i64;
+            assert!(
+                result >= (i16::MIN as i64) && result <= (i16::MAX as i64),
+                "Stack frame offset must fit in i16"
+            );
+            assert!(result < 0, "Stack frame offset must be negative");
+        };
+    };
+
+    (const_def, None)
+}
+
 /// Generate code for a `pubkey_offset!` constant (single chunk).
 ///
 /// Computes `offset_of!(Struct, field) + chunk_index * 8` as an i16 constant.
@@ -1470,6 +1636,23 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
                     field_path,
                     *chunk_index,
                 ));
+            }
+            AsmConstantKind::StackFramePubkeyChunkOffset {
+                struct_name,
+                field_path_tokens,
+                array_index,
+                chunk_index,
+            } => {
+                let (const_def, literal_repr) = gen_stack_frame_pubkey_chunk_offset_code(
+                    name,
+                    doc,
+                    struct_name,
+                    field_path_tokens,
+                    array_index,
+                    *chunk_index,
+                );
+                const_value_strs.push(literal_repr);
+                const_defs.push(const_def);
             }
             AsmConstantKind::PubkeyValueChunk {
                 expr,
@@ -1707,6 +1890,23 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                     field_path,
                     *chunk_index,
                 ));
+            }
+            AsmConstantKind::StackFramePubkeyChunkOffset {
+                struct_name,
+                field_path_tokens,
+                array_index,
+                chunk_index,
+            } => {
+                let (const_def, literal_repr) = gen_stack_frame_pubkey_chunk_offset_code(
+                    name,
+                    doc,
+                    struct_name,
+                    field_path_tokens,
+                    array_index,
+                    *chunk_index,
+                );
+                const_value_strs.push(literal_repr);
+                const_defs.push(const_def);
             }
             AsmConstantKind::PubkeyValueChunk {
                 expr,

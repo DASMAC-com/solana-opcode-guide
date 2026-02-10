@@ -96,6 +96,14 @@
 .equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -52
 # Space address field in CreateAccount instruction data.
 .equ SF_INIT_CREATE_ACCOUNT_SPACE_UOFF, -44
+# Owner field in CreateAccount instruction data (chunk index 0).
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_0, -36
+# Owner field in CreateAccount instruction data (chunk index 1).
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_1, -28
+# Owner field in CreateAccount instruction data (chunk index 2).
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_2, -20
+# Owner field in CreateAccount instruction data (chunk index 3).
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3, -12
 
 # CPI-specific constants.
 # -----------------------
@@ -227,6 +235,13 @@ initialize:
     stdw [r10 + SF_INIT_CREATE_ACCOUNT_SPACE_UOFF], CPI_TREE_DATA_LEN
     # Copy in program ID to instruction data.
     ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_0]
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_0], r9
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_1]
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_1], r9
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_2]
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_2], r9
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_3]
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3], r9
 
     # Initialize signer seed for PDA bump key.
     # ---------------------------------------------------------------------

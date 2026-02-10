@@ -9,10 +9,7 @@ use pinocchio::{
 };
 use tree_interface::{cpi, data, error_codes::error, input_buffer, CreateAccountInstructionData};
 #[cfg(target_os = "solana")]
-use {
-    core::mem::MaybeUninit,
-    pinocchio::syscalls::{sol_set_return_data, sol_try_find_program_address},
-};
+use {core::mem::MaybeUninit, pinocchio::syscalls::sol_try_find_program_address};
 
 #[inline(always)]
 unsafe fn account_at(input_buffer_ptr: *mut u8, offset: i16) -> AccountView {
@@ -124,9 +121,8 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         );
         (pda.assume_init(), bump.assume_init())
     };
-    // Dummy block for non-Solana target, to satisfy clippy.
     #[cfg(not(target_os = "solana"))]
-    let (pda, _bump) = (Address::default(), 0u8);
+    let (pda, _bump) = (Address::default(), 0); // Silence clippy.
 
     // Compare result with passed PDA.
     if_err!(
@@ -140,7 +136,8 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     // ANCHOR_END: initialize-pda-checks
 
     // ANCHOR: initialize-create-account
-    let instruction_data = CreateAccountInstructionData {
+    // Pack CreateAccount instruction data.
+    let _instruction_data = CreateAccountInstructionData {
         discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
         lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
             * ldxdw(input_buffer_ptr, input_buffer::RENT_DATA_OFF),
@@ -151,13 +148,9 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
                 .cast(),
         ),
     };
-    #[cfg(target_os = "solana")]
-    sol_set_return_data(
-        transmute(&instruction_data),
-        size_of::<CreateAccountInstructionData>() as u64,
-    );
     #[cfg(not(target_os = "solana"))]
-    let _foo = instruction_data;
+    let _ = _instruction_data; // Silence clippy.
+
     // ANCHOR_END: initialize-create-account
 
     SUCCESS

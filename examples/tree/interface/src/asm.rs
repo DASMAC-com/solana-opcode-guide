@@ -42,7 +42,10 @@ extend_constant_group!(input_buffer {
     /// Tree data length field.
     offset!(TREE_DATA_LEN, InputBufferHeader.tree_header.data_len),
     /// System Program non-duplicate marker field.
-    offset!(SYSTEM_PROGRAM_NON_DUP_MARKER, InitInputBuffer.header.system_program.header.borrow_state),
+    offset!(
+        SYSTEM_PROGRAM_NON_DUP_MARKER,
+        InitInputBuffer.header.system_program.header.borrow_state
+    ),
     /// System Program data length field.
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.header.system_program.header.data_len),
     /// Rent account non-duplicate marker field.
@@ -83,8 +86,16 @@ asm_constant_group! {
         /// PDA address field.
         stack_frame_offset!(PDA, InitStackFrame.pda),
         /// Lamports field in CreateAccount instruction data.
-        stack_frame_offset_unaligned!(CREATE_ACCOUNT_LAMPORTS, InitStackFrame.instruction_data.lamports),
+        stack_frame_offset_unaligned!(
+            CREATE_ACCOUNT_LAMPORTS,
+            InitStackFrame.instruction_data.lamports
+        ),
         /// Space address field in CreateAccount instruction data.
         stack_frame_offset_unaligned!(CREATE_ACCOUNT_SPACE, InitStackFrame.instruction_data.space),
+        /// Owner field in CreateAccount instruction data.
+        stack_frame_pubkey_offset_unaligned!(
+            CREATE_ACCOUNT_OWNER,
+            InitStackFrame.instruction_data.owner
+        ),
     }
 }

@@ -14,9 +14,8 @@
         );
         (pda.assume_init(), bump.assume_init())
     };
-    // Dummy block for non-Solana target, to satisfy clippy.
     #[cfg(not(target_os = "solana"))]
-    let (pda, _bump) = (Address::default(), 0u8);
+    let (pda, _bump) = (Address::default(), 0); // Silence clippy.
 
     // Compare result with passed PDA.
     if_err!(
