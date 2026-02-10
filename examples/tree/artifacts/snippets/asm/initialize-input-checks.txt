@@ -39,7 +39,7 @@ initialize:
     # lddw r8, IB_RENT_ID_CHUNK_3
     # ```
     # Instead, replace with mov32, which only loads one 32-bit immediate,
-    # since the rent sysvar address has all chunk 3 hit bits unset.
+    # since the rent sysvar address has all chunk 3 hi bits unset.
     mov32 r8, IB_RENT_ID_CHUNK_3_LO
     jne r9, r8, e_rent_address
 
