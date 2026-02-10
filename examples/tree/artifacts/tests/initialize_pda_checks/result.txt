@@ -3,9 +3,8 @@
 | PDA mismatch chunk 1 | 1542 | 1549 | +7 | +0.5% |
 | PDA mismatch chunk 2 | 1545 | 1552 | +7 | +0.5% |
 | PDA mismatch chunk 3 | 1548 | 1555 | +7 | +0.5% |
-| PDA mismatch chunk 4 | 1551 | 1559 | +8 | +0.5% |
+| PDA mismatch chunk 4 | 1551 | 1558 | +7 | +0.5% |
 test tests::test_initialize_pda_checks ... ok
-    Blocking waiting for file lock on build directory
 warning: function `check_success` is never used
   --> tree/src/tests.rs:26:4
    |
@@ -36,5 +35,5 @@ warning: `tree` (lib test) generated 1 warning
 [ ... DEBUG ... ] Program DASMAC... consumed 1551 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xa
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 1559 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 1558 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xa

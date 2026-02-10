@@ -43,7 +43,8 @@
 .equ IB_TREE_ACCOUNT_OFF, 10344 # Tree runtime account header.
 # System Program runtime account header.
 .equ IB_SYSTEM_PROGRAM_ACCOUNT_OFF, 20680
-.equ IB_RENT_ACCOUNT_OFF, 31032 # Rent sysvar account header, in footer.
+.equ IB_RENT_ACCOUNT_OFF, 31032 # Rent sysvar account header.
+.equ IB_RENT_DATA_OFF, 31120 # Rent sysvar account data.
 # Expected number of accounts for general instructions.
 .equ IB_N_ACCOUNTS_GENERAL, 2
 # Expected number of accounts for tree initialization.
@@ -66,7 +67,6 @@
 .equ IB_SYSTEM_PROGRAM_DATA_LEN_OFF, 20760
 # Rent account non-duplicate marker field.
 .equ IB_RENT_NON_DUP_MARKER_OFF, 31032
-.equ IB_RENT_DATA_LEN_OFF, 31112 # Rent account data length field.
 .equ IB_RENT_ADDRESS_OFF_0, 31040 # Rent address field (chunk index 0).
 .equ IB_RENT_ADDRESS_OFF_1, 31048 # Rent address field (chunk index 1).
 .equ IB_RENT_ADDRESS_OFF_2, 31056 # Rent address field (chunk index 2).
@@ -99,6 +99,11 @@
 .equ CPI_N_PDA_SIGNERS, 1 # The tree account is a PDA.
 .equ CPI_N_SEEDS, 1 # The bump seed is required for tree PDA signer.
 .equ CPI_N_SEEDS_TRY_FIND_PDA, 0 # Number of seeds for PDA generation.
+.equ CPI_TREE_DATA_LEN, 16 # Tree account data length.
+# Account data scalar for base rent calculation.
+.equ CPI_ACCOUNT_DATA_SCALAR, 144
+# CreateAccount discriminator for CPI.
+.equ CPI_CREATE_ACCOUNT_DISCRIMINATOR, 0
 # ANCHOR_END: constants
 
 # ANCHOR: entrypoint-branching
@@ -205,10 +210,12 @@ initialize:
     # ANCHOR_END: initialize-pda-checks
 
     # Initialize signer seed for PDA bump key.
-    # ----------------------------------------
+    # ---------------------------------------------------------------------
+    # Relies on r5 from PDA derivation syscall.
+    # ---------------------------------------------------------------------
     # Store pointer to bump seed.
-    # stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
-    # stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
+    stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
+    stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
 
     exit
 

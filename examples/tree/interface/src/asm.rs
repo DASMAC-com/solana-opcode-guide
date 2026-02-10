@@ -47,8 +47,6 @@ extend_constant_group!(input_buffer {
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.header.system_program.header.data_len),
     /// Rent account non-duplicate marker field.
     offset!(RENT_NON_DUP_MARKER, InitInputBuffer.header.rent.header.borrow_state),
-    /// Rent account data length field.
-    offset!(RENT_DATA_LEN, InitInputBuffer.header.rent.header.data_len),
     /// Rent address field.
     pubkey_offset!(RENT_ADDRESS, InitInputBuffer.header.rent.header.address),
     /// Rent sysvar ID.

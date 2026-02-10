@@ -2,7 +2,7 @@ use core::mem::size_of;
 use macros::{constant_group, error_codes};
 use pinocchio::{
     account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE},
-    sysvars::rent::Rent,
+    sysvars::rent::{Rent, ACCOUNT_STORAGE_OVERHEAD},
     Address,
 };
 
@@ -40,8 +40,10 @@ constant_group! {
         offset!(TREE_ACCOUNT, InputBufferHeader.tree_header),
         /// System Program runtime account header.
         offset!(SYSTEM_PROGRAM_ACCOUNT, InitInputBuffer.header.system_program),
-        /// Rent sysvar account header, in footer.
+        /// Rent sysvar account header.
         offset!(RENT_ACCOUNT, InitInputBuffer.header.rent),
+        /// Rent sysvar account data.
+        offset!(RENT_DATA, InitInputBuffer.header.rent.data),
         /// Expected number of accounts for general instructions.
         N_ACCOUNTS_GENERAL: u64 = 2,
         /// Expected number of accounts for tree initialization.
@@ -67,16 +69,22 @@ constant_group! {
         N_SEEDS: usize = 1,
         /// Number of seeds for PDA generation.
         N_SEEDS_TRY_FIND_PDA: u64 = 0,
+        /// Tree account data length.
+        TREE_DATA_LEN: usize = size_of::<TreeDataHeader>(),
+        /// Account data scalar for base rent calculation.
+        ACCOUNT_DATA_SCALAR: usize = (ACCOUNT_STORAGE_OVERHEAD as usize) + TREE_DATA_LEN,
+        /// CreateAccount discriminator for CPI.
+        CREATE_ACCOUNT_DISCRIMINATOR: u32 = 0,
     }
 }
 
 #[repr(C, packed)]
 /// For CPI to create tree account.
 pub struct CreateAccountInstructionData {
-    instruction_tag: u32,
-    lamports: u64,
-    space: u64,
-    owner: Address,
+    pub discriminator: u32,
+    pub lamports: u64,
+    pub space: u64,
+    pub owner: Address,
 }
 
 constant_group! {
@@ -111,6 +119,14 @@ pub struct InitInputBufferHeader {
     pub _tree: EmptyRuntimeAccount,
     pub system_program: SystemProgramRuntimeAccount,
     pub rent: RentRuntimeAccount,
+}
+
+#[repr(C, packed)]
+struct TreeDataHeader {
+    /// Pointer to tree root.
+    root: u64,
+    /// Pointer to stack top.
+    top: u64,
 }
 
 #[repr(C, packed)]
