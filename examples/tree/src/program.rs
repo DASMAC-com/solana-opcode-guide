@@ -87,6 +87,17 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         error::SYSTEM_PROGRAM_DATA_LEN
     );
 
+    // Get input buffer footer pointer.
+    let input_buffer_footer_ptr = input_buffer_ptr.add(input_buffer::FOOTER_OFF as usize);
+
+    // Error if Rent account is duplicate or has invalid data length.
+    let rent_sysvar = account_at(input_buffer_footer_ptr, input_buffer::RENT_ACCOUNT_OFF);
+    if_err!(is_duplicate(&rent_sysvar), error::RENT_DUPLICATE);
+    if_err!(
+        rent_sysvar.data_len() != input_buffer::RENT_DATA_LEN,
+        error::RENT_DATA_LEN
+    );
+
     // Error if instruction data provided.
     let instruction_data_len = ldxdw(instruction_data_ptr, -(size_of::<u64>() as i16));
     if_err!(
@@ -105,7 +116,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
             // Pass a declared pointer instead of null to prevent unnecessary register assignment.
             input_buffer_ptr,
             cpi::N_SEEDS_TRY_FIND_PDA,
-            input_buffer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF as usize),
+            input_buffer_footer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF as usize),
             pda.as_mut_ptr().cast(),
             bump.as_mut_ptr(),
         );

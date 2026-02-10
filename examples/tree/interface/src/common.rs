@@ -19,6 +19,10 @@ error_codes! {
     TREE_DUPLICATE,
     /// The System Program account is a duplicate.
     SYSTEM_PROGRAM_DUPLICATE,
+    /// The rent sysvar account is a duplicate.
+    RENT_DUPLICATE,
+    /// The rent sysvar account has invalid data length.
+    RENT_DATA_LEN,
     /// Instruction data provided during initialization instruction.
     INSTRUCTION_DATA,
     /// The passed PDA does not match the expected address.
@@ -36,12 +40,16 @@ constant_group! {
         offset!(TREE_ACCOUNT, InputBufferHeader.tree_header),
         /// System Program runtime account header.
         offset!(SYSTEM_PROGRAM_ACCOUNT, InitInputBuffer.header.system_program),
+        /// Rent sysvar account header, in footer.
+        offset!(RENT_ACCOUNT, InitInputBufferFooter.rent),
         /// Expected number of accounts for general instructions.
         N_ACCOUNTS_GENERAL: u64 = 2,
         /// Expected number of accounts for tree initialization.
         N_ACCOUNTS_INIT: u64 = 4,
         /// Expected data length of system program account.
         SYSTEM_PROGRAM_DATA_LEN: usize = b"system_program".len(),
+        /// Expected data length of rent sysvar account.
+        RENT_DATA_LEN: usize = size_of::<Rent>(),
     }
 }
 
@@ -104,7 +112,7 @@ pub struct InitInputBufferHeader {
 
 #[repr(C, packed)]
 pub struct InitInputBufferFooter {
-    pub _rent: RentRuntimeAccount,
+    pub rent: RentRuntimeAccount,
     /// No actual instruction data follows.
     pub instruction_data_len: u64,
     pub program_id: Address,

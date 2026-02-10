@@ -8,6 +8,8 @@ fn init_setup(
     let setup = setup_test(program_language);
     let (system_program_pubkey, system_program_account) =
         program::keyed_account_for_system_program();
+    let (rent_sysvar_pubkey, rent_sysvar_account) =
+        setup.mollusk.sysvars.keyed_account_for_rent_sysvar();
 
     let user_pubkey = Pubkey::new_unique();
     let tree_pubkey = Pubkey::new_unique();
@@ -19,6 +21,7 @@ fn init_setup(
             AccountMeta::new(user_pubkey, true),
             AccountMeta::new(tree_pubkey, false),
             AccountMeta::new_readonly(system_program_pubkey, false),
+            AccountMeta::new_readonly(rent_sysvar_pubkey, false),
         ],
     );
 
@@ -29,6 +32,7 @@ fn init_setup(
         ),
         (tree_pubkey, Account::new(0, 0, &system_program_pubkey)),
         (system_program_pubkey, system_program_account),
+        (rent_sysvar_pubkey, rent_sysvar_account),
     ];
 
     (setup, instruction, accounts)
@@ -40,6 +44,8 @@ fn pda_init_setup(
     let setup = setup_test(program_language);
     let (system_program_pubkey, system_program_account) =
         program::keyed_account_for_system_program();
+    let (rent_sysvar_pubkey, rent_sysvar_account) =
+        setup.mollusk.sysvars.keyed_account_for_rent_sysvar();
 
     let user_pubkey = Pubkey::new_unique();
     let (tree_pubkey, _bump) = Pubkey::find_program_address(&[], &setup.program_id);
@@ -51,6 +57,7 @@ fn pda_init_setup(
             AccountMeta::new(user_pubkey, true),
             AccountMeta::new(tree_pubkey, false),
             AccountMeta::new_readonly(system_program_pubkey, false),
+            AccountMeta::new_readonly(rent_sysvar_pubkey, false),
         ],
     );
 
@@ -61,6 +68,7 @@ fn pda_init_setup(
         ),
         (tree_pubkey, Account::new(0, 0, &system_program_pubkey)),
         (system_program_pubkey, system_program_account),
+        (rent_sysvar_pubkey, rent_sysvar_account),
     ];
 
     (setup, instruction, accounts)

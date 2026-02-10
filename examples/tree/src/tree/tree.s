@@ -9,10 +9,12 @@
 .equ E_TREE_DUPLICATE, 5 # The tree account is a duplicate.
 # The System Program account is a duplicate.
 .equ E_SYSTEM_PROGRAM_DUPLICATE, 6
+.equ E_RENT_DUPLICATE, 7 # The rent sysvar account is a duplicate.
+.equ E_RENT_DATA_LEN, 8 # The rent sysvar account has invalid data length.
 # Instruction data provided during initialization instruction.
-.equ E_INSTRUCTION_DATA, 7
+.equ E_INSTRUCTION_DATA, 9
 # The passed PDA does not match the expected address.
-.equ E_PDA_MISMATCH, 8
+.equ E_PDA_MISMATCH, 10
 
 # Type sizes.
 # -----------
@@ -41,12 +43,14 @@
 .equ IB_TREE_ACCOUNT_OFF, 10344 # Tree runtime account header.
 # System Program runtime account header.
 .equ IB_SYSTEM_PROGRAM_ACCOUNT_OFF, 20680
+.equ IB_RENT_ACCOUNT_OFF, 0 # Rent sysvar account header, in footer.
 # Expected number of accounts for general instructions.
 .equ IB_N_ACCOUNTS_GENERAL, 2
 # Expected number of accounts for tree initialization.
 .equ IB_N_ACCOUNTS_INIT, 4
 # Expected data length of system program account.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN, 14
+.equ IB_RENT_DATA_LEN, 16 # Expected data length of rent sysvar account.
 .equ IB_USER_ADDRESS_OFF, 16 # User address field.
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
 .equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
@@ -61,8 +65,10 @@
 # System Program data length field.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN_OFF, 20760
 .equ IB_FOOTER_OFF, 31032 # Footer.
-# Instruction data length field for empty tree account, inside footer.
-.equ IB_INIT_INSTRUCTION_DATA_LEN_OFF, 10352
+# Rent account non-duplicate marker field, inside footer.
+.equ IB_RENT_NON_DUP_MARKER_OFF, 0
+# Rent account data length field, inside footer.
+.equ IB_RENT_DATA_LEN_OFF, 80
 # Program ID field for initialize instruction, inside footer.
 .equ IB_INIT_PROGRAM_ID_OFF, 10360
 
@@ -123,14 +129,20 @@ initialize:
     ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
+    # Get input buffer footer pointer.
+    # --------------------------------
+    mov64 r6, r1
+    add64 r6, IB_FOOTER_OFF
+
+    # Error if Rent account is duplicate or has invalid length.
+    # ---------------------------------------------------------
+    ldxb r9, [r6 + IB_RENT_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_rent_duplicate
+    ldxdw r9, [r6 + IB_RENT_DATA_LEN_OFF]
+    jne r9, IB_RENT_DATA_LEN, e_rent_data_len
+
     # Error if instruction data provided.
     # -----------------------------------
-    # Use the instruction data pointer in r2 from SIMD-0321, which is
-    # equivalent to the following static offset for static and verified
-    # account data lengths:
-    # ```
-    # ldxdw r9, [r1 + IB_INIT_INSTRUCTION_DATA_LEN_OFF]
-    # ```
     ldxdw r9, [r2 - SIZE_OF_U64]
     jne r9, DATA_LEN_ZERO, e_instruction_data
     # ANCHOR_END: initialize-input-checks
@@ -142,7 +154,7 @@ initialize:
     # argument is effectively ignored.
     # ---------------------------------------------------------------------
     mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Declare no seeds to parse.
-    mov64 r3, r1 # Get input buffer pointer.
+    mov64 r3, r6 # Get input buffer footer pointer.
     add64 r3, IB_INIT_PROGRAM_ID_OFF # Point at program ID in input buffer.
     mov64 r4, r10 # Get stack frame pointer.
     add64 r4, SF_INIT_PDA_OFF # Point to PDA region on stack.
@@ -180,6 +192,14 @@ e_instruction_data:
 
 e_pda_mismatch:
     mov64 r0, E_PDA_MISMATCH
+    exit
+
+e_rent_data_len:
+    mov64 r0, E_RENT_DATA_LEN
+    exit
+
+e_rent_duplicate:
+    mov64 r0, E_RENT_DUPLICATE
     exit
 
 e_system_program_data_len:

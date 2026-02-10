@@ -15,6 +15,7 @@ enum AccountIndex {
     User = 0,
     Tree = 1,
     SystemProgram = 2,
+    RentSysvar = 3,
 }
 
 struct CaseResult {

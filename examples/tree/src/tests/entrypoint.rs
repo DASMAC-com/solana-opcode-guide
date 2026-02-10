@@ -5,18 +5,24 @@ use solana_sdk::instruction::AccountMeta;
 pub(super) enum EntrypointCase {
     NoAccounts,
     OneAccount,
-    FourAccounts,
+    ThreeAccounts,
+    FiveAccounts,
 }
 
 impl EntrypointCase {
-    pub(super) const CASES: &'static [Self] =
-        &[Self::NoAccounts, Self::OneAccount, Self::FourAccounts];
+    pub(super) const CASES: &'static [Self] = &[
+        Self::NoAccounts,
+        Self::OneAccount,
+        Self::ThreeAccounts,
+        Self::FiveAccounts,
+    ];
 
     const fn n_accounts(&self) -> usize {
         match self {
             Self::NoAccounts => 0,
             Self::OneAccount => 1,
-            Self::FourAccounts => 4,
+            Self::ThreeAccounts => 3,
+            Self::FiveAccounts => 5,
         }
     }
 }
@@ -26,7 +32,8 @@ impl TestCase for EntrypointCase {
         match self {
             Self::NoAccounts => "No accounts",
             Self::OneAccount => "One account",
-            Self::FourAccounts => "Four accounts",
+            Self::ThreeAccounts => "Three accounts",
+            Self::FiveAccounts => "Five accounts",
         }
     }
 

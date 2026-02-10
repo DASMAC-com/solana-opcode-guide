@@ -45,8 +45,10 @@ extend_constant_group!(input_buffer {
     offset!(SYSTEM_PROGRAM_DATA_LEN, InitInputBuffer.header.system_program.header.data_len),
     /// Footer.
     offset!(FOOTER, InitInputBuffer.footer),
-    /// Instruction data length field for empty tree account, inside footer.
-    offset!(INIT_INSTRUCTION_DATA_LEN, InitInputBufferFooter.instruction_data_len),
+    /// Rent account non-duplicate marker field, inside footer.
+    offset!(RENT_NON_DUP_MARKER, InitInputBufferFooter.rent.header.borrow_state),
+    /// Rent account data length field, inside footer.
+    offset!(RENT_DATA_LEN, InitInputBufferFooter.rent.header.data_len),
     /// Program ID field for initialize instruction, inside footer.
     offset!(INIT_PROGRAM_ID, InitInputBufferFooter.program_id),
 });
