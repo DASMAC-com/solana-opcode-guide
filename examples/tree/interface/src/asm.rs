@@ -82,5 +82,9 @@ asm_constant_group! {
         stack_frame_offset!(SIGNER_SEED_LEN, InitStackFrame.signer_seeds[0].len),
         /// PDA address field.
         stack_frame_offset!(PDA, InitStackFrame.pda),
+        /// Lamports field in CreateAccount instruction data.
+        stack_frame_offset_unaligned!(CREATE_ACCOUNT_LAMPORTS, InitStackFrame.instruction_data.lamports),
+        /// Space address field in CreateAccount instruction data.
+        stack_frame_offset_unaligned!(CREATE_ACCOUNT_SPACE, InitStackFrame.instruction_data.space),
     }
 }

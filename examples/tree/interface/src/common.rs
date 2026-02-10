@@ -32,7 +32,7 @@ error_codes! {
 constant_group! {
     /// Input buffer layout.
     input_buffer {
-        /// Number of accounts field.
+    /// Number of accounts field.
         offset!(N_ACCOUNTS, InputBufferHeader.n_accounts),
         /// User runtime account.
         offset!(USER_ACCOUNT, InputBufferHeader.user),

@@ -91,6 +91,10 @@
 .equ SF_INIT_SIGNER_SEED_ADDR_OFF, -120 # Bump signer seed address field.
 .equ SF_INIT_SIGNER_SEED_LEN_OFF, -112 # Bump signer seed length field.
 .equ SF_INIT_PDA_OFF, -104 # PDA address field.
+# Lamports field in CreateAccount instruction data.
+.equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -52
+# Space address field in CreateAccount instruction data.
+.equ SF_INIT_CREATE_ACCOUNT_SPACE_UOFF, -44
 
 # CPI-specific constants.
 # -----------------------

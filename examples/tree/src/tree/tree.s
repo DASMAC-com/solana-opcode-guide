@@ -92,6 +92,10 @@
 .equ SF_INIT_SIGNER_SEED_ADDR_OFF, -120 # Bump signer seed address field.
 .equ SF_INIT_SIGNER_SEED_LEN_OFF, -112 # Bump signer seed length field.
 .equ SF_INIT_PDA_OFF, -104 # PDA address field.
+# Lamports field in CreateAccount instruction data.
+.equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -52
+# Space address field in CreateAccount instruction data.
+.equ SF_INIT_CREATE_ACCOUNT_SPACE_UOFF, -44
 
 # CPI-specific constants.
 # -----------------------
@@ -209,13 +213,31 @@ initialize:
     jne r9, r8, e_pda_mismatch
     # ANCHOR_END: initialize-pda-checks
 
+    // ANCHOR: initialize-create-account
+    # Pack CreateAccount instruction data.
+    # ---------------------------------------------------------------------
+    # - Discriminator is already set to 0 since stack is zero initialized.
+    # - Reuses r3 from PDA syscall.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r1 + IB_RENT_DATA_OFF] # Load lamports per byte
+    mul64 r9, CPI_ACCOUNT_DATA_SCALAR # Multiply to get rent-exempt cost.
+    # Store in instruction data.
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF], r9
+    # Store new account data length.
+    stdw [r10 + SF_INIT_CREATE_ACCOUNT_SPACE_UOFF], CPI_TREE_DATA_LEN
+    # Copy in program ID to instruction data.
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_0]
+
     # Initialize signer seed for PDA bump key.
     # ---------------------------------------------------------------------
-    # Relies on r5 from PDA derivation syscall.
+    # Reuses r5 from PDA derivation syscall.
     # ---------------------------------------------------------------------
     # Store pointer to bump seed.
     stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
     stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
+
+    // ANCHOR_END: initialize-create-account
+
 
     exit
 

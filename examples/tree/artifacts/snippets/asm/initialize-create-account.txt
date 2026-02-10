@@ -1,0 +1,21 @@
+    # Pack CreateAccount instruction data.
+    # ---------------------------------------------------------------------
+    # - Discriminator is already set to 0 since stack is zero initialized.
+    # - Reuses r3 from PDA syscall.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r1 + IB_RENT_DATA_OFF] # Load lamports per byte
+    mul64 r9, CPI_ACCOUNT_DATA_SCALAR # Multiply to get rent-exempt cost.
+    # Store in instruction data.
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF], r9
+    # Store new account data length.
+    stdw [r10 + SF_INIT_CREATE_ACCOUNT_SPACE_UOFF], CPI_TREE_DATA_LEN
+    # Copy in program ID to instruction data.
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_0]
+
+    # Initialize signer seed for PDA bump key.
+    # ---------------------------------------------------------------------
+    # Reuses r5 from PDA derivation syscall.
+    # ---------------------------------------------------------------------
+    # Store pointer to bump seed.
+    stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
+    stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
