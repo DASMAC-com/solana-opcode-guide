@@ -174,8 +174,8 @@ initialize:
     # Initialize signer seed for PDA bump key.
     # ----------------------------------------
     # Store pointer to bump seed.
-    stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
-    stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
+    # stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
+    # stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
 
     exit
 

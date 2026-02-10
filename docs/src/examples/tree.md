@@ -35,7 +35,7 @@ performance.
 
 :::
 
-<!-- @include: ../../../examples/tree/artifacts/tests/initialize_input_checks/result.txt{1,8} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/initialize_input_checks/result.txt{1,10} -->
 
 <!-- markdownlint-enable MD013 -->
 
@@ -51,7 +51,7 @@ performance.
 
 :::
 
-<!-- @include: ../../../examples/tree/artifacts/tests/initialize_pda_checks/result.txt{1,6} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/initialize_pda_checks/result.txt{1,7} -->
 
 <!-- markdownlint-enable MD013 -->
 

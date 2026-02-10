@@ -23,6 +23,24 @@ struct CaseResult {
     error: Option<String>,
 }
 
+fn check_success(
+    setup: &TestSetup,
+    instruction: &Instruction,
+    accounts: &[(Pubkey, Account)],
+) -> CaseResult {
+    let result = setup.mollusk.process_instruction(instruction, accounts);
+    match &result.program_result {
+        MolluskResult::Success => CaseResult {
+            cu: result.compute_units_consumed,
+            error: None,
+        },
+        other => CaseResult {
+            cu: result.compute_units_consumed,
+            error: Some(format!("expected Success, got {:?}", other)),
+        },
+    }
+}
+
 fn check_error(
     setup: &TestSetup,
     instruction: &Instruction,
