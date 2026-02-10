@@ -5,7 +5,11 @@ use crate::bindings::{
 };
 use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
-use pinocchio::{entrypoint::NON_DUP_MARKER, sysvars::rent::Rent, Address};
+use pinocchio::{
+    entrypoint::NON_DUP_MARKER,
+    sysvars::rent::{Rent, RENT_ID},
+    Address,
+};
 
 pubkey_chunk_group!();
 
@@ -45,6 +49,10 @@ extend_constant_group!(input_buffer {
     offset!(RENT_NON_DUP_MARKER, InitInputBuffer.header.rent.header.borrow_state),
     /// Rent account data length field.
     offset!(RENT_DATA_LEN, InitInputBuffer.header.rent.header.data_len),
+    /// Rent address field.
+    pubkey_offset!(RENT_ADDRESS, InitInputBuffer.header.rent.header.address),
+    /// Rent sysvar ID.
+    pubkey_value!(RENT_ID, RENT_ID),
     /// Program ID field for initialize instruction.
     offset_immediate!(INIT_PROGRAM_ID, InitInputBuffer.footer.program_id),
 });

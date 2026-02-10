@@ -1,4 +1,4 @@
 #[test]
 fn test_entrypoint_branching() {
-    print_comparison_table(entrypoint::EntrypointCase::CASES);
+    print_comparison_table(entrypoint::EntrypointCase::CASES, false);
 }

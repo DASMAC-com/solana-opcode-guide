@@ -10,7 +10,7 @@
 # The System Program account is a duplicate.
 .equ E_SYSTEM_PROGRAM_DUPLICATE, 6
 .equ E_RENT_DUPLICATE, 7 # The rent sysvar account is a duplicate.
-.equ E_RENT_DATA_LEN, 8 # The rent sysvar account has invalid data length.
+.equ E_RENT_ADDRESS, 8 # The rent sysvar account has invalid data length.
 # Instruction data provided during initialization instruction.
 .equ E_INSTRUCTION_DATA, 9
 # The passed PDA does not match the expected address.
@@ -67,6 +67,22 @@
 # Rent account non-duplicate marker field.
 .equ IB_RENT_NON_DUP_MARKER_OFF, 31032
 .equ IB_RENT_DATA_LEN_OFF, 31112 # Rent account data length field.
+.equ IB_RENT_ADDRESS_OFF_0, 31040 # Rent address field (chunk index 0).
+.equ IB_RENT_ADDRESS_OFF_1, 31048 # Rent address field (chunk index 1).
+.equ IB_RENT_ADDRESS_OFF_2, 31056 # Rent address field (chunk index 2).
+.equ IB_RENT_ADDRESS_OFF_3, 31064 # Rent address field (chunk index 3).
+.equ IB_RENT_ID_CHUNK_0, 5862609301215225606 # Rent sysvar ID (chunk 0).
+.equ IB_RENT_ID_CHUNK_0_LO, 399877894 # Rent sysvar ID (chunk 0 lo).
+.equ IB_RENT_ID_CHUNK_0_HI, 1364995097 # Rent sysvar ID (chunk 0 hi).
+.equ IB_RENT_ID_CHUNK_1, 9219231539345853473 # Rent sysvar ID (chunk 1).
+.equ IB_RENT_ID_CHUNK_1_LO, 1288277025 # Rent sysvar ID (chunk 1 lo).
+.equ IB_RENT_ID_CHUNK_1_HI, 2146519613 # Rent sysvar ID (chunk 1 hi).
+.equ IB_RENT_ID_CHUNK_2, 4971307250928769624 # Rent sysvar ID (chunk 2).
+.equ IB_RENT_ID_CHUNK_2_LO, 149871192 # Rent sysvar ID (chunk 2 lo).
+.equ IB_RENT_ID_CHUNK_2_HI, 1157472667 # Rent sysvar ID (chunk 2 hi).
+.equ IB_RENT_ID_CHUNK_3, 2329533411 # Rent sysvar ID (chunk 3).
+.equ IB_RENT_ID_CHUNK_3_LO, -1965433885 # Rent sysvar ID (chunk 3 lo).
+.equ IB_RENT_ID_CHUNK_3_HI, 0 # Rent sysvar ID (chunk 3 hi).
 # Program ID field for initialize instruction.
 .equ IB_INIT_PROGRAM_ID_OFF_IMM, 41400
 
@@ -127,12 +143,29 @@ initialize:
     ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
-    # Error if Rent account is duplicate or has invalid length.
-    # ---------------------------------------------------------
+    # Error if Rent account is duplicate or has incorrect address.
+    # ------------------------------------------------------------
     ldxb r9, [r1 + IB_RENT_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_rent_duplicate
-    ldxdw r9, [r1 + IB_RENT_DATA_LEN_OFF]
-    jne r9, IB_RENT_DATA_LEN, e_rent_data_len
+    ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_0]
+    lddw r8, IB_RENT_ID_CHUNK_0
+    jne r9, r8, e_rent_address
+    ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_1]
+    lddw r8, IB_RENT_ID_CHUNK_1
+    jne r9, r8, e_rent_address
+    ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_2]
+    lddw r8, IB_RENT_ID_CHUNK_2
+    jne r9, r8, e_rent_address
+    ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_3]
+    # Optimize out the following line, which costs two CUs due to two
+    # 32-bit immediate loads across two opcodes:
+    # ```
+    # lddw r8, IB_RENT_ID_CHUNK_3
+    # ```
+    # Instead, replace with mov32, which only loads one 32-bit immediate,
+    # since the rent sysvar address has all chunk 3 hit bits unset.
+    mov32 r8, IB_RENT_ID_CHUNK_3_LO
+    jne r9, r8, e_rent_address
 
     # Error if instruction data provided.
     # -----------------------------------
@@ -157,18 +190,18 @@ initialize:
 
     # Compare computed PDA against passed account.
     # --------------------------------------------
-    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_0]
-    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_0]
-    jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_1]
-    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_1]
-    jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_2]
-    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_2]
-    jne r8, r7, e_pda_mismatch
-    ldxdw r8, [r1 + IB_TREE_ADDRESS_OFF_3]
-    ldxdw r7, [r4 + PUBKEY_CHUNK_OFF_3]
-    jne r8, r7, e_pda_mismatch
+    ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_0]
+    ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_0]
+    jne r9, r8, e_pda_mismatch
+    ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_1]
+    ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_1]
+    jne r9, r8, e_pda_mismatch
+    ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_2]
+    ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_2]
+    jne r9, r8, e_pda_mismatch
+    ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_3]
+    ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_3]
+    jne r9, r8, e_pda_mismatch
     # ANCHOR_END: initialize-pda-checks
 
     # Initialize signer seed for PDA bump key.
@@ -187,8 +220,8 @@ e_pda_mismatch:
     mov64 r0, E_PDA_MISMATCH
     exit
 
-e_rent_data_len:
-    mov64 r0, E_RENT_DATA_LEN
+e_rent_address:
+    mov64 r0, E_RENT_ADDRESS
     exit
 
 e_rent_duplicate:

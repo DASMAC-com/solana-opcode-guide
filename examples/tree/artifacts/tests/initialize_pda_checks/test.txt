@@ -1,4 +1,4 @@
 #[test]
 fn test_initialize_pda_checks() {
-    print_comparison_table(init::InitCase::PDA_CASES);
+    print_comparison_table(init::InitCase::PDA_CASES, false);
 }

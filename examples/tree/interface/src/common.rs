@@ -22,7 +22,7 @@ error_codes! {
     /// The rent sysvar account is a duplicate.
     RENT_DUPLICATE,
     /// The rent sysvar account has invalid data length.
-    RENT_DATA_LEN,
+    RENT_ADDRESS,
     /// Instruction data provided during initialization instruction.
     INSTRUCTION_DATA,
     /// The passed PDA does not match the expected address.

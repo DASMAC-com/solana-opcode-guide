@@ -761,6 +761,14 @@ enum AsmConstantKind {
         field_path: Vec<Ident>,
         chunk_index: usize,
     },
+    /// Chunk of a known pubkey/address constant.
+    /// Extracts `width` bytes at `byte_offset` from the 32-byte address.
+    /// Width 4 produces i32 (for LO/HI halves), width 8 produces i64 (for lddw).
+    PubkeyValueChunk {
+        expr: syn::Expr,
+        byte_offset: usize,
+        width: usize,
+    },
 }
 
 /// Input for asm_constant_group! macro.
@@ -966,6 +974,80 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
                         struct_name: struct_name.clone(),
                         field_path: field_path.clone(),
                         chunk_index: chunk,
+                    },
+                });
+            }
+            continue;
+        }
+
+        // pubkey_value!(NAME, expr) expands to 8 chunk constants (4 LO/HI pairs).
+        if ident == "pubkey_value" {
+            content.parse::<Token![!]>()?;
+            let inner;
+            syn::parenthesized!(inner in content);
+            let base_name: Ident = inner.parse()?;
+            inner.parse::<Token![,]>()?;
+            let expr: syn::Expr = inner.parse()?;
+            let _ = content.parse::<Token![,]>();
+
+            let base_doc = const_doc.trim_end_matches('.');
+            for chunk in 0..4usize {
+                let byte_base = chunk * 8;
+
+                // Full i64 chunk (for lddw).
+                let full_name = Ident::new(
+                    &format!("{}_CHUNK_{}", base_name, chunk),
+                    base_name.span(),
+                );
+                let full_doc = format!("{} (chunk {}).", base_doc, chunk);
+                if let Err(e) = validate_doc_comment(&full_doc) {
+                    return Err(content.error(e));
+                }
+                constants.push(AsmConstantDef {
+                    doc: full_doc,
+                    name: full_name,
+                    kind: AsmConstantKind::PubkeyValueChunk {
+                        expr: expr.clone(),
+                        byte_offset: byte_base,
+                        width: 8,
+                    },
+                });
+
+                // Low i32 half (for jne reg, imm32 when sign-extension is safe).
+                let lo_name = Ident::new(
+                    &format!("{}_CHUNK_{}_LO", base_name, chunk),
+                    base_name.span(),
+                );
+                let lo_doc = format!("{} (chunk {} lo).", base_doc, chunk);
+                if let Err(e) = validate_doc_comment(&lo_doc) {
+                    return Err(content.error(e));
+                }
+                constants.push(AsmConstantDef {
+                    doc: lo_doc,
+                    name: lo_name,
+                    kind: AsmConstantKind::PubkeyValueChunk {
+                        expr: expr.clone(),
+                        byte_offset: byte_base,
+                        width: 4,
+                    },
+                });
+
+                // High i32 half (to check if lddw can be avoided).
+                let hi_name = Ident::new(
+                    &format!("{}_CHUNK_{}_HI", base_name, chunk),
+                    base_name.span(),
+                );
+                let hi_doc = format!("{} (chunk {} hi).", base_doc, chunk);
+                if let Err(e) = validate_doc_comment(&hi_doc) {
+                    return Err(content.error(e));
+                }
+                constants.push(AsmConstantDef {
+                    doc: hi_doc,
+                    name: hi_name,
+                    kind: AsmConstantKind::PubkeyValueChunk {
+                        expr: expr.clone(),
+                        byte_offset: byte_base + 4,
+                        width: 4,
                     },
                 });
             }
@@ -1203,6 +1285,52 @@ fn gen_pubkey_chunk_offset_code(
     }
 }
 
+/// Generate code for a `pubkey_value!` constant (single chunk).
+///
+/// Extracts `width` bytes at `byte_offset` from a 32-byte address constant.
+/// Width 4 produces i32, width 8 produces i64.
+fn gen_pubkey_value_chunk_code(
+    name: &Ident,
+    doc: &str,
+    expr: &syn::Expr,
+    byte_offset: usize,
+    width: usize,
+) -> proc_macro2::TokenStream {
+    if width == 8 {
+        let b0 = byte_offset;
+        let b1 = byte_offset + 1;
+        let b2 = byte_offset + 2;
+        let b3 = byte_offset + 3;
+        let b4 = byte_offset + 4;
+        let b5 = byte_offset + 5;
+        let b6 = byte_offset + 6;
+        let b7 = byte_offset + 7;
+
+        quote! {
+            #[doc = #doc]
+            pub const #name: i64 = {
+                use super::*;
+                let bytes: [u8; 32] = unsafe { core::mem::transmute(#expr) };
+                i64::from_le_bytes([bytes[#b0], bytes[#b1], bytes[#b2], bytes[#b3], bytes[#b4], bytes[#b5], bytes[#b6], bytes[#b7]])
+            };
+        }
+    } else {
+        let b0 = byte_offset;
+        let b1 = byte_offset + 1;
+        let b2 = byte_offset + 2;
+        let b3 = byte_offset + 3;
+
+        quote! {
+            #[doc = #doc]
+            pub const #name: i32 = {
+                use super::*;
+                let bytes: [u8; 32] = unsafe { core::mem::transmute(#expr) };
+                i32::from_le_bytes([bytes[#b0], bytes[#b1], bytes[#b2], bytes[#b3]])
+            };
+        }
+    }
+}
+
 /// Macro for defining ASM-only constant groups.
 ///
 /// Constants don't need types - values are `i64`, offsets are `i16`.
@@ -1342,6 +1470,14 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
                     field_path,
                     *chunk_index,
                 ));
+            }
+            AsmConstantKind::PubkeyValueChunk {
+                expr,
+                byte_offset,
+                width,
+            } => {
+                const_value_strs.push(None);
+                const_defs.push(gen_pubkey_value_chunk_code(name, doc, expr, *byte_offset, *width));
             }
         }
     }
@@ -1571,6 +1707,14 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                     field_path,
                     *chunk_index,
                 ));
+            }
+            AsmConstantKind::PubkeyValueChunk {
+                expr,
+                byte_offset,
+                width,
+            } => {
+                const_value_strs.push(None);
+                const_defs.push(gen_pubkey_value_chunk_code(name, doc, expr, *byte_offset, *width));
             }
         }
     }

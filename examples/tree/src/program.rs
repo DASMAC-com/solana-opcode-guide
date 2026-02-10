@@ -2,7 +2,9 @@ use core::mem::transmute;
 use pinocchio::{
     address::address_eq,
     hint::{likely, unlikely},
-    no_allocator, nostd_panic_handler, AccountView, Address, SUCCESS,
+    no_allocator, nostd_panic_handler,
+    sysvars::rent::RENT_ID,
+    AccountView, Address, SUCCESS,
 };
 use tree_interface::{data, error_codes::error, input_buffer};
 #[cfg(target_os = "solana")]
@@ -87,12 +89,12 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         error::SYSTEM_PROGRAM_DATA_LEN
     );
 
-    // Error if Rent account is duplicate or has invalid data length.
+    // Error if Rent account is duplicate or has incorrect address.
     let rent_sysvar = account_at(input_buffer_ptr, input_buffer::RENT_ACCOUNT_OFF);
     if_err!(is_duplicate(&rent_sysvar), error::RENT_DUPLICATE);
     if_err!(
-        rent_sysvar.data_len() != input_buffer::RENT_DATA_LEN,
-        error::RENT_DATA_LEN
+        !address_eq(rent_sysvar.address(), &RENT_ID,),
+        error::RENT_ADDRESS
     );
 
     // Error if instruction data provided.

@@ -19,12 +19,29 @@ initialize:
     ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
-    # Error if Rent account is duplicate or has invalid length.
-    # ---------------------------------------------------------
+    # Error if Rent account is duplicate or has incorrect address.
+    # ------------------------------------------------------------
     ldxb r9, [r1 + IB_RENT_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_rent_duplicate
-    ldxdw r9, [r1 + IB_RENT_DATA_LEN_OFF]
-    jne r9, IB_RENT_DATA_LEN, e_rent_data_len
+    ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_0]
+    lddw r8, IB_RENT_ID_CHUNK_0
+    jne r9, r8, e_rent_address
+    ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_1]
+    lddw r8, IB_RENT_ID_CHUNK_1
+    jne r9, r8, e_rent_address
+    ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_2]
+    lddw r8, IB_RENT_ID_CHUNK_2
+    jne r9, r8, e_rent_address
+    ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_3]
+    # Optimize out the following line, which costs two CUs due to two
+    # 32-bit immediate loads across two opcodes:
+    # ```
+    # lddw r8, IB_RENT_ID_CHUNK_3
+    # ```
+    # Instead, replace with mov32, which only loads one 32-bit immediate,
+    # since the rent sysvar address has all chunk 3 hit bits unset.
+    mov32 r8, IB_RENT_ID_CHUNK_3_LO
+    jne r9, r8, e_rent_address
 
     # Error if instruction data provided.
     # -----------------------------------
