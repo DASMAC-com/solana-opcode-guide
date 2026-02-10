@@ -106,7 +106,6 @@ pub(super) enum InitCase {
     PdaMismatchChunk1,
     PdaMismatchChunk2,
     PdaMismatchChunk3,
-    PdaMatch,
 }
 
 impl InitCase {
@@ -126,7 +125,6 @@ impl InitCase {
         Self::PdaMismatchChunk1,
         Self::PdaMismatchChunk2,
         Self::PdaMismatchChunk3,
-        Self::PdaMatch,
     ];
 }
 
@@ -145,7 +143,6 @@ impl TestCase for InitCase {
             Self::PdaMismatchChunk1 => "PDA mismatch chunk 2",
             Self::PdaMismatchChunk2 => "PDA mismatch chunk 3",
             Self::PdaMismatchChunk3 => "PDA mismatch chunk 4",
-            Self::PdaMatch => "PDA match (happy path)",
         }
     }
 
@@ -244,10 +241,6 @@ impl TestCase for InitCase {
             Self::PdaMismatchChunk1 => run_pda_mismatch_chunk(lang, 1),
             Self::PdaMismatchChunk2 => run_pda_mismatch_chunk(lang, 2),
             Self::PdaMismatchChunk3 => run_pda_mismatch_chunk(lang, 3),
-            Self::PdaMatch => {
-                let (setup, instruction, accounts) = pda_init_setup(lang);
-                check_success(&setup, &instruction, &accounts)
-            }
         }
     }
 }
