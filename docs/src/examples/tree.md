@@ -35,7 +35,7 @@ performance.
 
 :::
 
-<!-- @include: ../../../examples/tree/artifacts/tests/initialize_input_checks/result.txt{1,13} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/initialize_input_checks/result.txt{1,17} -->
 
 <!-- markdownlint-enable MD013 -->
 

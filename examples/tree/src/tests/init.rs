@@ -74,17 +74,16 @@ fn pda_init_setup(
     (setup, instruction, accounts)
 }
 
-fn run_address_mismatch_chunk(
+fn run_address_mismatch(
     lang: ProgramLanguage,
     account_index: usize,
-    chunk: usize,
+    word_index: usize,
+    word_size: usize,
     expected_error: error_codes::error,
 ) -> CaseResult {
-    const FINAL_BIT: usize = size_of::<u64>() - 1;
-
     let (setup, mut instruction, mut accounts) = pda_init_setup(lang);
 
-    let flip_index = (chunk * size_of::<u64>()) + FINAL_BIT;
+    let flip_index = (word_index * word_size) + (word_size - 1);
     accounts[account_index].0.as_mut()[flip_index] ^= 1;
     instruction.accounts[account_index].pubkey = accounts[account_index].0;
 
@@ -99,10 +98,14 @@ pub(super) enum InitCase {
     SystemProgramDuplicate,
     SystemProgramDataLen,
     RentDuplicate,
-    RentAddressChunk0,
-    RentAddressChunk1,
-    RentAddressChunk2,
-    RentAddressChunk3,
+    RentAddressWord0,
+    RentAddressWord1,
+    RentAddressWord2,
+    RentAddressWord3,
+    RentAddressWord4,
+    RentAddressWord5,
+    RentAddressWord6,
+    RentAddressWord7,
     InstructionData,
     PdaMismatchChunk0,
     PdaMismatchChunk1,
@@ -118,10 +121,14 @@ impl InitCase {
         Self::SystemProgramDuplicate,
         Self::SystemProgramDataLen,
         Self::RentDuplicate,
-        Self::RentAddressChunk0,
-        Self::RentAddressChunk1,
-        Self::RentAddressChunk2,
-        Self::RentAddressChunk3,
+        Self::RentAddressWord0,
+        Self::RentAddressWord1,
+        Self::RentAddressWord2,
+        Self::RentAddressWord3,
+        Self::RentAddressWord4,
+        Self::RentAddressWord5,
+        Self::RentAddressWord6,
+        Self::RentAddressWord7,
         Self::InstructionData,
     ];
 
@@ -142,10 +149,14 @@ impl TestCase for InitCase {
             Self::SystemProgramDuplicate => "System program is duplicate",
             Self::SystemProgramDataLen => "System program wrong data length",
             Self::RentDuplicate => "Rent sysvar is duplicate",
-            Self::RentAddressChunk0 => "Rent address mismatch chunk 1",
-            Self::RentAddressChunk1 => "Rent address mismatch chunk 2",
-            Self::RentAddressChunk2 => "Rent address mismatch chunk 3",
-            Self::RentAddressChunk3 => "Rent address mismatch chunk 4",
+            Self::RentAddressWord0 => "Rent address mismatch word 0",
+            Self::RentAddressWord1 => "Rent address mismatch word 1",
+            Self::RentAddressWord2 => "Rent address mismatch word 2",
+            Self::RentAddressWord3 => "Rent address mismatch word 3",
+            Self::RentAddressWord4 => "Rent address mismatch word 4",
+            Self::RentAddressWord5 => "Rent address mismatch word 5",
+            Self::RentAddressWord6 => "Rent address mismatch word 6",
+            Self::RentAddressWord7 => "Rent address mismatch word 7",
             Self::InstructionData => "Non-empty instruction data",
             Self::PdaMismatchChunk0 => "PDA mismatch chunk 1",
             Self::PdaMismatchChunk1 => "PDA mismatch chunk 2",
@@ -225,10 +236,14 @@ impl TestCase for InitCase {
                     error_codes::error::RENT_DUPLICATE,
                 )
             }
-            Self::RentAddressChunk0 => run_address_mismatch_chunk(lang, AccountIndex::RentSysvar as usize, 0, error_codes::error::RENT_ADDRESS),
-            Self::RentAddressChunk1 => run_address_mismatch_chunk(lang, AccountIndex::RentSysvar as usize, 1, error_codes::error::RENT_ADDRESS),
-            Self::RentAddressChunk2 => run_address_mismatch_chunk(lang, AccountIndex::RentSysvar as usize, 2, error_codes::error::RENT_ADDRESS),
-            Self::RentAddressChunk3 => run_address_mismatch_chunk(lang, AccountIndex::RentSysvar as usize, 3, error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord0 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 0, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord1 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 1, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord2 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 2, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord3 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 3, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord4 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 4, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord5 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 5, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord6 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 6, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord7 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 7, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
             Self::InstructionData => {
                 let (setup, mut instruction, accounts) = init_setup(lang);
                 instruction.data = vec![1u8; 1];
@@ -239,10 +254,10 @@ impl TestCase for InitCase {
                     error_codes::error::INSTRUCTION_DATA,
                 )
             }
-            Self::PdaMismatchChunk0 => run_address_mismatch_chunk(lang, AccountIndex::Tree as usize, 0, error_codes::error::PDA_MISMATCH),
-            Self::PdaMismatchChunk1 => run_address_mismatch_chunk(lang, AccountIndex::Tree as usize, 1, error_codes::error::PDA_MISMATCH),
-            Self::PdaMismatchChunk2 => run_address_mismatch_chunk(lang, AccountIndex::Tree as usize, 2, error_codes::error::PDA_MISMATCH),
-            Self::PdaMismatchChunk3 => run_address_mismatch_chunk(lang, AccountIndex::Tree as usize, 3, error_codes::error::PDA_MISMATCH),
+            Self::PdaMismatchChunk0 => run_address_mismatch(lang, AccountIndex::Tree as usize, 0, size_of::<u64>(), error_codes::error::PDA_MISMATCH),
+            Self::PdaMismatchChunk1 => run_address_mismatch(lang, AccountIndex::Tree as usize, 1, size_of::<u64>(), error_codes::error::PDA_MISMATCH),
+            Self::PdaMismatchChunk2 => run_address_mismatch(lang, AccountIndex::Tree as usize, 2, size_of::<u64>(), error_codes::error::PDA_MISMATCH),
+            Self::PdaMismatchChunk3 => run_address_mismatch(lang, AccountIndex::Tree as usize, 3, size_of::<u64>(), error_codes::error::PDA_MISMATCH),
         }
     }
 }
