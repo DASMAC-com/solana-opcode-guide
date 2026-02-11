@@ -41,7 +41,14 @@
 # --------------------
 .equ IB_N_ACCOUNTS_OFF, 0 # Number of accounts field.
 .equ IB_USER_ACCOUNT_OFF, 8 # User runtime account.
+.equ IB_USER_LAMPORTS_OFF, 80 # User Lamports field.
+.equ IB_USER_DATA_OFF, 96 # User data field.
+.equ IB_USER_OWNER_OFF, 48 # User owner field.
+.equ IB_TREE_LAMPORTS_OFF, 10416 # Tree Lamports field.
+.equ IB_TREE_DATA_OFF, 10432 # Tree data field.
+.equ IB_TREE_OWNER_OFF, 10384 # Tree owner field.
 .equ IB_TREE_ACCOUNT_OFF, 10344 # Tree runtime account header.
+.equ IB_TREE_ADDRESS_OFF, 10352 # Tree address field.
 # System Program runtime account header.
 .equ IB_SYSTEM_PROGRAM_ACCOUNT_OFF, 20680
 .equ IB_RENT_ACCOUNT_OFF, 31032 # Rent sysvar account header.
@@ -170,3 +177,4 @@
 .equ CPI_WRITABLE_SIGNER, 0x0101 # Mask for writable signer.
 .equ CPI_USER_ACCOUNT_INDEX, 0 # Account index for user account in CPI.
 .equ CPI_TREE_ACCOUNT_INDEX, 1 # Account index for tree account in CPI.
+.equ CPI_RENT_EPOCH_NULL, 0 # Null rent epoch.

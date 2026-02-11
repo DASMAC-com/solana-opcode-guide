@@ -36,8 +36,22 @@ constant_group! {
         offset!(N_ACCOUNTS, InputBufferHeader.n_accounts),
         /// User runtime account.
         offset!(USER_ACCOUNT, InputBufferHeader.user),
+        /// User Lamports field.
+        offset!(USER_LAMPORTS, InputBufferHeader.user.header.lamports),
+        /// User data field.
+        offset!(USER_DATA, InputBufferHeader.user.data),
+        /// User owner field.
+        offset!(USER_OWNER, InputBufferHeader.user.header.owner),
+        /// Tree Lamports field.
+        offset!(TREE_LAMPORTS, InputBufferHeader.tree_header.lamports),
+        /// Tree data field.
+        offset!(TREE_DATA, InitInputBuffer.header.tree.data),
+        /// Tree owner field.
+        offset!(TREE_OWNER, InputBufferHeader.tree_header.owner),
         /// Tree runtime account header.
         offset!(TREE_ACCOUNT, InputBufferHeader.tree_header),
+        /// Tree address field.
+        offset!(TREE_ADDRESS, InputBufferHeader.tree_header.address),
         /// System Program runtime account header.
         offset!(SYSTEM_PROGRAM_ACCOUNT, InitInputBuffer.header.system_program),
         /// Rent sysvar account header.
@@ -83,6 +97,8 @@ constant_group! {
         USER_ACCOUNT_INDEX: usize = 0,
         /// Account index for tree account in CPI.
         TREE_ACCOUNT_INDEX: usize = 1,
+        /// Null rent epoch.
+        RENT_EPOCH_NULL: u64 = 0,
     }
 }
 
@@ -124,7 +140,7 @@ pub struct InitInputBuffer {
 pub struct InitInputBufferHeader {
     pub _n_accounts: u64,
     pub _user: EmptyRuntimeAccount,
-    pub _tree: EmptyRuntimeAccount,
+    pub tree: EmptyRuntimeAccount,
     pub system_program: SystemProgramRuntimeAccount,
     pub rent: RentRuntimeAccount,
 }

@@ -116,5 +116,5 @@ fn test_initialize_pda_checks() {
 
 #[test]
 fn test_initialize_create_account() {
-    print_comparison_table(init::InitCase::CPI_CASES, false, true);
+    print_comparison_table(init::InitCase::CPI_CASES, false, false);
 }

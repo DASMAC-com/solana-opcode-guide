@@ -7,5 +7,5 @@ mod bindings;
 mod common;
 
 pub use asm::*;
-pub use bindings::{SolSignerSeed, SolSignerSeeds};
+pub use bindings::{SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds};
 pub use common::{cpi, error_codes, CreateAccountInstructionData};

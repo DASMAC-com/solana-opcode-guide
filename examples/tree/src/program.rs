@@ -8,11 +8,14 @@ use pinocchio::{
     AccountView, Address, SUCCESS,
 };
 use tree_interface::{
-    cpi, data, error_codes::error, input_buffer, CreateAccountInstructionData, SolSignerSeed,
-    SolSignerSeeds,
+    cpi, data, error_codes::error, input_buffer, CreateAccountInstructionData, SolAccountInfo,
+    SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
 #[cfg(target_os = "solana")]
-use {core::mem::MaybeUninit, pinocchio::syscalls::sol_try_find_program_address};
+use {
+    core::mem::MaybeUninit,
+    pinocchio::syscalls::{sol_invoke_signed_c, sol_try_find_program_address},
+};
 
 #[inline(always)]
 unsafe fn account_at(input_buffer_ptr: *mut u8, offset: i16) -> AccountView {
@@ -139,8 +142,62 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     // ANCHOR_END: initialize-pda-checks
 
     // ANCHOR: initialize-create-account
+    let sol_account_metas = [
+        SolAccountMeta {
+            pubkey: transmute(
+                input_buffer_ptr.add(input_buffer::USER_ADDRESS_OFF as usize) as *const Address,
+            ),
+            is_writable: true,
+            is_signer: true,
+        },
+        SolAccountMeta {
+            pubkey: transmute(
+                input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF as usize) as *const Address,
+            ),
+            is_writable: true,
+            is_signer: true,
+        },
+    ];
+
+    let sol_account_infos = [
+        SolAccountInfo {
+            key: input_buffer_ptr
+                .add(input_buffer::USER_ADDRESS_OFF as usize)
+                .cast(),
+            lamports: input_buffer_ptr
+                .add(input_buffer::USER_LAMPORTS_OFF as usize)
+                .cast(),
+            data_len: data::DATA_LEN_ZERO,
+            data: input_buffer_ptr.add(input_buffer::USER_DATA_OFF as usize),
+            owner: input_buffer_ptr
+                .add(input_buffer::USER_OWNER_OFF as usize)
+                .cast(),
+            rent_epoch: cpi::RENT_EPOCH_NULL,
+            is_signer: true,
+            is_writable: true,
+            executable: false,
+        },
+        SolAccountInfo {
+            key: input_buffer_ptr
+                .add(input_buffer::TREE_ADDRESS_OFF as usize)
+                .cast(),
+            lamports: input_buffer_ptr
+                .add(input_buffer::TREE_LAMPORTS_OFF as usize)
+                .cast(),
+            data_len: data::DATA_LEN_ZERO,
+            data: input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize),
+            owner: input_buffer_ptr
+                .add(input_buffer::TREE_OWNER_OFF as usize)
+                .cast(),
+            rent_epoch: cpi::RENT_EPOCH_NULL,
+            is_signer: true,
+            is_writable: true,
+            executable: false,
+        },
+    ];
+
     // Pack CreateAccount instruction data.
-    let _instruction_data = CreateAccountInstructionData {
+    let instruction_data = CreateAccountInstructionData {
         discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
         lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
             * ldxdw(input_buffer_ptr, input_buffer::RENT_DATA_OFF),
@@ -151,8 +208,15 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
                 .cast(),
         ),
     };
-    #[cfg(not(target_os = "solana"))]
-    let _ = _instruction_data; // Silence clippy.
+
+    let system_program_address = Address::default();
+    let sol_instruction = SolInstruction {
+        program_id: transmute(&system_program_address),
+        accounts: sol_account_metas.as_ptr() as *mut SolAccountMeta,
+        account_len: sol_account_metas.len() as u64,
+        data: transmute(&instruction_data),
+        data_len: cpi::INSN_DATA_LEN as u64,
+    };
 
     // Initialize signer seed for PDA bump.
     let bump_seed = SolSignerSeed {
@@ -162,11 +226,27 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     };
 
     // Initialize signer seeds for PDA.
-    let _signers_seeds = SolSignerSeeds {
+    let signers_seeds = SolSignerSeeds {
         #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
         addr: transmute(&bump_seed),
         len: cpi::N_SEEDS as u64,
     };
+
+    #[cfg(target_os = "solana")]
+    sol_invoke_signed_c(
+        transmute(&sol_instruction),
+        transmute(&sol_account_infos),
+        cpi::N_ACCOUNTS as u64,
+        transmute(&signers_seeds),
+        cpi::N_PDA_SIGNERS as u64,
+    );
+    #[cfg(not(target_os = "solana"))]
+    #[allow(path_statements)]
+    {
+        signers_seeds;
+        sol_account_infos;
+        sol_instruction;
+    }
 
     // ANCHOR_END: initialize-create-account
 
