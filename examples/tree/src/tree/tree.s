@@ -414,7 +414,7 @@ initialize:
     # ---------------------------------------------------------------------
     mov64 r3, CPI_N_ACCOUNTS
     mov64 r5, CPI_N_PDA_SIGNERS
-    call sol_create_program_address # Create PDA.
+    call sol_invoke_signed_c
 
 
     // ANCHOR_END: initialize-create-account
