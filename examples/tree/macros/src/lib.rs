@@ -229,6 +229,15 @@ enum ConstantKind {
         array_index: Option<ArrayIndexInfo>,
         chunk_index: usize,
     },
+    /// Relative offset between two fields (i32 validated).
+    /// Computed as `offset_of!(Struct, to_field) - offset_of!(Struct, from_field)`.
+    /// Name is `{FROM}_TO_{TO}_REL_OFF_IMM`.
+    RelativeOffsetImmediate {
+        from_struct_name: Ident,
+        from_field_path: Vec<Ident>,
+        to_struct_name: Ident,
+        to_field_path: Vec<Ident>,
+    },
 }
 
 /// Array index info for stack frame offset computation.
@@ -369,8 +378,50 @@ impl Parse for ConstantGroup {
             }
 
             // Support `offset!(NAME, Struct.field)`, `offset_immediate!(NAME, Struct.field)`,
+            // `relative_offset_immediate!(FROM, TO, Struct.from, Struct.to)`,
             // `NAME: type = value`, and `NAME = expr as Type` forms.
-            let (const_name, kind) = if ident == "offset" {
+            let (const_name, kind) = if ident == "relative_offset_immediate" {
+                // relative_offset_immediate!(FROM_NAME, TO_NAME, Struct.from.path, Struct.to.path)
+                content.parse::<Token![!]>()?;
+                let inner;
+                syn::parenthesized!(inner in content);
+                let from_name: Ident = inner.parse()?;
+                inner.parse::<Token![,]>()?;
+                let to_name: Ident = inner.parse()?;
+                inner.parse::<Token![,]>()?;
+                let from_struct_name: Ident = inner.parse()?;
+                let mut from_field_path = Vec::new();
+                while inner.peek(Token![.]) {
+                    inner.parse::<Token![.]>()?;
+                    from_field_path.push(inner.parse::<Ident>()?);
+                }
+                if from_field_path.is_empty() {
+                    return Err(inner.error("Expected at least one field after struct name"));
+                }
+                inner.parse::<Token![,]>()?;
+                let to_struct_name: Ident = inner.parse()?;
+                let mut to_field_path = Vec::new();
+                while inner.peek(Token![.]) {
+                    inner.parse::<Token![.]>()?;
+                    to_field_path.push(inner.parse::<Ident>()?);
+                }
+                if to_field_path.is_empty() {
+                    return Err(inner.error("Expected at least one field after struct name"));
+                }
+                let full_name = Ident::new(
+                    &format!("{}_TO_{}_REL_OFF_IMM", from_name, to_name),
+                    from_name.span(),
+                );
+                (
+                    full_name,
+                    ConstantKind::RelativeOffsetImmediate {
+                        from_struct_name,
+                        from_field_path,
+                        to_struct_name,
+                        to_field_path,
+                    },
+                )
+            } else if ident == "offset" {
                 // offset!(NAME, Struct.field.nested.path)
                 content.parse::<Token![!]>()?;
                 let inner;
@@ -678,6 +729,22 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
                 const_value_strs.push(literal_repr);
                 const_defs.push(const_def);
             }
+            ConstantKind::RelativeOffsetImmediate {
+                from_struct_name,
+                from_field_path,
+                to_struct_name,
+                to_field_path,
+            } => {
+                const_value_strs.push(None);
+                const_defs.push(gen_relative_offset_immediate_code(
+                    name,
+                    doc,
+                    from_struct_name,
+                    from_field_path,
+                    to_struct_name,
+                    to_field_path,
+                ));
+            }
         }
     }
 
@@ -840,6 +907,15 @@ enum AsmConstantKind {
         expr: syn::Expr,
         byte_offset: usize,
         width: usize,
+    },
+    /// Relative offset between two fields (i32 validated).
+    /// Computed as `offset_of!(Struct, to_field) - offset_of!(Struct, from_field)`.
+    /// Name is `{FROM}_TO_{TO}_REL_OFF_IMM`.
+    RelativeOffsetImmediate {
+        from_struct_name: Ident,
+        from_field_path: Vec<Ident>,
+        to_struct_name: Ident,
+        to_field_path: Vec<Ident>,
     },
 }
 
@@ -1104,10 +1180,8 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
                 let byte_base = chunk * 8;
 
                 // Full i64 chunk (for lddw).
-                let full_name = Ident::new(
-                    &format!("{}_CHUNK_{}", base_name, chunk),
-                    base_name.span(),
-                );
+                let full_name =
+                    Ident::new(&format!("{}_CHUNK_{}", base_name, chunk), base_name.span());
                 let full_doc = format!("{} (chunk {}).", base_doc, chunk);
                 if let Err(e) = validate_doc_comment(&full_doc) {
                     return Err(content.error(e));
@@ -1163,91 +1237,132 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
             continue;
         }
 
-        let (const_name, kind) = if ident == "offset" {
-                // Parse offset!(NAME, Struct.field.nested.path)
-                content.parse::<Token![!]>()?;
-                let inner;
-                syn::parenthesized!(inner in content);
-                let base_name: Ident = inner.parse()?;
-                inner.parse::<Token![,]>()?;
-                let struct_name: Ident = inner.parse()?;
-                // Parse field path (one or more fields separated by dots).
-                let mut field_path = Vec::new();
-                while inner.peek(Token![.]) {
-                    inner.parse::<Token![.]>()?;
-                    field_path.push(inner.parse::<Ident>()?);
-                }
-                if field_path.is_empty() {
-                    return Err(inner.error("Expected at least one field after struct name"));
-                }
-                // Append _OFF suffix to the name.
-                let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
-                (
-                    full_name,
-                    AsmConstantKind::Offset {
-                        struct_name,
-                        field_path,
-                    },
-                )
-            } else if ident == "offset_immediate" {
-                // Parse offset_immediate!(NAME, Struct.field.nested.path)
-                content.parse::<Token![!]>()?;
-                let inner;
-                syn::parenthesized!(inner in content);
-                let base_name: Ident = inner.parse()?;
-                inner.parse::<Token![,]>()?;
-                let struct_name: Ident = inner.parse()?;
-                let mut field_path = Vec::new();
-                while inner.peek(Token![.]) {
-                    inner.parse::<Token![.]>()?;
-                    field_path.push(inner.parse::<Ident>()?);
-                }
-                if field_path.is_empty() {
-                    return Err(inner.error("Expected at least one field after struct name"));
-                }
-                // Append _OFF_IMM suffix to the name.
-                let full_name = Ident::new(&format!("{}_OFF_IMM", base_name), base_name.span());
-                (
-                    full_name,
-                    AsmConstantKind::OffsetImmediate {
-                        struct_name,
-                        field_path,
-                    },
-                )
-            } else if ident == "stack_frame_offset" || ident == "stack_frame_offset_unaligned" {
-                let aligned = ident == "stack_frame_offset";
-                let suffix = if aligned { "_OFF" } else { "_UOFF" };
-                content.parse::<Token![!]>()?;
-                let inner;
-                syn::parenthesized!(inner in content);
-                let base_name: Ident = inner.parse()?;
-                inner.parse::<Token![,]>()?;
-                let struct_name: Ident = inner.parse()?;
-                let parsed = parse_stack_frame_field_path(&inner)?;
-                let full_name = Ident::new(&format!("{}{}", base_name, suffix), base_name.span());
-                (
-                    full_name,
-                    AsmConstantKind::StackFrameOffset {
-                        struct_name,
-                        field_path_tokens: parsed.field_path_tokens,
-                        array_index: parsed.array_index,
-                        aligned,
-                    },
-                )
+        let (const_name, kind) = if ident == "relative_offset_immediate" {
+            // relative_offset_immediate!(FROM_NAME, TO_NAME, Struct.from.path, Struct.to.path)
+            content.parse::<Token![!]>()?;
+            let inner;
+            syn::parenthesized!(inner in content);
+            let from_name: Ident = inner.parse()?;
+            inner.parse::<Token![,]>()?;
+            let to_name: Ident = inner.parse()?;
+            inner.parse::<Token![,]>()?;
+            let from_struct_name: Ident = inner.parse()?;
+            let mut from_field_path = Vec::new();
+            while inner.peek(Token![.]) {
+                inner.parse::<Token![.]>()?;
+                from_field_path.push(inner.parse::<Ident>()?);
+            }
+            if from_field_path.is_empty() {
+                return Err(inner.error("Expected at least one field after struct name"));
+            }
+            inner.parse::<Token![,]>()?;
+            let to_struct_name: Ident = inner.parse()?;
+            let mut to_field_path = Vec::new();
+            while inner.peek(Token![.]) {
+                inner.parse::<Token![.]>()?;
+                to_field_path.push(inner.parse::<Ident>()?);
+            }
+            if to_field_path.is_empty() {
+                return Err(inner.error("Expected at least one field after struct name"));
+            }
+            let full_name = Ident::new(
+                &format!("{}_TO_{}_REL_OFF_IMM", from_name, to_name),
+                from_name.span(),
+            );
+            (
+                full_name,
+                AsmConstantKind::RelativeOffsetImmediate {
+                    from_struct_name,
+                    from_field_path,
+                    to_struct_name,
+                    to_field_path,
+                },
+            )
+        } else if ident == "offset" {
+            // Parse offset!(NAME, Struct.field.nested.path)
+            content.parse::<Token![!]>()?;
+            let inner;
+            syn::parenthesized!(inner in content);
+            let base_name: Ident = inner.parse()?;
+            inner.parse::<Token![,]>()?;
+            let struct_name: Ident = inner.parse()?;
+            // Parse field path (one or more fields separated by dots).
+            let mut field_path = Vec::new();
+            while inner.peek(Token![.]) {
+                inner.parse::<Token![.]>()?;
+                field_path.push(inner.parse::<Ident>()?);
+            }
+            if field_path.is_empty() {
+                return Err(inner.error("Expected at least one field after struct name"));
+            }
+            // Append _OFF suffix to the name.
+            let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
+            (
+                full_name,
+                AsmConstantKind::Offset {
+                    struct_name,
+                    field_path,
+                },
+            )
+        } else if ident == "offset_immediate" {
+            // Parse offset_immediate!(NAME, Struct.field.nested.path)
+            content.parse::<Token![!]>()?;
+            let inner;
+            syn::parenthesized!(inner in content);
+            let base_name: Ident = inner.parse()?;
+            inner.parse::<Token![,]>()?;
+            let struct_name: Ident = inner.parse()?;
+            let mut field_path = Vec::new();
+            while inner.peek(Token![.]) {
+                inner.parse::<Token![.]>()?;
+                field_path.push(inner.parse::<Ident>()?);
+            }
+            if field_path.is_empty() {
+                return Err(inner.error("Expected at least one field after struct name"));
+            }
+            // Append _OFF_IMM suffix to the name.
+            let full_name = Ident::new(&format!("{}_OFF_IMM", base_name), base_name.span());
+            (
+                full_name,
+                AsmConstantKind::OffsetImmediate {
+                    struct_name,
+                    field_path,
+                },
+            )
+        } else if ident == "stack_frame_offset" || ident == "stack_frame_offset_unaligned" {
+            let aligned = ident == "stack_frame_offset";
+            let suffix = if aligned { "_OFF" } else { "_UOFF" };
+            content.parse::<Token![!]>()?;
+            let inner;
+            syn::parenthesized!(inner in content);
+            let base_name: Ident = inner.parse()?;
+            inner.parse::<Token![,]>()?;
+            let struct_name: Ident = inner.parse()?;
+            let parsed = parse_stack_frame_field_path(&inner)?;
+            let full_name = Ident::new(&format!("{}{}", base_name, suffix), base_name.span());
+            (
+                full_name,
+                AsmConstantKind::StackFrameOffset {
+                    struct_name,
+                    field_path_tokens: parsed.field_path_tokens,
+                    array_index: parsed.array_index,
+                    aligned,
+                },
+            )
+        } else {
+            // Regular NAME = value syntax.
+            content.parse::<Token![=]>()?;
+            // Try to parse as literal first (to preserve hex/binary representation),
+            // otherwise parse as expression (for constants like NON_DUP_MARKER).
+            let fork = content.fork();
+            if let Ok(lit) = fork.parse::<LitInt>() {
+                content.advance_to(&fork);
+                (ident, AsmConstantKind::Literal(lit))
             } else {
-                // Regular NAME = value syntax.
-                content.parse::<Token![=]>()?;
-                // Try to parse as literal first (to preserve hex/binary representation),
-                // otherwise parse as expression (for constants like NON_DUP_MARKER).
-                let fork = content.fork();
-                if let Ok(lit) = fork.parse::<LitInt>() {
-                    content.advance_to(&fork);
-                    (ident, AsmConstantKind::Literal(lit))
-                } else {
-                    let expr: syn::Expr = content.parse()?;
-                    (ident, AsmConstantKind::Expr(expr))
-                }
-            };
+                let expr: syn::Expr = content.parse()?;
+                (ident, AsmConstantKind::Expr(expr))
+            }
+        };
 
         // Optional trailing comma.
         let _ = content.parse::<Token![,]>();
@@ -1447,6 +1562,36 @@ fn gen_pubkey_chunk_offset_code(
             (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64 + #chunk_byte_offset) >= (i16::MIN as i64)
                 && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64 + #chunk_byte_offset) <= (i16::MAX as i64),
             "Offset must fit in i16 range"
+        );
+    }
+}
+
+/// Generate code for a `relative_offset_immediate!` constant.
+///
+/// Computes `offset_of!(Struct, to_field) - offset_of!(Struct, from_field)` as an i32 constant.
+fn gen_relative_offset_immediate_code(
+    name: &Ident,
+    doc: &str,
+    from_struct_name: &Ident,
+    from_field_path: &[Ident],
+    to_struct_name: &Ident,
+    to_field_path: &[Ident],
+) -> proc_macro2::TokenStream {
+    let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
+
+    quote! {
+        #[doc = #doc]
+        pub const #name: i32 = (
+            core::mem::offset_of!(super::#to_struct_name, #(#to_field_path).*)  as i64
+            - core::mem::offset_of!(super::#from_struct_name, #(#from_field_path).*) as i64
+        ) as i32;
+
+        const #assert_name: () = assert!(
+            (core::mem::offset_of!(super::#to_struct_name, #(#to_field_path).*) as i64
+                - core::mem::offset_of!(super::#from_struct_name, #(#from_field_path).*) as i64) >= (i32::MIN as i64)
+                && (core::mem::offset_of!(super::#to_struct_name, #(#to_field_path).*) as i64
+                    - core::mem::offset_of!(super::#from_struct_name, #(#from_field_path).*) as i64) <= (i32::MAX as i64),
+            "Relative offset immediate must fit in i32 range"
         );
     }
 }
@@ -1660,7 +1805,29 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
                 width,
             } => {
                 const_value_strs.push(None);
-                const_defs.push(gen_pubkey_value_chunk_code(name, doc, expr, *byte_offset, *width));
+                const_defs.push(gen_pubkey_value_chunk_code(
+                    name,
+                    doc,
+                    expr,
+                    *byte_offset,
+                    *width,
+                ));
+            }
+            AsmConstantKind::RelativeOffsetImmediate {
+                from_struct_name,
+                from_field_path,
+                to_struct_name,
+                to_field_path,
+            } => {
+                const_value_strs.push(None);
+                const_defs.push(gen_relative_offset_immediate_code(
+                    name,
+                    doc,
+                    from_struct_name,
+                    from_field_path,
+                    to_struct_name,
+                    to_field_path,
+                ));
             }
         }
     }
@@ -1914,7 +2081,29 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
                 width,
             } => {
                 const_value_strs.push(None);
-                const_defs.push(gen_pubkey_value_chunk_code(name, doc, expr, *byte_offset, *width));
+                const_defs.push(gen_pubkey_value_chunk_code(
+                    name,
+                    doc,
+                    expr,
+                    *byte_offset,
+                    *width,
+                ));
+            }
+            AsmConstantKind::RelativeOffsetImmediate {
+                from_struct_name,
+                from_field_path,
+                to_struct_name,
+                to_field_path,
+            } => {
+                const_value_strs.push(None);
+                const_defs.push(gen_relative_offset_immediate_code(
+                    name,
+                    doc,
+                    from_struct_name,
+                    from_field_path,
+                    to_struct_name,
+                    to_field_path,
+                ));
             }
         }
     }

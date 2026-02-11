@@ -58,6 +58,13 @@ extend_constant_group!(input_buffer {
     pubkey_value!(RENT_ID, RENT_ID),
     /// Program ID field for initialize instruction.
     offset_immediate!(INIT_PROGRAM_ID, InitInputBuffer.footer.program_id),
+    /// Relative offset from user data field to tree pubkey field.
+    relative_offset_immediate!(
+        USER_DATA,
+        TREE_ADDRESS,
+        InputBufferHeader.user.data,
+        InputBufferHeader.tree_header.address
+    ),
 });
 
 #[stack_frame]
@@ -124,11 +131,6 @@ asm_constant_group! {
             USER_INFO_IS_SIGNER,
             InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].is_signer
         ),
-        /// SolAccountInfo is_signer field for tree account.
-        stack_frame_offset!(
-            TREE_INFO_IS_SIGNER,
-            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].is_signer
-        ),
         /// SolAccountMeta pubkey field for user account.
         stack_frame_offset!(
             USER_META_PUBKEY,
@@ -149,10 +151,40 @@ asm_constant_group! {
             USER_INFO_LAMPORTS,
             InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].lamports
         ),
-        /// SollAccountInfo data_len field for user account.
+        /// SolAccountInfo data_len field for user account.
         stack_frame_offset!(
             USER_INFO_DATA,
             InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].data
+        ),
+        /// SolAccountInfo is_signer field for tree account.
+        stack_frame_offset!(
+            TREE_INFO_IS_SIGNER,
+            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].is_signer
+        ),
+        /// SolAccountMeta pubkey field for tree account.
+        stack_frame_offset!(
+            TREE_META_PUBKEY,
+            InitStackFrame.account_metas[cpi::TREE_ACCOUNT_INDEX].pubkey
+        ),
+        /// SolAccountInfo pubkey field for tree account.
+        stack_frame_offset!(
+            TREE_INFO_PUBKEY,
+            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].key
+        ),
+        /// SolAccountInfo owner field for tree account.
+        stack_frame_offset!(
+            TREE_INFO_OWNER,
+            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].owner
+        ),
+        /// SolAccountInfo lamports field for tree account.
+        stack_frame_offset!(
+            TREE_INFO_LAMPORTS,
+            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].lamports
+        ),
+        /// SolAccountInfo data_len field for tree account.
+        stack_frame_offset!(
+            TREE_INFO_DATA,
+            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].data
         ),
     }
 }

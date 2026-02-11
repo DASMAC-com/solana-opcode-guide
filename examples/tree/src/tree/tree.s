@@ -87,6 +87,8 @@
 .equ IB_RENT_ID_CHUNK_3_HI, 0 # Rent sysvar ID (chunk 3 hi).
 # Program ID field for initialize instruction.
 .equ IB_INIT_PROGRAM_ID_OFF_IMM, 41400
+# Relative offset from user data field to tree pubkey field.
+.equ IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM, 10256
 
 # Init stack frame layout.
 # ------------------------
@@ -117,8 +119,6 @@
 .equ SF_INIT_TREE_META_IS_WRITABLE_OFF, -232
 # SolAccountInfo is_signer field for user account.
 .equ SF_INIT_USER_INFO_IS_SIGNER_OFF, -176
-# SolAccountInfo is_signer field for tree account.
-.equ SF_INIT_TREE_INFO_IS_SIGNER_OFF, -120
 # SolAccountMeta pubkey field for user account.
 .equ SF_INIT_USER_META_PUBKEY_OFF, -256
 # SolAccountInfo pubkey field for user account.
@@ -127,8 +127,20 @@
 .equ SF_INIT_USER_INFO_OWNER_OFF, -192
 # SolAccountInfo lamports field for user account.
 .equ SF_INIT_USER_INFO_LAMPORTS_OFF, -216
-# SollAccountInfo data_len field for user account.
+# SolAccountInfo data_len field for user account.
 .equ SF_INIT_USER_INFO_DATA_OFF, -200
+# SolAccountInfo is_signer field for tree account.
+.equ SF_INIT_TREE_INFO_IS_SIGNER_OFF, -120
+# SolAccountMeta pubkey field for tree account.
+.equ SF_INIT_TREE_META_PUBKEY_OFF, -240
+# SolAccountInfo pubkey field for tree account.
+.equ SF_INIT_TREE_INFO_PUBKEY_OFF, -168
+# SolAccountInfo owner field for tree account.
+.equ SF_INIT_TREE_INFO_OWNER_OFF, -136
+# SolAccountInfo lamports field for tree account.
+.equ SF_INIT_TREE_INFO_LAMPORTS_OFF, -160
+# SolAccountInfo data_len field for tree account.
+.equ SF_INIT_TREE_INFO_DATA_OFF, -144
 
 # CPI-specific constants.
 # -----------------------
@@ -286,7 +298,7 @@ initialize:
     # ---------------------------------------------------------------------
     # Packed later during bulk pointer load operation:
     # - [x] User pubkey pointer.
-    # - [ ] Tree pubkey pointer.
+    # - [x] Tree pubkey pointer.
     # ---------------------------------------------------------------------
     sth [r10 + SF_INIT_USER_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
     sth [r10 + SF_INIT_TREE_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
@@ -295,13 +307,13 @@ initialize:
     # ---------------------------------------------------------------------
     # Packed later during bulk pointer load operation:
     # - [x] User pubkey pointer.
-    # - [ ] Tree pubkey pointer.
+    # - [x] Tree pubkey pointer.
     # - [x] User lamports pointer.
-    # - [ ] Tree lamports pointer.
+    # - [x] Tree lamports pointer.
     # - [x] User data pointer.
-    # - [ ] Tree data pointer.
+    # - [x] Tree data pointer.
     # - [x] User owner pointer.
-    # - [ ] Tree owner pointer.
+    # - [x] Tree owner pointer.
     # Skipped due to zero-initialized stack memory:
     # - User data length (already checked as zero).
     # - Tree data length (already checked as zero).
@@ -337,7 +349,7 @@ initialize:
     # - [ ] r4 = pointer to signer's seeds.
     # - [ ] r5 = number of signers.
     # ---------------------------------------------------------------------
-    add64 r1, IB_USER_ADDRESS_OFF # Point to user address.
+    add64 r1, IB_USER_ADDRESS_OFF # Point to user address in input buffer.
     stxdw [r10 + SF_INIT_USER_META_PUBKEY_OFF], r1 # Store in account meta.
     stxdw [r10 + SF_INIT_USER_INFO_PUBKEY_OFF], r1 # Store in account info.
     add64 r1, SIZE_OF_ADDRESS # Advance to user owner.
@@ -346,6 +358,16 @@ initialize:
     stxdw [r10 + SF_INIT_USER_INFO_LAMPORTS_OFF], r1 # Store in acct info.
     add64 r1, SIZE_OF_U128 # Advance to user data.
     stxdw [r10 + SF_INIT_USER_INFO_DATA_OFF], r1 # Store in account info.
+    # Advance to tree address field.
+    add64 r1, IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM
+    stdw [r10 + SF_INIT_TREE_META_PUBKEY_OFF], r1 # Store in account meta.
+    stdw [r10 + SF_INIT_TREE_INFO_PUBKEY_OFF], r1 # Store in account info.
+    add64 r1, SIZE_OF_ADDRESS # Advance to tree owner.
+    stdw [r10 + SF_INIT_TREE_INFO_OWNER_OFF], r1 # Store in account info.
+    add64 r1, SIZE_OF_ADDRESS # Advance to tree lamports.
+    stdw [r10 + SF_INIT_TREE_INFO_LAMPORTS_OFF], r1 # Store in acct info.
+    add64 r1, SIZE_OF_U128 # Advance to tree data.
+    stdw [r10 + SF_INIT_TREE_INFO_DATA_OFF], r1 # Store in account info.
 
 
     // ANCHOR_END: initialize-create-account
