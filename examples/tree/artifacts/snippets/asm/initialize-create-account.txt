@@ -91,14 +91,14 @@
     stxdw [r10 + SF_INIT_USER_INFO_DATA_OFF], r1 # Store in account info.
     # Advance to tree address field.
     add64 r1, IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM
-    stdw [r10 + SF_INIT_TREE_META_PUBKEY_OFF], r1 # Store in account meta.
-    stdw [r10 + SF_INIT_TREE_INFO_PUBKEY_OFF], r1 # Store in account info.
+    stxdw [r10 + SF_INIT_TREE_META_PUBKEY_OFF], r1 # Store in account meta.
+    stxdw [r10 + SF_INIT_TREE_INFO_PUBKEY_OFF], r1 # Store in account info.
     add64 r1, SIZE_OF_ADDRESS # Advance to tree owner.
-    stdw [r10 + SF_INIT_TREE_INFO_OWNER_OFF], r1 # Store in account info.
+    stxdw [r10 + SF_INIT_TREE_INFO_OWNER_OFF], r1 # Store in account info.
     add64 r1, SIZE_OF_ADDRESS # Advance to tree lamports.
-    stdw [r10 + SF_INIT_TREE_INFO_LAMPORTS_OFF], r1 # Store in acct info.
+    stxdw [r10 + SF_INIT_TREE_INFO_LAMPORTS_OFF], r1 # Store in acct info.
     add64 r1, SIZE_OF_U128 # Advance to tree data.
-    stdw [r10 + SF_INIT_TREE_INFO_DATA_OFF], r1 # Store in account info.
+    stxdw [r10 + SF_INIT_TREE_INFO_DATA_OFF], r1 # Store in account info.
 
     # Bulk assign/load pointers for CPI bindings.
     # ---------------------------------------------------------------------
@@ -136,4 +136,3 @@
     mov64 r3, CPI_N_ACCOUNTS
     mov64 r5, CPI_N_PDA_SIGNERS
     call sol_invoke_signed_c
-

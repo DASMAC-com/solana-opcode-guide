@@ -162,7 +162,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     };
 
     // Initialize signer seeds for PDA.
-    let signers_seeds = SolSignerSeeds {
+    let _signers_seeds = SolSignerSeeds {
         #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
         addr: transmute(&bump_seed),
         len: cpi::N_SEEDS as u64,
