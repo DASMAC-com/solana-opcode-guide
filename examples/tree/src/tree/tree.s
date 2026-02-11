@@ -350,7 +350,7 @@ initialize:
     # Initialize signers seeds for PDA.
     # ---------------------------------------------------------------------
     # Packed later during bulk pointer load operation:
-    # - [ ] Signer seed pointer.
+    # - [x] Signer seed pointer.
     # ---------------------------------------------------------------------
     stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
 
