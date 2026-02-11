@@ -112,8 +112,14 @@ asm_constant_group! {
         stack_frame_offset!(SIGNERS_SEEDS_LEN, InitStackFrame.signers_seeds[0].len),
         /// System Program address.
         stack_frame_offset!(SYSTEM_PROGRAM_ADDRESS, InitStackFrame.system_program_address),
+        /// SolInstruction program_id field.
+        stack_frame_offset!(INSN_PROGRAM_ID, InitStackFrame.instruction.program_id),
+        /// SolInstruction accounts field.
+        stack_frame_offset!(INSN_ACCOUNTS, InitStackFrame.instruction.accounts),
         /// SolInstruction account_len field.
         stack_frame_offset!(INSN_ACCOUNT_LEN, InitStackFrame.instruction.account_len),
+        /// SolInstruction data field.
+        stack_frame_offset!(INSN_DATA, InitStackFrame.instruction.data),
         /// SolInstruction data_len field.
         stack_frame_offset!(INSN_DATA_LEN, InitStackFrame.instruction.data_len),
         /// SolAccountMeta is_writable field for user account.
@@ -186,5 +192,42 @@ asm_constant_group! {
             TREE_INFO_DATA,
             InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].data
         ),
+        /// Relative offset from PDA on stack to System Program ID.
+        relative_offset_immediate!(
+            PDA,
+            SYSTEM_PROGRAM_ID,
+            InitStackFrame.bump_seed,
+            InitStackFrame.system_program_address
+        ),
+        /// Relative offset from SolInstruction to first SolAccountMeta.
+        relative_offset_immediate!(
+            SYSTEM_PROGRAM_ID,
+            ACCT_METAS,
+            InitStackFrame.instruction,
+            InitStackFrame.account_metas
+        ),
+        /// Relative offset from SolAccountMeta array to instruction data.
+        relative_offset_immediate!(
+            ACCT_METAS,
+            INSN_DATA,
+            InitStackFrame.account_metas,
+            InitStackFrame.instruction_data
+        ),
+        /// Relative offset from instruction data to signer seeds.
+        relative_offset_immediate!(
+            INSN_DATA,
+            SIGNER_SEEDS,
+            InitStackFrame.instruction_data,
+            InitStackFrame.signer_seeds
+        ),
+        /// Relative offset from signer seeds to signers seeds.
+        relative_offset_immediate!(
+            SIGNER_SEEDS,
+            SIGNERS_SEEDS,
+            InitStackFrame.signer_seeds,
+            InitStackFrame.signers_seeds
+        ),
+        /// Account infos array.
+        stack_frame_offset!(ACCT_INFOS, InitStackFrame.account_infos),
     }
 }

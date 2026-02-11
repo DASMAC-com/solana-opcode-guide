@@ -110,7 +110,10 @@
 .equ SF_INIT_SIGNERS_SEEDS_ADDR_OFF, -112 # Signers seeds address field.
 .equ SF_INIT_SIGNERS_SEEDS_LEN_OFF, -104 # Signers seeds length field.
 .equ SF_INIT_SYSTEM_PROGRAM_ADDRESS_OFF, -32 # System Program address.
+.equ SF_INIT_INSN_PROGRAM_ID_OFF, -296 # SolInstruction program_id field.
+.equ SF_INIT_INSN_ACCOUNTS_OFF, -288 # SolInstruction accounts field.
 .equ SF_INIT_INSN_ACCOUNT_LEN_OFF, -280 # SolInstruction account_len field.
+.equ SF_INIT_INSN_DATA_OFF, -272 # SolInstruction data field.
 .equ SF_INIT_INSN_DATA_LEN_OFF, -264 # SolInstruction data_len field.
 # SolAccountMeta is_writable field for user account.
 .equ SF_INIT_USER_META_IS_WRITABLE_OFF, -248
@@ -140,6 +143,17 @@
 .equ SF_INIT_TREE_INFO_LAMPORTS_OFF, -160
 # SolAccountInfo data_len field for tree account.
 .equ SF_INIT_TREE_INFO_DATA_OFF, -144
+# Relative offset from PDA on stack to System Program ID.
+.equ SF_INIT_PDA_TO_SYSTEM_PROGRAM_ID_REL_OFF_IMM, 320
+# Relative offset from SolInstruction to first SolAccountMeta.
+.equ SF_INIT_SYSTEM_PROGRAM_ID_TO_ACCT_METAS_REL_OFF_IMM, 40
+# Relative offset from SolAccountMeta array to instruction data.
+.equ SF_INIT_ACCT_METAS_TO_INSN_DATA_REL_OFF_IMM, -95
+# Relative offset from instruction data to signer seeds.
+.equ SF_INIT_INSN_DATA_TO_SIGNER_SEEDS_REL_OFF_IMM, 255
+# Relative offset from signer seeds to signers seeds.
+.equ SF_INIT_SIGNER_SEEDS_TO_SIGNERS_SEEDS_REL_OFF_IMM, -16
+.equ SF_INIT_ACCT_INFOS_OFF, -224 # Account infos array.
 
 # CPI-specific constants.
 # -----------------------

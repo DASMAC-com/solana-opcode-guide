@@ -111,7 +111,10 @@
 .equ SF_INIT_SIGNERS_SEEDS_ADDR_OFF, -112 # Signers seeds address field.
 .equ SF_INIT_SIGNERS_SEEDS_LEN_OFF, -104 # Signers seeds length field.
 .equ SF_INIT_SYSTEM_PROGRAM_ADDRESS_OFF, -32 # System Program address.
+.equ SF_INIT_INSN_PROGRAM_ID_OFF, -296 # SolInstruction program_id field.
+.equ SF_INIT_INSN_ACCOUNTS_OFF, -288 # SolInstruction accounts field.
 .equ SF_INIT_INSN_ACCOUNT_LEN_OFF, -280 # SolInstruction account_len field.
+.equ SF_INIT_INSN_DATA_OFF, -272 # SolInstruction data field.
 .equ SF_INIT_INSN_DATA_LEN_OFF, -264 # SolInstruction data_len field.
 # SolAccountMeta is_writable field for user account.
 .equ SF_INIT_USER_META_IS_WRITABLE_OFF, -248
@@ -141,6 +144,17 @@
 .equ SF_INIT_TREE_INFO_LAMPORTS_OFF, -160
 # SolAccountInfo data_len field for tree account.
 .equ SF_INIT_TREE_INFO_DATA_OFF, -144
+# Relative offset from PDA on stack to System Program ID.
+.equ SF_INIT_PDA_TO_SYSTEM_PROGRAM_ID_REL_OFF_IMM, 320
+# Relative offset from SolInstruction to first SolAccountMeta.
+.equ SF_INIT_SYSTEM_PROGRAM_ID_TO_ACCT_METAS_REL_OFF_IMM, 40
+# Relative offset from SolAccountMeta array to instruction data.
+.equ SF_INIT_ACCT_METAS_TO_INSN_DATA_REL_OFF_IMM, -95
+# Relative offset from instruction data to signer seeds.
+.equ SF_INIT_INSN_DATA_TO_SIGNER_SEEDS_REL_OFF_IMM, 255
+# Relative offset from signer seeds to signers seeds.
+.equ SF_INIT_SIGNER_SEEDS_TO_SIGNERS_SEEDS_REL_OFF_IMM, -16
+.equ SF_INIT_ACCT_INFOS_OFF, -224 # Account infos array.
 
 # CPI-specific constants.
 # -----------------------
@@ -266,9 +280,9 @@ initialize:
     # Pack SolInstruction.
     # ---------------------------------------------------------------------
     # Packed later during bulk pointer load operation:
-    # - [ ] System Program ID pointer.
-    # - [ ] Account metas pointer.
-    # - [ ] Instruction data pointer.
+    # - [x] System Program ID pointer.
+    # - [x] Account metas pointer.
+    # - [x] Instruction data pointer.
     # ---------------------------------------------------------------------
     stdw [r10 + SF_INIT_INSN_ACCOUNT_LEN_OFF], CPI_N_ACCOUNTS
     stdw [r10 + SF_INIT_INSN_DATA_LEN_OFF], CPI_INSN_DATA_LEN
@@ -340,14 +354,10 @@ initialize:
     # ---------------------------------------------------------------------
     stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
 
-    # Bulk assign/load pointers.
+    # Bulk assign/load pointers for account info/addresses.
     # ---------------------------------------------------------------------
-    # Finish with:
-    # - [ ] r1 = pointer to instruction.
-    # - [ ] r2 = pointer to account infos.
-    # - [ ] r3 = number of account infos.
-    # - [ ] r4 = pointer to signer's seeds.
-    # - [ ] r5 = number of signers.
+    # Since pointers must be loaded from registers, this block steps
+    # through the input buffer in order to reduce intermediate loads.
     # ---------------------------------------------------------------------
     add64 r1, IB_USER_ADDRESS_OFF # Point to user address in input buffer.
     stxdw [r10 + SF_INIT_USER_META_PUBKEY_OFF], r1 # Store in account meta.
@@ -368,6 +378,43 @@ initialize:
     stdw [r10 + SF_INIT_TREE_INFO_LAMPORTS_OFF], r1 # Store in acct info.
     add64 r1, SIZE_OF_U128 # Advance to tree data.
     stdw [r10 + SF_INIT_TREE_INFO_DATA_OFF], r1 # Store in account info.
+
+    # Bulk assign/load pointers for CPI bindings.
+    # ---------------------------------------------------------------------
+    # This block steps through the stack frame, optimizing assignments in
+    # preparation for the impending CreateAccount CPI, which requires:
+    # - [x] r1 = pointer to instruction.
+    # - [x] r2 = pointer to account infos.
+    # - [x] r4 = pointer to signers seeds.
+    # Notably, it reuses r4 from the PDA derivation syscall to walk through
+    # pointers on the stack, before advancing it to its final value.
+    # ---------------------------------------------------------------------
+    # Advance to System Program ID pointer on zero-initialized stack.
+    add64 r4, SF_INIT_PDA_TO_SYSTEM_PROGRAM_ID_REL_OFF_IMM
+    # Store in SolInstruction.
+    stxdw [r10 + SF_INIT_INSN_PROGRAM_ID_OFF], r4
+    # Advance to SolAccountMeta array pointer.
+    add64 r4, SF_INIT_SYSTEM_PROGRAM_ID_TO_ACCT_METAS_REL_OFF_IMM
+    stxdw [r10 + SF_INIT_INSN_ACCOUNTS_OFF], r4 # Store in SolInstruction.
+    # Advance to instruction data pointer.
+    add64 r4, SF_INIT_ACCT_METAS_TO_INSN_DATA_REL_OFF_IMM
+    stxdw [r10 + SF_INIT_INSN_DATA_OFF], r4 # Store in SolInstruction.
+    # Advance to signer seeds pointer.
+    add64 r4, SF_INIT_INSN_DATA_TO_SIGNER_SEEDS_REL_OFF_IMM
+    stxdw [r10 + SF_INIT_SIGNERS_SEEDS_ADDR_OFF], r4
+    # Advance to signers seeds pointer.
+    add64 r4, SF_INIT_SIGNER_SEEDS_TO_SIGNERS_SEEDS_REL_OFF_IMM
+    # Assign remaining syscall pointers.
+    mov64 r1, r10
+    add64 r1, SF_INIT_INSN_PROGRAM_ID_OFF
+    mov64 r2, r10
+    add64 r2, SF_INIT_ACCT_INFOS_OFF
+
+    # Invoke CPI.
+    # ---------------------------------------------------------------------
+    mov64 r3, CPI_N_ACCOUNTS
+    mov64 r5, CPI_N_PDA_SIGNERS
+    call sol_create_program_address # Create PDA.
 
 
     // ANCHOR_END: initialize-create-account
