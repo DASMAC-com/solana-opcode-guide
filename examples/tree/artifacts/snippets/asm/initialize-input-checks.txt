@@ -45,8 +45,5 @@ initialize:
 
     # Error if instruction data provided.
     # ---------------------------------------------------------------------
-    # Init operation discriminator is number of accounts, requires no
-    # instruction data.
-    # ---------------------------------------------------------------------
     ldxdw r9, [r2 - SIZE_OF_U64]
     jne r9, DATA_LEN_ZERO, e_instruction_data

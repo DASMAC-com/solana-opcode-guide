@@ -14,7 +14,9 @@ use tree_interface::{
 #[cfg(target_os = "solana")]
 use {
     core::mem::MaybeUninit,
-    pinocchio::syscalls::{sol_invoke_signed_c, sol_try_find_program_address},
+    pinocchio::syscalls::{
+        sol_invoke_signed_c, sol_log_compute_units_, sol_try_find_program_address,
+    },
 };
 
 #[inline(always)]
@@ -32,6 +34,13 @@ unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
 #[inline(always)]
 fn is_duplicate(account: &AccountView) -> bool {
     account.is_borrowed()
+}
+
+/// Insert a syscall to log CUs, useful for sectioning off disassembled program.
+#[allow(dead_code)]
+unsafe fn log_cus() {
+    #[cfg(target_os = "solana")]
+    sol_log_compute_units_();
 }
 
 macro_rules! if_err {
