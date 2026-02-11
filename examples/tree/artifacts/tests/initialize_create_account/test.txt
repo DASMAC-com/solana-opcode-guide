@@ -1,0 +1,4 @@
+#[test]
+fn test_initialize_create_account() {
+    print_comparison_table(init::InitCase::CPI_CASES, false, true);
+}

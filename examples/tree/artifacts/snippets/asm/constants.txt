@@ -144,9 +144,9 @@
 # SolAccountInfo data_len field for tree account.
 .equ SF_INIT_TREE_INFO_DATA_OFF, -144
 # Relative offset from PDA on stack to System Program ID.
-.equ SF_INIT_PDA_TO_SYSTEM_PROGRAM_ID_REL_OFF_IMM, 320
-# Relative offset from SolInstruction to first SolAccountMeta.
-.equ SF_INIT_SYSTEM_PROGRAM_ID_TO_ACCT_METAS_REL_OFF_IMM, 40
+.equ SF_INIT_PDA_TO_SYSTEM_PROGRAM_ID_REL_OFF_IMM, 48
+# Relative offset from System Program ID to first SolAccountMeta.
+.equ SF_INIT_SYSTEM_PROGRAM_ID_TO_ACCT_METAS_REL_OFF_IMM, -224
 # Relative offset from SolAccountMeta array to instruction data.
 .equ SF_INIT_ACCT_METAS_TO_INSN_DATA_REL_OFF_IMM, -95
 # Relative offset from instruction data to signer seeds.

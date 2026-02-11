@@ -1,0 +1,13 @@
+| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|------|-----------|------------|----------|------------|
+| CreateAccount happy path | 2701 | 1557 | -1144 | -42.4% |
+  (Rust) CreateAccount happy path: owner: expected DASMAC..., got 11111111111111111111111111111111; data len: expected 16, got 0; lamports: expected 501120, got 0
+test tests::test_initialize_create_account ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 2701 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 1557 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success

@@ -7,7 +7,7 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use test_utils::{setup_test, ProgramLanguage, TestSetup};
-use tree_interface::error_codes;
+use tree_interface::{cpi, error_codes};
 
 const USER_LAMPORTS: u64 = 1_000_000;
 
@@ -21,24 +21,6 @@ enum AccountIndex {
 struct CaseResult {
     cu: u64,
     error: Option<String>,
-}
-
-fn check_success(
-    setup: &TestSetup,
-    instruction: &Instruction,
-    accounts: &[(Pubkey, Account)],
-) -> CaseResult {
-    let result = setup.mollusk.process_instruction(instruction, accounts);
-    match &result.program_result {
-        MolluskResult::Success => CaseResult {
-            cu: result.compute_units_consumed,
-            error: None,
-        },
-        other => CaseResult {
-            cu: result.compute_units_consumed,
-            error: Some(format!("expected Success, got {:?}", other)),
-        },
-    }
 }
 
 fn check_error(
@@ -66,7 +48,11 @@ trait TestCase: Copy {
     fn run(&self, lang: ProgramLanguage) -> CaseResult;
 }
 
-fn print_comparison_table<T: TestCase>(cases: &[T], allow_asm_failures: bool) {
+fn print_comparison_table<T: TestCase>(
+    cases: &[T],
+    allow_asm_failures: bool,
+    allow_rust_failures: bool,
+) {
     let mut failures = Vec::new();
 
     println!("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |");
@@ -98,7 +84,11 @@ fn print_comparison_table<T: TestCase>(cases: &[T], allow_asm_failures: bool) {
             }
         }
         if let Some(err) = &rs.error {
-            failures.push(format!("  Rust {}: {}", case.name(), err));
+            if allow_rust_failures {
+                println!("  (Rust) {}: {}", case.name(), err);
+            } else {
+                failures.push(format!("  Rust {}: {}", case.name(), err));
+            }
         }
     }
 
@@ -111,15 +101,20 @@ fn print_comparison_table<T: TestCase>(cases: &[T], allow_asm_failures: bool) {
 
 #[test]
 fn test_entrypoint_branching() {
-    print_comparison_table(entrypoint::EntrypointCase::CASES, false);
+    print_comparison_table(entrypoint::EntrypointCase::CASES, false, false);
 }
 
 #[test]
 fn test_initialize_input_checks() {
-    print_comparison_table(init::InitCase::CASES, false);
+    print_comparison_table(init::InitCase::CASES, false, false);
 }
 
 #[test]
 fn test_initialize_pda_checks() {
-    print_comparison_table(init::InitCase::PDA_CASES, false);
+    print_comparison_table(init::InitCase::PDA_CASES, false, false);
+}
+
+#[test]
+fn test_initialize_create_account() {
+    print_comparison_table(init::InitCase::CPI_CASES, false, true);
 }

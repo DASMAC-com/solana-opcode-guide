@@ -1,6 +1,9 @@
 use super::*;
 use mollusk_svm::program;
+use pinocchio::sysvars::rent::Rent;
 use solana_sdk::instruction::AccountMeta;
+
+const SIMD0194_EXEMPTION_THRESHOLD: f64 = 1.0;
 
 fn init_setup(
     program_language: ProgramLanguage,
@@ -41,7 +44,8 @@ fn init_setup(
 fn pda_init_setup(
     program_language: ProgramLanguage,
 ) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
-    let setup = setup_test(program_language);
+    let mut setup = setup_test(program_language);
+    setup.mollusk.sysvars.rent.exemption_threshold = SIMD0194_EXEMPTION_THRESHOLD;
     let (system_program_pubkey, system_program_account) =
         program::keyed_account_for_system_program();
     let (rent_sysvar_pubkey, rent_sysvar_account) =
@@ -111,6 +115,7 @@ pub(super) enum InitCase {
     PdaMismatchChunk1,
     PdaMismatchChunk2,
     PdaMismatchChunk3,
+    CreateAccountHappyPath,
 }
 
 impl InitCase {
@@ -138,6 +143,8 @@ impl InitCase {
         Self::PdaMismatchChunk2,
         Self::PdaMismatchChunk3,
     ];
+
+    pub(super) const CPI_CASES: &'static [Self] = &[Self::CreateAccountHappyPath];
 }
 
 impl TestCase for InitCase {
@@ -162,6 +169,7 @@ impl TestCase for InitCase {
             Self::PdaMismatchChunk1 => "PDA mismatch chunk 2",
             Self::PdaMismatchChunk2 => "PDA mismatch chunk 3",
             Self::PdaMismatchChunk3 => "PDA mismatch chunk 4",
+            Self::CreateAccountHappyPath => "CreateAccount happy path",
         }
     }
 
@@ -236,14 +244,62 @@ impl TestCase for InitCase {
                     error_codes::error::RENT_DUPLICATE,
                 )
             }
-            Self::RentAddressWord0 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 0, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
-            Self::RentAddressWord1 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 1, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
-            Self::RentAddressWord2 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 2, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
-            Self::RentAddressWord3 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 3, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
-            Self::RentAddressWord4 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 4, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
-            Self::RentAddressWord5 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 5, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
-            Self::RentAddressWord6 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 6, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
-            Self::RentAddressWord7 => run_address_mismatch(lang, AccountIndex::RentSysvar as usize, 7, size_of::<u32>(), error_codes::error::RENT_ADDRESS),
+            Self::RentAddressWord0 => run_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                0,
+                size_of::<u32>(),
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressWord1 => run_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                1,
+                size_of::<u32>(),
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressWord2 => run_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                2,
+                size_of::<u32>(),
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressWord3 => run_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                3,
+                size_of::<u32>(),
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressWord4 => run_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                4,
+                size_of::<u32>(),
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressWord5 => run_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                5,
+                size_of::<u32>(),
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressWord6 => run_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                6,
+                size_of::<u32>(),
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressWord7 => run_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                7,
+                size_of::<u32>(),
+                error_codes::error::RENT_ADDRESS,
+            ),
             Self::InstructionData => {
                 let (setup, mut instruction, accounts) = init_setup(lang);
                 instruction.data = vec![1u8; 1];
@@ -254,10 +310,79 @@ impl TestCase for InitCase {
                     error_codes::error::INSTRUCTION_DATA,
                 )
             }
-            Self::PdaMismatchChunk0 => run_address_mismatch(lang, AccountIndex::Tree as usize, 0, size_of::<u64>(), error_codes::error::PDA_MISMATCH),
-            Self::PdaMismatchChunk1 => run_address_mismatch(lang, AccountIndex::Tree as usize, 1, size_of::<u64>(), error_codes::error::PDA_MISMATCH),
-            Self::PdaMismatchChunk2 => run_address_mismatch(lang, AccountIndex::Tree as usize, 2, size_of::<u64>(), error_codes::error::PDA_MISMATCH),
-            Self::PdaMismatchChunk3 => run_address_mismatch(lang, AccountIndex::Tree as usize, 3, size_of::<u64>(), error_codes::error::PDA_MISMATCH),
+            Self::PdaMismatchChunk0 => run_address_mismatch(
+                lang,
+                AccountIndex::Tree as usize,
+                0,
+                size_of::<u64>(),
+                error_codes::error::PDA_MISMATCH,
+            ),
+            Self::PdaMismatchChunk1 => run_address_mismatch(
+                lang,
+                AccountIndex::Tree as usize,
+                1,
+                size_of::<u64>(),
+                error_codes::error::PDA_MISMATCH,
+            ),
+            Self::PdaMismatchChunk2 => run_address_mismatch(
+                lang,
+                AccountIndex::Tree as usize,
+                2,
+                size_of::<u64>(),
+                error_codes::error::PDA_MISMATCH,
+            ),
+            Self::PdaMismatchChunk3 => run_address_mismatch(
+                lang,
+                AccountIndex::Tree as usize,
+                3,
+                size_of::<u64>(),
+                error_codes::error::PDA_MISMATCH,
+            ),
+            Self::CreateAccountHappyPath => {
+                let (setup, instruction, accounts) = pda_init_setup(lang);
+                let result = setup.mollusk.process_instruction(&instruction, &accounts);
+                match &result.program_result {
+                    MolluskResult::Success => {
+                        let tree = &result.resulting_accounts[AccountIndex::Tree as usize].1;
+                        let rent_data = &accounts[AccountIndex::RentSysvar as usize].1.data;
+                        let rent = Rent::from_bytes(rent_data).unwrap();
+                        let expected_lamports =
+                            rent.try_minimum_balance(cpi::TREE_DATA_LEN).unwrap();
+                        let mut errors = Vec::new();
+                        if tree.owner != setup.program_id {
+                            errors.push(format!(
+                                "owner: expected {:?}, got {:?}",
+                                setup.program_id, tree.owner
+                            ));
+                        }
+                        if tree.data.len() != cpi::TREE_DATA_LEN {
+                            errors.push(format!(
+                                "data len: expected {}, got {}",
+                                cpi::TREE_DATA_LEN,
+                                tree.data.len()
+                            ));
+                        }
+                        if tree.lamports != expected_lamports {
+                            errors.push(format!(
+                                "lamports: expected {}, got {}",
+                                expected_lamports, tree.lamports
+                            ));
+                        }
+                        CaseResult {
+                            cu: result.compute_units_consumed,
+                            error: if errors.is_empty() {
+                                None
+                            } else {
+                                Some(errors.join("; "))
+                            },
+                        }
+                    }
+                    other => CaseResult {
+                        cu: result.compute_units_consumed,
+                        error: Some(format!("expected Success, got {:?}", other)),
+                    },
+                }
+            }
         }
     }
 }

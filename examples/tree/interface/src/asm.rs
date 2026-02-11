@@ -196,14 +196,14 @@ asm_constant_group! {
         relative_offset_immediate!(
             PDA,
             SYSTEM_PROGRAM_ID,
-            InitStackFrame.bump_seed,
+            InitStackFrame.pda,
             InitStackFrame.system_program_address
         ),
-        /// Relative offset from SolInstruction to first SolAccountMeta.
+        /// Relative offset from System Program ID to first SolAccountMeta.
         relative_offset_immediate!(
             SYSTEM_PROGRAM_ID,
             ACCT_METAS,
-            InitStackFrame.instruction,
+            InitStackFrame.system_program_address,
             InitStackFrame.account_metas
         ),
         /// Relative offset from SolAccountMeta array to instruction data.
