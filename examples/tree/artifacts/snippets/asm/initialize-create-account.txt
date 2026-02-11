@@ -1,3 +1,13 @@
+    # Pack SolInstruction.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [ ] Program ID pointer.
+    # - [ ] Account metas pointer.
+    # - [ ] Instruction data pointer.
+    # ---------------------------------------------------------------------
+    stdw [r10 + SF_INIT_INSN_ACCOUNT_LEN_OFF], CPI_N_ACCOUNTS
+    stdw [r10 + SF_INIT_INSN_DATA_LEN_OFF], CPI_INSN_DATA_LEN
+
     # Pack CreateAccount instruction data.
     # ---------------------------------------------------------------------
     # - Discriminator is already set to 0 since stack is zero initialized.
@@ -19,10 +29,58 @@
     ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_3]
     stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3], r9
 
-    # Initialize signer seed for PDA bump key.
+    # Pack SolAccountMeta for user and tree.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [ ] User pubkey pointer.
+    # - [ ] Tree pubkey pointer.
+    # ---------------------------------------------------------------------
+    sth [r10 + SF_INIT_USER_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
+    sth [r10 + SF_INIT_TREE_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
+
+    # Pack SolAccountInfo for user and tree.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [ ] User pubkey pointer.
+    # - [ ] Tree pubkey pointer.
+    # - [ ] User lamports pointer.
+    # - [ ] Tree lamports pointer.
+    # - [ ] User data pointer.
+    # - [ ] Tree data pointer.
+    # - [ ] User owner pointer.
+    # - [ ] Tree owner pointer.
+    # Skipped due to zero-initialized stack memory:
+    # - User data length (already checked as zero).
+    # - Tree data length (already checked as zero).
+    # - User rent epoch.
+    # - Tree rent epoch.
+    # - User executable.
+    # - Tree executable.
+    # ---------------------------------------------------------------------
+    sth [r10 + SF_INIT_USER_INFO_IS_SIGNER_OFF], CPI_WRITABLE_SIGNER
+    sth [r10 + SF_INIT_TREE_INFO_IS_SIGNER_OFF], CPI_WRITABLE_SIGNER
+
+    # Initialize signer seed for PDA bump seed.
     # ---------------------------------------------------------------------
     # Reuses r5 from PDA derivation syscall.
     # ---------------------------------------------------------------------
     # Store pointer to bump seed.
     stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
     stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
+
+    # Initialize signers seeds for PDA.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [ ] Signer seed pointer.
+    # ---------------------------------------------------------------------
+    stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
+
+    # Bulk load pointers.
+    # ---------------------------------------------------------------------
+    # Finish with:
+    # r1 = pointer to instruction.
+    # r2 = pointer to account infos.
+    # r3 = number of account infos.
+    # r4 = pointer to signer's seeds.
+    # r5 = number of signers.
+

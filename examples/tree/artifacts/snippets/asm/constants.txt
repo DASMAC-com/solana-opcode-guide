@@ -87,22 +87,35 @@
 
 # Init stack frame layout.
 # ------------------------
-.equ SF_INIT_BUMP_SEED_OFF, -360 # Bump seed.
-.equ SF_INIT_SIGNER_SEED_ADDR_OFF, -120 # Bump signer seed address field.
-.equ SF_INIT_SIGNER_SEED_LEN_OFF, -112 # Bump signer seed length field.
-.equ SF_INIT_PDA_OFF, -104 # PDA address field.
+.equ SF_INIT_BUMP_SEED_OFF, -352 # Bump seed.
+.equ SF_INIT_SIGNER_SEED_ADDR_OFF, -96 # Bump signer seed address field.
+.equ SF_INIT_SIGNER_SEED_LEN_OFF, -88 # Bump signer seed length field.
+.equ SF_INIT_PDA_OFF, -80 # PDA address field.
 # Lamports field in CreateAccount instruction data.
-.equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -52
+.equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -347
 # Space address field in CreateAccount instruction data.
-.equ SF_INIT_CREATE_ACCOUNT_SPACE_UOFF, -44
+.equ SF_INIT_CREATE_ACCOUNT_SPACE_UOFF, -339
 # Owner field in CreateAccount instruction data (chunk index 0).
-.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_0, -36
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_0, -331
 # Owner field in CreateAccount instruction data (chunk index 1).
-.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_1, -28
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_1, -323
 # Owner field in CreateAccount instruction data (chunk index 2).
-.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_2, -20
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_2, -315
 # Owner field in CreateAccount instruction data (chunk index 3).
-.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3, -12
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3, -307
+.equ SF_INIT_SIGNERS_SEEDS_ADDR_OFF, -112 # Signers seeds address field.
+.equ SF_INIT_SIGNERS_SEEDS_LEN_OFF, -104 # Signers seeds length field.
+.equ SF_INIT_SYSTEM_PROGRAM_ADDRESS_OFF, -32 # System Program address.
+.equ SF_INIT_INSN_ACCOUNT_LEN_OFF, -280 # SolInstruction account_len field.
+.equ SF_INIT_INSN_DATA_LEN_OFF, -264 # SolInstruction data_len field.
+# SolAccountMeta is_writable field for user account.
+.equ SF_INIT_USER_META_IS_WRITABLE_OFF, -248
+# SolAccountMeta is_writable field for tree account.
+.equ SF_INIT_TREE_META_IS_WRITABLE_OFF, -232
+# SolAccountInfo is_signer field for user account.
+.equ SF_INIT_USER_INFO_IS_SIGNER_OFF, -176
+# SolAccountInfo is_signer field for tree account.
+.equ SF_INIT_TREE_INFO_IS_SIGNER_OFF, -120
 
 # CPI-specific constants.
 # -----------------------
@@ -115,3 +128,7 @@
 .equ CPI_ACCOUNT_DATA_SCALAR, 144
 # CreateAccount discriminator for CPI.
 .equ CPI_CREATE_ACCOUNT_DISCRIMINATOR, 0
+.equ CPI_INSN_DATA_LEN, 52 # Length of CreateAccount instruction data.
+.equ CPI_WRITABLE_SIGNER, 0x0101 # Mask for writable signer.
+.equ CPI_USER_ACCOUNT_INDEX, 0 # Account index for user account in CPI.
+.equ CPI_TREE_ACCOUNT_INDEX, 1 # Account index for tree account in CPI.

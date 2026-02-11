@@ -12,3 +12,17 @@
     };
     #[cfg(not(target_os = "solana"))]
     let _ = _instruction_data; // Silence clippy.
+
+    // Initialize signer seed for PDA bump.
+    let bump_seed = SolSignerSeed {
+        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
+        addr: transmute(&bump),
+        len: size_of::<u8>() as u64,
+    };
+
+    // Initialize signer seeds for PDA.
+    let signers_seeds = SolSignerSeeds {
+        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
+        addr: transmute(&bump_seed),
+        len: cpi::N_SEEDS as u64,
+    };

@@ -1,26 +1,26 @@
 initialize:
 
     # Error if user has data.
-    # -----------------------
+    # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
     jne r9, DATA_LEN_ZERO, e_user_data_len
 
     # Error if tree is duplicate or has data.
-    # ---------------------------------------
+    # ---------------------------------------------------------------------
     ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
     ldxdw r9, [r1 + IB_TREE_DATA_LEN_OFF]
     jne r9, DATA_LEN_ZERO, e_tree_data_len
 
     # Error if System Program is duplicate or has invalid data length.
-    # ----------------------------------------------------------------
+    # ---------------------------------------------------------------------
     ldxb r9, [r1 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_system_program_duplicate
     ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
     # Error if Rent account is duplicate or has incorrect address.
-    # ------------------------------------------------------------
+    # ---------------------------------------------------------------------
     ldxb r9, [r1 + IB_RENT_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_rent_duplicate
     ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_0]
@@ -44,6 +44,6 @@ initialize:
     jne r9, r8, e_rent_address
 
     # Error if instruction data provided.
-    # -----------------------------------
+    # ---------------------------------------------------------------------
     ldxdw r9, [r2 - SIZE_OF_U64]
     jne r9, DATA_LEN_ZERO, e_instruction_data

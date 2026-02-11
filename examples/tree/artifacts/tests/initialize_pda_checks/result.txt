@@ -5,9 +5,13 @@
 | PDA mismatch chunk 3 | 1548 | 1555 | +7 | +0.5% |
 | PDA mismatch chunk 4 | 1551 | 1559 | +8 | +0.5% |
 test tests::test_initialize_pda_checks ... ok
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
+warning: unused variable: `signers_seeds`
+   --> tree/src/program.rs:165:9
+    |
+165 |     let signers_seeds = SolSignerSeeds {
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_signers_seeds`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 warning: function `check_success` is never used
   --> tree/src/tests.rs:26:4
    |
@@ -15,7 +19,7 @@ warning: function `check_success` is never used
    |    ^^^^^^^^^^^^^
    |
    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
-warning: `tree` (lib test) generated 1 warning
+warning: `tree` (lib test) generated 2 warnings
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 1542 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xa

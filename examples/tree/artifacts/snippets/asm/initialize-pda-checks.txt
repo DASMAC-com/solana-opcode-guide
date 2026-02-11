@@ -13,7 +13,7 @@
     call sol_try_find_program_address # Find PDA.
 
     # Compare computed PDA against passed account.
-    # --------------------------------------------
+    # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_0]
     ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_0]
     jne r9, r8, e_pda_mismatch

@@ -88,22 +88,35 @@
 
 # Init stack frame layout.
 # ------------------------
-.equ SF_INIT_BUMP_SEED_OFF, -360 # Bump seed.
-.equ SF_INIT_SIGNER_SEED_ADDR_OFF, -120 # Bump signer seed address field.
-.equ SF_INIT_SIGNER_SEED_LEN_OFF, -112 # Bump signer seed length field.
-.equ SF_INIT_PDA_OFF, -104 # PDA address field.
+.equ SF_INIT_BUMP_SEED_OFF, -352 # Bump seed.
+.equ SF_INIT_SIGNER_SEED_ADDR_OFF, -96 # Bump signer seed address field.
+.equ SF_INIT_SIGNER_SEED_LEN_OFF, -88 # Bump signer seed length field.
+.equ SF_INIT_PDA_OFF, -80 # PDA address field.
 # Lamports field in CreateAccount instruction data.
-.equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -52
+.equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -347
 # Space address field in CreateAccount instruction data.
-.equ SF_INIT_CREATE_ACCOUNT_SPACE_UOFF, -44
+.equ SF_INIT_CREATE_ACCOUNT_SPACE_UOFF, -339
 # Owner field in CreateAccount instruction data (chunk index 0).
-.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_0, -36
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_0, -331
 # Owner field in CreateAccount instruction data (chunk index 1).
-.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_1, -28
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_1, -323
 # Owner field in CreateAccount instruction data (chunk index 2).
-.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_2, -20
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_2, -315
 # Owner field in CreateAccount instruction data (chunk index 3).
-.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3, -12
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3, -307
+.equ SF_INIT_SIGNERS_SEEDS_ADDR_OFF, -112 # Signers seeds address field.
+.equ SF_INIT_SIGNERS_SEEDS_LEN_OFF, -104 # Signers seeds length field.
+.equ SF_INIT_SYSTEM_PROGRAM_ADDRESS_OFF, -32 # System Program address.
+.equ SF_INIT_INSN_ACCOUNT_LEN_OFF, -280 # SolInstruction account_len field.
+.equ SF_INIT_INSN_DATA_LEN_OFF, -264 # SolInstruction data_len field.
+# SolAccountMeta is_writable field for user account.
+.equ SF_INIT_USER_META_IS_WRITABLE_OFF, -248
+# SolAccountMeta is_writable field for tree account.
+.equ SF_INIT_TREE_META_IS_WRITABLE_OFF, -232
+# SolAccountInfo is_signer field for user account.
+.equ SF_INIT_USER_INFO_IS_SIGNER_OFF, -176
+# SolAccountInfo is_signer field for tree account.
+.equ SF_INIT_TREE_INFO_IS_SIGNER_OFF, -120
 
 # CPI-specific constants.
 # -----------------------
@@ -116,6 +129,10 @@
 .equ CPI_ACCOUNT_DATA_SCALAR, 144
 # CreateAccount discriminator for CPI.
 .equ CPI_CREATE_ACCOUNT_DISCRIMINATOR, 0
+.equ CPI_INSN_DATA_LEN, 52 # Length of CreateAccount instruction data.
+.equ CPI_WRITABLE_SIGNER, 0x0101 # Mask for writable signer.
+.equ CPI_USER_ACCOUNT_INDEX, 0 # Account index for user account in CPI.
+.equ CPI_TREE_ACCOUNT_INDEX, 1 # Account index for tree account in CPI.
 # ANCHOR_END: constants
 
 # ANCHOR: entrypoint-branching
@@ -123,7 +140,7 @@
 
 entrypoint:
     # Check input buffer accounts.
-    # ----------------------------
+    # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
     jeq r9, IB_N_ACCOUNTS_GENERAL, general # Fast path to general case.
     jeq r9, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
@@ -142,26 +159,26 @@ general:
 initialize:
 
     # Error if user has data.
-    # -----------------------
+    # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
     jne r9, DATA_LEN_ZERO, e_user_data_len
 
     # Error if tree is duplicate or has data.
-    # ---------------------------------------
+    # ---------------------------------------------------------------------
     ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
     ldxdw r9, [r1 + IB_TREE_DATA_LEN_OFF]
     jne r9, DATA_LEN_ZERO, e_tree_data_len
 
     # Error if System Program is duplicate or has invalid data length.
-    # ----------------------------------------------------------------
+    # ---------------------------------------------------------------------
     ldxb r9, [r1 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_system_program_duplicate
     ldxdw r9, [r1 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
     jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
     # Error if Rent account is duplicate or has incorrect address.
-    # ------------------------------------------------------------
+    # ---------------------------------------------------------------------
     ldxb r9, [r1 + IB_RENT_NON_DUP_MARKER_OFF]
     jne r9, IB_NON_DUP_MARKER, e_rent_duplicate
     ldxdw r9, [r1 + IB_RENT_ADDRESS_OFF_0]
@@ -185,7 +202,7 @@ initialize:
     jne r9, r8, e_rent_address
 
     # Error if instruction data provided.
-    # -----------------------------------
+    # ---------------------------------------------------------------------
     ldxdw r9, [r2 - SIZE_OF_U64]
     jne r9, DATA_LEN_ZERO, e_instruction_data
     # ANCHOR_END: initialize-input-checks
@@ -206,7 +223,7 @@ initialize:
     call sol_try_find_program_address # Find PDA.
 
     # Compare computed PDA against passed account.
-    # --------------------------------------------
+    # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_0]
     ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_0]
     jne r9, r8, e_pda_mismatch
@@ -222,6 +239,16 @@ initialize:
     # ANCHOR_END: initialize-pda-checks
 
     // ANCHOR: initialize-create-account
+    # Pack SolInstruction.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [ ] Program ID pointer.
+    # - [ ] Account metas pointer.
+    # - [ ] Instruction data pointer.
+    # ---------------------------------------------------------------------
+    stdw [r10 + SF_INIT_INSN_ACCOUNT_LEN_OFF], CPI_N_ACCOUNTS
+    stdw [r10 + SF_INIT_INSN_DATA_LEN_OFF], CPI_INSN_DATA_LEN
+
     # Pack CreateAccount instruction data.
     # ---------------------------------------------------------------------
     # - Discriminator is already set to 0 since stack is zero initialized.
@@ -243,7 +270,38 @@ initialize:
     ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_3]
     stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3], r9
 
-    # Initialize signer seed for PDA bump key.
+    # Pack SolAccountMeta for user and tree.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [ ] User pubkey pointer.
+    # - [ ] Tree pubkey pointer.
+    # ---------------------------------------------------------------------
+    sth [r10 + SF_INIT_USER_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
+    sth [r10 + SF_INIT_TREE_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
+
+    # Pack SolAccountInfo for user and tree.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [ ] User pubkey pointer.
+    # - [ ] Tree pubkey pointer.
+    # - [ ] User lamports pointer.
+    # - [ ] Tree lamports pointer.
+    # - [ ] User data pointer.
+    # - [ ] Tree data pointer.
+    # - [ ] User owner pointer.
+    # - [ ] Tree owner pointer.
+    # Skipped due to zero-initialized stack memory:
+    # - User data length (already checked as zero).
+    # - Tree data length (already checked as zero).
+    # - User rent epoch.
+    # - Tree rent epoch.
+    # - User executable.
+    # - Tree executable.
+    # ---------------------------------------------------------------------
+    sth [r10 + SF_INIT_USER_INFO_IS_SIGNER_OFF], CPI_WRITABLE_SIGNER
+    sth [r10 + SF_INIT_TREE_INFO_IS_SIGNER_OFF], CPI_WRITABLE_SIGNER
+
+    # Initialize signer seed for PDA bump seed.
     # ---------------------------------------------------------------------
     # Reuses r5 from PDA derivation syscall.
     # ---------------------------------------------------------------------
@@ -251,8 +309,24 @@ initialize:
     stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
     stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
 
-    // ANCHOR_END: initialize-create-account
+    # Initialize signers seeds for PDA.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [ ] Signer seed pointer.
+    # ---------------------------------------------------------------------
+    stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
 
+    # Bulk load pointers.
+    # ---------------------------------------------------------------------
+    # Finish with:
+    # r1 = pointer to instruction.
+    # r2 = pointer to account infos.
+    # r3 = number of account infos.
+    # r4 = pointer to signer's seeds.
+    # r5 = number of signers.
+
+
+    // ANCHOR_END: initialize-create-account
 
     exit
 

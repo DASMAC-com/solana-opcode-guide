@@ -75,6 +75,14 @@ constant_group! {
         ACCOUNT_DATA_SCALAR: usize = (ACCOUNT_STORAGE_OVERHEAD as usize) + TREE_DATA_LEN,
         /// CreateAccount discriminator for CPI.
         CREATE_ACCOUNT_DISCRIMINATOR: u32 = 0,
+        /// Length of CreateAccount instruction data.
+        INSN_DATA_LEN: usize = size_of::<CreateAccountInstructionData>(),
+        /// Mask for writable signer.
+        WRITABLE_SIGNER: u64 = 0x0101,
+        /// Account index for user account in CPI.
+        USER_ACCOUNT_INDEX: usize = 0,
+        /// Account index for tree account in CPI.
+        TREE_ACCOUNT_INDEX: usize = 1,
     }
 }
 

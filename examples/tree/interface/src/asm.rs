@@ -61,8 +61,7 @@ extend_constant_group!(input_buffer {
 #[stack_frame]
 struct InitStackFrame {
     bump_seed: u8,
-    /// Zero-initialized on stack.
-    system_program_address: Address,
+    instruction_data: CreateAccountInstructionData,
     instruction: SolInstruction,
     account_metas: [SolAccountMeta; cpi::N_ACCOUNTS],
     account_infos: [SolAccountInfo; cpi::N_ACCOUNTS],
@@ -70,7 +69,8 @@ struct InitStackFrame {
     signer_seeds: [SolSignerSeed; cpi::N_SEEDS],
     pda: Address,
     rent: Rent,
-    instruction_data: CreateAccountInstructionData,
+    /// Zero-initialized on stack.
+    system_program_address: Address,
 }
 
 asm_constant_group! {
@@ -96,6 +96,36 @@ asm_constant_group! {
         stack_frame_pubkey_offset_unaligned!(
             CREATE_ACCOUNT_OWNER,
             InitStackFrame.instruction_data.owner
+        ),
+        /// Signers seeds address field.
+        stack_frame_offset!(SIGNERS_SEEDS_ADDR, InitStackFrame.signers_seeds),
+        /// Signers seeds length field.
+        stack_frame_offset!(SIGNERS_SEEDS_LEN, InitStackFrame.signers_seeds[0].len),
+        /// System Program address.
+        stack_frame_offset!(SYSTEM_PROGRAM_ADDRESS, InitStackFrame.system_program_address),
+        /// SolInstruction account_len field.
+        stack_frame_offset!(INSN_ACCOUNT_LEN, InitStackFrame.instruction.account_len),
+        /// SolInstruction data_len field.
+        stack_frame_offset!(INSN_DATA_LEN, InitStackFrame.instruction.data_len),
+        /// SolAccountMeta is_writable field for user account.
+        stack_frame_offset!(
+            USER_META_IS_WRITABLE,
+            InitStackFrame.account_metas[cpi::USER_ACCOUNT_INDEX].is_writable
+        ),
+        /// SolAccountMeta is_writable field for tree account.
+        stack_frame_offset!(
+            TREE_META_IS_WRITABLE,
+            InitStackFrame.account_metas[cpi::TREE_ACCOUNT_INDEX].is_writable
+        ),
+        /// SolAccountInfo is_signer field for user account.
+        stack_frame_offset!(
+            USER_INFO_IS_SIGNER,
+            InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].is_signer
+        ),
+        /// SolAccountInfo is_signer field for tree account.
+        stack_frame_offset!(
+            TREE_INFO_IS_SIGNER,
+            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].is_signer
         ),
     }
 }

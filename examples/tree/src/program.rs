@@ -7,7 +7,10 @@ use pinocchio::{
     sysvars::rent::RENT_ID,
     AccountView, Address, SUCCESS,
 };
-use tree_interface::{cpi, data, error_codes::error, input_buffer, CreateAccountInstructionData};
+use tree_interface::{
+    cpi, data, error_codes::error, input_buffer, CreateAccountInstructionData, SolSignerSeed,
+    SolSignerSeeds,
+};
 #[cfg(target_os = "solana")]
 use {core::mem::MaybeUninit, pinocchio::syscalls::sol_try_find_program_address};
 
@@ -107,7 +110,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     // ANCHOR: initialize-pda-checks
     #[cfg(target_os = "solana")]
     // Invoke syscall.
-    let (pda, _bump) = {
+    let (pda, bump) = {
         let mut pda = MaybeUninit::<Address>::uninit();
         let mut bump = MaybeUninit::<u8>::uninit();
         // Get input buffer footer pointer.
@@ -122,7 +125,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         (pda.assume_init(), bump.assume_init())
     };
     #[cfg(not(target_os = "solana"))]
-    let (pda, _bump) = (Address::default(), 0); // Silence clippy.
+    let (pda, bump) = (Address::default(), 0);
 
     // Compare result with passed PDA.
     if_err!(
@@ -150,6 +153,20 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     };
     #[cfg(not(target_os = "solana"))]
     let _ = _instruction_data; // Silence clippy.
+
+    // Initialize signer seed for PDA bump.
+    let bump_seed = SolSignerSeed {
+        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
+        addr: transmute(&bump),
+        len: size_of::<u8>() as u64,
+    };
+
+    // Initialize signer seeds for PDA.
+    let signers_seeds = SolSignerSeeds {
+        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
+        addr: transmute(&bump_seed),
+        len: cpi::N_SEEDS as u64,
+    };
 
     // ANCHOR_END: initialize-create-account
 
