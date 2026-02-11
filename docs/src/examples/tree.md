@@ -23,7 +23,9 @@ performance.
 
 <!-- @include: ../../../examples/tree/artifacts/tests/entrypoint_branching/result.txt{1,6} -->
 
-## Initialize input checks
+## Initialize
+
+### Input checks
 
 ::: code-group
 
@@ -39,7 +41,7 @@ performance.
 
 <!-- markdownlint-enable MD013 -->
 
-## Initialize PDA checks
+### PDA checks
 
 ::: code-group
 
@@ -55,7 +57,21 @@ performance.
 
 <!-- markdownlint-enable MD013 -->
 
-<!-- @include: ../../../examples/tree/artifacts/tests/initialize_pda_checks/result.txt{1,6} -->
+### Create account
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/initialize-create-account.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/initialize-create-account.txt{rs} [Rust]
+
+:::
+
+<!-- @include: ../../../examples/tree/artifacts/tests/initialize_create_account/result.txt{1,3} -->
+
+<!-- markdownlint-enable MD013 -->
 
 ## :white_check_mark: All tests
 
