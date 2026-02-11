@@ -16,6 +16,8 @@ pubkey_chunk_group!();
 sizes! {
     u8,
     u64,
+    Address,
+    u128,
 }
 
 extend_constant_group!(data {
@@ -126,6 +128,31 @@ asm_constant_group! {
         stack_frame_offset!(
             TREE_INFO_IS_SIGNER,
             InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].is_signer
+        ),
+        /// SolAccountMeta pubkey field for user account.
+        stack_frame_offset!(
+            USER_META_PUBKEY,
+            InitStackFrame.account_metas[cpi::USER_ACCOUNT_INDEX].pubkey
+        ),
+        /// SolAccountInfo pubkey field for user account.
+        stack_frame_offset!(
+            USER_INFO_PUBKEY,
+            InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].key
+        ),
+        /// SolAccountInfo owner field for user account.
+        stack_frame_offset!(
+            USER_INFO_OWNER,
+            InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].owner
+        ),
+        /// SolAccountInfo lamports field for user account.
+        stack_frame_offset!(
+            USER_INFO_LAMPORTS,
+            InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].lamports
+        ),
+        /// SollAccountInfo data_len field for user account.
+        stack_frame_offset!(
+            USER_INFO_DATA,
+            InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].data
         ),
     }
 }

@@ -20,6 +20,8 @@
 # -----------
 .equ SIZE_OF_U8, 1 # Size of u8.
 .equ SIZE_OF_U64, 8 # Size of u64.
+.equ SIZE_OF_ADDRESS, 32 # Size of Address.
+.equ SIZE_OF_U128, 16 # Size of u128.
 
 # Data layout constants.
 # ----------------------
@@ -117,6 +119,16 @@
 .equ SF_INIT_USER_INFO_IS_SIGNER_OFF, -176
 # SolAccountInfo is_signer field for tree account.
 .equ SF_INIT_TREE_INFO_IS_SIGNER_OFF, -120
+# SolAccountMeta pubkey field for user account.
+.equ SF_INIT_USER_META_PUBKEY_OFF, -256
+# SolAccountInfo pubkey field for user account.
+.equ SF_INIT_USER_INFO_PUBKEY_OFF, -224
+# SolAccountInfo owner field for user account.
+.equ SF_INIT_USER_INFO_OWNER_OFF, -192
+# SolAccountInfo lamports field for user account.
+.equ SF_INIT_USER_INFO_LAMPORTS_OFF, -216
+# SollAccountInfo data_len field for user account.
+.equ SF_INIT_USER_INFO_DATA_OFF, -200
 
 # CPI-specific constants.
 # -----------------------
@@ -242,7 +254,7 @@ initialize:
     # Pack SolInstruction.
     # ---------------------------------------------------------------------
     # Packed later during bulk pointer load operation:
-    # - [ ] Program ID pointer.
+    # - [ ] System Program ID pointer.
     # - [ ] Account metas pointer.
     # - [ ] Instruction data pointer.
     # ---------------------------------------------------------------------
@@ -273,7 +285,7 @@ initialize:
     # Pack SolAccountMeta for user and tree.
     # ---------------------------------------------------------------------
     # Packed later during bulk pointer load operation:
-    # - [ ] User pubkey pointer.
+    # - [x] User pubkey pointer.
     # - [ ] Tree pubkey pointer.
     # ---------------------------------------------------------------------
     sth [r10 + SF_INIT_USER_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
@@ -282,13 +294,13 @@ initialize:
     # Pack SolAccountInfo for user and tree.
     # ---------------------------------------------------------------------
     # Packed later during bulk pointer load operation:
-    # - [ ] User pubkey pointer.
+    # - [x] User pubkey pointer.
     # - [ ] Tree pubkey pointer.
-    # - [ ] User lamports pointer.
+    # - [x] User lamports pointer.
     # - [ ] Tree lamports pointer.
-    # - [ ] User data pointer.
+    # - [x] User data pointer.
     # - [ ] Tree data pointer.
-    # - [ ] User owner pointer.
+    # - [x] User owner pointer.
     # - [ ] Tree owner pointer.
     # Skipped due to zero-initialized stack memory:
     # - User data length (already checked as zero).
@@ -316,14 +328,24 @@ initialize:
     # ---------------------------------------------------------------------
     stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
 
-    # Bulk load pointers.
+    # Bulk assign/load pointers.
     # ---------------------------------------------------------------------
     # Finish with:
-    # r1 = pointer to instruction.
-    # r2 = pointer to account infos.
-    # r3 = number of account infos.
-    # r4 = pointer to signer's seeds.
-    # r5 = number of signers.
+    # - [ ] r1 = pointer to instruction.
+    # - [ ] r2 = pointer to account infos.
+    # - [ ] r3 = number of account infos.
+    # - [ ] r4 = pointer to signer's seeds.
+    # - [ ] r5 = number of signers.
+    # ---------------------------------------------------------------------
+    add64 r1, IB_USER_ADDRESS_OFF # Point to user address.
+    stxdw [r10 + SF_INIT_USER_META_PUBKEY_OFF], r1 # Store in account meta.
+    stxdw [r10 + SF_INIT_USER_INFO_PUBKEY_OFF], r1 # Store in account info.
+    add64 r1, SIZE_OF_ADDRESS # Advance to user owner.
+    stxdw [r10 + SF_INIT_USER_INFO_OWNER_OFF], r1 # Store in account info.
+    add64 r1, SIZE_OF_ADDRESS # Advance to user lamports.
+    stxdw [r10 + SF_INIT_USER_INFO_LAMPORTS_OFF], r1 # Store in acct info.
+    add64 r1, SIZE_OF_U128 # Advance to user data.
+    stxdw [r10 + SF_INIT_USER_INFO_DATA_OFF], r1 # Store in account info.
 
 
     // ANCHOR_END: initialize-create-account
