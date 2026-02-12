@@ -3,7 +3,9 @@ extern crate alloc;
 use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
-use crate::common::{cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader};
+use crate::common::{
+    cpi, Color, CreateAccountInstructionData, Direction, InitInputBuffer, InputBufferHeader,
+};
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{
     entrypoint::NON_DUP_MARKER,
@@ -27,6 +29,18 @@ extend_constant_group!(data {
     DATA_LEN_AND_MASK = -8,
     /// Maximum possible data length padding.
     MAX_DATA_PAD = 7,
+});
+
+extend_constant_group!(tree {
+    prefix = "TREE",
+    /// Left direction.
+    DIR_L = Direction::Left as usize,
+    /// Right direction.
+    DIR_R = Direction::Right as usize,
+    /// Black color.
+    COLOR_B = Color::Black as u8,
+    /// Red color.
+    COLOR_R = Color::Red as u8,
 });
 
 extend_constant_group!(input_buffer {

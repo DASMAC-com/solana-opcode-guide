@@ -178,3 +178,11 @@
 .equ CPI_USER_ACCOUNT_INDEX, 0 # Account index for user account in CPI.
 .equ CPI_TREE_ACCOUNT_INDEX, 1 # Account index for tree account in CPI.
 .equ CPI_RENT_EPOCH_NULL, 0 # Null rent epoch.
+
+# Tree constants.
+# ---------------
+.equ TREE_N_CHILDREN, 2 # Max number of children per node.
+.equ TREE_DIR_L, 0 # Left direction.
+.equ TREE_DIR_R, 1 # Right direction.
+.equ TREE_COLOR_B, 0 # Black color.
+.equ TREE_COLOR_R, 1 # Red color.

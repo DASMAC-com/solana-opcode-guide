@@ -19,7 +19,8 @@ fn main() {
         pubkey_chunk,
         input_buffer,
         init_stack_frame,
-        cpi
+        cpi,
+        tree
     ];
 
     // Read in the assembly file.

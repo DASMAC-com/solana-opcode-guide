@@ -84,7 +84,7 @@ constant_group! {
         /// Number of seeds for PDA generation.
         N_SEEDS_TRY_FIND_PDA: u64 = 0,
         /// Tree account data length.
-        TREE_DATA_LEN: usize = size_of::<TreeDataHeader>(),
+        TREE_DATA_LEN: usize = size_of::<TreeHeader>(),
         /// Account data scalar for base rent calculation.
         ACCOUNT_DATA_SCALAR: usize = (ACCOUNT_STORAGE_OVERHEAD as usize) + TREE_DATA_LEN,
         /// CreateAccount discriminator for CPI.
@@ -145,13 +145,50 @@ pub struct InitInputBufferHeader {
     pub rent: RentRuntimeAccount,
 }
 
-#[repr(C, packed)]
-struct TreeDataHeader {
-    /// Pointer to tree root.
-    root: u64,
-    /// Pointer to stack top.
-    top: u64,
+// ANCHOR: tree-defs-common
+#[repr(u8)]
+pub enum Color {
+    Black,
+    Red,
 }
+
+#[repr(usize)]
+pub enum Direction {
+    Left,
+    Right,
+}
+
+constant_group! {
+    /// Tree constants.
+    tree {
+        /// Max number of children per node.
+        N_CHILDREN: usize = 2,
+    }
+}
+
+#[repr(C, packed)]
+/// Tree account data header. Contains pointer to tree root and top of free node stack.
+struct TreeHeader {
+    /// Pointer to tree root.
+    root: *const TreeNode,
+    /// Pointer to stack top.
+    top: *const StackNode,
+}
+
+#[repr(C, packed)]
+struct TreeNode {
+    parent: *const TreeNode,
+    child: [*const TreeNode; tree::N_CHILDREN],
+    key: u16,
+    value: u16,
+    color: Color,
+}
+
+#[repr(C, packed)]
+struct StackNode {
+    next: *const StackNode,
+}
+// ANCHOR_END: tree-defs-asm
 
 #[repr(C, packed)]
 pub struct InitInputBufferFooter {
