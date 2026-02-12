@@ -1,0 +1,138 @@
+    # Pack SolInstruction.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [x] System Program ID pointer.
+    # - [x] Account metas pointer.
+    # - [x] Instruction data pointer.
+    # ---------------------------------------------------------------------
+    stdw [r10 + SF_INIT_INSN_ACCOUNT_LEN_OFF], CPI_N_ACCOUNTS
+    stdw [r10 + SF_INIT_INSN_DATA_LEN_OFF], CPI_INSN_DATA_LEN
+
+    # Pack CreateAccount instruction data.
+    # ---------------------------------------------------------------------
+    # - Discriminator is already set to 0 since stack is zero initialized.
+    # - Reuses r3 from PDA syscall.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r1 + IB_RENT_DATA_OFF] # Load lamports per byte
+    mul64 r9, CPI_ACCOUNT_DATA_SCALAR # Multiply to get rent-exempt cost.
+    # Store in instruction data.
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF], r9
+    # Store new account data length.
+    stdw [r10 + SF_INIT_CREATE_ACCOUNT_SPACE_UOFF], CPI_TREE_DATA_LEN
+    # Copy in program ID to instruction data.
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_0]
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_0], r9
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_1]
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_1], r9
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_2]
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_2], r9
+    ldxdw r9, [r3 + PUBKEY_CHUNK_OFF_3]
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3], r9
+
+    # Pack SolAccountMeta for user and tree.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [x] User pubkey pointer.
+    # - [x] Tree pubkey pointer.
+    # ---------------------------------------------------------------------
+    sth [r10 + SF_INIT_USER_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
+    sth [r10 + SF_INIT_TREE_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
+
+    # Pack SolAccountInfo for user and tree.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [x] User pubkey pointer.
+    # - [x] Tree pubkey pointer.
+    # - [x] User lamports pointer.
+    # - [x] Tree lamports pointer.
+    # - [x] User data pointer.
+    # - [x] Tree data pointer.
+    # - [x] User owner pointer.
+    # - [x] Tree owner pointer.
+    # Skipped due to zero-initialized stack memory:
+    # - User data length (already checked as zero).
+    # - Tree data length (already checked as zero).
+    # - User rent epoch.
+    # - Tree rent epoch.
+    # - User executable.
+    # - Tree executable.
+    # ---------------------------------------------------------------------
+    sth [r10 + SF_INIT_USER_INFO_IS_SIGNER_OFF], CPI_WRITABLE_SIGNER
+    sth [r10 + SF_INIT_TREE_INFO_IS_SIGNER_OFF], CPI_WRITABLE_SIGNER
+
+    # Initialize signer seed for PDA bump seed.
+    # ---------------------------------------------------------------------
+    # Reuses r5 from PDA derivation syscall.
+    # ---------------------------------------------------------------------
+    # Store pointer to bump seed.
+    stxdw [r10 + SF_INIT_SIGNER_SEED_ADDR_OFF], r5
+    stdw [r10 + SF_INIT_SIGNER_SEED_LEN_OFF], SIZE_OF_U8 # Store length.
+
+    # Initialize signers seeds for PDA.
+    # ---------------------------------------------------------------------
+    # Packed later during bulk pointer load operation:
+    # - [x] Signer seed pointer.
+    # ---------------------------------------------------------------------
+    stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
+
+    # Bulk assign/load pointers for account metas and infos.
+    # ---------------------------------------------------------------------
+    # Since pointers must be loaded from registers, this block steps
+    # through the input buffer in order to reduce intermediate loads.
+    # ---------------------------------------------------------------------
+    add64 r1, IB_USER_ADDRESS_OFF # Point to user address in input buffer.
+    stxdw [r10 + SF_INIT_USER_META_PUBKEY_OFF], r1 # Store in account meta.
+    stxdw [r10 + SF_INIT_USER_INFO_PUBKEY_OFF], r1 # Store in account info.
+    add64 r1, SIZE_OF_ADDRESS # Advance to user owner.
+    stxdw [r10 + SF_INIT_USER_INFO_OWNER_OFF], r1 # Store in account info.
+    add64 r1, SIZE_OF_ADDRESS # Advance to user lamports.
+    stxdw [r10 + SF_INIT_USER_INFO_LAMPORTS_OFF], r1 # Store in acct info.
+    add64 r1, SIZE_OF_U128 # Advance to user data.
+    stxdw [r10 + SF_INIT_USER_INFO_DATA_OFF], r1 # Store in account info.
+    # Advance to tree address field.
+    add64 r1, IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM
+    stxdw [r10 + SF_INIT_TREE_META_PUBKEY_OFF], r1 # Store in account meta.
+    stxdw [r10 + SF_INIT_TREE_INFO_PUBKEY_OFF], r1 # Store in account info.
+    add64 r1, SIZE_OF_ADDRESS # Advance to tree owner.
+    stxdw [r10 + SF_INIT_TREE_INFO_OWNER_OFF], r1 # Store in account info.
+    add64 r1, SIZE_OF_ADDRESS # Advance to tree lamports.
+    stxdw [r10 + SF_INIT_TREE_INFO_LAMPORTS_OFF], r1 # Store in acct info.
+    add64 r1, SIZE_OF_U128 # Advance to tree data.
+    stxdw [r10 + SF_INIT_TREE_INFO_DATA_OFF], r1 # Store in account info.
+
+    # Bulk assign/load pointers for CPI bindings.
+    # ---------------------------------------------------------------------
+    # This block steps through the stack frame, optimizing assignments in
+    # preparation for the impending CreateAccount CPI, which requires:
+    # - [x] r1 = pointer to instruction.
+    # - [x] r2 = pointer to account infos.
+    # - [x] r4 = pointer to signers seeds.
+    # Notably, it reuses r4 from the PDA derivation syscall to walk through
+    # pointers on the stack, before advancing it to its final value.
+    # ---------------------------------------------------------------------
+    # Advance to System Program ID pointer on zero-initialized stack.
+    add64 r4, SF_INIT_PDA_TO_SYSTEM_PROGRAM_ID_REL_OFF_IMM
+    # Store in SolInstruction.
+    stxdw [r10 + SF_INIT_INSN_PROGRAM_ID_OFF], r4
+    # Advance to SolAccountMeta array pointer.
+    add64 r4, SF_INIT_SYSTEM_PROGRAM_ID_TO_ACCT_METAS_REL_OFF_IMM
+    stxdw [r10 + SF_INIT_INSN_ACCOUNTS_OFF], r4 # Store in SolInstruction.
+    # Advance to instruction data pointer.
+    add64 r4, SF_INIT_ACCT_METAS_TO_INSN_DATA_REL_OFF_IMM
+    stxdw [r10 + SF_INIT_INSN_DATA_OFF], r4 # Store in SolInstruction.
+    # Advance to signer seeds pointer.
+    add64 r4, SF_INIT_INSN_DATA_TO_SIGNER_SEEDS_REL_OFF_IMM
+    stxdw [r10 + SF_INIT_SIGNERS_SEEDS_ADDR_OFF], r4
+    # Advance to signers seeds pointer.
+    add64 r4, SF_INIT_SIGNER_SEEDS_TO_SIGNERS_SEEDS_REL_OFF_IMM
+    # Assign remaining syscall pointers.
+    mov64 r1, r10
+    add64 r1, SF_INIT_INSN_PROGRAM_ID_OFF
+    mov64 r2, r10
+    add64 r2, SF_INIT_ACCT_INFOS_OFF
+
+    # Invoke CPI.
+    # ---------------------------------------------------------------------
+    mov64 r3, CPI_N_ACCOUNTS
+    mov64 r5, CPI_N_PDA_SIGNERS
+    call sol_invoke_signed_c

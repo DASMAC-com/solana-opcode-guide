@@ -1,0 +1,28 @@
+    # Compute PDA.
+    # ---------------------------------------------------------------------
+    # Skip assignment for r1, since no seeds need to be parsed and this
+    # argument is effectively ignored.
+    # ---------------------------------------------------------------------
+    mov64 r2, CPI_N_SEEDS_TRY_FIND_PDA # Declare no seeds to parse.
+    mov64 r3, r1 # Get input buffer pointer.
+    add64 r3, IB_INIT_PROGRAM_ID_OFF_IMM # Point at program ID.
+    mov64 r4, r10 # Get stack frame pointer.
+    add64 r4, SF_INIT_PDA_OFF # Point to PDA region on stack.
+    mov64 r5, r10 # Get stack frame pointer.
+    add64 r5, SF_INIT_BUMP_SEED_OFF # Point to bump seed region on stack.
+    call sol_try_find_program_address # Find PDA.
+
+    # Compare computed PDA against passed account.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_0]
+    ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_0]
+    jne r9, r8, e_pda_mismatch
+    ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_1]
+    ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_1]
+    jne r9, r8, e_pda_mismatch
+    ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_2]
+    ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_2]
+    jne r9, r8, e_pda_mismatch
+    ldxdw r9, [r1 + IB_TREE_ADDRESS_OFF_3]
+    ldxdw r8, [r4 + PUBKEY_CHUNK_OFF_3]
+    jne r9, r8, e_pda_mismatch
