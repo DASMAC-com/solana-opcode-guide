@@ -1,5 +1,5 @@
-| Case | Fixed | ASM (net) | Rust (net) | Overhead | Overhead % |
-|------|-------|-----------|------------|----------|------------|
+| Case | Fixed CU costs | ASM (net CUs) | Rust (net CUs) | Overhead | Overhead % |
+|------|----------------|---------------|----------------|----------|------------|
 | PDA mismatch chunk 1 | 1500 | 42 | 50 | +8 | +19.0% |
 | PDA mismatch chunk 2 | 1500 | 45 | 53 | +8 | +17.8% |
 | PDA mismatch chunk 3 | 1500 | 48 | 56 | +8 | +16.7% |

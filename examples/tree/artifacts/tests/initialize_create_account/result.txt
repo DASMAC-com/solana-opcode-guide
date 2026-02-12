@@ -1,5 +1,5 @@
-| Case | Fixed | ASM (net) | Rust (net) | Overhead | Overhead % |
-|------|-------|-----------|------------|----------|------------|
+| Case | Fixed CU costs | ASM (net CUs) | Rust (net CUs) | Overhead | Overhead % |
+|------|----------------|---------------|----------------|----------|------------|
 | System Program is wrong address | 2446 | 104 | 136 | +32 | +30.8% |
 | User has insufficient Lamports | 2596 | 104 | 136 | +32 | +30.8% |
 | CreateAccount happy path | 2596 | 105 | 139 | +34 | +32.4% |

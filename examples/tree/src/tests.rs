@@ -72,8 +72,8 @@ fn print_comparison_table<T: TestCase>(
     let has_fixed_costs = cases.iter().any(|c| c.fixed_costs() > 0);
 
     if has_fixed_costs {
-        println!("| Case | Fixed | ASM (net) | Rust (net) | Overhead | Overhead % |");
-        println!("|------|-------|-----------|------------|----------|------------|");
+        println!("| Case | Fixed CU costs | ASM (net CUs) | Rust (net CUs) | Overhead | Overhead % |");
+        println!("|------|----------------|---------------|----------------|----------|------------|");
     } else {
         println!("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |");
         println!("|------|-----------|------------|----------|------------|");

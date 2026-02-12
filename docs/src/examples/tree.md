@@ -11,6 +11,8 @@ performance.
 
 ## Entrypoint branching
 
+::: details Implementations
+
 ::: code-group
 
 <!-- markdownlint-disable MD013 -->
@@ -21,11 +23,17 @@ performance.
 
 :::
 
+::: details Benchmarking
+
 <!-- @include: ../../../examples/tree/artifacts/tests/entrypoint_branching/result.txt{1,6} -->
+
+:::
 
 ## Initialize
 
 ### Input checks
+
+::: details Implementations
 
 ::: code-group
 
@@ -37,11 +45,17 @@ performance.
 
 :::
 
+::: details Benchmarking
+
 <!-- @include: ../../../examples/tree/artifacts/tests/initialize_input_checks/result.txt{1,17} -->
+
+:::
 
 <!-- markdownlint-enable MD013 -->
 
 ### PDA checks
+
+::: details Implementations
 
 ::: code-group
 
@@ -53,11 +67,17 @@ performance.
 
 :::
 
+::: details Benchmarking
+
 <!-- @include: ../../../examples/tree/artifacts/tests/initialize_pda_checks/result.txt{1,6} -->
+
+:::
 
 <!-- markdownlint-enable MD013 -->
 
 ### Create account
+
+::: details Implementations
 
 ::: code-group
 
@@ -69,7 +89,11 @@ performance.
 
 :::
 
-<!-- @include: ../../../examples/tree/artifacts/tests/initialize_create_account/result.txt{1,3} -->
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/initialize_create_account/result.txt{1,5} -->
+
+:::
 
 <!-- markdownlint-enable MD013 -->
 

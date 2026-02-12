@@ -1,5 +1,6 @@
 use super::*;
 use mollusk_svm::program;
+use mollusk_svm::result::{Check, Config};
 use pinocchio::sysvars::rent::Rent;
 use solana_sdk::instruction::AccountMeta;
 
@@ -446,6 +447,19 @@ impl TestCase for InitCase {
                                 "lamports: expected {}, got {}",
                                 expected_lamports, tree.lamports
                             ));
+                        }
+                        let config = Config {
+                            panic: false,
+                            verbose: false,
+                        };
+                        if !result.run_checks(
+                            &[Check::all_rent_exempt()],
+                            &config,
+                            &setup.mollusk,
+                        ) {
+                            errors.push(
+                                "not all accounts are rent exempt".to_string(),
+                            );
                         }
                         CaseResult {
                             cu: result.compute_units_consumed,
