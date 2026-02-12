@@ -350,14 +350,19 @@ impl TestCase for InitCase {
                 let (setup, instruction, mut accounts) = pda_init_setup(lang);
                 accounts[AccountIndex::User as usize].1.lamports = 0;
                 let result = setup.mollusk.process_instruction(&instruction, &accounts);
+                // SystemError::ResultWithNegativeLamports.
+                let expected = ProgramError::Custom(1);
                 match &result.program_result {
-                    MolluskResult::Failure(_) => CaseResult {
+                    MolluskResult::Failure(err) if *err == expected => CaseResult {
                         cu: result.compute_units_consumed,
                         error: None,
                     },
                     other => CaseResult {
                         cu: result.compute_units_consumed,
-                        error: Some(format!("expected Failure, got {:?}", other)),
+                        error: Some(format!(
+                            "expected Failure({:?}), got {:?}",
+                            expected, other
+                        )),
                     },
                 }
             }
@@ -367,14 +372,18 @@ impl TestCase for InitCase {
                 accounts[AccountIndex::SystemProgram as usize].0 = fake_pubkey;
                 instruction.accounts[AccountIndex::SystemProgram as usize].pubkey = fake_pubkey;
                 let result = setup.mollusk.process_instruction(&instruction, &accounts);
+                let expected = ProgramError::NotEnoughAccountKeys;
                 match &result.program_result {
-                    MolluskResult::Failure(_) => CaseResult {
+                    MolluskResult::Failure(err) if *err == expected => CaseResult {
                         cu: result.compute_units_consumed,
                         error: None,
                     },
                     other => CaseResult {
                         cu: result.compute_units_consumed,
-                        error: Some(format!("expected Failure, got {:?}", other)),
+                        error: Some(format!(
+                            "expected Failure({:?}), got {:?}",
+                            expected, other
+                        )),
                     },
                 }
             }
