@@ -163,30 +163,38 @@ constant_group! {
     tree {
         /// Max number of children per node.
         N_CHILDREN: usize = 2,
+        /// Left direction.
+        DIR_L = Direction::Left as usize,
+        /// Right direction.
+        DIR_R = Direction::Right as usize,
+        /// Black color.
+        COLOR_B = Color::Black as u8,
+        /// Red color.
+        COLOR_R = Color::Red as u8,
     }
 }
 
 #[repr(C, packed)]
 /// Tree account data header. Contains pointer to tree root and top of free node stack.
-struct TreeHeader {
+pub struct TreeHeader {
     /// Pointer to tree root.
-    root: *const TreeNode,
+    pub root: *const TreeNode,
     /// Pointer to stack top.
-    top: *const StackNode,
+    pub top: *const StackNode,
 }
 
 #[repr(C, packed)]
-struct TreeNode {
-    parent: *const TreeNode,
-    child: [*const TreeNode; tree::N_CHILDREN],
-    key: u16,
-    value: u16,
-    color: Color,
+pub struct TreeNode {
+    pub parent: *const TreeNode,
+    pub child: [*const TreeNode; tree::N_CHILDREN],
+    pub key: u16,
+    pub value: u16,
+    pub color: Color,
 }
 
 #[repr(C, packed)]
-struct StackNode {
-    next: *const StackNode,
+pub struct StackNode {
+    pub next: *const StackNode,
 }
 // ANCHOR_END: tree-defs-common
 

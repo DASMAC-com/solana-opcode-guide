@@ -8,8 +8,9 @@ use pinocchio::{
     AccountView, Address, SUCCESS,
 };
 use tree_interface::{
-    cpi, data, error_codes::error, input_buffer, CreateAccountInstructionData, SolAccountInfo,
-    SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
+    cpi, data, error_codes::error, input_buffer, tree, CreateAccountInstructionData, Direction,
+    SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds, TreeHeader,
+    TreeNode,
 };
 #[cfg(target_os = "solana")]
 use {
@@ -261,4 +262,51 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     // ANCHOR_END: initialize-create-account
 
     SUCCESS
+}
+
+/// Return the direction of the node with respect to its parent.
+#[inline(always)]
+unsafe fn direction(node: *const TreeNode) -> Direction {
+    if node == (*(*node).parent).child[tree::DIR_R] {
+        Direction::Right
+    } else {
+        Direction::Left
+    }
+}
+
+#[inline(always)]
+const fn opposite(direction: usize) -> usize {
+    1 - direction
+}
+
+/// Rotate the subtree rooted at `subtree` in the given direction, returning new root of subtree.
+#[inline(always)]
+unsafe fn rotate_subtree(
+    tree: *mut TreeHeader,
+    subtree: *mut TreeNode,
+    direction: usize,
+) -> *mut TreeNode {
+    let subtree_parent = (*subtree).parent as *mut TreeNode;
+    let new_root = (*subtree).child[opposite(direction)] as *mut TreeNode;
+    let new_child = (*new_root).child[direction] as *mut TreeNode;
+
+    (*subtree).child[opposite(direction)] = new_child;
+
+    if !new_child.is_null() {
+        (*new_child).parent = subtree;
+    }
+
+    (*new_root).child[direction] = subtree;
+    (*new_root).parent = subtree_parent;
+    (*subtree).parent = new_root;
+
+    if !subtree_parent.is_null() {
+        (*subtree_parent).child
+            [(subtree as *const TreeNode == (*subtree_parent).child[tree::DIR_R]) as usize] =
+            new_root;
+    } else {
+        (*tree).root = new_root;
+    }
+
+    new_root
 }

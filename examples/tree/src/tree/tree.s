@@ -187,6 +187,8 @@
 .equ TREE_DIR_R, 1 # Right direction.
 .equ TREE_COLOR_B, 0 # Black color.
 .equ TREE_COLOR_R, 1 # Red color.
+.equ TREE_ROOT_OFF, 0 # Tree root.
+.equ TREE_TOP_OFF, 8 # Stack top.
 # ANCHOR_END: constants
 
 # ANCHOR: entrypoint-branching
