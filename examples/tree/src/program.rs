@@ -8,9 +8,9 @@ use pinocchio::{
     AccountView, Address, SUCCESS,
 };
 use tree_interface::{
-    cpi, data, error_codes::error, input_buffer, tree, CreateAccountInstructionData, Direction,
-    SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds, TreeHeader,
-    TreeNode,
+    cpi, data, error_codes::error, input_buffer, instruction, tree, CreateAccountInstructionData,
+    Direction, Instruction, SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed,
+    SolSignerSeeds, TreeHeader, TreeNode,
 };
 #[cfg(target_os = "solana")]
 use {
@@ -23,6 +23,11 @@ use {
 #[inline(always)]
 unsafe fn account_at(input_buffer_ptr: *mut u8, offset: i16) -> AccountView {
     AccountView::new_unchecked(input_buffer_ptr.add(offset as usize).cast())
+}
+
+#[inline(always)]
+unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
+    read_unaligned(ptr.add(offset as usize))
 }
 
 #[inline(always)]
@@ -63,7 +68,7 @@ pub unsafe extern "C" fn entrypoint(
 ) -> u64 {
     let n_accounts = ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF);
     if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
-        general(input_buffer_ptr)
+        general(input_buffer_ptr, instruction_data_ptr)
     } else if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
         initialize(input_buffer_ptr, instruction_data_ptr)
     } else {
@@ -73,11 +78,19 @@ pub unsafe extern "C" fn entrypoint(
 // ANCHOR_END: entrypoint-branching
 
 #[inline(always)]
-unsafe fn general(input_buffer_ptr: *mut u8) -> u64 {
-    if ldxdw(input_buffer_ptr, input_buffer::USER_DATA_LEN_OFF) == 67 {
-        6677
+unsafe fn general(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
+    // Error if user has data.
+    let user = account_at(input_buffer_ptr, input_buffer::USER_ACCOUNT_OFF);
+    if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
+
+    // Error if tree is duplicate.
+    let tree = account_at(input_buffer_ptr, input_buffer::TREE_ACCOUNT_OFF);
+    if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
+
+    if ldxb(instruction_data_ptr, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8 {
+        insert(input_buffer_ptr, instruction_data_ptr)
     } else {
-        666777
+        error::INSTRUCTION_DISCRIMINATOR.into()
     }
 }
 
@@ -259,8 +272,19 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         sol_instruction;
     }
 
+    // Set next field in header.
+    let tree_data_ptr = tree.data_ptr();
+    let next_ptr = tree_data_ptr.add(tree::NEXT_OFF as usize).cast();
+    (*tree_data_ptr.cast::<TreeHeader>()).next = next_ptr;
+
     // ANCHOR_END: initialize-create-account
 
+    SUCCESS
+}
+
+#[inline(always)]
+unsafe fn insert(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
+    // Placeholder for insert instruction implementation.
     SUCCESS
 }
 

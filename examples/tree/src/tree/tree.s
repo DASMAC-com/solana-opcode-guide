@@ -15,6 +15,8 @@
 .equ E_INSTRUCTION_DATA, 9
 # The passed PDA does not match the expected address.
 .equ E_PDA_MISMATCH, 10
+.equ E_INSTRUCTION_DISCRIMINATOR, 11 # Invalid instruction discriminator.
+.equ E_INSTRUCTION_DATA_LEN, 12 # Invalid instruction data length.
 
 # Type sizes.
 # -----------
@@ -169,9 +171,9 @@
 .equ CPI_N_PDA_SIGNERS, 1 # The tree account is a PDA.
 .equ CPI_N_SEEDS, 1 # The bump seed is required for tree PDA signer.
 .equ CPI_N_SEEDS_TRY_FIND_PDA, 0 # Number of seeds for PDA generation.
-.equ CPI_TREE_DATA_LEN, 16 # Tree account data length.
+.equ CPI_TREE_DATA_LEN, 24 # Tree account data length.
 # Account data scalar for base rent calculation.
-.equ CPI_ACCOUNT_DATA_SCALAR, 144
+.equ CPI_ACCOUNT_DATA_SCALAR, 152
 # CreateAccount discriminator for CPI.
 .equ CPI_CREATE_ACCOUNT_DISCRIMINATOR, 0
 .equ CPI_INSN_DATA_LEN, 52 # Length of CreateAccount instruction data.
@@ -187,6 +189,7 @@
 .equ TREE_DIR_R, 1 # Right direction.
 .equ TREE_COLOR_B, 0 # Black color.
 .equ TREE_COLOR_R, 1 # Red color.
+.equ TREE_NEXT_OFF, 16 # Next node field in header.
 .equ TREE_ROOT_OFF, 0 # Tree root.
 .equ TREE_TOP_OFF, 8 # Stack top.
 # ANCHOR_END: constants

@@ -8,7 +8,7 @@ pub unsafe extern "C" fn entrypoint(
 ) -> u64 {
     let n_accounts = ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF);
     if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
-        general(input_buffer_ptr)
+        general(input_buffer_ptr, instruction_data_ptr)
     } else if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
         initialize(input_buffer_ptr, instruction_data_ptr)
     } else {

@@ -27,6 +27,10 @@ error_codes! {
     INSTRUCTION_DATA,
     /// The passed PDA does not match the expected address.
     PDA_MISMATCH,
+    /// Invalid instruction discriminator.
+    INSTRUCTION_DISCRIMINATOR,
+    /// Invalid instruction data length.
+    INSTRUCTION_DATA_LEN,
 }
 
 constant_group! {
@@ -171,6 +175,8 @@ constant_group! {
         COLOR_B = Color::Black as u8,
         /// Red color.
         COLOR_R = Color::Red as u8,
+        /// Next node field in header.
+        offset!(NEXT, TreeHeader.next),
     }
 }
 
@@ -178,15 +184,17 @@ constant_group! {
 /// Tree account data header. Contains pointer to tree root and top of free node stack.
 pub struct TreeHeader {
     /// Pointer to tree root.
-    pub root: *const TreeNode,
+    pub root: *mut TreeNode,
     /// Pointer to stack top.
-    pub top: *const StackNode,
+    pub top: *mut StackNode,
+    /// Pointer to where the next node should be allocated.
+    pub next: *mut TreeNode,
 }
 
 #[repr(C, packed)]
 pub struct TreeNode {
-    pub parent: *const TreeNode,
-    pub child: [*const TreeNode; tree::N_CHILDREN],
+    pub parent: *mut TreeNode,
+    pub child: [*mut TreeNode; tree::N_CHILDREN],
     pub key: u16,
     pub value: u16,
     pub color: Color,
@@ -194,9 +202,51 @@ pub struct TreeNode {
 
 #[repr(C, packed)]
 pub struct StackNode {
-    pub next: *const StackNode,
+    pub next: *mut StackNode,
 }
 // ANCHOR_END: tree-defs-common
+
+// ANCHOR: instructions
+
+#[repr(u8)]
+pub enum Instruction {
+    /// Initialize the tree (discriminator is number of accounts).
+    Initialize,
+    /// Insert node into tree instruction.
+    Insert,
+}
+
+#[repr(C, packed)]
+pub struct InstructionHeader {
+    discriminator: u8,
+}
+
+#[repr(C, packed)]
+pub struct InsertInstruction {
+    pub header: InstructionHeader,
+    pub key: u16,
+    pub value: u16,
+}
+
+#[repr(C, packed)]
+/// Value in r0.
+struct Return {
+    /// If a value is retrieved from the tree, it's encoded in high bits.
+    maybe_value: u16,
+    /// Nonzero iff error.
+    status: u16,
+}
+
+constant_group! {
+    /// Offsets for instruction processing.
+    instruction {
+        prefix = "INSN",
+        /// Offset to instruction discriminator byte.
+        offset!(DISCRIMINATOR, InstructionHeader.discriminator),
+    }
+}
+
+// ANCHOR_END: instructions
 
 #[repr(C, packed)]
 pub struct InitInputBufferFooter {
