@@ -11,6 +11,16 @@ use tree_interface::{cpi, error_codes};
 
 const USER_LAMPORTS: u64 = 1_000_000;
 
+/// Fixed costs for syscalls and CPI operations.
+mod fixed_costs {
+    /// Cost for sol_try_find_program_address syscall.
+    pub const CREATE_PROGRAM_ADDRESS: u64 = 1500;
+    /// CPI base invocation cost (SIMD-0339).
+    pub const CPI_BASE: u64 = 946;
+    /// System Program operation cost.
+    pub const SYSTEM_PROGRAM: u64 = 150;
+}
+
 enum AccountIndex {
     User = 0,
     Tree = 1,
@@ -46,6 +56,11 @@ fn check_error(
 trait TestCase: Copy {
     fn name(&self) -> &'static str;
     fn run(&self, lang: ProgramLanguage) -> CaseResult;
+    /// Returns the fixed syscall/CPI costs for this case.
+    /// These costs are identical for both ASM and Rust implementations.
+    fn fixed_costs(&self) -> u64 {
+        0
+    }
 }
 
 fn print_comparison_table<T: TestCase>(
@@ -54,27 +69,55 @@ fn print_comparison_table<T: TestCase>(
     allow_rust_failures: bool,
 ) {
     let mut failures = Vec::new();
+    let has_fixed_costs = cases.iter().any(|c| c.fixed_costs() > 0);
 
-    println!("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |");
-    println!("|------|-----------|------------|----------|------------|");
+    if has_fixed_costs {
+        println!("| Case | Fixed | ASM (net) | Rust (net) | Overhead | Overhead % |");
+        println!("|------|-------|-----------|------------|----------|------------|");
+    } else {
+        println!("| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |");
+        println!("|------|-----------|------------|----------|------------|");
+    }
 
     for case in cases {
         let asm = case.run(ProgramLanguage::Assembly);
         let rs = case.run(ProgramLanguage::Rust);
-        let overhead = rs.cu as i64 - asm.cu as i64;
-        let overhead_pct = if asm.cu > 0 {
-            (overhead as f64 / asm.cu as f64) * 100.0
+        let fixed = case.fixed_costs();
+
+        if has_fixed_costs {
+            let asm_net = asm.cu.saturating_sub(fixed);
+            let rs_net = rs.cu.saturating_sub(fixed);
+            let overhead = rs_net as i64 - asm_net as i64;
+            let overhead_pct = if asm_net > 0 {
+                format!("{:+.1}%", (overhead as f64 / asm_net as f64) * 100.0)
+            } else {
+                "N/A".to_string()
+            };
+            println!(
+                "| {} | {} | {} | {} | {:+} | {} |",
+                case.name(),
+                fixed,
+                asm_net,
+                rs_net,
+                overhead,
+                overhead_pct
+            );
         } else {
-            0.0
-        };
-        println!(
-            "| {} | {} | {} | {:+} | {:+.1}% |",
-            case.name(),
-            asm.cu,
-            rs.cu,
-            overhead,
-            overhead_pct
-        );
+            let overhead = rs.cu as i64 - asm.cu as i64;
+            let overhead_pct = if asm.cu > 0 {
+                (overhead as f64 / asm.cu as f64) * 100.0
+            } else {
+                0.0
+            };
+            println!(
+                "| {} | {} | {} | {:+} | {:+.1}% |",
+                case.name(),
+                asm.cu,
+                rs.cu,
+                overhead,
+                overhead_pct
+            );
+        }
 
         if let Some(err) = &asm.error {
             if allow_asm_failures {

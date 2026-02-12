@@ -147,8 +147,8 @@ impl InitCase {
     ];
 
     pub(super) const CPI_CASES: &'static [Self] = &[
-        Self::UserInsufficientLamports,
         Self::SystemProgramAddress,
+        Self::UserInsufficientLamports,
         Self::CreateAccountHappyPath,
     ];
 }
@@ -178,6 +178,42 @@ impl TestCase for InitCase {
             Self::UserInsufficientLamports => "User has insufficient Lamports",
             Self::SystemProgramAddress => "System Program is wrong address",
             Self::CreateAccountHappyPath => "CreateAccount happy path",
+        }
+    }
+
+    fn fixed_costs(&self) -> u64 {
+        match self {
+            // Input checks - no syscalls.
+            Self::UserDataLen
+            | Self::TreeDuplicate
+            | Self::TreeDataLen
+            | Self::SystemProgramDuplicate
+            | Self::SystemProgramDataLen
+            | Self::RentDuplicate
+            | Self::RentAddressWord0
+            | Self::RentAddressWord1
+            | Self::RentAddressWord2
+            | Self::RentAddressWord3
+            | Self::RentAddressWord4
+            | Self::RentAddressWord5
+            | Self::RentAddressWord6
+            | Self::RentAddressWord7
+            | Self::InstructionData => 0,
+            // PDA checks - sol_try_find_program_address only.
+            Self::PdaMismatchChunk0
+            | Self::PdaMismatchChunk1
+            | Self::PdaMismatchChunk2
+            | Self::PdaMismatchChunk3 => fixed_costs::CREATE_PROGRAM_ADDRESS,
+            // CPI with system program not found (never executes).
+            Self::SystemProgramAddress => {
+                fixed_costs::CREATE_PROGRAM_ADDRESS + fixed_costs::CPI_BASE
+            }
+            // CPI with system program executing.
+            Self::UserInsufficientLamports | Self::CreateAccountHappyPath => {
+                fixed_costs::CREATE_PROGRAM_ADDRESS
+                    + fixed_costs::CPI_BASE
+                    + fixed_costs::SYSTEM_PROGRAM
+            }
         }
     }
 
@@ -359,10 +395,7 @@ impl TestCase for InitCase {
                     },
                     other => CaseResult {
                         cu: result.compute_units_consumed,
-                        error: Some(format!(
-                            "expected Failure({:?}), got {:?}",
-                            expected, other
-                        )),
+                        error: Some(format!("expected Failure({:?}), got {:?}", expected, other)),
                     },
                 }
             }
@@ -380,10 +413,7 @@ impl TestCase for InitCase {
                     },
                     other => CaseResult {
                         cu: result.compute_units_consumed,
-                        error: Some(format!(
-                            "expected Failure({:?}), got {:?}",
-                            expected, other
-                        )),
+                        error: Some(format!("expected Failure({:?}), got {:?}", expected, other)),
                     },
                 }
             }
