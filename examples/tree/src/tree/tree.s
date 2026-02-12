@@ -442,7 +442,7 @@ initialize:
     # Store next pointer in tree header.
     # ---------------------------------------------------------------------
     mov64 r7, r6 # Get copy of tree data pointer.
-    add64 r7, NEXT_OFF # Advance to next node.
+    add64 r7, TREE_NEXT_OFF # Advance to next node.
     stxdw [r6 + IB_TREE_HEADER_NEXT_OFF], r7 # Store in next field.
     // ANCHOR_END: initialize-create-account
 
