@@ -5,11 +5,15 @@
 ## Background
 
 This example implements a [red-black tree][wikipedia tree page] in both
-[SBPF assembly](../index.md) and Rust. It benchmarks various operations and code
-paths side-by-side for a comprehensive breakdown of assembly vs Rust
-performance.
+[SBPF assembly](../index.md) and Rust. Both implementations are compared
+side-by-side with as much implementation parity as possible, using C-style Rust
+(raw pointers, direct [syscalls](../indices/syscalls.md)) to minimize compiler
+overhead.
 
 ## Entrypoint branching
+
+The Rust implementation does not use [`pinocchio`] for the entrypoint. Instead,
+it uses C-style bindings with the [`SIMD-0321`] `r2` pointer.
 
 ::: details Implementations
 
@@ -30,6 +34,10 @@ performance.
 :::
 
 ## Initialize
+
+The initialize operation creates a tree [PDA] for the entire program, then
+invokes a [`CreateAccount` CPI](counter#cpi-construction), with the same
+[fixed costs as in the counter example](counter#compute-unit-analysis).
 
 ### Input checks
 
@@ -77,6 +85,10 @@ performance.
 
 ### Create account
 
+The assembly implementation includes pointer walkthrough optimizations that are
+not available in Rust, since the compiler enforces
+[instruction-level parallelism][ilp].
+
 ::: details Implementations
 
 ::: code-group
@@ -105,4 +117,9 @@ performance.
 
 :::
 
+[ilp]: https://en.wikipedia.org/wiki/Instruction-level_parallelism
+[compute unit]: https://solana.com/docs/references/terminology#compute-units
+[pda]: https://solana.com/docs/core/pda
 [wikipedia tree page]: https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
+[`pinocchio`]: https://github.com/anza-xyz/pinocchio
+[`simd-0321`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0321-vm-r2-instruction-data-pointer.md
