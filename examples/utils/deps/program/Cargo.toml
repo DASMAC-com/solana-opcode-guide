@@ -1,7 +1,7 @@
 [dependencies]
-tree-interface.workspace = true
 pinocchio.workspace = true
 pinocchio-system.workspace = true
+tree-interface.workspace = true
 
 [lib]
 crate-type = ["cdylib", "lib"]

@@ -1,8 +1,8 @@
-[package]
-name = "tree-interface"
-version = "0.1.0"
-edition = "2021"
-
 [dependencies]
 macros.path = "../macros"
 pinocchio.workspace = true
+
+[package]
+edition = "2021"
+name = "tree-interface"
+version = "0.1.0"

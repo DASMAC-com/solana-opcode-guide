@@ -148,7 +148,6 @@ not available in Rust, since the compiler enforces
 :::
 
 [ilp]: https://en.wikipedia.org/wiki/Instruction-level_parallelism
-[compute unit]: https://solana.com/docs/references/terminology#compute-units
 [pda]: https://solana.com/docs/core/pda
 [wikipedia tree page]: https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
