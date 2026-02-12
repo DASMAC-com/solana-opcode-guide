@@ -72,8 +72,6 @@ constant_group! {
         // Includes extra byte for deprecated burn_percent field that is still present in test
         // framework.
         RENT_DATA_LEN: usize = size_of::<Rent>() + size_of::<u8>(),
-        /// Tree header next field.
-        offset!(TREE_HEADER_NEXT, TreeHeader.next),
     }
 }
 
@@ -178,7 +176,7 @@ constant_group! {
         /// Red color.
         COLOR_R = Color::Red as u8,
         /// Next node field in header.
-        offset!(NEXT, TreeHeader.next),
+        offset!(HEADER_NEXT, TreeHeader.next),
     }
 }
 

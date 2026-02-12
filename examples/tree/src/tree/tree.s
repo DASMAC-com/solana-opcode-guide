@@ -24,6 +24,7 @@
 .equ SIZE_OF_U64, 8 # Size of u64.
 .equ SIZE_OF_ADDRESS, 32 # Size of Address.
 .equ SIZE_OF_U128, 16 # Size of u128.
+.equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
 
 # Data layout constants.
 # ----------------------
@@ -63,7 +64,6 @@
 # Expected data length of system program account.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN, 14
 .equ IB_RENT_DATA_LEN, 17 # Expected data length of rent sysvar account.
-.equ IB_TREE_HEADER_NEXT_OFF, 16 # Tree header next field.
 .equ IB_USER_ADDRESS_OFF, 16 # User address field.
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
 .equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
@@ -190,7 +190,7 @@
 .equ TREE_DIR_R, 1 # Right direction.
 .equ TREE_COLOR_B, 0 # Black color.
 .equ TREE_COLOR_R, 1 # Red color.
-.equ TREE_NEXT_OFF, 16 # Next node field in header.
+.equ TREE_HEADER_NEXT_OFF, 16 # Next node field in header.
 .equ TREE_ROOT_OFF, 0 # Tree root.
 .equ TREE_TOP_OFF, 8 # Stack top.
 # ANCHOR_END: constants
@@ -442,8 +442,8 @@ initialize:
     # Store next pointer in tree header.
     # ---------------------------------------------------------------------
     mov64 r7, r6 # Get copy of tree data pointer.
-    add64 r7, TREE_NEXT_OFF # Advance to next node.
-    stxdw [r6 + IB_TREE_HEADER_NEXT_OFF], r7 # Store in next field.
+    add64 r7, SIZE_OF_TREE_HEADER # Advance to next node.
+    stxdw [r6 + TREE_HEADER_NEXT_OFF], r7 # Store in next field.
     // ANCHOR_END: initialize-create-account
 
     exit

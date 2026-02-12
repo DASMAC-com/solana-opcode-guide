@@ -20,6 +20,7 @@ sizes! {
     u64,
     Address,
     u128,
+    TreeHeader,
 }
 
 extend_constant_group!(data {
