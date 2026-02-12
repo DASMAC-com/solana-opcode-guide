@@ -1,15 +1,18 @@
+    // Pack CreateAccount instruction data.
+    let user_key_ptr = input_buffer_ptr
+        .add(input_buffer::USER_ADDRESS_OFF as usize)
+        .cast();
+    let tree_key_ptr = input_buffer_ptr
+        .add(input_buffer::TREE_ADDRESS_OFF as usize)
+        .cast();
     let sol_account_metas = [
         SolAccountMeta {
-            pubkey: transmute(
-                input_buffer_ptr.add(input_buffer::USER_ADDRESS_OFF as usize) as *const Address,
-            ),
+            pubkey: user_key_ptr,
             is_writable: true,
             is_signer: true,
         },
         SolAccountMeta {
-            pubkey: transmute(
-                input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF as usize) as *const Address,
-            ),
+            pubkey: tree_key_ptr,
             is_writable: true,
             is_signer: true,
         },
@@ -17,34 +20,30 @@
 
     let sol_account_infos = [
         SolAccountInfo {
-            key: input_buffer_ptr
-                .add(input_buffer::USER_ADDRESS_OFF as usize)
+            key: user_key_ptr,
+            owner: input_buffer_ptr
+                .add(input_buffer::USER_OWNER_OFF as usize)
                 .cast(),
             lamports: input_buffer_ptr
                 .add(input_buffer::USER_LAMPORTS_OFF as usize)
                 .cast(),
-            data_len: data::DATA_LEN_ZERO,
             data: input_buffer_ptr.add(input_buffer::USER_DATA_OFF as usize),
-            owner: input_buffer_ptr
-                .add(input_buffer::USER_OWNER_OFF as usize)
-                .cast(),
+            data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
             is_signer: true,
             is_writable: true,
             executable: false,
         },
         SolAccountInfo {
-            key: input_buffer_ptr
-                .add(input_buffer::TREE_ADDRESS_OFF as usize)
+            key: tree_key_ptr,
+            owner: input_buffer_ptr
+                .add(input_buffer::TREE_OWNER_OFF as usize)
                 .cast(),
             lamports: input_buffer_ptr
                 .add(input_buffer::TREE_LAMPORTS_OFF as usize)
                 .cast(),
-            data_len: data::DATA_LEN_ZERO,
             data: input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize),
-            owner: input_buffer_ptr
-                .add(input_buffer::TREE_OWNER_OFF as usize)
-                .cast(),
+            data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
             is_signer: true,
             is_writable: true,
@@ -52,7 +51,6 @@
         },
     ];
 
-    // Pack CreateAccount instruction data.
     let instruction_data = CreateAccountInstructionData {
         discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
         lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
@@ -67,9 +65,11 @@
 
     let system_program_address = Address::default();
     let sol_instruction = SolInstruction {
+        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
         program_id: transmute(&system_program_address),
         accounts: sol_account_metas.as_ptr() as *mut SolAccountMeta,
         account_len: sol_account_metas.len() as u64,
+        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
         data: transmute(&instruction_data),
         data_len: cpi::INSN_DATA_LEN as u64,
     };

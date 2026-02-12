@@ -16,6 +16,7 @@
 | Rent address mismatch word 7 | 29 | 33 | +4 | +13.8% |
 | Non-empty instruction data | 31 | 37 | +6 | +19.4% |
 test tests::test_initialize_input_checks ... ok
+    Blocking waiting for file lock on build directory
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 7 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x2
