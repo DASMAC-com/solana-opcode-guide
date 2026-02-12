@@ -31,6 +31,7 @@ extend_constant_group!(data {
     MAX_DATA_PAD = 7,
 });
 
+// ANCHOR: tree-defs-asm
 extend_constant_group!(tree {
     prefix = "TREE",
     /// Left direction.
@@ -42,6 +43,7 @@ extend_constant_group!(tree {
     /// Red color.
     COLOR_R = Color::Red as u8,
 });
+// ANCHOR_END: tree-defs-asm
 
 extend_constant_group!(input_buffer {
     prefix = "IB",

@@ -188,7 +188,7 @@ struct TreeNode {
 struct StackNode {
     next: *const StackNode,
 }
-// ANCHOR_END: tree-defs-asm
+// ANCHOR_END: tree-defs-common
 
 #[repr(C, packed)]
 pub struct InitInputBufferFooter {
