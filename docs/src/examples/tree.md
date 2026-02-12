@@ -43,7 +43,9 @@ time.
 ## Entrypoint branching
 
 The Rust implementation does not use [`pinocchio`] for the entrypoint. Instead,
-it uses C-style bindings with the [`SIMD-0321`] `r2` pointer.
+it uses C-style bindings with the [`SIMD-0321`] `r2` pointer. Note that the Rust
+implementation already introduces overhead at this point in program flow due to
+greedy [tail call optimizations][tail call].
 
 ::: details Implementations
 
@@ -149,6 +151,7 @@ not available in Rust, since the compiler enforces
 
 [ilp]: https://en.wikipedia.org/wiki/Instruction-level_parallelism
 [pda]: https://solana.com/docs/core/pda
+[tail call]: https://en.wikipedia.org/wiki/Tail_call
 [wikipedia tree page]: https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
 [`simd-0321`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0321-vm-r2-instruction-data-pointer.md
