@@ -1,0 +1,14 @@
+| Case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|------|-----------|------------|----------|------------|
+| CreateAccount happy path | 2701 | 2735 | +34 | +1.3% |
+test tests::test_initialize_create_account ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 2701 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 2735 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
