@@ -362,7 +362,7 @@ initialize:
     # ---------------------------------------------------------------------
     stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
 
-    # Bulk assign/load pointers for account info/addresses.
+    # Bulk assign/load pointers for account metas and infos.
     # ---------------------------------------------------------------------
     # Since pointers must be loaded from registers, this block steps
     # through the input buffer in order to reduce intermediate loads.
