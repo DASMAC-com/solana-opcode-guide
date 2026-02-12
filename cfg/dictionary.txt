@@ -41,6 +41,7 @@ syscalls
 sysvar
 sysvars
 uninit
+uoff
 usize
 vitepress
 xffff

@@ -1,3 +1,5 @@
+// cspell:word strs
+// cspell:word idents
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::quote;
