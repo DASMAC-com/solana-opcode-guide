@@ -272,11 +272,10 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         sol_instruction;
     }
 
-    // Set next field in header.
+    // Store next pointer in tree header.
     let tree_data_ptr = tree.data_ptr();
     let next_ptr = tree_data_ptr.add(tree::NEXT_OFF as usize).cast();
-    (*tree_data_ptr.cast::<TreeHeader>()).next = next_ptr;
-
+    (*tree.data_ptr().cast::<TreeHeader>()).next = next_ptr;
     // ANCHOR_END: initialize-create-account
 
     SUCCESS

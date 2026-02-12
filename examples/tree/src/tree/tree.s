@@ -63,6 +63,7 @@
 # Expected data length of system program account.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN, 14
 .equ IB_RENT_DATA_LEN, 17 # Expected data length of rent sysvar account.
+.equ IB_TREE_HEADER_NEXT_OFF, 16 # Tree header next field.
 .equ IB_USER_ADDRESS_OFF, 16 # User address field.
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
 .equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
@@ -399,6 +400,7 @@ initialize:
     stxdw [r10 + SF_INIT_TREE_INFO_LAMPORTS_OFF], r1 # Store in acct info.
     add64 r1, SIZE_OF_U128 # Advance to tree data.
     stxdw [r10 + SF_INIT_TREE_INFO_DATA_OFF], r1 # Store in account info.
+    mov64 r6, r1 # Store tree data pointer for later.
 
     # Bulk assign/load pointers for CPI bindings.
     # ---------------------------------------------------------------------
@@ -436,6 +438,12 @@ initialize:
     mov64 r3, CPI_N_ACCOUNTS
     mov64 r5, CPI_N_PDA_SIGNERS
     call sol_invoke_signed_c
+
+    # Store next pointer in tree header.
+    # ---------------------------------------------------------------------
+    mov64 r7, r6 # Get copy of tree data pointer.
+    add64 r7, NEXT_OFF # Advance to next node.
+    stxdw [r6 + IB_TREE_HEADER_NEXT_OFF], r7 # Store in next field.
     // ANCHOR_END: initialize-create-account
 
     exit

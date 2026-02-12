@@ -72,6 +72,8 @@ constant_group! {
         // Includes extra byte for deprecated burn_percent field that is still present in test
         // framework.
         RENT_DATA_LEN: usize = size_of::<Rent>() + size_of::<u8>(),
+        /// Tree header next field.
+        offset!(TREE_HEADER_NEXT, TreeHeader.next),
     }
 }
 
@@ -183,11 +185,11 @@ constant_group! {
 #[repr(C, packed)]
 /// Tree account data header. Contains pointer to tree root and top of free node stack.
 pub struct TreeHeader {
-    /// Pointer to tree root.
+    /// Aboslute pointer to tree root in memory map.
     pub root: *mut TreeNode,
-    /// Pointer to stack top.
+    /// Absolute pointer to stack top in memory map.
     pub top: *mut StackNode,
-    /// Pointer to where the next node should be allocated.
+    /// Absolute pointer to where the next node should be allocated in memory map.
     pub next: *mut TreeNode,
 }
 

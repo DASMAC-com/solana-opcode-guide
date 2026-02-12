@@ -62,6 +62,7 @@
 # Expected data length of system program account.
 .equ IB_SYSTEM_PROGRAM_DATA_LEN, 14
 .equ IB_RENT_DATA_LEN, 17 # Expected data length of rent sysvar account.
+.equ IB_TREE_HEADER_NEXT_OFF, 16 # Tree header next field.
 .equ IB_USER_ADDRESS_OFF, 16 # User address field.
 .equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
 .equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
