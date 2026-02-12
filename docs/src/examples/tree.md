@@ -10,6 +10,36 @@ side-by-side with as much implementation parity as possible, using C-style Rust
 (raw pointers, direct [syscalls](../indices/syscalls.md)) to minimize compiler
 overhead.
 
+## Build support
+
+Constants, error codes, and C bindings are derived in a shared interface using
+macros, then automatically inserted into the assembly program file at build
+time.
+
+::: details Interface
+
+::: code-group
+
+<<< ../../../examples/tree/interface/src/common.rs{rs:line-numbers}
+
+<<< ../../../examples/tree/interface/src/asm.rs{rs:line-numbers}
+
+<<< ../../../examples/tree/interface/src/bindings.rs{rs:line-numbers}
+
+:::
+
+::: details `build.rs`
+
+<<< ../../../examples/tree/build.rs{rs:line-numbers}
+
+:::
+
+::: details Macros
+
+<<< ../../../examples/tree/macros/src/lib.rs{rs:line-numbers}
+
+:::
+
 ## Entrypoint branching
 
 The Rust implementation does not use [`pinocchio`] for the entrypoint. Instead,
