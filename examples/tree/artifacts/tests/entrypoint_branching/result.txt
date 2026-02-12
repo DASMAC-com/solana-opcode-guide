@@ -5,7 +5,6 @@
 | Three accounts | 5 | 7 | +2 | +40.0% |
 | Five accounts | 5 | 7 | +2 | +40.0% |
 test tests::test_entrypoint_branching ... ok
-    Blocking waiting for file lock on build directory
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 5 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1

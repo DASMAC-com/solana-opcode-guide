@@ -115,6 +115,8 @@ pub(super) enum InitCase {
     PdaMismatchChunk1,
     PdaMismatchChunk2,
     PdaMismatchChunk3,
+    UserInsufficientLamports,
+    SystemProgramAddress,
     CreateAccountHappyPath,
 }
 
@@ -144,7 +146,11 @@ impl InitCase {
         Self::PdaMismatchChunk3,
     ];
 
-    pub(super) const CPI_CASES: &'static [Self] = &[Self::CreateAccountHappyPath];
+    pub(super) const CPI_CASES: &'static [Self] = &[
+        Self::UserInsufficientLamports,
+        Self::SystemProgramAddress,
+        Self::CreateAccountHappyPath,
+    ];
 }
 
 impl TestCase for InitCase {
@@ -169,6 +175,8 @@ impl TestCase for InitCase {
             Self::PdaMismatchChunk1 => "PDA mismatch chunk 2",
             Self::PdaMismatchChunk2 => "PDA mismatch chunk 3",
             Self::PdaMismatchChunk3 => "PDA mismatch chunk 4",
+            Self::UserInsufficientLamports => "User has insufficient Lamports",
+            Self::SystemProgramAddress => "System Program is wrong address",
             Self::CreateAccountHappyPath => "CreateAccount happy path",
         }
     }
@@ -338,6 +346,38 @@ impl TestCase for InitCase {
                 size_of::<u64>(),
                 error_codes::error::PDA_MISMATCH,
             ),
+            Self::UserInsufficientLamports => {
+                let (setup, instruction, mut accounts) = pda_init_setup(lang);
+                accounts[AccountIndex::User as usize].1.lamports = 0;
+                let result = setup.mollusk.process_instruction(&instruction, &accounts);
+                match &result.program_result {
+                    MolluskResult::Failure(_) => CaseResult {
+                        cu: result.compute_units_consumed,
+                        error: None,
+                    },
+                    other => CaseResult {
+                        cu: result.compute_units_consumed,
+                        error: Some(format!("expected Failure, got {:?}", other)),
+                    },
+                }
+            }
+            Self::SystemProgramAddress => {
+                let (setup, mut instruction, mut accounts) = pda_init_setup(lang);
+                let fake_pubkey = Pubkey::new_unique();
+                accounts[AccountIndex::SystemProgram as usize].0 = fake_pubkey;
+                instruction.accounts[AccountIndex::SystemProgram as usize].pubkey = fake_pubkey;
+                let result = setup.mollusk.process_instruction(&instruction, &accounts);
+                match &result.program_result {
+                    MolluskResult::Failure(_) => CaseResult {
+                        cu: result.compute_units_consumed,
+                        error: None,
+                    },
+                    other => CaseResult {
+                        cu: result.compute_units_consumed,
+                        error: Some(format!("expected Failure, got {:?}", other)),
+                    },
+                }
+            }
             Self::CreateAccountHappyPath => {
                 let (setup, instruction, accounts) = pda_init_setup(lang);
                 let result = setup.mollusk.process_instruction(&instruction, &accounts);
