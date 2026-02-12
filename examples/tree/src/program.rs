@@ -152,6 +152,19 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
 
     // ANCHOR: initialize-create-account
     // Pack CreateAccount instruction data.
+    let instruction_data = CreateAccountInstructionData {
+        discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
+        lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
+            * ldxdw(input_buffer_ptr, input_buffer::RENT_DATA_OFF),
+        space: cpi::TREE_DATA_LEN as u64,
+        owner: read_unaligned(
+            input_buffer_ptr
+                .add(input_buffer::INIT_PROGRAM_ID_OFF_IMM as usize)
+                .cast(),
+        ),
+    };
+
+    // Pack account metas and infos.
     let user_key_ptr = input_buffer_ptr
         .add(input_buffer::USER_ADDRESS_OFF as usize)
         .cast();
@@ -170,7 +183,6 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
             is_signer: true,
         },
     ];
-
     let sol_account_infos = [
         SolAccountInfo {
             key: user_key_ptr,
@@ -204,18 +216,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         },
     ];
 
-    let instruction_data = CreateAccountInstructionData {
-        discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
-        lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
-            * ldxdw(input_buffer_ptr, input_buffer::RENT_DATA_OFF),
-        space: cpi::TREE_DATA_LEN as u64,
-        owner: read_unaligned(
-            input_buffer_ptr
-                .add(input_buffer::INIT_PROGRAM_ID_OFF_IMM as usize)
-                .cast(),
-        ),
-    };
-
+    // Pack instruction.
     let system_program_address = Address::default();
     let sol_instruction = SolInstruction {
         #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
