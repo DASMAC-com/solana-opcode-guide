@@ -240,9 +240,9 @@ asm_constant_group! {
 extend_constant_group!(tree {
     prefix = "TREE",
     /// Tree root.
-    offset!(ROOT, TreeHeader.root),
+    offset!(ROOT, TreeHeader.root_ptr),
     /// Stack top.
-    offset!(TOP, TreeHeader.top),
+    offset!(TOP, TreeHeader.top_ptr),
     /// Discriminator for insert instruction.
     DISCRIMINATOR_INSERT = Instruction::Insert as u8,
 });

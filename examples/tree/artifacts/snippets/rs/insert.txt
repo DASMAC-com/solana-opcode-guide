@@ -12,7 +12,7 @@ unsafe fn insert(
     let tree_header_ptr: *mut TreeHeader =
         transmute(input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize));
 
-    if (*tree_header_ptr).top.is_null() { // If stack is empty, need to allocate a node.
+    if (*tree_header_ptr).top_ptr.is_null() { // If stack is empty, need to allocate a node.
     }
 
     SUCCESS

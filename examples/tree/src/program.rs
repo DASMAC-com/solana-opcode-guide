@@ -115,7 +115,7 @@ unsafe fn insert(
     let tree_header_ptr: *mut TreeHeader =
         transmute(input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize));
 
-    if (*tree_header_ptr).top.is_null() { // If stack is empty, need to allocate a node.
+    if (*tree_header_ptr).top_ptr.is_null() { // If stack is empty, need to allocate a node.
     }
 
     SUCCESS
@@ -302,7 +302,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
 
     // Store next pointer in tree header.
     let next_ptr = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
-    (*tree.data_ptr().cast::<TreeHeader>()).next = next_ptr;
+    (*tree.data_ptr().cast::<TreeHeader>()).next_ptr = next_ptr;
     // ANCHOR_END: initialize-create-account
 
     SUCCESS
@@ -311,7 +311,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
 /// Return the direction of the node with respect to its parent.
 #[inline(always)]
 unsafe fn direction(node: *const TreeNode) -> Direction {
-    if node == (*(*node).parent).child[tree::DIR_R] {
+    if node == (*(*node).parent_ptr).child_ptrs[tree::DIR_R] {
         Direction::Right
     } else {
         Direction::Left
@@ -330,26 +330,26 @@ unsafe fn rotate_subtree(
     subtree: *mut TreeNode,
     direction: usize,
 ) -> *mut TreeNode {
-    let subtree_parent = (*subtree).parent;
-    let new_root = (*subtree).child[opposite(direction)];
-    let new_child = (*new_root).child[direction];
+    let parent_ptr = (*subtree).parent_ptr;
+    let new_root = (*subtree).child_ptrs[opposite(direction)];
+    let new_child_ptr = (*new_root).child_ptrs[direction];
 
-    (*subtree).child[opposite(direction)] = new_child;
+    (*subtree).child_ptrs[opposite(direction)] = new_child_ptr;
 
-    if !new_child.is_null() {
-        (*new_child).parent = subtree;
+    if !new_child_ptr.is_null() {
+        (*new_child_ptr).parent_ptr = subtree;
     }
 
-    (*new_root).child[direction] = subtree;
-    (*new_root).parent = subtree_parent;
-    (*subtree).parent = new_root;
+    (*new_root).child_ptrs[direction] = subtree;
+    (*new_root).parent_ptr = parent_ptr;
+    (*subtree).parent_ptr = new_root;
 
-    if !subtree_parent.is_null() {
-        (*subtree_parent).child
-            [(subtree as *const TreeNode == (*subtree_parent).child[tree::DIR_R]) as usize] =
+    if !parent_ptr.is_null() {
+        (*parent_ptr).child_ptrs
+            [(subtree as *const TreeNode == (*parent_ptr).child_ptrs[tree::DIR_R]) as usize] =
             new_root;
     } else {
-        (*tree).root = new_root;
+        (*tree).root_ptr = new_root;
     }
 
     new_root

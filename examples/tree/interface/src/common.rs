@@ -176,7 +176,7 @@ constant_group! {
         /// Red color.
         COLOR_R = Color::Red as u8,
         /// Next node field in header.
-        offset!(HEADER_NEXT, TreeHeader.next),
+        offset!(HEADER_NEXT, TreeHeader.next_ptr),
     }
 }
 
@@ -184,17 +184,17 @@ constant_group! {
 /// Tree account data header. Contains pointer to tree root and top of free node stack.
 pub struct TreeHeader {
     /// Aboslute pointer to tree root in memory map.
-    pub root: *mut TreeNode,
+    pub root_ptr: *mut TreeNode,
     /// Absolute pointer to stack top in memory map.
-    pub top: *mut StackNode,
+    pub top_ptr: *mut StackNode,
     /// Absolute pointer to where the next node should be allocated in memory map.
-    pub next: *mut TreeNode,
+    pub next_ptr: *mut TreeNode,
 }
 
 #[repr(C, packed)]
 pub struct TreeNode {
-    pub parent: *mut TreeNode,
-    pub child: [*mut TreeNode; tree::N_CHILDREN],
+    pub parent_ptr: *mut TreeNode,
+    pub child_ptr: [*mut TreeNode; tree::N_CHILDREN],
     pub key: u16,
     pub value: u16,
     pub color: Color,
@@ -202,7 +202,7 @@ pub struct TreeNode {
 
 #[repr(C, packed)]
 pub struct StackNode {
-    pub next: *mut StackNode,
+    pub next_ptr: *mut StackNode,
 }
 // ANCHOR_END: tree-defs-common
 

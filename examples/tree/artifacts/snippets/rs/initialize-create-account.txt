@@ -107,4 +107,4 @@
 
     // Store next pointer in tree header.
     let next_ptr = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
-    (*tree.data_ptr().cast::<TreeHeader>()).next = next_ptr;
+    (*tree.data_ptr().cast::<TreeHeader>()).next_ptr = next_ptr;
