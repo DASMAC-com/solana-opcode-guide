@@ -6,9 +6,9 @@
         // Get input buffer footer pointer.
         sol_try_find_program_address(
             // Pass a declared pointer instead of null to prevent unnecessary register assignment.
-            input_buffer_ptr,
+            input,
             cpi::N_SEEDS_TRY_FIND_PDA,
-            input_buffer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF_IMM as usize),
+            input.add(input_buffer::INIT_PROGRAM_ID_OFF_IMM as usize),
             pda.as_mut_ptr().cast(),
             bump.as_mut_ptr(),
         );
@@ -22,7 +22,7 @@
         !address_eq(
             &pda,
             #[allow(clippy::transmute_ptr_to_ref, clippy::missing_transmute_annotations)]
-            transmute(input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF_0 as usize))
+            transmute(input.add(input_buffer::TREE_ADDRESS_OFF_0 as usize))
         ),
         error::PDA_MISMATCH
     );

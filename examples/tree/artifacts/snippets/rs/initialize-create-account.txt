@@ -1,21 +1,21 @@
     // Pack CreateAccount instruction data.
-    let instruction_data = CreateAccountInstructionData {
+    let create_account_instruction_data = CreateAccountInstructionData {
         discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
         lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
-            * ldxdw(input_buffer_ptr, input_buffer::RENT_DATA_OFF),
+            * ldxdw(input, input_buffer::RENT_DATA_OFF),
         space: cpi::TREE_DATA_LEN as u64,
         owner: read_unaligned(
-            input_buffer_ptr
+            input
                 .add(input_buffer::INIT_PROGRAM_ID_OFF_IMM as usize)
                 .cast(),
         ),
     };
 
     // Pack account metas and infos.
-    let user_key = input_buffer_ptr
+    let user_key = input
         .add(input_buffer::USER_ADDRESS_OFF as usize)
         .cast();
-    let tree_key = input_buffer_ptr
+    let tree_key = input
         .add(input_buffer::TREE_ADDRESS_OFF as usize)
         .cast();
     let sol_account_metas = [
@@ -33,13 +33,13 @@
     let sol_account_infos = [
         SolAccountInfo {
             key: user_key,
-            owner: input_buffer_ptr
+            owner: input
                 .add(input_buffer::USER_OWNER_OFF as usize)
                 .cast(),
-            lamports: input_buffer_ptr
+            lamports: input
                 .add(input_buffer::USER_LAMPORTS_OFF as usize)
                 .cast(),
-            data: input_buffer_ptr.add(input_buffer::USER_DATA_OFF as usize),
+            data: input.add(input_buffer::USER_DATA_OFF as usize),
             data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
             is_signer: true,
@@ -48,13 +48,13 @@
         },
         SolAccountInfo {
             key: tree_key,
-            owner: input_buffer_ptr
+            owner: input
                 .add(input_buffer::TREE_OWNER_OFF as usize)
                 .cast(),
-            lamports: input_buffer_ptr
+            lamports: input
                 .add(input_buffer::TREE_LAMPORTS_OFF as usize)
                 .cast(),
-            data: input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize),
+            data: input.add(input_buffer::TREE_DATA_OFF as usize),
             data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
             is_signer: true,
@@ -71,7 +71,7 @@
         accounts: sol_account_metas.as_ptr() as *mut SolAccountMeta,
         account_len: sol_account_metas.len() as u64,
         #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        data: transmute(&instruction_data),
+        data: transmute(&create_account_instruction_data),
         data_len: cpi::INSN_DATA_LEN as u64,
     };
 

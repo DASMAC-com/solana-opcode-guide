@@ -1,7 +1,7 @@
 #[inline(always)]
 unsafe fn insert(
-    input_buffer_ptr: *mut u8,
-    instruction_data_ptr: *mut u8,
+    input: *mut u8,
+    instruction_data: *mut u8,
     instruction_data_len: u64,
 ) -> u64 {
     if_err!(
@@ -10,7 +10,7 @@ unsafe fn insert(
     );
 
     let tree_header: *mut TreeHeader =
-        transmute(input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize));
+        transmute(input.add(input_buffer::TREE_DATA_OFF as usize));
 
     if (*tree_header).top.is_null() { // If stack is empty, need to allocate a node.
     }

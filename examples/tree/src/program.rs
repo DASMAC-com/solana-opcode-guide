@@ -21,8 +21,8 @@ use {
 };
 
 #[inline(always)]
-unsafe fn account_at(input_buffer_ptr: *mut u8, offset: i16) -> AccountView {
-    AccountView::new_unchecked(input_buffer_ptr.add(offset as usize).cast())
+unsafe fn account_at(input: *mut u8, offset: i16) -> AccountView {
+    AccountView::new_unchecked(input.add(offset as usize).cast())
 }
 
 #[inline(always)]
@@ -63,14 +63,14 @@ nostd_panic_handler!();
 
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(
-    input_buffer_ptr: *mut u8,
-    instruction_data_ptr: *mut u8,
+    input: *mut u8,
+    instruction_data: *mut u8,
 ) -> u64 {
-    let n_accounts = ldxdw(input_buffer_ptr, input_buffer::N_ACCOUNTS_OFF);
+    let n_accounts = ldxdw(input, input_buffer::N_ACCOUNTS_OFF);
     if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
-        general(input_buffer_ptr, instruction_data_ptr)
+        general(input, instruction_data)
     } else if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
-        initialize(input_buffer_ptr, instruction_data_ptr)
+        initialize(input, instruction_data)
     } else {
         error::N_ACCOUNTS.into()
     }
@@ -79,21 +79,21 @@ pub unsafe extern "C" fn entrypoint(
 
 // ANCHOR: general-branching
 #[inline(always)]
-unsafe fn general(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
+unsafe fn general(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Error if user has data.
-    let user = account_at(input_buffer_ptr, input_buffer::USER_ACCOUNT_OFF);
+    let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
     if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
 
     // Error if tree is duplicate.
-    let tree = account_at(input_buffer_ptr, input_buffer::TREE_ACCOUNT_OFF);
+    let tree = account_at(input, input_buffer::TREE_ACCOUNT_OFF);
     if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
 
     // Get instruction data length and discriminator, branch to instruction.
-    let instruction_data_len = ldxdw(instruction_data_ptr, -(size_of::<u64>() as i16));
+    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
     if likely(
-        ldxb(instruction_data_ptr, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8,
+        ldxb(instruction_data, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8,
     ) {
-        insert(input_buffer_ptr, instruction_data_ptr, instruction_data_len)
+        insert(input, instruction_data, instruction_data_len)
     } else {
         error::INSTRUCTION_DISCRIMINATOR.into()
     }
@@ -103,8 +103,8 @@ unsafe fn general(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u
 // ANCHOR: insert
 #[inline(always)]
 unsafe fn insert(
-    input_buffer_ptr: *mut u8,
-    instruction_data_ptr: *mut u8,
+    input: *mut u8,
+    instruction_data: *mut u8,
     instruction_data_len: u64,
 ) -> u64 {
     if_err!(
@@ -113,7 +113,7 @@ unsafe fn insert(
     );
 
     let tree_header: *mut TreeHeader =
-        transmute(input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize));
+        transmute(input.add(input_buffer::TREE_DATA_OFF as usize));
 
     if (*tree_header).top.is_null() { // If stack is empty, need to allocate a node.
     }
@@ -124,18 +124,18 @@ unsafe fn insert(
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]
-unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
+unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Error if user has data.
-    let user = account_at(input_buffer_ptr, input_buffer::USER_ACCOUNT_OFF);
+    let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
     if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
 
     // Error if tree is duplicate or has data.
-    let tree = account_at(input_buffer_ptr, input_buffer::TREE_ACCOUNT_OFF);
+    let tree = account_at(input, input_buffer::TREE_ACCOUNT_OFF);
     if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
     if_err!(!tree.is_data_empty(), error::TREE_DATA_LEN);
 
     // Error if System Program is duplicate or has invalid data length.
-    let system_program = account_at(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF);
+    let system_program = account_at(input, input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF);
     if_err!(
         is_duplicate(&system_program),
         error::SYSTEM_PROGRAM_DUPLICATE
@@ -146,7 +146,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     );
 
     // Error if Rent account is duplicate or has incorrect address.
-    let rent_sysvar = account_at(input_buffer_ptr, input_buffer::RENT_ACCOUNT_OFF);
+    let rent_sysvar = account_at(input, input_buffer::RENT_ACCOUNT_OFF);
     if_err!(is_duplicate(&rent_sysvar), error::RENT_DUPLICATE);
     if_err!(
         !address_eq(rent_sysvar.address(), &RENT_ID),
@@ -154,7 +154,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     );
 
     // Error if instruction data provided.
-    let instruction_data_len = ldxdw(instruction_data_ptr, -(size_of::<u64>() as i16));
+    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
     if_err!(
         instruction_data_len != data::DATA_LEN_ZERO,
         error::INSTRUCTION_DATA
@@ -170,9 +170,9 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         // Get input buffer footer pointer.
         sol_try_find_program_address(
             // Pass a declared pointer instead of null to prevent unnecessary register assignment.
-            input_buffer_ptr,
+            input,
             cpi::N_SEEDS_TRY_FIND_PDA,
-            input_buffer_ptr.add(input_buffer::INIT_PROGRAM_ID_OFF_IMM as usize),
+            input.add(input_buffer::INIT_PROGRAM_ID_OFF_IMM as usize),
             pda.as_mut_ptr().cast(),
             bump.as_mut_ptr(),
         );
@@ -186,7 +186,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         !address_eq(
             &pda,
             #[allow(clippy::transmute_ptr_to_ref, clippy::missing_transmute_annotations)]
-            transmute(input_buffer_ptr.add(input_buffer::TREE_ADDRESS_OFF_0 as usize))
+            transmute(input.add(input_buffer::TREE_ADDRESS_OFF_0 as usize))
         ),
         error::PDA_MISMATCH
     );
@@ -194,23 +194,23 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
 
     // ANCHOR: initialize-create-account
     // Pack CreateAccount instruction data.
-    let instruction_data = CreateAccountInstructionData {
+    let create_account_instruction_data = CreateAccountInstructionData {
         discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
         lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
-            * ldxdw(input_buffer_ptr, input_buffer::RENT_DATA_OFF),
+            * ldxdw(input, input_buffer::RENT_DATA_OFF),
         space: cpi::TREE_DATA_LEN as u64,
         owner: read_unaligned(
-            input_buffer_ptr
+            input
                 .add(input_buffer::INIT_PROGRAM_ID_OFF_IMM as usize)
                 .cast(),
         ),
     };
 
     // Pack account metas and infos.
-    let user_key = input_buffer_ptr
+    let user_key = input
         .add(input_buffer::USER_ADDRESS_OFF as usize)
         .cast();
-    let tree_key = input_buffer_ptr
+    let tree_key = input
         .add(input_buffer::TREE_ADDRESS_OFF as usize)
         .cast();
     let sol_account_metas = [
@@ -228,13 +228,13 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     let sol_account_infos = [
         SolAccountInfo {
             key: user_key,
-            owner: input_buffer_ptr
+            owner: input
                 .add(input_buffer::USER_OWNER_OFF as usize)
                 .cast(),
-            lamports: input_buffer_ptr
+            lamports: input
                 .add(input_buffer::USER_LAMPORTS_OFF as usize)
                 .cast(),
-            data: input_buffer_ptr.add(input_buffer::USER_DATA_OFF as usize),
+            data: input.add(input_buffer::USER_DATA_OFF as usize),
             data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
             is_signer: true,
@@ -243,13 +243,13 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         },
         SolAccountInfo {
             key: tree_key,
-            owner: input_buffer_ptr
+            owner: input
                 .add(input_buffer::TREE_OWNER_OFF as usize)
                 .cast(),
-            lamports: input_buffer_ptr
+            lamports: input
                 .add(input_buffer::TREE_LAMPORTS_OFF as usize)
                 .cast(),
-            data: input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize),
+            data: input.add(input_buffer::TREE_DATA_OFF as usize),
             data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
             is_signer: true,
@@ -266,7 +266,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
         accounts: sol_account_metas.as_ptr() as *mut SolAccountMeta,
         account_len: sol_account_metas.len() as u64,
         #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        data: transmute(&instruction_data),
+        data: transmute(&create_account_instruction_data),
         data_len: cpi::INSN_DATA_LEN as u64,
     };
 

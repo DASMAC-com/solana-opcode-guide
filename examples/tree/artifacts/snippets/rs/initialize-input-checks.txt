@@ -1,16 +1,16 @@
 #[inline(always)]
-unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
+unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Error if user has data.
-    let user = account_at(input_buffer_ptr, input_buffer::USER_ACCOUNT_OFF);
+    let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
     if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
 
     // Error if tree is duplicate or has data.
-    let tree = account_at(input_buffer_ptr, input_buffer::TREE_ACCOUNT_OFF);
+    let tree = account_at(input, input_buffer::TREE_ACCOUNT_OFF);
     if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
     if_err!(!tree.is_data_empty(), error::TREE_DATA_LEN);
 
     // Error if System Program is duplicate or has invalid data length.
-    let system_program = account_at(input_buffer_ptr, input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF);
+    let system_program = account_at(input, input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF);
     if_err!(
         is_duplicate(&system_program),
         error::SYSTEM_PROGRAM_DUPLICATE
@@ -21,7 +21,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     );
 
     // Error if Rent account is duplicate or has incorrect address.
-    let rent_sysvar = account_at(input_buffer_ptr, input_buffer::RENT_ACCOUNT_OFF);
+    let rent_sysvar = account_at(input, input_buffer::RENT_ACCOUNT_OFF);
     if_err!(is_duplicate(&rent_sysvar), error::RENT_DUPLICATE);
     if_err!(
         !address_eq(rent_sysvar.address(), &RENT_ID),
@@ -29,7 +29,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     );
 
     // Error if instruction data provided.
-    let instruction_data_len = ldxdw(instruction_data_ptr, -(size_of::<u64>() as i16));
+    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
     if_err!(
         instruction_data_len != data::DATA_LEN_ZERO,
         error::INSTRUCTION_DATA
