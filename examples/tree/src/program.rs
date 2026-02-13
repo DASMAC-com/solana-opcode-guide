@@ -90,7 +90,9 @@ unsafe fn general(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u
 
     // Get instruction data length and discriminator, branch to instruction.
     let instruction_data_len = ldxdw(instruction_data_ptr, -(size_of::<u64>() as i16));
-    if ldxb(instruction_data_ptr, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8 {
+    if likely(
+        ldxb(instruction_data_ptr, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8,
+    ) {
         insert(input_buffer_ptr, instruction_data_ptr, instruction_data_len)
     } else {
         error::INSTRUCTION_DISCRIMINATOR.into()

@@ -1,24 +1,24 @@
 | Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
 |-----------|-----------|------------|----------|------------|
-| Instruction data too short | 12 | 16 | +4 | +33.3% |
-| Instruction data too long | 12 | 16 | +4 | +33.3% |
-| Insert happy path | 11 | 14 | +3 | +27.3% |
+| Instruction data too short | 12 | 15 | +3 | +25.0% |
+| Instruction data too long | 12 | 15 | +3 | +25.0% |
+| Insert happy path | 11 | 13 | +2 | +18.2% |
 test tests::test_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 12 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 16 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 15 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 12 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 16 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 15 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 11 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 14 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 13 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
