@@ -46,9 +46,7 @@ time.
 
 :::
 
-## Branching
-
-### Entrypoint
+## Entrypoint branching
 
 The Rust implementation does not use [`pinocchio`] for the entrypoint. Instead,
 it uses C-style bindings with the [`SIMD-0321`] `r2` pointer. Note that the Rust
@@ -69,37 +67,7 @@ greedy [tail call optimizations][tail call].
 
 ::: details Benchmarking
 
-<!-- @include: ../../../examples/tree/artifacts/tests/entrypoint_branching/result.txt{1,6} -->
-
-:::
-
-### General
-
-If the user passes the number of accounts required for a general operation (all
-instructions besides the [initialize](#initialize) instruction), the program
-branches to a common instruction handler.
-
-::: details Instruction definitions
-
-<<< ../../../examples/tree/artifacts/snippets/interface/instructions.txt{rs}
-
-:::
-
-::: details Implementations
-
-::: code-group
-
-<!-- markdownlint-disable MD013 -->
-
-<<< ../../../examples/tree/artifacts/snippets/asm/general-branching.txt{asm} [Assembly]
-
-<<< ../../../examples/tree/artifacts/snippets/rs/general-branching.txt{rs} [Rust]
-
-:::
-
-::: details Benchmarking
-
-<!-- @include: ../../../examples/tree/artifacts/tests/general_branching/result.txt{1,5} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/entrypoint_branching/result.txt{1,3} -->
 
 :::
 
@@ -125,7 +93,7 @@ invokes a [`CreateAccount` CPI](counter#cpi-construction), with the same
 
 ::: details Benchmarking
 
-<!-- @include: ../../../examples/tree/artifacts/tests/initialize_input_checks/result.txt{1,17} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/initialize_input_checks/result.txt{1,19} -->
 
 :::
 
