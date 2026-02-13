@@ -311,7 +311,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
 /// Return the direction of the node with respect to its parent.
 #[inline(always)]
 unsafe fn direction(node: *const TreeNode) -> Direction {
-    if node == (*(*node).parent_ptr).child_ptrs[tree::DIR_R] {
+    if node == (*(*node).parent_ptr).child_ptr[tree::DIR_R] {
         Direction::Right
     } else {
         Direction::Left
@@ -331,22 +331,22 @@ unsafe fn rotate_subtree(
     direction: usize,
 ) -> *mut TreeNode {
     let parent_ptr = (*subtree).parent_ptr;
-    let new_root = (*subtree).child_ptrs[opposite(direction)];
-    let new_child_ptr = (*new_root).child_ptrs[direction];
+    let new_root = (*subtree).child_ptr[opposite(direction)];
+    let new_child_ptr = (*new_root).child_ptr[direction];
 
-    (*subtree).child_ptrs[opposite(direction)] = new_child_ptr;
+    (*subtree).child_ptr[opposite(direction)] = new_child_ptr;
 
     if !new_child_ptr.is_null() {
         (*new_child_ptr).parent_ptr = subtree;
     }
 
-    (*new_root).child_ptrs[direction] = subtree;
+    (*new_root).child_ptr[direction] = subtree;
     (*new_root).parent_ptr = parent_ptr;
     (*subtree).parent_ptr = new_root;
 
     if !parent_ptr.is_null() {
-        (*parent_ptr).child_ptrs
-            [(subtree as *const TreeNode == (*parent_ptr).child_ptrs[tree::DIR_R]) as usize] =
+        (*parent_ptr).child_ptr
+            [(subtree as *const TreeNode == (*parent_ptr).child_ptr[tree::DIR_R]) as usize] =
             new_root;
     } else {
         (*tree).root_ptr = new_root;
