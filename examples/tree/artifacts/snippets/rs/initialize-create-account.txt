@@ -1,8 +1,7 @@
     // Pack CreateAccount instruction data.
     let create_account_instruction_data = CreateAccountInstructionData {
         discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
-        lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
-            * ldxdw(input, input_buffer::RENT_DATA_OFF),
+        lamports: (cpi::ACCOUNT_DATA_SCALAR as u64) * ldxdw(input, input_buffer::RENT_DATA_OFF),
         space: cpi::TREE_DATA_LEN as u64,
         owner: read_unaligned(
             input
@@ -12,12 +11,8 @@
     };
 
     // Pack account metas and infos.
-    let user_key = input
-        .add(input_buffer::USER_ADDRESS_OFF as usize)
-        .cast();
-    let tree_key = input
-        .add(input_buffer::TREE_ADDRESS_OFF as usize)
-        .cast();
+    let user_key = input.add(input_buffer::USER_ADDRESS_OFF as usize).cast();
+    let tree_key = input.add(input_buffer::TREE_ADDRESS_OFF as usize).cast();
     let sol_account_metas = [
         SolAccountMeta {
             pubkey: user_key,
@@ -33,12 +28,8 @@
     let sol_account_infos = [
         SolAccountInfo {
             key: user_key,
-            owner: input
-                .add(input_buffer::USER_OWNER_OFF as usize)
-                .cast(),
-            lamports: input
-                .add(input_buffer::USER_LAMPORTS_OFF as usize)
-                .cast(),
+            owner: input.add(input_buffer::USER_OWNER_OFF as usize).cast(),
+            lamports: input.add(input_buffer::USER_LAMPORTS_OFF as usize).cast(),
             data: input.add(input_buffer::USER_DATA_OFF as usize),
             data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
@@ -48,12 +39,8 @@
         },
         SolAccountInfo {
             key: tree_key,
-            owner: input
-                .add(input_buffer::TREE_OWNER_OFF as usize)
-                .cast(),
-            lamports: input
-                .add(input_buffer::TREE_LAMPORTS_OFF as usize)
-                .cast(),
+            owner: input.add(input_buffer::TREE_OWNER_OFF as usize).cast(),
+            lamports: input.add(input_buffer::TREE_LAMPORTS_OFF as usize).cast(),
             data: input.add(input_buffer::TREE_DATA_OFF as usize),
             data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
@@ -66,35 +53,31 @@
     // Pack instruction.
     let system_program_address = Address::default();
     let sol_instruction = SolInstruction {
-        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        program_id: transmute(&system_program_address),
-        accounts: sol_account_metas.as_ptr() as *mut SolAccountMeta,
+        program_id: addr_of!(system_program_address).cast_mut().cast(),
+        accounts: sol_account_metas.as_ptr().cast_mut().cast(),
         account_len: sol_account_metas.len() as u64,
-        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        data: transmute(&create_account_instruction_data),
+        data: addr_of!(create_account_instruction_data).cast_mut().cast(),
         data_len: cpi::INSN_DATA_LEN as u64,
     };
 
     // Initialize signer seed for PDA bump.
     let bump_seed = SolSignerSeed {
-        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        addr: transmute(&bump),
+        addr: addr_of!(bump).cast(),
         len: size_of::<u8>() as u64,
     };
 
     // Initialize signer seeds for PDA.
     let signers_seeds = SolSignerSeeds {
-        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        addr: transmute(&bump_seed),
+        addr: addr_of!(bump_seed).cast(),
         len: cpi::N_SEEDS as u64,
     };
 
     #[cfg(target_os = "solana")]
     sol_invoke_signed_c(
-        transmute(&sol_instruction),
-        transmute(&sol_account_infos),
+        addr_of!(sol_instruction).cast(),
+        addr_of!(sol_account_infos).cast(),
         cpi::N_ACCOUNTS as u64,
-        transmute(&signers_seeds),
+        addr_of!(signers_seeds).cast(),
         cpi::N_PDA_SIGNERS as u64,
     );
     #[cfg(not(target_os = "solana"))]
@@ -106,5 +89,5 @@
     }
 
     // Store next pointer in tree header.
-    let next = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
-    (*tree.data_ptr().cast::<TreeHeader>()).next = next;
+    let tree_data: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
+    (*tree_data).next = tree_data.add(1).cast();

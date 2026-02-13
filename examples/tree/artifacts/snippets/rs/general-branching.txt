@@ -2,17 +2,15 @@
 unsafe fn general(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Error if user has data.
     let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
-    if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
+    if_err!((*user).data_len != 0, error::USER_DATA_LEN);
 
     // Error if tree is duplicate.
     let tree = account_at(input, input_buffer::TREE_ACCOUNT_OFF);
-    if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
+    if_err!(is_duplicate(tree), error::TREE_DUPLICATE);
 
     // Get instruction data length and discriminator, branch to instruction.
     let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
-    if likely(
-        ldxb(instruction_data, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8,
-    ) {
+    if likely(ldxb(instruction_data, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8) {
         insert(input, instruction_data, instruction_data_len)
     } else {
         error::INSTRUCTION_DISCRIMINATOR.into()

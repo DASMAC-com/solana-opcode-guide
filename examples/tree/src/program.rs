@@ -1,11 +1,11 @@
-use core::mem::transmute;
-use core::ptr::read_unaligned;
+use core::ptr::{addr_of, read_unaligned};
 use pinocchio::{
-    address::address_eq,
+    account::RuntimeAccount,
+    entrypoint::NON_DUP_MARKER,
     hint::{likely, unlikely},
     no_allocator, nostd_panic_handler,
     sysvars::rent::RENT_ID,
-    AccountView, Address, SUCCESS,
+    Address, SUCCESS,
 };
 use tree_interface::{
     cpi, data, error_codes::error, input_buffer, instruction, tree, CreateAccountInstructionData,
@@ -21,8 +21,8 @@ use {
 };
 
 #[inline(always)]
-unsafe fn account_at(input: *mut u8, offset: i16) -> AccountView {
-    AccountView::new_unchecked(input.add(offset as usize).cast())
+unsafe fn account_at(input: *mut u8, offset: i16) -> *mut RuntimeAccount {
+    input.add(offset as usize).cast()
 }
 
 #[inline(always)]
@@ -38,8 +38,16 @@ unsafe fn ldxdw(ptr: *const u8, offset: i16) -> u64 {
 /// Checks if the account is a duplicate by checking if it's borrowed, since this is equivalent
 /// via the underlying API due to the borrow state implementation.
 #[inline(always)]
-fn is_duplicate(account: &AccountView) -> bool {
-    account.is_borrowed()
+unsafe fn is_duplicate(account: *const RuntimeAccount) -> bool {
+    (*account).borrow_state != NON_DUP_MARKER
+}
+
+/// Compares two addresses by pointer, avoiding references in calling code while harnessing
+/// the underlying `address_eq` implementation which is assembly-optimal.
+#[inline(always)]
+unsafe fn address_eq(a: *const Address, b: *const Address) -> bool {
+    use pinocchio::address::address_eq as eq;
+    eq(&*a, &*b)
 }
 
 /// Insert a syscall to log CUs, useful for sectioning off disassembled program.
@@ -62,10 +70,7 @@ no_allocator!();
 nostd_panic_handler!();
 
 #[no_mangle]
-pub unsafe extern "C" fn entrypoint(
-    input: *mut u8,
-    instruction_data: *mut u8,
-) -> u64 {
+pub unsafe extern "C" fn entrypoint(input: *mut u8, instruction_data: *mut u8) -> u64 {
     let n_accounts = ldxdw(input, input_buffer::N_ACCOUNTS_OFF);
     if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
         general(input, instruction_data)
@@ -82,17 +87,15 @@ pub unsafe extern "C" fn entrypoint(
 unsafe fn general(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Error if user has data.
     let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
-    if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
+    if_err!((*user).data_len != 0, error::USER_DATA_LEN);
 
     // Error if tree is duplicate.
     let tree = account_at(input, input_buffer::TREE_ACCOUNT_OFF);
-    if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
+    if_err!(is_duplicate(tree), error::TREE_DUPLICATE);
 
     // Get instruction data length and discriminator, branch to instruction.
     let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
-    if likely(
-        ldxb(instruction_data, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8,
-    ) {
+    if likely(ldxb(instruction_data, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8) {
         insert(input, instruction_data, instruction_data_len)
     } else {
         error::INSTRUCTION_DISCRIMINATOR.into()
@@ -102,18 +105,13 @@ unsafe fn general(input: *mut u8, instruction_data: *mut u8) -> u64 {
 
 // ANCHOR: insert
 #[inline(always)]
-unsafe fn insert(
-    input: *mut u8,
-    instruction_data: *mut u8,
-    instruction_data_len: u64,
-) -> u64 {
+unsafe fn insert(input: *mut u8, instruction_data: *mut u8, instruction_data_len: u64) -> u64 {
     if_err!(
         instruction_data_len != size_of::<InsertInstruction>() as u64,
         error::INSTRUCTION_DATA_LEN
     );
 
-    let tree_header: *mut TreeHeader =
-        transmute(input.add(input_buffer::TREE_DATA_OFF as usize));
+    let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
 
     if (*tree_header).top.is_null() { // If stack is empty, need to allocate a node.
     }
@@ -127,29 +125,30 @@ unsafe fn insert(
 unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Error if user has data.
     let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
-    if_err!(!user.is_data_empty(), error::USER_DATA_LEN);
+    if_err!((*user).data_len != 0, error::USER_DATA_LEN);
 
     // Error if tree is duplicate or has data.
     let tree = account_at(input, input_buffer::TREE_ACCOUNT_OFF);
-    if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
-    if_err!(!tree.is_data_empty(), error::TREE_DATA_LEN);
+    if_err!(is_duplicate(tree), error::TREE_DUPLICATE);
+    if_err!((*tree).data_len != 0, error::TREE_DATA_LEN);
 
     // Error if System Program is duplicate or has invalid data length.
     let system_program = account_at(input, input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF);
     if_err!(
-        is_duplicate(&system_program),
+        is_duplicate(system_program),
         error::SYSTEM_PROGRAM_DUPLICATE
     );
     if_err!(
-        system_program.data_len() != input_buffer::SYSTEM_PROGRAM_DATA_LEN,
+        (*system_program).data_len as usize != input_buffer::SYSTEM_PROGRAM_DATA_LEN,
         error::SYSTEM_PROGRAM_DATA_LEN
     );
 
     // Error if Rent account is duplicate or has incorrect address.
     let rent_sysvar = account_at(input, input_buffer::RENT_ACCOUNT_OFF);
-    if_err!(is_duplicate(&rent_sysvar), error::RENT_DUPLICATE);
+    if_err!(is_duplicate(rent_sysvar), error::RENT_DUPLICATE);
+    let rent_id = RENT_ID;
     if_err!(
-        !address_eq(rent_sysvar.address(), &RENT_ID),
+        !address_eq(addr_of!((*rent_sysvar).address), addr_of!(rent_id)),
         error::RENT_ADDRESS
     );
 
@@ -184,9 +183,8 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Compare result with passed PDA.
     if_err!(
         !address_eq(
-            &pda,
-            #[allow(clippy::transmute_ptr_to_ref, clippy::missing_transmute_annotations)]
-            transmute(input.add(input_buffer::TREE_ADDRESS_OFF_0 as usize))
+            addr_of!(pda),
+            input.add(input_buffer::TREE_ADDRESS_OFF_0 as usize).cast()
         ),
         error::PDA_MISMATCH
     );
@@ -196,8 +194,7 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Pack CreateAccount instruction data.
     let create_account_instruction_data = CreateAccountInstructionData {
         discriminator: cpi::CREATE_ACCOUNT_DISCRIMINATOR,
-        lamports: (cpi::ACCOUNT_DATA_SCALAR as u64)
-            * ldxdw(input, input_buffer::RENT_DATA_OFF),
+        lamports: (cpi::ACCOUNT_DATA_SCALAR as u64) * ldxdw(input, input_buffer::RENT_DATA_OFF),
         space: cpi::TREE_DATA_LEN as u64,
         owner: read_unaligned(
             input
@@ -207,12 +204,8 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     };
 
     // Pack account metas and infos.
-    let user_key = input
-        .add(input_buffer::USER_ADDRESS_OFF as usize)
-        .cast();
-    let tree_key = input
-        .add(input_buffer::TREE_ADDRESS_OFF as usize)
-        .cast();
+    let user_key = input.add(input_buffer::USER_ADDRESS_OFF as usize).cast();
+    let tree_key = input.add(input_buffer::TREE_ADDRESS_OFF as usize).cast();
     let sol_account_metas = [
         SolAccountMeta {
             pubkey: user_key,
@@ -228,12 +221,8 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     let sol_account_infos = [
         SolAccountInfo {
             key: user_key,
-            owner: input
-                .add(input_buffer::USER_OWNER_OFF as usize)
-                .cast(),
-            lamports: input
-                .add(input_buffer::USER_LAMPORTS_OFF as usize)
-                .cast(),
+            owner: input.add(input_buffer::USER_OWNER_OFF as usize).cast(),
+            lamports: input.add(input_buffer::USER_LAMPORTS_OFF as usize).cast(),
             data: input.add(input_buffer::USER_DATA_OFF as usize),
             data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
@@ -243,12 +232,8 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
         },
         SolAccountInfo {
             key: tree_key,
-            owner: input
-                .add(input_buffer::TREE_OWNER_OFF as usize)
-                .cast(),
-            lamports: input
-                .add(input_buffer::TREE_LAMPORTS_OFF as usize)
-                .cast(),
+            owner: input.add(input_buffer::TREE_OWNER_OFF as usize).cast(),
+            lamports: input.add(input_buffer::TREE_LAMPORTS_OFF as usize).cast(),
             data: input.add(input_buffer::TREE_DATA_OFF as usize),
             data_len: data::DATA_LEN_ZERO,
             rent_epoch: cpi::RENT_EPOCH_NULL,
@@ -261,35 +246,31 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     // Pack instruction.
     let system_program_address = Address::default();
     let sol_instruction = SolInstruction {
-        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        program_id: transmute(&system_program_address),
-        accounts: sol_account_metas.as_ptr() as *mut SolAccountMeta,
+        program_id: addr_of!(system_program_address).cast_mut().cast(),
+        accounts: sol_account_metas.as_ptr().cast_mut().cast(),
         account_len: sol_account_metas.len() as u64,
-        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        data: transmute(&create_account_instruction_data),
+        data: addr_of!(create_account_instruction_data).cast_mut().cast(),
         data_len: cpi::INSN_DATA_LEN as u64,
     };
 
     // Initialize signer seed for PDA bump.
     let bump_seed = SolSignerSeed {
-        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        addr: transmute(&bump),
+        addr: addr_of!(bump).cast(),
         len: size_of::<u8>() as u64,
     };
 
     // Initialize signer seeds for PDA.
     let signers_seeds = SolSignerSeeds {
-        #[allow(clippy::useless_transmute, clippy::missing_transmute_annotations)]
-        addr: transmute(&bump_seed),
+        addr: addr_of!(bump_seed).cast(),
         len: cpi::N_SEEDS as u64,
     };
 
     #[cfg(target_os = "solana")]
     sol_invoke_signed_c(
-        transmute(&sol_instruction),
-        transmute(&sol_account_infos),
+        addr_of!(sol_instruction).cast(),
+        addr_of!(sol_account_infos).cast(),
         cpi::N_ACCOUNTS as u64,
-        transmute(&signers_seeds),
+        addr_of!(signers_seeds).cast(),
         cpi::N_PDA_SIGNERS as u64,
     );
     #[cfg(not(target_os = "solana"))]
@@ -301,8 +282,8 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     }
 
     // Store next pointer in tree header.
-    let next = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
-    (*tree.data_ptr().cast::<TreeHeader>()).next = next;
+    let tree_data: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
+    (*tree_data).next = tree_data.add(1).cast();
     // ANCHOR_END: initialize-create-account
 
     SUCCESS
@@ -345,9 +326,7 @@ unsafe fn rotate_subtree(
     (*subtree).parent = new_root;
 
     if !parent.is_null() {
-        (*parent).child
-            [(subtree as *const TreeNode == (*parent).child[tree::DIR_R]) as usize] =
-            new_root;
+        (*parent).child[(subtree == (*parent).child[tree::DIR_R]) as usize] = new_root;
     } else {
         (*tree).root = new_root;
     }

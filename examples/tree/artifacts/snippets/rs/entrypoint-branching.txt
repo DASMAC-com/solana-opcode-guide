@@ -2,10 +2,7 @@ no_allocator!();
 nostd_panic_handler!();
 
 #[no_mangle]
-pub unsafe extern "C" fn entrypoint(
-    input: *mut u8,
-    instruction_data: *mut u8,
-) -> u64 {
+pub unsafe extern "C" fn entrypoint(input: *mut u8, instruction_data: *mut u8) -> u64 {
     let n_accounts = ldxdw(input, input_buffer::N_ACCOUNTS_OFF);
     if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
         general(input, instruction_data)

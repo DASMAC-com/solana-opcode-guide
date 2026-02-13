@@ -20,9 +20,8 @@
     // Compare result with passed PDA.
     if_err!(
         !address_eq(
-            &pda,
-            #[allow(clippy::transmute_ptr_to_ref, clippy::missing_transmute_annotations)]
-            transmute(input.add(input_buffer::TREE_ADDRESS_OFF_0 as usize))
+            addr_of!(pda),
+            input.add(input_buffer::TREE_ADDRESS_OFF_0 as usize).cast()
         ),
         error::PDA_MISMATCH
     );

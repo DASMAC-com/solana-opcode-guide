@@ -1,16 +1,11 @@
 #[inline(always)]
-unsafe fn insert(
-    input: *mut u8,
-    instruction_data: *mut u8,
-    instruction_data_len: u64,
-) -> u64 {
+unsafe fn insert(input: *mut u8, instruction_data: *mut u8, instruction_data_len: u64) -> u64 {
     if_err!(
         instruction_data_len != size_of::<InsertInstruction>() as u64,
         error::INSTRUCTION_DATA_LEN
     );
 
-    let tree_header: *mut TreeHeader =
-        transmute(input.add(input_buffer::TREE_DATA_OFF as usize));
+    let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
 
     if (*tree_header).top.is_null() { // If stack is empty, need to allocate a node.
     }
