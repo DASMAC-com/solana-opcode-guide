@@ -12,27 +12,27 @@
     };
 
     // Pack account metas and infos.
-    let user_key_ptr = input_buffer_ptr
+    let user_key = input_buffer_ptr
         .add(input_buffer::USER_ADDRESS_OFF as usize)
         .cast();
-    let tree_key_ptr = input_buffer_ptr
+    let tree_key = input_buffer_ptr
         .add(input_buffer::TREE_ADDRESS_OFF as usize)
         .cast();
     let sol_account_metas = [
         SolAccountMeta {
-            pubkey: user_key_ptr,
+            pubkey: user_key,
             is_writable: true,
             is_signer: true,
         },
         SolAccountMeta {
-            pubkey: tree_key_ptr,
+            pubkey: tree_key,
             is_writable: true,
             is_signer: true,
         },
     ];
     let sol_account_infos = [
         SolAccountInfo {
-            key: user_key_ptr,
+            key: user_key,
             owner: input_buffer_ptr
                 .add(input_buffer::USER_OWNER_OFF as usize)
                 .cast(),
@@ -47,7 +47,7 @@
             executable: false,
         },
         SolAccountInfo {
-            key: tree_key_ptr,
+            key: tree_key,
             owner: input_buffer_ptr
                 .add(input_buffer::TREE_OWNER_OFF as usize)
                 .cast(),
@@ -106,5 +106,5 @@
     }
 
     // Store next pointer in tree header.
-    let next_ptr = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
-    (*tree.data_ptr().cast::<TreeHeader>()).next_ptr = next_ptr;
+    let next = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
+    (*tree.data_ptr().cast::<TreeHeader>()).next = next;

@@ -457,7 +457,7 @@ impl TestCase for InitCase {
                             + input_buffer::TREE_DATA_OFF as u64
                             + size_of::<TreeHeader>() as u64;
                         let header = unsafe { &*(tree.data.as_ptr() as *const TreeHeader) };
-                        let actual_next = header.next_ptr as u64;
+                        let actual_next = header.next as u64;
                         if actual_next != expected_next {
                             errors.push(format!(
                                 "next: expected {:#x}, got {:#x}",

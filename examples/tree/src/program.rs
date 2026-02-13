@@ -112,10 +112,10 @@ unsafe fn insert(
         error::INSTRUCTION_DATA_LEN
     );
 
-    let tree_header_ptr: *mut TreeHeader =
+    let tree_header: *mut TreeHeader =
         transmute(input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize));
 
-    if (*tree_header_ptr).top_ptr.is_null() { // If stack is empty, need to allocate a node.
+    if (*tree_header).top.is_null() { // If stack is empty, need to allocate a node.
     }
 
     SUCCESS
@@ -207,27 +207,27 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     };
 
     // Pack account metas and infos.
-    let user_key_ptr = input_buffer_ptr
+    let user_key = input_buffer_ptr
         .add(input_buffer::USER_ADDRESS_OFF as usize)
         .cast();
-    let tree_key_ptr = input_buffer_ptr
+    let tree_key = input_buffer_ptr
         .add(input_buffer::TREE_ADDRESS_OFF as usize)
         .cast();
     let sol_account_metas = [
         SolAccountMeta {
-            pubkey: user_key_ptr,
+            pubkey: user_key,
             is_writable: true,
             is_signer: true,
         },
         SolAccountMeta {
-            pubkey: tree_key_ptr,
+            pubkey: tree_key,
             is_writable: true,
             is_signer: true,
         },
     ];
     let sol_account_infos = [
         SolAccountInfo {
-            key: user_key_ptr,
+            key: user_key,
             owner: input_buffer_ptr
                 .add(input_buffer::USER_OWNER_OFF as usize)
                 .cast(),
@@ -242,7 +242,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
             executable: false,
         },
         SolAccountInfo {
-            key: tree_key_ptr,
+            key: tree_key,
             owner: input_buffer_ptr
                 .add(input_buffer::TREE_OWNER_OFF as usize)
                 .cast(),
@@ -301,8 +301,8 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     }
 
     // Store next pointer in tree header.
-    let next_ptr = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
-    (*tree.data_ptr().cast::<TreeHeader>()).next_ptr = next_ptr;
+    let next = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
+    (*tree.data_ptr().cast::<TreeHeader>()).next = next;
     // ANCHOR_END: initialize-create-account
 
     SUCCESS
@@ -311,7 +311,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
 /// Return the direction of the node with respect to its parent.
 #[inline(always)]
 unsafe fn direction(node: *const TreeNode) -> Direction {
-    if node == (*(*node).parent_ptr).child_ptr[tree::DIR_R] {
+    if node == (*(*node).parent).child[tree::DIR_R] {
         Direction::Right
     } else {
         Direction::Left
@@ -330,26 +330,26 @@ unsafe fn rotate_subtree(
     subtree: *mut TreeNode,
     direction: usize,
 ) -> *mut TreeNode {
-    let parent_ptr = (*subtree).parent_ptr;
-    let new_root = (*subtree).child_ptr[opposite(direction)];
-    let new_child_ptr = (*new_root).child_ptr[direction];
+    let parent = (*subtree).parent;
+    let new_root = (*subtree).child[opposite(direction)];
+    let new_child = (*new_root).child[direction];
 
-    (*subtree).child_ptr[opposite(direction)] = new_child_ptr;
+    (*subtree).child[opposite(direction)] = new_child;
 
-    if !new_child_ptr.is_null() {
-        (*new_child_ptr).parent_ptr = subtree;
+    if !new_child.is_null() {
+        (*new_child).parent = subtree;
     }
 
-    (*new_root).child_ptr[direction] = subtree;
-    (*new_root).parent_ptr = parent_ptr;
-    (*subtree).parent_ptr = new_root;
+    (*new_root).child[direction] = subtree;
+    (*new_root).parent = parent;
+    (*subtree).parent = new_root;
 
-    if !parent_ptr.is_null() {
-        (*parent_ptr).child_ptr
-            [(subtree as *const TreeNode == (*parent_ptr).child_ptr[tree::DIR_R]) as usize] =
+    if !parent.is_null() {
+        (*parent).child
+            [(subtree as *const TreeNode == (*parent).child[tree::DIR_R]) as usize] =
             new_root;
     } else {
-        (*tree).root_ptr = new_root;
+        (*tree).root = new_root;
     }
 
     new_root
