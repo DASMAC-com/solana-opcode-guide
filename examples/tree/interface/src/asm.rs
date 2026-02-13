@@ -4,7 +4,8 @@ use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
 use crate::common::{
-    cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader, TreeHeader,
+    cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader, InsertInstruction,
+    Instruction, TreeHeader,
 };
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{
@@ -21,6 +22,7 @@ sizes! {
     Address,
     u128,
     TreeHeader,
+    InsertInstruction,
 }
 
 extend_constant_group!(data {
@@ -241,4 +243,6 @@ extend_constant_group!(tree {
     offset!(ROOT, TreeHeader.root),
     /// Stack top.
     offset!(TOP, TreeHeader.top),
+    /// Discriminator for insert instruction.
+    DISCRIMINATOR_INSERT = Instruction::Insert as u8,
 });

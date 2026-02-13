@@ -25,6 +25,7 @@
 .equ SIZE_OF_ADDRESS, 32 # Size of Address.
 .equ SIZE_OF_U128, 16 # Size of u128.
 .equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
+.equ SIZE_OF_INSERT_INSTRUCTION, 5 # Size of InsertInstruction.
 
 # Data layout constants.
 # ----------------------
@@ -193,6 +194,7 @@
 .equ TREE_HEADER_NEXT_OFF, 16 # Next node field in header.
 .equ TREE_ROOT_OFF, 0 # Tree root.
 .equ TREE_TOP_OFF, 8 # Stack top.
+.equ TREE_DISCRIMINATOR_INSERT, 1 # Discriminator for insert instruction.
 # ANCHOR_END: constants
 
 # ANCHOR: entrypoint-branching
@@ -208,12 +210,26 @@ entrypoint:
     exit
     # ANCHOR_END: entrypoint-branching
 
+# ANCHOR: general-branching
 general:
-    ldxdw r9, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
-    add64 r9, MAX_DATA_PAD # Speculatively add max possible padding.
-    and64 r9, DATA_LEN_AND_MASK # Get data length plus required padding.
-    add64 r9, r1 # Get input buffer pointer shifted for tree data.
+    # Error if user has data.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
+    jne r9, DATA_LEN_ZERO, e_user_data_len
+
+    # Error if tree is duplicate.
+    # ---------------------------------------------------------------------
+    ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
+
+    # Get instruction data length, check instruction discriminator.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r2 - SIZE_OF_U64] # Get instruction data length.
+    ldxb r8, [r2 + OFFSET_ZERO] # Get discriminator.
+    jeq r8, TREE_DISCRIMINATOR_INSERT, insert # Fast path to insert.
+    mov64 r0, E_INSTRUCTION_DISCRIMINATOR # Else fail.
     exit
+# ANCHOR_END: general-branching
 
 # ANCHOR: initialize-input-checks
 initialize:
@@ -444,12 +460,22 @@ initialize:
     mov64 r7, r6 # Get copy of tree data pointer.
     add64 r7, SIZE_OF_TREE_HEADER # Advance to next node.
     stxdw [r6 + TREE_HEADER_NEXT_OFF], r7 # Store in next field.
-    // ANCHOR_END: initialize-create-account
 
     exit
+    // ANCHOR_END: initialize-create-account
+
+# ANCHOR: insert
+insert:
+    jne r8, SIZE_OF_INSERT_INSTRUCTION, e_instruction_data_len
+    exit
+# ANCHOR_END: insert
 
 e_instruction_data:
     mov64 r0, E_INSTRUCTION_DATA
+    exit
+
+e_instruction_data_len:
+    mov64 r0, E_INSTRUCTION_DATA_LEN
     exit
 
 e_pda_mismatch:

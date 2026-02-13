@@ -1,0 +1,12 @@
+#[inline(always)]
+unsafe fn insert(
+    input_buffer_ptr: *mut u8,
+    instruction_data_ptr: *mut u8,
+    instruction_data_len: u64,
+) -> u64 {
+    if_err!(
+        instruction_data_len != size_of::<InsertInstruction>() as u64,
+        error::INSTRUCTION_DATA_LEN
+    );
+    SUCCESS
+}

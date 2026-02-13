@@ -143,3 +143,5 @@
     mov64 r7, r6 # Get copy of tree data pointer.
     add64 r7, SIZE_OF_TREE_HEADER # Advance to next node.
     stxdw [r6 + TREE_HEADER_NEXT_OFF], r7 # Store in next field.
+
+    exit

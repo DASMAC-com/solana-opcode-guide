@@ -1,0 +1,18 @@
+general:
+    # Error if user has data.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
+    jne r9, DATA_LEN_ZERO, e_user_data_len
+
+    # Error if tree is duplicate.
+    # ---------------------------------------------------------------------
+    ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
+
+    # Get instruction data length, check instruction discriminator.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r2 - SIZE_OF_U64] # Get instruction data length.
+    ldxb r8, [r2 + OFFSET_ZERO] # Get discriminator.
+    jeq r8, TREE_DISCRIMINATOR_INSERT, insert # Fast path to insert.
+    mov64 r0, E_INSTRUCTION_DISCRIMINATOR # Else fail.
+    exit

@@ -24,6 +24,7 @@
 .equ SIZE_OF_ADDRESS, 32 # Size of Address.
 .equ SIZE_OF_U128, 16 # Size of u128.
 .equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
+.equ SIZE_OF_INSERT_INSTRUCTION, 5 # Size of InsertInstruction.
 
 # Data layout constants.
 # ----------------------
@@ -192,3 +193,4 @@
 .equ TREE_HEADER_NEXT_OFF, 16 # Next node field in header.
 .equ TREE_ROOT_OFF, 0 # Tree root.
 .equ TREE_TOP_OFF, 8 # Stack top.
+.equ TREE_DISCRIMINATOR_INSERT, 1 # Discriminator for insert instruction.

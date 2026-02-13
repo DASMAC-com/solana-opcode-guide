@@ -10,6 +10,6 @@ mod common;
 pub use asm::*;
 pub use bindings::{SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds};
 pub use common::{
-    cpi, error_codes, instruction, Color, CreateAccountInstructionData, Direction, Instruction,
-    TreeHeader, TreeNode,
+    cpi, error_codes, instruction, Color, CreateAccountInstructionData, Direction,
+    InsertInstruction, Instruction, TreeHeader, TreeNode,
 };

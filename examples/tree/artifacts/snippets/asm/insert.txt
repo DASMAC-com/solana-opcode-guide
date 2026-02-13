@@ -1,0 +1,3 @@
+insert:
+    jne r8, SIZE_OF_INSERT_INSTRUCTION, e_instruction_data_len
+    exit

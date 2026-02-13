@@ -9,8 +9,8 @@ use pinocchio::{
 };
 use tree_interface::{
     cpi, data, error_codes::error, input_buffer, instruction, tree, CreateAccountInstructionData,
-    Direction, Instruction, SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed,
-    SolSignerSeeds, TreeHeader, TreeNode,
+    Direction, InsertInstruction, Instruction, SolAccountInfo, SolAccountMeta, SolInstruction,
+    SolSignerSeed, SolSignerSeeds, TreeHeader, TreeNode,
 };
 #[cfg(target_os = "solana")]
 use {
@@ -77,6 +77,7 @@ pub unsafe extern "C" fn entrypoint(
 }
 // ANCHOR_END: entrypoint-branching
 
+// ANCHOR: general-branching
 #[inline(always)]
 unsafe fn general(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
     // Error if user has data.
@@ -87,12 +88,30 @@ unsafe fn general(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u
     let tree = account_at(input_buffer_ptr, input_buffer::TREE_ACCOUNT_OFF);
     if_err!(is_duplicate(&tree), error::TREE_DUPLICATE);
 
+    // Get instruction data length and discriminator, branch to instruction.
+    let instruction_data_len = ldxdw(instruction_data_ptr, -(size_of::<u64>() as i16));
     if ldxb(instruction_data_ptr, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8 {
-        insert(input_buffer_ptr, instruction_data_ptr)
+        insert(input_buffer_ptr, instruction_data_ptr, instruction_data_len)
     } else {
         error::INSTRUCTION_DISCRIMINATOR.into()
     }
 }
+// ANCHOR_END: general-branching
+
+// ANCHOR: insert
+#[inline(always)]
+unsafe fn insert(
+    input_buffer_ptr: *mut u8,
+    instruction_data_ptr: *mut u8,
+    instruction_data_len: u64,
+) -> u64 {
+    if_err!(
+        instruction_data_len != size_of::<InsertInstruction>() as u64,
+        error::INSTRUCTION_DATA_LEN
+    );
+    SUCCESS
+}
+// ANCHOR_END: insert
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]
@@ -277,12 +296,6 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     (*tree.data_ptr().cast::<TreeHeader>()).next = next_ptr;
     // ANCHOR_END: initialize-create-account
 
-    SUCCESS
-}
-
-#[inline(always)]
-unsafe fn insert(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -> u64 {
-    // Placeholder for insert instruction implementation.
     SUCCESS
 }
 
