@@ -39,5 +39,9 @@ constant_group! {
         prefix = "INSN",
         /// Offset to instruction discriminator byte.
         offset!(DISCRIMINATOR, InstructionHeader.discriminator),
+        /// Initialize instruction discriminator.
+        DISCRIMINATOR_INITIALIZE: u8 = Instruction::Initialize as u8,
+        /// Insert instruction discriminator.
+        DISCRIMINATOR_INSERT: u8 = Instruction::Insert as u8,
     }
 }

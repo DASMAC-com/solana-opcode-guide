@@ -4,8 +4,8 @@ use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
 use crate::common::{
-    cpi, CreateAccountInstructionData, InitInputBuffer, InputBufferHeader, InsertInstruction,
-    Instruction, TreeHeader,
+    cpi, CreateAccountInstructionData, InitInputBuffer, InitializeInstruction, InputBufferHeader,
+    InsertInstruction, Instruction, TreeHeader,
 };
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{
@@ -22,6 +22,7 @@ sizes! {
     Address,
     u128,
     TreeHeader,
+    InitializeInstruction,
     InsertInstruction,
 }
 

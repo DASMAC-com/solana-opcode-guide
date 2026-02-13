@@ -155,15 +155,15 @@ fn test_insert() {
 
 #[test]
 fn test_initialize_input_checks() {
-    print_comparison_table(init::InitCase::CASES, true, false);
+    print_comparison_table(init::InitCase::CASES, false, false);
 }
 
 #[test]
 fn test_initialize_pda_checks() {
-    print_comparison_table(init::InitCase::PDA_CASES, true, false);
+    print_comparison_table(init::InitCase::PDA_CASES, false, false);
 }
 
 #[test]
 fn test_initialize_create_account() {
-    print_comparison_table(init::InitCase::CPI_CASES, true, false);
+    print_comparison_table(init::InitCase::CPI_CASES, false, false);
 }

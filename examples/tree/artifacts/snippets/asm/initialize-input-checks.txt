@@ -1,4 +1,12 @@
 initialize:
+    # Error if invalid instruction data length.
+    # ---------------------------------------------------------------------
+    jne r9, SIZE_OF_INITIALIZE_INSTRUCTION, e_instruction_data_len
+
+    # Error if invalid number of accounts.
+    # ---------------------------------------------------------------------
+    jne r8, IB_N_ACCOUNTS_INIT, e_n_accounts
+
     # Error if user has data.
     # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
@@ -41,8 +49,3 @@ initialize:
     # since the rent sysvar address has all chunk 3 hi bits unset.
     mov32 r8, IB_RENT_ID_CHUNK_3_LO
     jne r9, r8, e_rent_address
-
-    # Error if instruction data provided.
-    # ---------------------------------------------------------------------
-    ldxdw r9, [r2 - SIZE_OF_U64]
-    jne r9, DATA_LEN_ZERO, e_instruction_data

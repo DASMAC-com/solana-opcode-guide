@@ -1,33 +1,36 @@
 | Test case | Fixed CU costs | ASM (net CUs) | Rust (net CUs) | Overhead | Overhead % |
 |-----------|----------------|---------------|----------------|----------|------------|
-| System Program is wrong address | 2446 | 0 | 141 | +141 | N/A |
-  (ASM) System Program is wrong address: expected Failure(NotEnoughAccountKeys), got Failure(Custom(9))
-| User has insufficient Lamports | 2596 | 0 | 141 | +141 | N/A |
-  (ASM) User has insufficient Lamports: expected Failure(Custom(1)), got Failure(Custom(9))
-| CreateAccount happy path | 2596 | 0 | 147 | +147 | N/A |
-  (ASM) CreateAccount happy path: expected Success, got Failure(Custom(9))
+| System Program is wrong address | 2446 | 107 | 139 | +32 | +29.9% |
+| User has insufficient Lamports | 2596 | 107 | 139 | +32 | +29.9% |
+| CreateAccount happy path | 2596 | 111 | 145 | +34 | +30.6% |
 test tests::test_initialize_create_account ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 31 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x9
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Unknown program 11111111111111111111111111111111
-[ ... DEBUG ... ] Program DASMAC... consumed 2587 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 2553 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: An account required by the instruction is missing
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 31 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x9
+[ ... DEBUG ... ] Unknown program 11111111111111111111111111111111
+[ ... DEBUG ... ] Program DASMAC... consumed 2585 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: An account required by the instruction is missing
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
 [ ... DEBUG ... ] Transfer: insufficient lamports 0, need 528960
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 failed: custom program error: 0x1
-[ ... DEBUG ... ] Program DASMAC... consumed 2737 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 2703 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 31 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x9
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Transfer: insufficient lamports 0, need 528960
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... consumed 2735 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 success
-[ ... DEBUG ... ] Program DASMAC... consumed 2743 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 2707 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 2741 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success

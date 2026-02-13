@@ -25,6 +25,7 @@
 .equ SIZE_OF_ADDRESS, 32 # Size of Address.
 .equ SIZE_OF_U128, 16 # Size of u128.
 .equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
+.equ SIZE_OF_INITIALIZE_INSTRUCTION, 1 # Size of InitializeInstruction.
 .equ SIZE_OF_INSERT_INSTRUCTION, 5 # Size of InsertInstruction.
 
 # Data layout constants.
@@ -100,6 +101,13 @@
 .equ IB_INIT_PROGRAM_ID_OFF_IMM, 41401
 # Relative offset from user data field to tree pubkey field.
 .equ IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM, 10256
+
+# Offsets for instruction processing.
+# -----------------------------------
+.equ INSN_DISCRIMINATOR_OFF, 0 # Offset to instruction discriminator byte.
+# Initialize instruction discriminator.
+.equ INSN_DISCRIMINATOR_INITIALIZE, 0
+.equ INSN_DISCRIMINATOR_INSERT, 1 # Insert instruction discriminator.
 
 # Init stack frame layout.
 # ------------------------
@@ -201,38 +209,31 @@
 .globl entrypoint
 
 entrypoint:
-    # Check input buffer accounts.
+    # Read instruction data length and discriminator.
     # ---------------------------------------------------------------------
-    ldxdw r9, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
-    jeq r9, IB_N_ACCOUNTS_GENERAL, general # Fast path to general case.
-    jeq r9, IB_N_ACCOUNTS_INIT, initialize # Branch to init case.
-    mov64 r0, E_N_ACCOUNTS # Else fail.
+    ldxdw r9, [r2 - SIZE_OF_U64] # Get instruction data length.
+    ldxdw r8, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
+    ldxb r7, [r2 + OFFSET_ZERO] # Get discriminator.
+
+    # Jump to branch for given discriminator.
+    # ---------------------------------------------------------------------
+    jeq r7, INSN_DISCRIMINATOR_INSERT, insert
+    jeq r7, INSN_DISCRIMINATOR_INITIALIZE, initialize
+    # Error if invalid discriminator provided.
+    mov64 r0, E_INSTRUCTION_DISCRIMINATOR
     exit
     # ANCHOR_END: entrypoint-branching
 
-# ANCHOR: general-branching
-general:
-    # Error if user has data.
-    # ---------------------------------------------------------------------
-    ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
-    jne r9, DATA_LEN_ZERO, e_user_data_len
-
-    # Error if tree is duplicate.
-    # ---------------------------------------------------------------------
-    ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
-    jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
-
-    # Get instruction data length, check instruction discriminator.
-    # ---------------------------------------------------------------------
-    ldxdw r9, [r2 - SIZE_OF_U64] # Get instruction data length.
-    ldxb r8, [r2 + OFFSET_ZERO] # Get discriminator.
-    jeq r8, TREE_DISCRIMINATOR_INSERT, insert # Fast path to insert.
-    mov64 r0, E_INSTRUCTION_DISCRIMINATOR # Else fail.
-    exit
-# ANCHOR_END: general-branching
-
 # ANCHOR: initialize-input-checks
 initialize:
+    # Error if invalid instruction data length.
+    # ---------------------------------------------------------------------
+    jne r9, SIZE_OF_INITIALIZE_INSTRUCTION, e_instruction_data_len
+
+    # Error if invalid number of accounts.
+    # ---------------------------------------------------------------------
+    jne r8, IB_N_ACCOUNTS_INIT, e_n_accounts
+
     # Error if user has data.
     # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
@@ -275,11 +276,6 @@ initialize:
     # since the rent sysvar address has all chunk 3 hi bits unset.
     mov32 r8, IB_RENT_ID_CHUNK_3_LO
     jne r9, r8, e_rent_address
-
-    # Error if instruction data provided.
-    # ---------------------------------------------------------------------
-    ldxdw r9, [r2 - SIZE_OF_U64]
-    jne r9, DATA_LEN_ZERO, e_instruction_data
     # ANCHOR_END: initialize-input-checks
 
     # ANCHOR: initialize-pda-checks
@@ -475,6 +471,10 @@ e_instruction_data:
 
 e_instruction_data_len:
     mov64 r0, E_INSTRUCTION_DATA_LEN
+    exit
+
+e_n_accounts:
+    mov64 r0, E_N_ACCOUNTS
     exit
 
 e_pda_mismatch:

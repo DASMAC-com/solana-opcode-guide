@@ -24,6 +24,7 @@
 .equ SIZE_OF_ADDRESS, 32 # Size of Address.
 .equ SIZE_OF_U128, 16 # Size of u128.
 .equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
+.equ SIZE_OF_INITIALIZE_INSTRUCTION, 1 # Size of InitializeInstruction.
 .equ SIZE_OF_INSERT_INSTRUCTION, 5 # Size of InsertInstruction.
 
 # Data layout constants.
@@ -99,6 +100,13 @@
 .equ IB_INIT_PROGRAM_ID_OFF_IMM, 41401
 # Relative offset from user data field to tree pubkey field.
 .equ IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM, 10256
+
+# Offsets for instruction processing.
+# -----------------------------------
+.equ INSN_DISCRIMINATOR_OFF, 0 # Offset to instruction discriminator byte.
+# Initialize instruction discriminator.
+.equ INSN_DISCRIMINATOR_INITIALIZE, 0
+.equ INSN_DISCRIMINATOR_INSERT, 1 # Insert instruction discriminator.
 
 # Init stack frame layout.
 # ------------------------

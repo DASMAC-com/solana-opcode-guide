@@ -18,6 +18,7 @@ fn main() {
         data,
         pubkey_chunk,
         input_buffer,
+        instruction,
         init_stack_frame,
         cpi,
         tree
