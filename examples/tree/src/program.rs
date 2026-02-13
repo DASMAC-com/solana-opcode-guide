@@ -9,8 +9,8 @@ use pinocchio::{
 };
 use tree_interface::{
     cpi, data, error_codes::error, input_buffer, instruction, tree, CreateAccountInstructionData,
-    Direction, InsertInstruction, Instruction, SolAccountInfo, SolAccountMeta, SolInstruction,
-    SolSignerSeed, SolSignerSeeds, TreeHeader, TreeNode,
+    Direction, InitializeInstruction, InsertInstruction, Instruction, SolAccountInfo,
+    SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds, TreeHeader, TreeNode,
 };
 #[cfg(target_os = "solana")]
 use {
@@ -71,41 +71,29 @@ nostd_panic_handler!();
 
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input: *mut u8, instruction_data: *mut u8) -> u64 {
+    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
     let n_accounts = ldxdw(input, input_buffer::N_ACCOUNTS_OFF);
-    if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
-        general(input, instruction_data)
-    } else if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
-        initialize(input, instruction_data)
-    } else {
-        error::N_ACCOUNTS.into()
+    match ldxb(instruction_data, instruction::DISCRIMINATOR_OFF) {
+        x if x == Instruction::Initialize as u8 => {
+            initialize(input, instruction_data, instruction_data_len, n_accounts)
+        }
+        x if x == Instruction::Insert as u8 => {
+            insert(input, instruction_data, instruction_data_len, n_accounts)
+        }
+        _ => error::INSTRUCTION_DISCRIMINATOR.into(),
     }
 }
 // ANCHOR_END: entrypoint-branching
 
-// ANCHOR: general-branching
-#[inline(always)]
-unsafe fn general(input: *mut u8, instruction_data: *mut u8) -> u64 {
-    // Error if user has data.
-    let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
-    if_err!((*user).data_len != 0, error::USER_DATA_LEN);
-
-    // Error if tree is duplicate.
-    let tree = account_at(input, input_buffer::TREE_ACCOUNT_OFF);
-    if_err!(is_duplicate(tree), error::TREE_DUPLICATE);
-
-    // Get instruction data length and discriminator, branch to instruction.
-    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
-    if likely(ldxb(instruction_data, instruction::DISCRIMINATOR_OFF) == Instruction::Insert as u8) {
-        insert(input, instruction_data, instruction_data_len)
-    } else {
-        error::INSTRUCTION_DISCRIMINATOR.into()
-    }
-}
-// ANCHOR_END: general-branching
-
 // ANCHOR: insert
 #[inline(always)]
-unsafe fn insert(input: *mut u8, instruction_data: *mut u8, instruction_data_len: u64) -> u64 {
+unsafe fn insert(
+    input: *mut u8,
+    instruction_data: *mut u8,
+    instruction_data_len: u64,
+    n_accounts: u64,
+) -> u64 {
+    // Error if invalid instruction data length.
     if_err!(
         instruction_data_len != size_of::<InsertInstruction>() as u64,
         error::INSTRUCTION_DATA_LEN
@@ -122,7 +110,24 @@ unsafe fn insert(input: *mut u8, instruction_data: *mut u8, instruction_data_len
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]
-unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
+unsafe fn initialize(
+    input: *mut u8,
+    instruction_data: *mut u8,
+    instruction_data_len: u64,
+    n_accounts: u64,
+) -> u64 {
+    // Error if instruction data provided.
+    if_err!(
+        instruction_data_len != size_of::<InitializeInstruction>() as u64,
+        error::INSTRUCTION_DATA_LEN
+    );
+
+    // Error if incorrect number of accounts.
+    if_err!(
+        n_accounts != input_buffer::N_ACCOUNTS_INIT,
+        error::N_ACCOUNTS
+    );
+
     // Error if user has data.
     let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
     if_err!((*user).data_len != 0, error::USER_DATA_LEN);
@@ -150,13 +155,6 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     if_err!(
         !address_eq(addr_of!((*rent_sysvar).address), addr_of!(rent_id)),
         error::RENT_ADDRESS
-    );
-
-    // Error if instruction data provided.
-    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
-    if_err!(
-        instruction_data_len != data::DATA_LEN_ZERO,
-        error::INSTRUCTION_DATA
     );
     // ANCHOR_END: initialize-input-checks
 

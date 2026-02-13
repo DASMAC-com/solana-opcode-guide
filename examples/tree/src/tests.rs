@@ -1,5 +1,4 @@
 mod entrypoint;
-mod general;
 mod init;
 mod insert;
 
@@ -150,26 +149,21 @@ fn test_entrypoint_branching() {
 }
 
 #[test]
-fn test_general_branching() {
-    print_comparison_table(general::GeneralCase::CASES, false, false);
-}
-
-#[test]
 fn test_insert() {
     print_comparison_table(insert::InsertCase::CASES, false, false);
 }
 
 #[test]
 fn test_initialize_input_checks() {
-    print_comparison_table(init::InitCase::CASES, false, false);
+    print_comparison_table(init::InitCase::CASES, true, false);
 }
 
 #[test]
 fn test_initialize_pda_checks() {
-    print_comparison_table(init::InitCase::PDA_CASES, false, false);
+    print_comparison_table(init::InitCase::PDA_CASES, true, false);
 }
 
 #[test]
 fn test_initialize_create_account() {
-    print_comparison_table(init::InitCase::CPI_CASES, false, false);
+    print_comparison_table(init::InitCase::CPI_CASES, true, false);
 }

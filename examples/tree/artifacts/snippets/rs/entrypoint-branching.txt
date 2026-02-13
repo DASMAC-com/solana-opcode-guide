@@ -3,12 +3,15 @@ nostd_panic_handler!();
 
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input: *mut u8, instruction_data: *mut u8) -> u64 {
+    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
     let n_accounts = ldxdw(input, input_buffer::N_ACCOUNTS_OFF);
-    if likely(n_accounts == input_buffer::N_ACCOUNTS_GENERAL) {
-        general(input, instruction_data)
-    } else if likely(n_accounts == input_buffer::N_ACCOUNTS_INIT) {
-        initialize(input, instruction_data)
-    } else {
-        error::N_ACCOUNTS.into()
+    match ldxb(instruction_data, instruction::DISCRIMINATOR_OFF) {
+        x if x == Instruction::Initialize as u8 => {
+            initialize(input, instruction_data, instruction_data_len, n_accounts)
+        }
+        x if x == Instruction::Insert as u8 => {
+            insert(input, instruction_data, instruction_data_len, n_accounts)
+        }
+        _ => error::INSTRUCTION_DISCRIMINATOR.into(),
     }
 }

@@ -97,7 +97,7 @@
 .equ IB_RENT_ID_CHUNK_3_LO, -1965433885 # Rent sysvar ID (chunk 3 lo).
 .equ IB_RENT_ID_CHUNK_3_HI, 0 # Rent sysvar ID (chunk 3 hi).
 # Program ID field for initialize instruction.
-.equ IB_INIT_PROGRAM_ID_OFF_IMM, 41400
+.equ IB_INIT_PROGRAM_ID_OFF_IMM, 41401
 # Relative offset from user data field to tree pubkey field.
 .equ IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM, 10256
 

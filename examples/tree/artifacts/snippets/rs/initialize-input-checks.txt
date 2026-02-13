@@ -1,5 +1,22 @@
 #[inline(always)]
-unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
+unsafe fn initialize(
+    input: *mut u8,
+    instruction_data: *mut u8,
+    instruction_data_len: u64,
+    n_accounts: u64,
+) -> u64 {
+    // Error if instruction data provided.
+    if_err!(
+        instruction_data_len != size_of::<InitializeInstruction>() as u64,
+        error::INSTRUCTION_DATA_LEN
+    );
+
+    // Error if incorrect number of accounts.
+    if_err!(
+        n_accounts != input_buffer::N_ACCOUNTS_INIT,
+        error::N_ACCOUNTS
+    );
+
     // Error if user has data.
     let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
     if_err!((*user).data_len != 0, error::USER_DATA_LEN);
@@ -27,11 +44,4 @@ unsafe fn initialize(input: *mut u8, instruction_data: *mut u8) -> u64 {
     if_err!(
         !address_eq(addr_of!((*rent_sysvar).address), addr_of!(rent_id)),
         error::RENT_ADDRESS
-    );
-
-    // Error if instruction data provided.
-    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
-    if_err!(
-        instruction_data_len != data::DATA_LEN_ZERO,
-        error::INSTRUCTION_DATA
     );

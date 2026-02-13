@@ -210,15 +210,20 @@ pub struct StackNode {
 
 #[repr(u8)]
 pub enum Instruction {
-    /// Initialize the tree (discriminator is number of accounts).
+    /// Initialize the tree.
     Initialize,
-    /// Insert node into tree instruction.
+    /// Insert key-value pair.
     Insert,
 }
 
 #[repr(C, packed)]
 pub struct InstructionHeader {
     discriminator: u8,
+}
+
+#[repr(C, packed)]
+pub struct InitializeInstruction {
+    pub header: InstructionHeader,
 }
 
 #[repr(C, packed)]
@@ -250,8 +255,8 @@ constant_group! {
 
 #[repr(C, packed)]
 pub struct InitInputBufferFooter {
-    /// No actual instruction data follows.
     pub instruction_data_len: u64,
+    pub instruction: InitializeInstruction,
     pub program_id: Address,
 }
 

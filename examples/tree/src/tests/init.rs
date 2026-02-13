@@ -3,7 +3,7 @@ use mollusk_svm::program;
 use mollusk_svm::result::{Check, Config};
 use pinocchio::sysvars::rent::Rent;
 use solana_sdk::instruction::AccountMeta;
-use tree_interface::{input_buffer, tree, TreeHeader};
+use tree_interface::{input_buffer, tree, Instruction as TreeInstruction, TreeHeader};
 
 const SIMD0194_EXEMPTION_THRESHOLD: f64 = 1.0;
 
@@ -25,7 +25,7 @@ fn init_setup(
 
     let instruction = Instruction::new_with_bytes(
         setup.program_id,
-        &[],
+        &[TreeInstruction::Initialize as u8],
         vec![
             AccountMeta::new(user_pubkey, true),
             AccountMeta::new(tree_pubkey, false),
@@ -62,7 +62,7 @@ fn pda_init_setup(
 
     let instruction = Instruction::new_with_bytes(
         setup.program_id,
-        &[],
+        &[TreeInstruction::Initialize as u8],
         vec![
             AccountMeta::new(user_pubkey, true),
             AccountMeta::new(tree_pubkey, false),
@@ -102,6 +102,9 @@ fn run_address_mismatch(
 
 #[derive(Clone, Copy)]
 pub(super) enum InitCase {
+    InstructionData,
+    NAccountsTooFew,
+    NAccountsTooMany,
     UserDataLen,
     TreeDuplicate,
     TreeDataLen,
@@ -116,7 +119,6 @@ pub(super) enum InitCase {
     RentAddressWord5,
     RentAddressWord6,
     RentAddressWord7,
-    InstructionData,
     PdaMismatchChunk0,
     PdaMismatchChunk1,
     PdaMismatchChunk2,
@@ -128,6 +130,9 @@ pub(super) enum InitCase {
 
 impl InitCase {
     pub(super) const CASES: &'static [Self] = &[
+        Self::InstructionData,
+        Self::NAccountsTooFew,
+        Self::NAccountsTooMany,
         Self::UserDataLen,
         Self::TreeDuplicate,
         Self::TreeDataLen,
@@ -142,7 +147,6 @@ impl InitCase {
         Self::RentAddressWord5,
         Self::RentAddressWord6,
         Self::RentAddressWord7,
-        Self::InstructionData,
     ];
 
     pub(super) const PDA_CASES: &'static [Self] = &[
@@ -162,6 +166,9 @@ impl InitCase {
 impl TestCase for InitCase {
     fn name(&self) -> &'static str {
         match self {
+            Self::InstructionData => "Invalid instruction data length",
+            Self::NAccountsTooFew => "Too few accounts",
+            Self::NAccountsTooMany => "Too many accounts",
             Self::UserDataLen => "User has nonzero data length",
             Self::TreeDuplicate => "Tree account is duplicate",
             Self::TreeDataLen => "Tree has nonzero data length",
@@ -176,7 +183,6 @@ impl TestCase for InitCase {
             Self::RentAddressWord5 => "Rent address mismatch word 5",
             Self::RentAddressWord6 => "Rent address mismatch word 6",
             Self::RentAddressWord7 => "Rent address mismatch word 7",
-            Self::InstructionData => "Non-empty instruction data",
             Self::PdaMismatchChunk0 => "PDA mismatch chunk 1",
             Self::PdaMismatchChunk1 => "PDA mismatch chunk 2",
             Self::PdaMismatchChunk2 => "PDA mismatch chunk 3",
@@ -190,7 +196,10 @@ impl TestCase for InitCase {
     fn fixed_costs(&self) -> u64 {
         match self {
             // Input checks - no syscalls.
-            Self::UserDataLen
+            Self::InstructionData
+            | Self::NAccountsTooFew
+            | Self::NAccountsTooMany
+            | Self::UserDataLen
             | Self::TreeDuplicate
             | Self::TreeDataLen
             | Self::SystemProgramDuplicate
@@ -203,8 +212,7 @@ impl TestCase for InitCase {
             | Self::RentAddressWord4
             | Self::RentAddressWord5
             | Self::RentAddressWord6
-            | Self::RentAddressWord7
-            | Self::InstructionData => 0,
+            | Self::RentAddressWord7 => 0,
             // PDA checks - sol_try_find_program_address only.
             Self::PdaMismatchChunk0
             | Self::PdaMismatchChunk1
@@ -225,6 +233,43 @@ impl TestCase for InitCase {
 
     fn run(&self, lang: ProgramLanguage) -> CaseResult {
         match self {
+            Self::InstructionData => {
+                let (setup, mut instruction, accounts) = init_setup(lang);
+                instruction.data = vec![TreeInstruction::Initialize as u8, 0];
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::INSTRUCTION_DATA_LEN,
+                )
+            }
+            Self::NAccountsTooFew => {
+                let (setup, mut instruction, mut accounts) = init_setup(lang);
+                // Remove rent sysvar (3 accounts instead of 4).
+                instruction.accounts.pop();
+                accounts.pop();
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::N_ACCOUNTS,
+                )
+            }
+            Self::NAccountsTooMany => {
+                let (setup, mut instruction, mut accounts) = init_setup(lang);
+                // Add a bogus account (5 accounts instead of 4).
+                let bogus_pubkey = Pubkey::new_unique();
+                instruction
+                    .accounts
+                    .push(AccountMeta::new_readonly(bogus_pubkey, false));
+                accounts.push((bogus_pubkey, Account::default()));
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::N_ACCOUNTS,
+                )
+            }
             Self::UserDataLen => {
                 let (setup, instruction, mut accounts) = init_setup(lang);
                 accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
@@ -350,16 +395,6 @@ impl TestCase for InitCase {
                 size_of::<u32>(),
                 error_codes::error::RENT_ADDRESS,
             ),
-            Self::InstructionData => {
-                let (setup, mut instruction, accounts) = init_setup(lang);
-                instruction.data = vec![1u8; 1];
-                check_error(
-                    &setup,
-                    &instruction,
-                    &accounts,
-                    error_codes::error::INSTRUCTION_DATA,
-                )
-            }
             Self::PdaMismatchChunk0 => run_address_mismatch(
                 lang,
                 AccountIndex::Tree as usize,

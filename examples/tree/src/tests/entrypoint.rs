@@ -1,59 +1,56 @@
 use super::*;
+use mollusk_svm::program;
 use solana_sdk::instruction::AccountMeta;
 
 #[derive(Clone, Copy)]
 pub(super) enum EntrypointCase {
-    NoAccounts,
-    OneAccount,
-    ThreeAccounts,
-    FiveAccounts,
+    InvalidDiscriminator,
 }
 
 impl EntrypointCase {
-    pub(super) const CASES: &'static [Self] = &[
-        Self::NoAccounts,
-        Self::OneAccount,
-        Self::ThreeAccounts,
-        Self::FiveAccounts,
-    ];
-
-    const fn n_accounts(&self) -> usize {
-        match self {
-            Self::NoAccounts => 0,
-            Self::OneAccount => 1,
-            Self::ThreeAccounts => 3,
-            Self::FiveAccounts => 5,
-        }
-    }
+    pub(super) const CASES: &'static [Self] = &[Self::InvalidDiscriminator];
 }
 
 impl TestCase for EntrypointCase {
     fn name(&self) -> &'static str {
         match self {
-            Self::NoAccounts => "No accounts",
-            Self::OneAccount => "One account",
-            Self::ThreeAccounts => "Three accounts",
-            Self::FiveAccounts => "Five accounts",
+            Self::InvalidDiscriminator => "Invalid instruction discriminator",
         }
     }
 
     fn run(&self, lang: ProgramLanguage) -> CaseResult {
-        let setup = setup_test(lang);
+        match self {
+            Self::InvalidDiscriminator => {
+                let setup = setup_test(lang);
+                let (system_program_pubkey, _) = program::keyed_account_for_system_program();
 
-        let account_metas: Vec<AccountMeta> = (0..self.n_accounts())
-            .map(|_| AccountMeta::new(Pubkey::new_unique(), false))
-            .collect();
-        let accounts: Vec<(Pubkey, Account)> = account_metas
-            .iter()
-            .map(|meta| (meta.pubkey, Account::default()))
-            .collect();
+                let user_pubkey = Pubkey::new_unique();
+                let tree_pubkey = Pubkey::new_unique();
 
-        let instruction = Instruction::new_with_bytes(setup.program_id, &[], account_metas);
-        check_error(
-            &setup,
-            &instruction,
-            &accounts,
-            error_codes::error::N_ACCOUNTS,
-        )
+                let instruction = Instruction::new_with_bytes(
+                    setup.program_id,
+                    &[255], // Invalid discriminator.
+                    vec![
+                        AccountMeta::new(user_pubkey, true),
+                        AccountMeta::new(tree_pubkey, false),
+                    ],
+                );
+
+                let accounts = vec![
+                    (
+                        user_pubkey,
+                        Account::new(USER_LAMPORTS, 0, &system_program_pubkey),
+                    ),
+                    (tree_pubkey, Account::default()),
+                ];
+
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::INSTRUCTION_DISCRIMINATOR,
+                )
+            }
+        }
     }
 }

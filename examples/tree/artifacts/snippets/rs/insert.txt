@@ -1,5 +1,11 @@
 #[inline(always)]
-unsafe fn insert(input: *mut u8, instruction_data: *mut u8, instruction_data_len: u64) -> u64 {
+unsafe fn insert(
+    input: *mut u8,
+    instruction_data: *mut u8,
+    instruction_data_len: u64,
+    n_accounts: u64,
+) -> u64 {
+    // Error if invalid instruction data length.
     if_err!(
         instruction_data_len != size_of::<InsertInstruction>() as u64,
         error::INSTRUCTION_DATA_LEN

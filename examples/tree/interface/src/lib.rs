@@ -11,5 +11,5 @@ pub use asm::*;
 pub use bindings::{SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds};
 pub use common::{
     cpi, error_codes, instruction, Color, CreateAccountInstructionData, Direction,
-    InsertInstruction, Instruction, TreeHeader, TreeNode,
+    InitializeInstruction, InsertInstruction, Instruction, TreeHeader, TreeNode,
 };

@@ -125,7 +125,7 @@ Disassembly of section .text
       71	55 09 52 00 00 00 00 00	if r9 != 0x0 goto +0x52 <entrypoint+0x3e8>
       72	b7 02 00 00 00 00 00 00	r2 = 0x0
       73	bf 13 00 00 00 00 00 00	r3 = r1
-      74	07 03 00 00 b8 a1 00 00	r3 += 0xa1b8
+      74	07 03 00 00 b9 a1 00 00	r3 += 0xa1b9
       75	bf a4 00 00 00 00 00 00	r4 = r10
       76	07 04 00 00 b0 ff ff ff	r4 += -0x50
       77	bf a5 00 00 00 00 00 00	r5 = r10
