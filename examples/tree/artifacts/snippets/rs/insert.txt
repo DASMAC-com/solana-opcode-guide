@@ -8,5 +8,12 @@ unsafe fn insert(
         instruction_data_len != size_of::<InsertInstruction>() as u64,
         error::INSTRUCTION_DATA_LEN
     );
+
+    let tree_header_ptr: *mut TreeHeader =
+        transmute(input_buffer_ptr.add(input_buffer::TREE_DATA_OFF as usize));
+
+    if (*tree_header_ptr).top.is_null() { // If stack is empty, need to allocate a node.
+    }
+
     SUCCESS
 }
