@@ -1,0 +1,4 @@
+#[test]
+fn test_general_branching() {
+    print_comparison_table(general::GeneralCase::CASES, false, false);
+}

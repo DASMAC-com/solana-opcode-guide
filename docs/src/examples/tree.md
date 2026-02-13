@@ -10,6 +10,12 @@ side-by-side with as much implementation parity as possible, using C-style Rust
 (raw pointers, direct [syscalls](../indices/syscalls.md)) to minimize compiler
 overhead.
 
+::: details Core data structures
+
+<<< ../../../examples/tree/artifacts/snippets/interface/tree-defs-common.txt{rs}
+
+:::
+
 ## Build support
 
 Constants, error codes, and C bindings are derived in a shared interface using
@@ -40,7 +46,9 @@ time.
 
 :::
 
-## Entrypoint branching
+## Branching
+
+### Entrypoint
 
 The Rust implementation does not use [`pinocchio`] for the entrypoint. Instead,
 it uses C-style bindings with the [`SIMD-0321`] `r2` pointer. Note that the Rust
@@ -62,6 +70,36 @@ greedy [tail call optimizations][tail call].
 ::: details Benchmarking
 
 <!-- @include: ../../../examples/tree/artifacts/tests/entrypoint_branching/result.txt{1,6} -->
+
+:::
+
+### General
+
+If the user passes the number of accounts required for a general operation (all
+instructions besides the [initialize](#initialize) instruction), the program
+branches to a common instruction handler.
+
+::: details Instruction definitions
+
+<<< ../../../examples/tree/artifacts/snippets/interface/instructions.txt{rs}
+
+:::
+
+::: details Implementations
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/general-branching.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/general-branching.txt{rs} [Rust]
+
+:::
+
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/general_branching/result.txt{1,5} -->
 
 :::
 
@@ -140,6 +178,26 @@ not available in Rust, since the compiler enforces
 :::
 
 <!-- markdownlint-enable MD013 -->
+
+## Insert
+
+::: details Implementations
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert.txt{rs} [Rust]
+
+:::
+
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/insert/result.txt{1,5} -->
+
+:::
 
 ## :white_check_mark: All tests
 

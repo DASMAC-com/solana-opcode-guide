@@ -233,7 +233,6 @@ general:
 
 # ANCHOR: initialize-input-checks
 initialize:
-
     # Error if user has data.
     # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
@@ -466,7 +465,7 @@ initialize:
 
 # ANCHOR: insert
 insert:
-    jne r8, SIZE_OF_INSERT_INSTRUCTION, e_instruction_data_len
+    jne r9, SIZE_OF_INSERT_INSTRUCTION, e_instruction_data_len
     exit
 # ANCHOR_END: insert
 

@@ -1,0 +1,38 @@
+
+#[repr(u8)]
+pub enum Instruction {
+    /// Initialize the tree (discriminator is number of accounts).
+    Initialize,
+    /// Insert node into tree instruction.
+    Insert,
+}
+
+#[repr(C, packed)]
+pub struct InstructionHeader {
+    discriminator: u8,
+}
+
+#[repr(C, packed)]
+pub struct InsertInstruction {
+    pub header: InstructionHeader,
+    pub key: u16,
+    pub value: u16,
+}
+
+#[repr(C, packed)]
+/// Value in r0.
+struct Return {
+    /// If a value is retrieved from the tree, it's encoded in high bits.
+    maybe_value: u16,
+    /// Nonzero iff error.
+    status: u16,
+}
+
+constant_group! {
+    /// Offsets for instruction processing.
+    instruction {
+        prefix = "INSN",
+        /// Offset to instruction discriminator byte.
+        offset!(DISCRIMINATOR, InstructionHeader.discriminator),
+    }
+}

@@ -11,7 +11,7 @@ ELF Header
   Version                           0x1
   Entry point address               0x0
   Start of program headers          64 (bytes into file)
-  Start of section headers          3936 (bytes into file)
+  Start of section headers          3960 (bytes into file)
   Flags                             0x4
   Size of this header               64 (bytes)
   Size of program headers           56 (bytes)
@@ -19,18 +19,18 @@ ELF Header
   Size of section headers           64 (bytes)
   Number of section headers         8
   Section header string table index 6
-There are 8 section headers, starting at offset 0xf60
+There are 8 section headers, starting at offset 0xf78
 
 Section Headers
   [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
-  [ 1] .text             PROGBITS        0000000000000000 000120 000550 00  AX  0   0  8
-  [ 2] .rodata           PROGBITS        0000000100000000 000670 000008 00   A  0   0  1
-  [ 3] .bss.stack        NOBITS          0000000200000000 000678 001000 00   A  0   0  1
-  [ 4] .bss.heap         NOBITS          0000000300000000 000678 001000 00   A  0   0  1
-  [ 5] .symtab           SYMTAB          0000000000000000 000678 000378 18      7  36  8
-  [ 6] .shstrtab         STRTAB          0000000000000000 0009f0 00003e 00      0   0  1
-  [ 7] .strtab           STRTAB          0000000000000000 000a2e 000532 00      0   0  1
+  [ 1] .text             PROGBITS        0000000000000000 000120 000568 00  AX  0   0  8
+  [ 2] .rodata           PROGBITS        0000000100000000 000688 000008 00   A  0   0  1
+  [ 3] .bss.stack        NOBITS          0000000200000000 000690 001000 00   A  0   0  1
+  [ 4] .bss.heap         NOBITS          0000000300000000 000690 001000 00   A  0   0  1
+  [ 5] .symtab           SYMTAB          0000000000000000 000690 000378 18      7  36  8
+  [ 6] .shstrtab         STRTAB          0000000000000000 000a08 00003e 00      0   0  1
+  [ 7] .strtab           STRTAB          0000000000000000 000a46 000532 00      0   0  1
 Key to Flags
   W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
   L (link order), O (extra OS processing required), G (group), T (TLS),
@@ -43,10 +43,10 @@ There are 4 program headers, starting at offset 64
 
 Program Headers
   Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
-  LOAD           0x000120 0x0000000000000000 0x0000000000000000 0x000550 0x000550   E 0x8
-  LOAD           0x000670 0x0000000100000000 0x0000000100000000 0x000008 0x000008 R   0x8
-  LOAD           0x000678 0x0000000200000000 0x0000000200000000 0x000000 0x001000 RW  0x8
-  LOAD           0x000678 0x0000000300000000 0x0000000300000000 0x000000 0x001000 RW  0x8
+  LOAD           0x000120 0x0000000000000000 0x0000000000000000 0x000568 0x000568   E 0x8
+  LOAD           0x000688 0x0000000100000000 0x0000000100000000 0x000008 0x000008 R   0x8
+  LOAD           0x000690 0x0000000200000000 0x0000000200000000 0x000000 0x001000 RW  0x8
+  LOAD           0x000690 0x0000000300000000 0x0000000300000000 0x000000 0x001000 RW  0x8
 
  Section to Segment mapping
   Segment Sections...
@@ -96,7 +96,7 @@ Symbol table '.symtab' contains 37 entries
     33 0000000200001000     0 NOTYPE  LOCAL  DEFAULT     3 _stack_end
     34 0000000300000000     0 NOTYPE  LOCAL  DEFAULT     4 _heap_start
     35 0000000300001000     0 NOTYPE  LOCAL  DEFAULT     4 _heap_end
-    36 0000000000000000  1360 FUNC    GLOBAL DEFAULT     1 entrypoint
+    36 0000000000000000  1384 FUNC    GLOBAL DEFAULT     1 entrypoint
 There are no section groups in this file.
 
 tree.so	file format elf64-sbf
@@ -106,171 +106,174 @@ Disassembly of section .text
 0000000000000000 <entrypoint>
        0 07 0a 00 00 c0 fe ff ff      	add64 r10, -0x140
        8 9c 13 00 00 00 00 00 00      	ldxdw r3, [r1 + 0x0]
-      10 55 03 0a 00 02 00 00 00      	jne r3, 0x2, +0xa <entrypoint+0x68>
+      10 55 03 0b 00 02 00 00 00      	jne r3, 0x2, +0xb <entrypoint+0x70>
       18 9c 13 58 00 00 00 00 00      	ldxdw r3, [r1 + 0x58]
-      20 55 03 93 00 00 00 00 00      	jne r3, 0x0, +0x93 <entrypoint+0x4c0>
+      20 55 03 94 00 00 00 00 00      	jne r3, 0x0, +0x94 <entrypoint+0x4c8>
       28 2c 11 68 28 00 00 00 00      	ldxb w1, [r1 + 0x2868]
-      30 55 01 93 00 ff 00 00 00      	jne r1, 0xff, +0x93 <entrypoint+0x4d0>
-      38 2c 21 00 00 00 00 00 00      	ldxb w1, [r2 + 0x0]
-      40 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
-      48 bc 11 00 00 00 00 00 00      	mov32 w1, w1
-      50 15 01 01 00 01 00 00 00      	jeq r1, 0x1, +0x1 <entrypoint+0x60>
-      58 b7 00 00 00 0b 00 00 00      	mov64 r0, 0xb
-      60 9d 00 00 00 00 00 00 00      	return
-      68 55 03 90 00 04 00 00 00      	jne r3, 0x4, +0x90 <entrypoint+0x4f0>
-      70 9c 13 58 00 00 00 00 00      	ldxdw r3, [r1 + 0x58]
-      78 55 03 88 00 00 00 00 00      	jne r3, 0x0, +0x88 <entrypoint+0x4c0>
-      80 2c 13 68 28 00 00 00 00      	ldxb w3, [r1 + 0x2868]
-      88 55 03 88 00 ff 00 00 00      	jne r3, 0xff, +0x88 <entrypoint+0x4d0>
-      90 9c 13 b8 28 00 00 00 00      	ldxdw r3, [r1 + 0x28b8]
-      98 55 03 8c 00 00 00 00 00      	jne r3, 0x0, +0x8c <entrypoint+0x500>
-      a0 2c 13 c8 50 00 00 00 00      	ldxb w3, [r1 + 0x50c8]
-      a8 55 03 8c 00 ff 00 00 00      	jne r3, 0xff, +0x8c <entrypoint+0x510>
-      b0 9c 13 18 51 00 00 00 00      	ldxdw r3, [r1 + 0x5118]
-      b8 55 03 8c 00 0e 00 00 00      	jne r3, 0xe, +0x8c <entrypoint+0x520>
-      c0 2c 13 38 79 00 00 00 00      	ldxb w3, [r1 + 0x7938]
-      c8 55 03 8c 00 ff 00 00 00      	jne r3, 0xff, +0x8c <entrypoint+0x530>
-      d0 b7 00 00 00 08 00 00 00      	mov64 r0, 0x8
-      d8 b4 03 00 00 06 a7 d5 17      	mov32 w3, 0x17d5a706
-      e0 f7 03 00 00 19 2c 5c 51      	hor64 r3, 0x515c2c19
-      e8 9c 14 40 79 00 00 00 00      	ldxdw r4, [r1 + 0x7940]
-      f0 5d 34 ed ff 00 00 00 00      	jne r4, r3, -0x13 <entrypoint+0x60>
-      f8 b4 03 00 00 21 8c c9 4c      	mov32 w3, 0x4cc98c21
-     100 f7 03 00 00 3d 4a f1 7f      	hor64 r3, 0x7ff14a3d
-     108 9c 14 48 79 00 00 00 00      	ldxdw r4, [r1 + 0x7948]
-     110 5d 34 e9 ff 00 00 00 00      	jne r4, r3, -0x17 <entrypoint+0x60>
-     118 b4 03 00 00 58 da ee 08      	mov32 w3, 0x8eeda58
-     120 f7 03 00 00 9b a1 fd 44      	hor64 r3, 0x44fda19b
-     128 9c 14 50 79 00 00 00 00      	ldxdw r4, [r1 + 0x7950]
-     130 5d 34 e5 ff 00 00 00 00      	jne r4, r3, -0x1b <entrypoint+0x60>
-     138 9c 13 58 79 00 00 00 00      	ldxdw r3, [r1 + 0x7958]
-     140 b4 04 00 00 e3 db d9 8a      	mov32 w4, -0x7526241d
-     148 5d 43 e2 ff 00 00 00 00      	jne r3, r4, -0x1e <entrypoint+0x60>
-     150 9c 22 f8 ff 00 00 00 00      	ldxdw r2, [r2 - 0x8]
-     158 55 02 7c 00 00 00 00 00      	jne r2, 0x0, +0x7c <entrypoint+0x540>
-     160 bf 16 00 00 00 00 00 00      	mov64 r6, r1
-     168 07 06 00 00 b8 a1 00 00      	add64 r6, 0xa1b8
-     170 bf a4 00 00 00 00 00 00      	mov64 r4, r10
-     178 07 04 00 00 68 00 00 00      	add64 r4, 0x68
-     180 bf a5 00 00 00 00 00 00      	mov64 r5, r10
-     188 07 05 00 00 13 00 00 00      	add64 r5, 0x13
-     190 bf 17 00 00 00 00 00 00      	mov64 r7, r1
-     198 b7 02 00 00 00 00 00 00      	mov64 r2, 0x0
-     1a0 bf 63 00 00 00 00 00 00      	mov64 r3, r6
-     1a8 95 00 00 00 38 4a 50 48      	syscall 0x48504a38
-     1b0 9c a1 68 00 00 00 00 00      	ldxdw r1, [r10 + 0x68]
-     1b8 9c 72 70 28 00 00 00 00      	ldxdw r2, [r7 + 0x2870]
-     1c0 5d 21 63 00 00 00 00 00      	jne r1, r2, +0x63 <entrypoint+0x4e0>
-     1c8 9c a1 70 00 00 00 00 00      	ldxdw r1, [r10 + 0x70]
-     1d0 9c 72 78 28 00 00 00 00      	ldxdw r2, [r7 + 0x2878]
-     1d8 5d 21 60 00 00 00 00 00      	jne r1, r2, +0x60 <entrypoint+0x4e0>
-     1e0 9c a1 78 00 00 00 00 00      	ldxdw r1, [r10 + 0x78]
-     1e8 9c 72 80 28 00 00 00 00      	ldxdw r2, [r7 + 0x2880]
-     1f0 5d 21 5d 00 00 00 00 00      	jne r1, r2, +0x5d <entrypoint+0x4e0>
-     1f8 9c a1 80 00 00 00 00 00      	ldxdw r1, [r10 + 0x80]
-     200 9c 72 88 28 00 00 00 00      	ldxdw r2, [r7 + 0x2888]
-     208 5d 21 5a 00 00 00 00 00      	jne r1, r2, +0x5a <entrypoint+0x4e0>
-     210 bf 71 00 00 00 00 00 00      	mov64 r1, r7
-     218 07 01 00 00 70 28 00 00      	add64 r1, 0x2870
-     220 9c 72 90 79 00 00 00 00      	ldxdw r2, [r7 + 0x7990]
-     228 9c 63 18 00 00 00 00 00      	ldxdw r3, [r6 + 0x18]
-     230 9f 3a 40 00 00 00 00 00      	stxdw [r10 + 0x40], r3
-     238 9c 63 10 00 00 00 00 00      	ldxdw r3, [r6 + 0x10]
-     240 9f 3a 38 00 00 00 00 00      	stxdw [r10 + 0x38], r3
-     248 9c 63 08 00 00 00 00 00      	ldxdw r3, [r6 + 0x8]
-     250 9f 3a 30 00 00 00 00 00      	stxdw [r10 + 0x30], r3
-     258 9c 63 00 00 00 00 00 00      	ldxdw r3, [r6 + 0x0]
-     260 9f 3a 28 00 00 00 00 00      	stxdw [r10 + 0x28], r3
-     268 96 02 00 00 98 00 00 00      	lmul64 r2, 0x98
-     270 9f 2a 18 00 00 00 00 00      	stxdw [r10 + 0x18], r2
-     278 97 0a 20 00 18 00 00 00      	stdw [r10 + 0x20], 0x18
-     280 87 0a 14 00 00 00 00 00      	stw [r10 + 0x14], 0x0
-     288 9f 1a 58 00 00 00 00 00      	stxdw [r10 + 0x58], r1
-     290 bf 72 00 00 00 00 00 00      	mov64 r2, r7
-     298 07 02 00 00 10 00 00 00      	add64 r2, 0x10
-     2a0 9f 2a 48 00 00 00 00 00      	stxdw [r10 + 0x48], r2
-     2a8 37 0a 60 00 01 01 00 00      	sth [r10 + 0x60], 0x101
-     2b0 37 0a 50 00 01 01 00 00      	sth [r10 + 0x50], 0x101
-     2b8 bf 73 00 00 00 00 00 00      	mov64 r3, r7
-     2c0 07 03 00 00 90 28 00 00      	add64 r3, 0x2890
-     2c8 9f 3a c0 00 00 00 00 00      	stxdw [r10 + 0xc0], r3
-     2d0 bf 73 00 00 00 00 00 00      	mov64 r3, r7
-     2d8 07 03 00 00 c0 28 00 00      	add64 r3, 0x28c0
-     2e0 9f 3a b8 00 00 00 00 00      	stxdw [r10 + 0xb8], r3
-     2e8 bf 73 00 00 00 00 00 00      	mov64 r3, r7
-     2f0 07 03 00 00 b0 28 00 00      	add64 r3, 0x28b0
-     2f8 9f 3a a8 00 00 00 00 00      	stxdw [r10 + 0xa8], r3
-     300 9f 1a a0 00 00 00 00 00      	stxdw [r10 + 0xa0], r1
-     308 bf 71 00 00 00 00 00 00      	mov64 r1, r7
-     310 07 01 00 00 30 00 00 00      	add64 r1, 0x30
-     318 9f 1a 88 00 00 00 00 00      	stxdw [r10 + 0x88], r1
-     320 bf 71 00 00 00 00 00 00      	mov64 r1, r7
-     328 07 01 00 00 60 00 00 00      	add64 r1, 0x60
-     330 9f 1a 80 00 00 00 00 00      	stxdw [r10 + 0x80], r1
-     338 bf 71 00 00 00 00 00 00      	mov64 r1, r7
-     340 07 01 00 00 50 00 00 00      	add64 r1, 0x50
-     348 9f 1a 70 00 00 00 00 00      	stxdw [r10 + 0x70], r1
-     350 9f 2a 68 00 00 00 00 00      	stxdw [r10 + 0x68], r2
-     358 27 0a d2 00 00 00 00 00      	stb [r10 + 0xd2], 0x0
-     360 37 0a d0 00 01 01 00 00      	sth [r10 + 0xd0], 0x101
-     368 97 0a c8 00 00 00 00 00      	stdw [r10 + 0xc8], 0x0
-     370 97 0a b0 00 00 00 00 00      	stdw [r10 + 0xb0], 0x0
-     378 27 0a 9a 00 00 00 00 00      	stb [r10 + 0x9a], 0x0
-     380 37 0a 98 00 01 01 00 00      	sth [r10 + 0x98], 0x101
-     388 97 0a 90 00 00 00 00 00      	stdw [r10 + 0x90], 0x0
-     390 97 0a 78 00 00 00 00 00      	stdw [r10 + 0x78], 0x0
-     398 97 0a f0 00 00 00 00 00      	stdw [r10 + 0xf0], 0x0
-     3a0 97 0a e8 00 00 00 00 00      	stdw [r10 + 0xe8], 0x0
-     3a8 97 0a e0 00 00 00 00 00      	stdw [r10 + 0xe0], 0x0
-     3b0 97 0a d8 00 00 00 00 00      	stdw [r10 + 0xd8], 0x0
-     3b8 bf a1 00 00 00 00 00 00      	mov64 r1, r10
-     3c0 07 01 00 00 14 00 00 00      	add64 r1, 0x14
-     3c8 9f 1a 10 01 00 00 00 00      	stxdw [r10 + 0x110], r1
-     3d0 bf a1 00 00 00 00 00 00      	mov64 r1, r10
-     3d8 07 01 00 00 48 00 00 00      	add64 r1, 0x48
-     3e0 9f 1a 00 01 00 00 00 00      	stxdw [r10 + 0x100], r1
-     3e8 bf a1 00 00 00 00 00 00      	mov64 r1, r10
-     3f0 07 01 00 00 d8 00 00 00      	add64 r1, 0xd8
-     3f8 9f 1a f8 00 00 00 00 00      	stxdw [r10 + 0xf8], r1
-     400 97 0a 18 01 34 00 00 00      	stdw [r10 + 0x118], 0x34
-     408 97 0a 08 01 02 00 00 00      	stdw [r10 + 0x108], 0x2
-     410 bf a1 00 00 00 00 00 00      	mov64 r1, r10
-     418 07 01 00 00 13 00 00 00      	add64 r1, 0x13
-     420 9f 1a 20 01 00 00 00 00      	stxdw [r10 + 0x120], r1
-     428 97 0a 28 01 01 00 00 00      	stdw [r10 + 0x128], 0x1
-     430 bf a1 00 00 00 00 00 00      	mov64 r1, r10
-     438 07 01 00 00 20 01 00 00      	add64 r1, 0x120
-     440 9f 1a 30 01 00 00 00 00      	stxdw [r10 + 0x130], r1
-     448 97 0a 38 01 01 00 00 00      	stdw [r10 + 0x138], 0x1
-     450 bf a1 00 00 00 00 00 00      	mov64 r1, r10
-     458 07 01 00 00 f8 00 00 00      	add64 r1, 0xf8
-     460 bf a2 00 00 00 00 00 00      	mov64 r2, r10
-     468 07 02 00 00 68 00 00 00      	add64 r2, 0x68
-     470 bf a4 00 00 00 00 00 00      	mov64 r4, r10
-     478 07 04 00 00 30 01 00 00      	add64 r4, 0x130
-     480 b7 03 00 00 02 00 00 00      	mov64 r3, 0x2
-     488 b7 05 00 00 01 00 00 00      	mov64 r5, 0x1
-     490 95 00 00 00 85 9c 2b a2      	syscall -0x5dd4637b
-     498 bf 71 00 00 00 00 00 00      	mov64 r1, r7
-     4a0 07 01 00 00 d8 28 00 00      	add64 r1, 0x28d8
-     4a8 9f 17 d0 28 00 00 00 00      	stxdw [r7 + 0x28d0], r1
-     4b0 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
-     4b8 05 00 74 ff 00 00 00 00      	ja -0x8c <entrypoint+0x60>
-     4c0 b7 00 00 00 02 00 00 00      	mov64 r0, 0x2
-     4c8 05 00 72 ff 00 00 00 00      	ja -0x8e <entrypoint+0x60>
-     4d0 b7 00 00 00 05 00 00 00      	mov64 r0, 0x5
-     4d8 05 00 70 ff 00 00 00 00      	ja -0x90 <entrypoint+0x60>
-     4e0 b7 00 00 00 0a 00 00 00      	mov64 r0, 0xa
-     4e8 05 00 6e ff 00 00 00 00      	ja -0x92 <entrypoint+0x60>
-     4f0 b7 00 00 00 01 00 00 00      	mov64 r0, 0x1
-     4f8 05 00 6c ff 00 00 00 00      	ja -0x94 <entrypoint+0x60>
-     500 b7 00 00 00 03 00 00 00      	mov64 r0, 0x3
-     508 05 00 6a ff 00 00 00 00      	ja -0x96 <entrypoint+0x60>
-     510 b7 00 00 00 06 00 00 00      	mov64 r0, 0x6
-     518 05 00 68 ff 00 00 00 00      	ja -0x98 <entrypoint+0x60>
-     520 b7 00 00 00 04 00 00 00      	mov64 r0, 0x4
-     528 05 00 66 ff 00 00 00 00      	ja -0x9a <entrypoint+0x60>
-     530 b7 00 00 00 07 00 00 00      	mov64 r0, 0x7
-     538 05 00 64 ff 00 00 00 00      	ja -0x9c <entrypoint+0x60>
-     540 b7 00 00 00 09 00 00 00      	mov64 r0, 0x9
-     548 05 00 62 ff 00 00 00 00      	ja -0x9e <entrypoint+0x60>
+      30 55 01 94 00 ff 00 00 00      	jne r1, 0xff, +0x94 <entrypoint+0x4d8>
+      38 b7 00 00 00 0b 00 00 00      	mov64 r0, 0xb
+      40 2c 21 00 00 00 00 00 00      	ldxb w1, [r2 + 0x0]
+      48 55 01 03 00 01 00 00 00      	jne r1, 0x1, +0x3 <entrypoint+0x68>
+      50 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
+      58 9c 21 f8 ff 00 00 00 00      	ldxdw r1, [r2 - 0x8]
+      60 55 01 90 00 05 00 00 00      	jne r1, 0x5, +0x90 <entrypoint+0x4e8>
+      68 9d 00 00 00 00 00 00 00      	return
+      70 55 03 92 00 04 00 00 00      	jne r3, 0x4, +0x92 <entrypoint+0x508>
+      78 9c 13 58 00 00 00 00 00      	ldxdw r3, [r1 + 0x58]
+      80 55 03 88 00 00 00 00 00      	jne r3, 0x0, +0x88 <entrypoint+0x4c8>
+      88 2c 13 68 28 00 00 00 00      	ldxb w3, [r1 + 0x2868]
+      90 55 03 88 00 ff 00 00 00      	jne r3, 0xff, +0x88 <entrypoint+0x4d8>
+      98 9c 13 b8 28 00 00 00 00      	ldxdw r3, [r1 + 0x28b8]
+      a0 55 03 8e 00 00 00 00 00      	jne r3, 0x0, +0x8e <entrypoint+0x518>
+      a8 2c 13 c8 50 00 00 00 00      	ldxb w3, [r1 + 0x50c8]
+      b0 55 03 8e 00 ff 00 00 00      	jne r3, 0xff, +0x8e <entrypoint+0x528>
+      b8 9c 13 18 51 00 00 00 00      	ldxdw r3, [r1 + 0x5118]
+      c0 55 03 8e 00 0e 00 00 00      	jne r3, 0xe, +0x8e <entrypoint+0x538>
+      c8 2c 13 38 79 00 00 00 00      	ldxb w3, [r1 + 0x7938]
+      d0 55 03 8e 00 ff 00 00 00      	jne r3, 0xff, +0x8e <entrypoint+0x548>
+      d8 b7 00 00 00 08 00 00 00      	mov64 r0, 0x8
+      e0 b4 03 00 00 06 a7 d5 17      	mov32 w3, 0x17d5a706
+      e8 f7 03 00 00 19 2c 5c 51      	hor64 r3, 0x515c2c19
+      f0 9c 14 40 79 00 00 00 00      	ldxdw r4, [r1 + 0x7940]
+      f8 5d 34 ed ff 00 00 00 00      	jne r4, r3, -0x13 <entrypoint+0x68>
+     100 b4 03 00 00 21 8c c9 4c      	mov32 w3, 0x4cc98c21
+     108 f7 03 00 00 3d 4a f1 7f      	hor64 r3, 0x7ff14a3d
+     110 9c 14 48 79 00 00 00 00      	ldxdw r4, [r1 + 0x7948]
+     118 5d 34 e9 ff 00 00 00 00      	jne r4, r3, -0x17 <entrypoint+0x68>
+     120 b4 03 00 00 58 da ee 08      	mov32 w3, 0x8eeda58
+     128 f7 03 00 00 9b a1 fd 44      	hor64 r3, 0x44fda19b
+     130 9c 14 50 79 00 00 00 00      	ldxdw r4, [r1 + 0x7950]
+     138 5d 34 e5 ff 00 00 00 00      	jne r4, r3, -0x1b <entrypoint+0x68>
+     140 9c 13 58 79 00 00 00 00      	ldxdw r3, [r1 + 0x7958]
+     148 b4 04 00 00 e3 db d9 8a      	mov32 w4, -0x7526241d
+     150 5d 43 e2 ff 00 00 00 00      	jne r3, r4, -0x1e <entrypoint+0x68>
+     158 9c 22 f8 ff 00 00 00 00      	ldxdw r2, [r2 - 0x8]
+     160 55 02 7e 00 00 00 00 00      	jne r2, 0x0, +0x7e <entrypoint+0x558>
+     168 bf 16 00 00 00 00 00 00      	mov64 r6, r1
+     170 07 06 00 00 b8 a1 00 00      	add64 r6, 0xa1b8
+     178 bf a4 00 00 00 00 00 00      	mov64 r4, r10
+     180 07 04 00 00 68 00 00 00      	add64 r4, 0x68
+     188 bf a5 00 00 00 00 00 00      	mov64 r5, r10
+     190 07 05 00 00 13 00 00 00      	add64 r5, 0x13
+     198 bf 17 00 00 00 00 00 00      	mov64 r7, r1
+     1a0 b7 02 00 00 00 00 00 00      	mov64 r2, 0x0
+     1a8 bf 63 00 00 00 00 00 00      	mov64 r3, r6
+     1b0 95 00 00 00 38 4a 50 48      	syscall 0x48504a38
+     1b8 9c a1 68 00 00 00 00 00      	ldxdw r1, [r10 + 0x68]
+     1c0 9c 72 70 28 00 00 00 00      	ldxdw r2, [r7 + 0x2870]
+     1c8 5d 21 65 00 00 00 00 00      	jne r1, r2, +0x65 <entrypoint+0x4f8>
+     1d0 9c a1 70 00 00 00 00 00      	ldxdw r1, [r10 + 0x70]
+     1d8 9c 72 78 28 00 00 00 00      	ldxdw r2, [r7 + 0x2878]
+     1e0 5d 21 62 00 00 00 00 00      	jne r1, r2, +0x62 <entrypoint+0x4f8>
+     1e8 9c a1 78 00 00 00 00 00      	ldxdw r1, [r10 + 0x78]
+     1f0 9c 72 80 28 00 00 00 00      	ldxdw r2, [r7 + 0x2880]
+     1f8 5d 21 5f 00 00 00 00 00      	jne r1, r2, +0x5f <entrypoint+0x4f8>
+     200 9c a1 80 00 00 00 00 00      	ldxdw r1, [r10 + 0x80]
+     208 9c 72 88 28 00 00 00 00      	ldxdw r2, [r7 + 0x2888]
+     210 5d 21 5c 00 00 00 00 00      	jne r1, r2, +0x5c <entrypoint+0x4f8>
+     218 bf 71 00 00 00 00 00 00      	mov64 r1, r7
+     220 07 01 00 00 70 28 00 00      	add64 r1, 0x2870
+     228 9c 72 90 79 00 00 00 00      	ldxdw r2, [r7 + 0x7990]
+     230 9c 63 18 00 00 00 00 00      	ldxdw r3, [r6 + 0x18]
+     238 9f 3a 40 00 00 00 00 00      	stxdw [r10 + 0x40], r3
+     240 9c 63 10 00 00 00 00 00      	ldxdw r3, [r6 + 0x10]
+     248 9f 3a 38 00 00 00 00 00      	stxdw [r10 + 0x38], r3
+     250 9c 63 08 00 00 00 00 00      	ldxdw r3, [r6 + 0x8]
+     258 9f 3a 30 00 00 00 00 00      	stxdw [r10 + 0x30], r3
+     260 9c 63 00 00 00 00 00 00      	ldxdw r3, [r6 + 0x0]
+     268 9f 3a 28 00 00 00 00 00      	stxdw [r10 + 0x28], r3
+     270 96 02 00 00 98 00 00 00      	lmul64 r2, 0x98
+     278 9f 2a 18 00 00 00 00 00      	stxdw [r10 + 0x18], r2
+     280 97 0a 20 00 18 00 00 00      	stdw [r10 + 0x20], 0x18
+     288 87 0a 14 00 00 00 00 00      	stw [r10 + 0x14], 0x0
+     290 9f 1a 58 00 00 00 00 00      	stxdw [r10 + 0x58], r1
+     298 bf 72 00 00 00 00 00 00      	mov64 r2, r7
+     2a0 07 02 00 00 10 00 00 00      	add64 r2, 0x10
+     2a8 9f 2a 48 00 00 00 00 00      	stxdw [r10 + 0x48], r2
+     2b0 37 0a 60 00 01 01 00 00      	sth [r10 + 0x60], 0x101
+     2b8 37 0a 50 00 01 01 00 00      	sth [r10 + 0x50], 0x101
+     2c0 bf 73 00 00 00 00 00 00      	mov64 r3, r7
+     2c8 07 03 00 00 90 28 00 00      	add64 r3, 0x2890
+     2d0 9f 3a c0 00 00 00 00 00      	stxdw [r10 + 0xc0], r3
+     2d8 bf 73 00 00 00 00 00 00      	mov64 r3, r7
+     2e0 07 03 00 00 c0 28 00 00      	add64 r3, 0x28c0
+     2e8 9f 3a b8 00 00 00 00 00      	stxdw [r10 + 0xb8], r3
+     2f0 bf 73 00 00 00 00 00 00      	mov64 r3, r7
+     2f8 07 03 00 00 b0 28 00 00      	add64 r3, 0x28b0
+     300 9f 3a a8 00 00 00 00 00      	stxdw [r10 + 0xa8], r3
+     308 9f 1a a0 00 00 00 00 00      	stxdw [r10 + 0xa0], r1
+     310 bf 71 00 00 00 00 00 00      	mov64 r1, r7
+     318 07 01 00 00 30 00 00 00      	add64 r1, 0x30
+     320 9f 1a 88 00 00 00 00 00      	stxdw [r10 + 0x88], r1
+     328 bf 71 00 00 00 00 00 00      	mov64 r1, r7
+     330 07 01 00 00 60 00 00 00      	add64 r1, 0x60
+     338 9f 1a 80 00 00 00 00 00      	stxdw [r10 + 0x80], r1
+     340 bf 71 00 00 00 00 00 00      	mov64 r1, r7
+     348 07 01 00 00 50 00 00 00      	add64 r1, 0x50
+     350 9f 1a 70 00 00 00 00 00      	stxdw [r10 + 0x70], r1
+     358 9f 2a 68 00 00 00 00 00      	stxdw [r10 + 0x68], r2
+     360 27 0a d2 00 00 00 00 00      	stb [r10 + 0xd2], 0x0
+     368 37 0a d0 00 01 01 00 00      	sth [r10 + 0xd0], 0x101
+     370 97 0a c8 00 00 00 00 00      	stdw [r10 + 0xc8], 0x0
+     378 97 0a b0 00 00 00 00 00      	stdw [r10 + 0xb0], 0x0
+     380 27 0a 9a 00 00 00 00 00      	stb [r10 + 0x9a], 0x0
+     388 37 0a 98 00 01 01 00 00      	sth [r10 + 0x98], 0x101
+     390 97 0a 90 00 00 00 00 00      	stdw [r10 + 0x90], 0x0
+     398 97 0a 78 00 00 00 00 00      	stdw [r10 + 0x78], 0x0
+     3a0 97 0a f0 00 00 00 00 00      	stdw [r10 + 0xf0], 0x0
+     3a8 97 0a e8 00 00 00 00 00      	stdw [r10 + 0xe8], 0x0
+     3b0 97 0a e0 00 00 00 00 00      	stdw [r10 + 0xe0], 0x0
+     3b8 97 0a d8 00 00 00 00 00      	stdw [r10 + 0xd8], 0x0
+     3c0 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     3c8 07 01 00 00 14 00 00 00      	add64 r1, 0x14
+     3d0 9f 1a 10 01 00 00 00 00      	stxdw [r10 + 0x110], r1
+     3d8 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     3e0 07 01 00 00 48 00 00 00      	add64 r1, 0x48
+     3e8 9f 1a 00 01 00 00 00 00      	stxdw [r10 + 0x100], r1
+     3f0 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     3f8 07 01 00 00 d8 00 00 00      	add64 r1, 0xd8
+     400 9f 1a f8 00 00 00 00 00      	stxdw [r10 + 0xf8], r1
+     408 97 0a 18 01 34 00 00 00      	stdw [r10 + 0x118], 0x34
+     410 97 0a 08 01 02 00 00 00      	stdw [r10 + 0x108], 0x2
+     418 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     420 07 01 00 00 13 00 00 00      	add64 r1, 0x13
+     428 9f 1a 20 01 00 00 00 00      	stxdw [r10 + 0x120], r1
+     430 97 0a 28 01 01 00 00 00      	stdw [r10 + 0x128], 0x1
+     438 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     440 07 01 00 00 20 01 00 00      	add64 r1, 0x120
+     448 9f 1a 30 01 00 00 00 00      	stxdw [r10 + 0x130], r1
+     450 97 0a 38 01 01 00 00 00      	stdw [r10 + 0x138], 0x1
+     458 bf a1 00 00 00 00 00 00      	mov64 r1, r10
+     460 07 01 00 00 f8 00 00 00      	add64 r1, 0xf8
+     468 bf a2 00 00 00 00 00 00      	mov64 r2, r10
+     470 07 02 00 00 68 00 00 00      	add64 r2, 0x68
+     478 bf a4 00 00 00 00 00 00      	mov64 r4, r10
+     480 07 04 00 00 30 01 00 00      	add64 r4, 0x130
+     488 b7 03 00 00 02 00 00 00      	mov64 r3, 0x2
+     490 b7 05 00 00 01 00 00 00      	mov64 r5, 0x1
+     498 95 00 00 00 85 9c 2b a2      	syscall -0x5dd4637b
+     4a0 bf 71 00 00 00 00 00 00      	mov64 r1, r7
+     4a8 07 01 00 00 d8 28 00 00      	add64 r1, 0x28d8
+     4b0 9f 17 d0 28 00 00 00 00      	stxdw [r7 + 0x28d0], r1
+     4b8 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
+     4c0 05 00 74 ff 00 00 00 00      	ja -0x8c <entrypoint+0x68>
+     4c8 b7 00 00 00 02 00 00 00      	mov64 r0, 0x2
+     4d0 05 00 72 ff 00 00 00 00      	ja -0x8e <entrypoint+0x68>
+     4d8 b7 00 00 00 05 00 00 00      	mov64 r0, 0x5
+     4e0 05 00 70 ff 00 00 00 00      	ja -0x90 <entrypoint+0x68>
+     4e8 b7 00 00 00 0c 00 00 00      	mov64 r0, 0xc
+     4f0 05 00 6e ff 00 00 00 00      	ja -0x92 <entrypoint+0x68>
+     4f8 b7 00 00 00 0a 00 00 00      	mov64 r0, 0xa
+     500 05 00 6c ff 00 00 00 00      	ja -0x94 <entrypoint+0x68>
+     508 b7 00 00 00 01 00 00 00      	mov64 r0, 0x1
+     510 05 00 6a ff 00 00 00 00      	ja -0x96 <entrypoint+0x68>
+     518 b7 00 00 00 03 00 00 00      	mov64 r0, 0x3
+     520 05 00 68 ff 00 00 00 00      	ja -0x98 <entrypoint+0x68>
+     528 b7 00 00 00 06 00 00 00      	mov64 r0, 0x6
+     530 05 00 66 ff 00 00 00 00      	ja -0x9a <entrypoint+0x68>
+     538 b7 00 00 00 04 00 00 00      	mov64 r0, 0x4
+     540 05 00 64 ff 00 00 00 00      	ja -0x9c <entrypoint+0x68>
+     548 b7 00 00 00 07 00 00 00      	mov64 r0, 0x7
+     550 05 00 62 ff 00 00 00 00      	ja -0x9e <entrypoint+0x68>
+     558 b7 00 00 00 09 00 00 00      	mov64 r0, 0x9
+     560 05 00 60 ff 00 00 00 00      	ja -0xa0 <entrypoint+0x68>

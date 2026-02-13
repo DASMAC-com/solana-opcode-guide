@@ -71,6 +71,10 @@ fn main() {
     let rs_path = manifest_path.join("src/program.rs");
     let rs_content = fs::read_to_string(&rs_path).unwrap();
     extract_snippets(&rs_content, manifest_path, "rs");
+
+    let common_path = manifest_path.join("interface/src/common.rs");
+    let common_content = fs::read_to_string(&common_path).unwrap();
+    extract_snippets(&common_content, manifest_path, "interface");
 }
 
 /// Extract ANCHOR snippets from source content and write to artifacts/snippets/{kind}/.

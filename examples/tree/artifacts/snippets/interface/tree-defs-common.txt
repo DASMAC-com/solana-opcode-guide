@@ -1,0 +1,54 @@
+#[repr(u8)]
+pub enum Color {
+    Black,
+    Red,
+}
+
+#[repr(usize)]
+pub enum Direction {
+    Left,
+    Right,
+}
+
+constant_group! {
+    /// Tree constants.
+    tree {
+        /// Max number of children per node.
+        N_CHILDREN: usize = 2,
+        /// Left direction.
+        DIR_L = Direction::Left as usize,
+        /// Right direction.
+        DIR_R = Direction::Right as usize,
+        /// Black color.
+        COLOR_B = Color::Black as u8,
+        /// Red color.
+        COLOR_R = Color::Red as u8,
+        /// Next node field in header.
+        offset!(HEADER_NEXT, TreeHeader.next),
+    }
+}
+
+#[repr(C, packed)]
+/// Tree account data header. Contains pointer to tree root and top of free node stack.
+pub struct TreeHeader {
+    /// Aboslute pointer to tree root in memory map.
+    pub root: *mut TreeNode,
+    /// Absolute pointer to stack top in memory map.
+    pub top: *mut StackNode,
+    /// Absolute pointer to where the next node should be allocated in memory map.
+    pub next: *mut TreeNode,
+}
+
+#[repr(C, packed)]
+pub struct TreeNode {
+    pub parent: *mut TreeNode,
+    pub child: [*mut TreeNode; tree::N_CHILDREN],
+    pub key: u16,
+    pub value: u16,
+    pub color: Color,
+}
+
+#[repr(C, packed)]
+pub struct StackNode {
+    pub next: *mut StackNode,
+}

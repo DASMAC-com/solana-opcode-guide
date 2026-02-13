@@ -1,5 +1,4 @@
 initialize:
-
     # Error if user has data.
     # ---------------------------------------------------------------------
     ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]

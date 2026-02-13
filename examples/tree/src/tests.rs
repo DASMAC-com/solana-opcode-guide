@@ -1,5 +1,7 @@
 mod entrypoint;
+mod general;
 mod init;
+mod insert;
 
 use mollusk_svm::result::ProgramResult as MolluskResult;
 use solana_sdk::account::Account;
@@ -145,6 +147,16 @@ fn print_comparison_table<T: TestCase>(
 #[test]
 fn test_entrypoint_branching() {
     print_comparison_table(entrypoint::EntrypointCase::CASES, false, false);
+}
+
+#[test]
+fn test_general_branching() {
+    print_comparison_table(general::GeneralCase::CASES, false, false);
+}
+
+#[test]
+fn test_insert() {
+    print_comparison_table(insert::InsertCase::CASES, false, false);
 }
 
 #[test]
