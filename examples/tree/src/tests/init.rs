@@ -3,8 +3,13 @@ use mollusk_svm::program;
 use mollusk_svm::result::{Check, Config};
 use pinocchio::sysvars::rent::Rent;
 use solana_sdk::instruction::AccountMeta;
+use tree_interface::{input_buffer, tree, TreeHeader};
 
 const SIMD0194_EXEMPTION_THRESHOLD: f64 = 1.0;
+
+/// Virtual address of the input buffer in the SVM memory map.
+/// See `solana_sbpf::ebpf::MM_INPUT_START`.
+const MM_INPUT_START: u64 = 0x400000000;
 
 fn init_setup(
     program_language: ProgramLanguage,
@@ -448,18 +453,24 @@ impl TestCase for InitCase {
                                 expected_lamports, tree.lamports
                             ));
                         }
+                        let expected_next = MM_INPUT_START
+                            + input_buffer::TREE_DATA_OFF as u64
+                            + size_of::<TreeHeader>() as u64;
+                        let header = unsafe { &*(tree.data.as_ptr() as *const TreeHeader) };
+                        let actual_next = header.next as u64;
+                        if actual_next != expected_next {
+                            errors.push(format!(
+                                "next: expected {:#x}, got {:#x}",
+                                expected_next, actual_next
+                            ));
+                        }
                         let config = Config {
                             panic: false,
                             verbose: false,
                         };
-                        if !result.run_checks(
-                            &[Check::all_rent_exempt()],
-                            &config,
-                            &setup.mollusk,
-                        ) {
-                            errors.push(
-                                "not all accounts are rent exempt".to_string(),
-                            );
+                        if !result.run_checks(&[Check::all_rent_exempt()], &config, &setup.mollusk)
+                        {
+                            errors.push("not all accounts are rent exempt".to_string());
                         }
                         CaseResult {
                             cu: result.compute_units_consumed,

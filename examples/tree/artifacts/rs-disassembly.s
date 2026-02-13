@@ -154,7 +154,7 @@ jmp_0068:
   mov64 r5, 1
   call sol_invoke_signed_c
   mov64 r1, r7
-  add64 r1, 10448
+  add64 r1, 10456
   stxdw [r7+10448], r1
   mov64 r0, 0
   ja jmp_0060

@@ -252,7 +252,7 @@ Disassembly of section .text
      488 b7 05 00 00 01 00 00 00      	mov64 r5, 0x1
      490 95 00 00 00 85 9c 2b a2      	syscall -0x5dd4637b
      498 bf 71 00 00 00 00 00 00      	mov64 r1, r7
-     4a0 07 01 00 00 d0 28 00 00      	add64 r1, 0x28d0
+     4a0 07 01 00 00 d8 28 00 00      	add64 r1, 0x28d8
      4a8 9f 17 d0 28 00 00 00 00      	stxdw [r7 + 0x28d0], r1
      4b0 b7 00 00 00 00 00 00 00      	mov64 r0, 0x0
      4b8 05 00 74 ff 00 00 00 00      	ja -0x8c <entrypoint+0x60>

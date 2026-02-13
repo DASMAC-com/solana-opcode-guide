@@ -273,8 +273,7 @@ unsafe fn initialize(input_buffer_ptr: *mut u8, instruction_data_ptr: *mut u8) -
     }
 
     // Store next pointer in tree header.
-    let tree_data_ptr = tree.data_ptr();
-    let next_ptr = tree_data_ptr.add(size_of::<TreeHeader>()).cast();
+    let next_ptr = tree.data_ptr().add(size_of::<TreeHeader>()).cast();
     (*tree.data_ptr().cast::<TreeHeader>()).next = next_ptr;
     // ANCHOR_END: initialize-create-account
 
@@ -309,9 +308,9 @@ unsafe fn rotate_subtree(
     subtree: *mut TreeNode,
     direction: usize,
 ) -> *mut TreeNode {
-    let subtree_parent = (*subtree).parent as *mut TreeNode;
-    let new_root = (*subtree).child[opposite(direction)] as *mut TreeNode;
-    let new_child = (*new_root).child[direction] as *mut TreeNode;
+    let subtree_parent = (*subtree).parent;
+    let new_root = (*subtree).child[opposite(direction)];
+    let new_child = (*new_root).child[direction];
 
     (*subtree).child[opposite(direction)] = new_child;
 
