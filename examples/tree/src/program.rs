@@ -146,7 +146,7 @@ pub unsafe extern "C" fn entrypoint(input: *mut u8, instruction_data: *mut u8) -
 }
 // ANCHOR_END: entrypoint-branching
 
-// ANCHOR: insert
+// ANCHOR: insert-input-checks
 #[inline(always)]
 unsafe fn insert(
     input: *mut u8,
@@ -167,7 +167,9 @@ unsafe fn insert(
 
     // Error if tree is duplicate.
     let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
+    // ANCHOR_END: insert-input-checks
 
+    // ANCHOR: insert-allocate
     // Allocate or recycle a node.
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
     let node: *mut TreeNode = if (*tree_header).top.is_null() {
@@ -280,6 +282,7 @@ unsafe fn insert(
         (*tree_header).top = (*top).next;
         top.cast()
     };
+    // ANCHOR_END: insert-allocate
 
     // Initialize node as root of tree.
     (*tree_header).root = node;
@@ -298,7 +301,6 @@ unsafe fn insert(
 
     SUCCESS
 }
-// ANCHOR_END: insert
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]

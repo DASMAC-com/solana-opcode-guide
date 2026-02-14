@@ -4,14 +4,27 @@ use mollusk_svm::result::{Check, Config};
 use pinocchio::sysvars::rent::Rent;
 use solana_sdk::instruction::AccountMeta;
 use tree_interface::{
-    cpi, input_buffer, tree, Instruction as TreeInstruction, StackNode, TreeHeader, TreeNode,
+    cpi, input_buffer, tree, InstructionHeader, Instruction as TreeInstruction, InsertInstruction,
+    StackNode, TreeHeader, TreeNode,
 };
+
+const TEST_KEY: u16 = 42;
+const TEST_VALUE: u16 = 1;
+
+fn insert_instruction_data() -> InsertInstruction {
+    InsertInstruction {
+        header: InstructionHeader {
+            discriminator: TreeInstruction::Insert as u8,
+        },
+        key: TEST_KEY,
+        value: TEST_VALUE,
+    }
+}
 
 fn insert_setup(
     program_language: ProgramLanguage,
 ) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
-    let mut setup = setup_test(program_language);
-    setup.mollusk.sysvars.rent.exemption_threshold = SIMD0194_EXEMPTION_THRESHOLD;
+    let mut setup = setup_test_with_rent(program_language);
     let (system_program_pubkey, system_program_account) =
         program::keyed_account_for_system_program();
     let (rent_sysvar_pubkey, rent_sysvar_account) =
@@ -20,18 +33,10 @@ fn insert_setup(
     let user_pubkey = Pubkey::new_unique();
     let tree_pubkey = Pubkey::new_unique();
 
-    // Valid InsertInstruction: discriminator (1) + key (u16) + value (u16) = 5 bytes.
-    let instruction_data: [u8; 5] = [
-        TreeInstruction::Insert as u8,
-        42,
-        0, // key
-        1,
-        0, // value
-    ];
-
+    let insn_data = insert_instruction_data();
     let instruction = Instruction::new_with_bytes(
         setup.program_id,
-        &instruction_data,
+        unsafe { as_bytes(&insn_data) },
         vec![
             AccountMeta::new(user_pubkey, true),
             AccountMeta::new(tree_pubkey, false),
@@ -74,17 +79,10 @@ fn insert_skip_alloc_setup(
     let user_pubkey = Pubkey::new_unique();
     let tree_pubkey = Pubkey::new_unique();
 
-    let instruction_data: [u8; 5] = [
-        TreeInstruction::Insert as u8,
-        42,
-        0, // key
-        1,
-        0, // value
-    ];
-
+    let insn_data = insert_instruction_data();
     let instruction = Instruction::new_with_bytes(
         setup.program_id,
-        &instruction_data,
+        unsafe { as_bytes(&insn_data) },
         vec![
             AccountMeta::new(user_pubkey, true),
             AccountMeta::new(tree_pubkey, false),
@@ -236,11 +234,11 @@ impl TestCase for InsertCase {
                         };
                         let key = node.key;
                         let value = node.value;
-                        if key != 42 {
-                            errors.push(format!("key: expected 42, got {}", key));
+                        if key != TEST_KEY {
+                            errors.push(format!("key: expected {}, got {}", TEST_KEY, key));
                         }
-                        if value != 1 {
-                            errors.push(format!("value: expected 1, got {}", value));
+                        if value != TEST_VALUE {
+                            errors.push(format!("value: expected {}, got {}", TEST_VALUE, value));
                         }
                         let config = Config {
                             panic: false,

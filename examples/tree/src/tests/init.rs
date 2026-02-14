@@ -44,8 +44,7 @@ fn init_setup(
 fn pda_init_setup(
     program_language: ProgramLanguage,
 ) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
-    let mut setup = setup_test(program_language);
-    setup.mollusk.sysvars.rent.exemption_threshold = SIMD0194_EXEMPTION_THRESHOLD;
+    let mut setup = setup_test_with_rent(program_language);
     let (system_program_pubkey, system_program_account) =
         program::keyed_account_for_system_program();
     let (rent_sysvar_pubkey, rent_sysvar_account) =

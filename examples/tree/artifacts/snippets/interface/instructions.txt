@@ -9,7 +9,7 @@ pub enum Instruction {
 
 #[repr(C, packed)]
 pub struct InstructionHeader {
-    discriminator: u8,
+    pub discriminator: u8,
 }
 
 #[repr(C, packed)]

@@ -1,24 +1,3 @@
-#[inline(always)]
-unsafe fn insert(
-    input: *mut u8,
-    instruction_data: *mut u8,
-    instruction_data_len: u64,
-    n_accounts: u64,
-) -> u64 {
-    check_instruction_data_len!(instruction_data_len, InsertInstruction);
-
-    // Error if too few accounts.
-    if_err!(
-        n_accounts < input_buffer::N_ACCOUNTS_GENERAL,
-        error::N_ACCOUNTS
-    );
-
-    // Error if user has data.
-    let user = user_account!(input);
-
-    // Error if tree is duplicate.
-    let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
-
     // Allocate or recycle a node.
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
     let node: *mut TreeNode = if (*tree_header).top.is_null() {
@@ -131,21 +110,3 @@ unsafe fn insert(
         (*tree_header).top = (*top).next;
         top.cast()
     };
-
-    // Initialize node as root of tree.
-    (*tree_header).root = node;
-
-    // Set key and value from instruction data. Parent, children, and color are already null/zero.
-    (*node).key = read_unaligned(
-        instruction_data
-            .add(instruction::INSERT_KEY_OFF as usize)
-            .cast(),
-    );
-    (*node).value = read_unaligned(
-        instruction_data
-            .add(instruction::INSERT_VALUE_OFF as usize)
-            .cast(),
-    );
-
-    SUCCESS
-}

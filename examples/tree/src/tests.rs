@@ -19,6 +19,18 @@ const MM_INPUT_START: u64 = 0x400000000;
 /// Rent exemption threshold per SIMD-0194.
 const SIMD0194_EXEMPTION_THRESHOLD: f64 = 1.0;
 
+/// Set up a test with SIMD-0194 rent exemption threshold.
+fn setup_test_with_rent(lang: ProgramLanguage) -> TestSetup {
+    let mut setup = setup_test(lang);
+    setup.mollusk.sysvars.rent.exemption_threshold = SIMD0194_EXEMPTION_THRESHOLD;
+    setup
+}
+
+/// Cast a sized value to its raw byte representation.
+unsafe fn as_bytes<T: Sized>(val: &T) -> &[u8] {
+    core::slice::from_raw_parts(val as *const T as *const u8, size_of::<T>())
+}
+
 /// Fixed costs for syscalls and CPI operations.
 mod fixed_costs {
     /// Cost for sol_try_find_program_address syscall.
