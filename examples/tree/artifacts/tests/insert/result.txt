@@ -2,9 +2,9 @@
 |-----------|----------------|---------------|----------------|----------|------------|
 | Instruction data too short | 0 | 7 | 9 | +2 | +28.6% |
 | Instruction data too long | 0 | 7 | 9 | +2 | +28.6% |
-| Insert skip alloc | 0 | 6 | 25 | +19 | +316.7% |
-| Insert alloc happy path | 1096 | 0 | 126 | +126 | N/A |
-  (ASM) Insert alloc happy path: data len: expected 53, got 24; lamports: expected 629880, got 528960; next: expected 0x4000028f5, got 0x4000028d8; root: expected 0x4000028d8, got 0x0; key: expected 42, got 50; value: expected 1, got 0
+| Insert skip alloc | 0 | 24 | 25 | +1 | +4.2% |
+| Insert alloc happy path | 1096 | 102 | 126 | +24 | +23.5% |
+  (ASM) Insert alloc happy path: key: expected 42, got 0; value: expected 1, got 0
 test tests::test_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 7 of 1400000 compute units
@@ -19,13 +19,15 @@ test tests::test_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 9 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 6 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 6 of 1400000 compute units
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1198 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]

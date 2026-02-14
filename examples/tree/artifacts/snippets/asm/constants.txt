@@ -28,12 +28,14 @@
 .equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
 .equ SIZE_OF_INITIALIZE_INSTRUCTION, 1 # Size of InitializeInstruction.
 .equ SIZE_OF_INSERT_INSTRUCTION, 5 # Size of InsertInstruction.
+.equ SIZE_OF_TREE_NODE, 29 # Size of TreeNode.
 
 # Data layout constants.
 # ----------------------
 .equ DATA_LEN_ZERO, 0 # Data length of zero.
 .equ BPF_ALIGN_OF_U128, 8 # Data alignment during runtime.
 .equ OFFSET_ZERO, 0 # No offset.
+.equ NULL, 0 # Null pointer.
 .equ DATA_LEN_AND_MASK, -8 # And mask for data length alignment.
 .equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
 
@@ -118,6 +120,8 @@
 .equ SF_INIT_SIGNER_SEED_ADDR_OFF, -96 # Bump signer seed address field.
 .equ SF_INIT_SIGNER_SEED_LEN_OFF, -88 # Bump signer seed length field.
 .equ SF_INIT_PDA_OFF, -80 # PDA address field.
+# Discriminator field in CPI instruction data.
+.equ SF_INIT_CREATE_ACCOUNT_DISCRIMINATOR_UOFF, -351
 # Lamports field in CreateAccount instruction data.
 .equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -347
 # Space address field in CreateAccount instruction data.
@@ -154,8 +158,12 @@
 .equ SF_INIT_USER_INFO_LAMPORTS_OFF, -216
 # SolAccountInfo data_len field for user account.
 .equ SF_INIT_USER_INFO_DATA_OFF, -200
+# SolAccountInfo data_len for tree account.
+.equ SF_INIT_TREE_INFO_DATA_LEN_OFF, -152
 # SolAccountInfo is_signer field for tree account.
 .equ SF_INIT_TREE_INFO_IS_SIGNER_OFF, -120
+# SolAccountInfo is_writable field for tree account.
+.equ SF_INIT_TREE_INFO_IS_WRITABLE_UOFF, -119
 # SolAccountMeta pubkey field for tree account.
 .equ SF_INIT_TREE_META_PUBKEY_OFF, -240
 # SolAccountInfo pubkey field for tree account.
@@ -214,3 +222,5 @@
 .equ TREE_ROOT_OFF, 0 # Tree root.
 .equ TREE_TOP_OFF, 8 # Stack top.
 .equ TREE_DISCRIMINATOR_INSERT, 1 # Discriminator for insert instruction.
+.equ TREE_NODE_KEY_OFF, 24 # Node key field.
+.equ TREE_NODE_VALUE_OFF, 26 # Node value field.

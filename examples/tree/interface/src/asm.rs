@@ -5,7 +5,7 @@ use crate::bindings::{
 };
 use crate::common::{
     cpi, CreateAccountInstructionData, InitInputBuffer, InitializeInstruction, InputBufferHeader,
-    InsertInstruction, Instruction, TreeHeader,
+    InsertInstruction, Instruction, TreeHeader, TreeNode,
 };
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{
@@ -24,11 +24,14 @@ sizes! {
     TreeHeader,
     InitializeInstruction,
     InsertInstruction,
+    TreeNode,
 }
 
 extend_constant_group!(data {
     /// No offset.
     OFFSET_ZERO = 0,
+    /// Null pointer.
+    NULL = 0,
     /// And mask for data length alignment.
     DATA_LEN_AND_MASK = -8,
     /// Maximum possible data length padding.
@@ -100,6 +103,11 @@ asm_constant_group! {
         stack_frame_offset!(SIGNER_SEED_LEN, InitStackFrame.signer_seeds[0].len),
         /// PDA address field.
         stack_frame_offset!(PDA, InitStackFrame.pda),
+        /// Discriminator field in CPI instruction data.
+        stack_frame_offset_unaligned!(
+            CREATE_ACCOUNT_DISCRIMINATOR,
+            InitStackFrame.instruction_data.discriminator
+        ),
         /// Lamports field in CreateAccount instruction data.
         stack_frame_offset_unaligned!(
             CREATE_ACCOUNT_LAMPORTS,
@@ -168,10 +176,20 @@ asm_constant_group! {
             USER_INFO_DATA,
             InitStackFrame.account_infos[cpi::USER_ACCOUNT_INDEX].data
         ),
+        /// SolAccountInfo data_len for tree account.
+        stack_frame_offset!(
+            TREE_INFO_DATA_LEN,
+            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].data_len
+        ),
         /// SolAccountInfo is_signer field for tree account.
         stack_frame_offset!(
             TREE_INFO_IS_SIGNER,
             InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].is_signer
+        ),
+        /// SolAccountInfo is_writable field for tree account.
+        stack_frame_offset_unaligned!(
+            TREE_INFO_IS_WRITABLE,
+            InitStackFrame.account_infos[cpi::TREE_ACCOUNT_INDEX].is_writable
         ),
         /// SolAccountMeta pubkey field for tree account.
         stack_frame_offset!(
@@ -246,4 +264,8 @@ extend_constant_group!(tree {
     offset!(TOP, TreeHeader.top),
     /// Discriminator for insert instruction.
     DISCRIMINATOR_INSERT = Instruction::Insert as u8,
+    /// Node key field.
+    offset!(NODE_KEY, TreeNode.key),
+    /// Node value field.
+    offset!(NODE_VALUE, TreeNode.value),
 });
