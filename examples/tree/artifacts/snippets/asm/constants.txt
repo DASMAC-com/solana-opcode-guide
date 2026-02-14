@@ -178,16 +178,23 @@
 
 # CPI-specific constants.
 # -----------------------
-.equ CPI_N_ACCOUNTS, 2 # User and tree accounts must sign CPI.
-.equ CPI_N_PDA_SIGNERS, 1 # The tree account is a PDA.
-.equ CPI_N_SEEDS, 1 # The bump seed is required for tree PDA signer.
+.equ CPI_N_ACCOUNTS, 2 # User and tree accounts.
+# The tree account is a PDA for CreateAccount CPI.
+.equ CPI_N_PDA_SIGNERS, 1
+# Number of seeds for CreateAccount PDA signer (bump only).
+.equ CPI_N_SEEDS_CREATE_ACCOUNT, 1
+# Number of signers for Transfer CPI (none — user is already a signer).
+.equ CPI_N_SIGNERS_TRANSFER, 0
 .equ CPI_N_SEEDS_TRY_FIND_PDA, 0 # Number of seeds for PDA generation.
 .equ CPI_TREE_DATA_LEN, 24 # Tree account data length.
 # Account data scalar for base rent calculation.
 .equ CPI_ACCOUNT_DATA_SCALAR, 152
 # CreateAccount discriminator for CPI.
 .equ CPI_CREATE_ACCOUNT_DISCRIMINATOR, 0
-.equ CPI_INSN_DATA_LEN, 52 # Length of CreateAccount instruction data.
+# Length of CreateAccount instruction data.
+.equ CPI_CREATE_ACCOUNT_INSN_DATA_LEN, 52
+.equ CPI_TRANSFER_DISCRIMINATOR, 2 # Transfer discriminator for CPI.
+.equ CPI_TRANSFER_INSN_DATA_LEN, 12 # Length of Transfer instruction data.
 .equ CPI_WRITABLE_SIGNER, 0x0101 # Mask for writable signer.
 .equ CPI_USER_ACCOUNT_INDEX, 0 # Account index for user account in CPI.
 .equ CPI_TREE_ACCOUNT_INDEX, 1 # Account index for tree account in CPI.
@@ -200,6 +207,7 @@
 .equ TREE_DIR_R, 1 # Right direction.
 .equ TREE_COLOR_B, 0 # Black color.
 .equ TREE_COLOR_R, 1 # Red color.
+.equ TREE_HEADER_TOP_OFF, 8 # Stack top field in header.
 .equ TREE_HEADER_NEXT_OFF, 16 # Next node field in header.
 .equ TREE_ROOT_OFF, 0 # Tree root.
 .equ TREE_TOP_OFF, 8 # Stack top.

@@ -81,12 +81,14 @@ constant_group! {
     /// CPI-specific constants.
     cpi {
         prefix = "CPI",
-        /// User and tree accounts must sign CPI.
+        /// User and tree accounts.
         N_ACCOUNTS: usize = 2,
-        /// The tree account is a PDA.
+        /// The tree account is a PDA for CreateAccount CPI.
         N_PDA_SIGNERS: usize = 1,
-        /// The bump seed is required for tree PDA signer.
-        N_SEEDS: usize = 1,
+        /// Number of seeds for CreateAccount PDA signer (bump only).
+        N_SEEDS_CREATE_ACCOUNT: usize = 1,
+        /// Number of signers for Transfer CPI (none — user is already a signer).
+        N_SIGNERS_TRANSFER: u64 = 0,
         /// Number of seeds for PDA generation.
         N_SEEDS_TRY_FIND_PDA: u64 = 0,
         /// Tree account data length.
@@ -96,7 +98,11 @@ constant_group! {
         /// CreateAccount discriminator for CPI.
         CREATE_ACCOUNT_DISCRIMINATOR: u32 = 0,
         /// Length of CreateAccount instruction data.
-        INSN_DATA_LEN: usize = size_of::<CreateAccountInstructionData>(),
+        CREATE_ACCOUNT_INSN_DATA_LEN: usize = size_of::<CreateAccountInstructionData>(),
+        /// Transfer discriminator for CPI.
+        TRANSFER_DISCRIMINATOR: u32 = 2,
+        /// Length of Transfer instruction data.
+        TRANSFER_INSN_DATA_LEN: usize = size_of::<TransferInstructionData>(),
         /// Mask for writable signer.
         WRITABLE_SIGNER: u64 = 0x0101,
         /// Account index for user account in CPI.
@@ -115,6 +121,13 @@ pub struct CreateAccountInstructionData {
     pub lamports: u64,
     pub space: u64,
     pub owner: Address,
+}
+
+#[repr(C, packed)]
+/// For CPI to transfer lamports.
+pub struct TransferInstructionData {
+    pub discriminator: u32,
+    pub lamports: u64,
 }
 
 constant_group! {
@@ -177,6 +190,8 @@ constant_group! {
         COLOR_B = Color::Black as u8,
         /// Red color.
         COLOR_R = Color::Red as u8,
+        /// Stack top field in header.
+        offset!(HEADER_TOP, TreeHeader.top),
         /// Next node field in header.
         offset!(HEADER_NEXT, TreeHeader.next),
     }

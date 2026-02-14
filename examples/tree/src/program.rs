@@ -10,7 +10,7 @@ use pinocchio::{
 use tree_interface::{
     cpi, data, error_codes::error, input_buffer, instruction, tree, CreateAccountInstructionData,
     Direction, InitializeInstruction, InsertInstruction, SolAccountInfo, SolAccountMeta,
-    SolInstruction, SolSignerSeed, SolSignerSeeds, TreeHeader, TreeNode,
+    SolInstruction, SolSignerSeed, SolSignerSeeds, TransferInstructionData, TreeHeader, TreeNode,
 };
 #[cfg(target_os = "solana")]
 use {
@@ -168,9 +168,9 @@ unsafe fn insert(
     // Error if tree is duplicate.
     let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
 
-    // Allocate a node if the stack is empty.
+    // Allocate or recycle a node.
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
-    if (*tree_header).top.is_null() {
+    let _node: *mut TreeNode = if (*tree_header).top.is_null() {
         // Error if wrong number of accounts passed, since need extra accounts to allocate space.
         if_err!(
             n_accounts != input_buffer::N_ACCOUNTS_INIT,
@@ -184,7 +184,105 @@ unsafe fn insert(
 
         // Check system program and rent sysvar accounts using shifted input buffer pointer.
         check_cpi_accounts!(shifted_input);
-    }
+
+        // Calculate additional lamports for rent exemption of one TreeNode.
+        let lamports_per_byte = ldxdw(shifted_input, input_buffer::RENT_DATA_OFF);
+        let transfer_lamports = size_of::<TreeNode>() as u64 * lamports_per_byte;
+
+        // Pack Transfer instruction data.
+        let transfer_instruction_data = TransferInstructionData {
+            discriminator: cpi::TRANSFER_DISCRIMINATOR,
+            lamports: transfer_lamports,
+        };
+
+        // Pack account metas and infos.
+        let user_key = input.add(input_buffer::USER_ADDRESS_OFF as usize).cast();
+        let tree_key = input.add(input_buffer::TREE_ADDRESS_OFF as usize).cast();
+        let sol_account_metas = [
+            SolAccountMeta {
+                pubkey: user_key,
+                is_writable: true,
+                is_signer: true,
+            },
+            SolAccountMeta {
+                pubkey: tree_key,
+                is_writable: true,
+                is_signer: false,
+            },
+        ];
+        let sol_account_infos = [
+            SolAccountInfo {
+                key: user_key,
+                owner: input.add(input_buffer::USER_OWNER_OFF as usize).cast(),
+                lamports: input.add(input_buffer::USER_LAMPORTS_OFF as usize).cast(),
+                data: input.add(input_buffer::USER_DATA_OFF as usize),
+                data_len: data::DATA_LEN_ZERO,
+                rent_epoch: cpi::RENT_EPOCH_NULL,
+                is_signer: true,
+                is_writable: true,
+                executable: false,
+            },
+            SolAccountInfo {
+                key: tree_key,
+                owner: input.add(input_buffer::TREE_OWNER_OFF as usize).cast(),
+                lamports: input.add(input_buffer::TREE_LAMPORTS_OFF as usize).cast(),
+                data: input.add(input_buffer::TREE_DATA_OFF as usize),
+                data_len: *tree_data_len,
+                rent_epoch: cpi::RENT_EPOCH_NULL,
+                is_signer: false,
+                is_writable: true,
+                executable: false,
+            },
+        ];
+
+        // Pack instruction.
+        let system_program_address = Address::default();
+        let sol_instruction = SolInstruction {
+            program_id: addr_of!(system_program_address).cast_mut().cast(),
+            accounts: sol_account_metas.as_ptr().cast_mut().cast(),
+            account_len: sol_account_metas.len() as u64,
+            data: addr_of!(transfer_instruction_data).cast_mut().cast(),
+            data_len: cpi::TRANSFER_INSN_DATA_LEN as u64,
+        };
+
+        // No signers needed, since user is already a signer on the transaction.
+        let empty_signers = SolSignerSeeds {
+            addr: core::ptr::null(),
+            len: 0,
+        };
+
+        #[cfg(target_os = "solana")]
+        sol_invoke_signed_c(
+            addr_of!(sol_instruction).cast(),
+            addr_of!(sol_account_infos).cast(),
+            cpi::N_ACCOUNTS as u64,
+            addr_of!(empty_signers).cast(),
+            cpi::N_SIGNERS_TRANSFER,
+        );
+        #[cfg(not(target_os = "solana"))]
+        #[allow(path_statements)]
+        {
+            empty_signers;
+            sol_account_infos;
+            sol_instruction;
+        }
+
+        // Save pointer to newly allocated node (current next).
+        let node = (*tree_header).next;
+
+        // Increase tree data length by size of one TreeNode.
+        *tree_data_len += size_of::<TreeNode>() as u64;
+
+        // Advance next pointer by one TreeNode.
+        (*tree_header).next = (*tree_header).next.add(1);
+
+        node
+    } else {
+        // Pop node from free stack.
+        let node = (*tree_header).top.cast::<TreeNode>();
+        (*tree_header).top = (*(*tree_header).top).next;
+        node
+    };
 
     SUCCESS
 }
@@ -306,7 +404,7 @@ unsafe fn initialize(
         accounts: sol_account_metas.as_ptr().cast_mut().cast(),
         account_len: sol_account_metas.len() as u64,
         data: addr_of!(create_account_instruction_data).cast_mut().cast(),
-        data_len: cpi::INSN_DATA_LEN as u64,
+        data_len: cpi::CREATE_ACCOUNT_INSN_DATA_LEN as u64,
     };
 
     // Initialize signer seed for PDA bump.
@@ -318,7 +416,7 @@ unsafe fn initialize(
     // Initialize signer seeds for PDA.
     let signers_seeds = SolSignerSeeds {
         addr: addr_of!(bump_seed).cast(),
-        len: cpi::N_SEEDS as u64,
+        len: cpi::N_SEEDS_CREATE_ACCOUNT as u64,
     };
 
     #[cfg(target_os = "solana")]

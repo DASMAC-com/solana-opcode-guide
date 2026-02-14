@@ -57,7 +57,7 @@
         accounts: sol_account_metas.as_ptr().cast_mut().cast(),
         account_len: sol_account_metas.len() as u64,
         data: addr_of!(create_account_instruction_data).cast_mut().cast(),
-        data_len: cpi::INSN_DATA_LEN as u64,
+        data_len: cpi::CREATE_ACCOUNT_INSN_DATA_LEN as u64,
     };
 
     // Initialize signer seed for PDA bump.
@@ -69,7 +69,7 @@
     // Initialize signer seeds for PDA.
     let signers_seeds = SolSignerSeeds {
         addr: addr_of!(bump_seed).cast(),
-        len: cpi::N_SEEDS as u64,
+        len: cpi::N_SEEDS_CREATE_ACCOUNT as u64,
     };
 
     #[cfg(target_os = "solana")]

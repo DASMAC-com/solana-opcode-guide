@@ -81,7 +81,7 @@ struct InitStackFrame {
     account_metas: [SolAccountMeta; cpi::N_ACCOUNTS],
     account_infos: [SolAccountInfo; cpi::N_ACCOUNTS],
     signers_seeds: [SolSignerSeeds; cpi::N_PDA_SIGNERS],
-    signer_seeds: [SolSignerSeed; cpi::N_SEEDS],
+    signer_seeds: [SolSignerSeed; cpi::N_SEEDS_CREATE_ACCOUNT],
     pda: Address,
     rent: Rent,
     /// Zero-initialized on stack.

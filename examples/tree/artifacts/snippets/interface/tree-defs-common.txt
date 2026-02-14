@@ -23,6 +23,8 @@ constant_group! {
         COLOR_B = Color::Black as u8,
         /// Red color.
         COLOR_R = Color::Red as u8,
+        /// Stack top field in header.
+        offset!(HEADER_TOP, TreeHeader.top),
         /// Next node field in header.
         offset!(HEADER_NEXT, TreeHeader.next),
     }
