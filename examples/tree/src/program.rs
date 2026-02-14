@@ -65,6 +65,40 @@ macro_rules! if_err {
     };
 }
 
+macro_rules! check_instruction_data_len {
+    ($instruction_data_len:expr, $type:ty) => {
+        if_err!(
+            $instruction_data_len != size_of::<$type>() as u64,
+            error::INSTRUCTION_DATA_LEN
+        );
+    };
+}
+
+macro_rules! user_account {
+    ($input:expr) => {{
+        let user = account_at($input, input_buffer::USER_ACCOUNT_OFF);
+        if_err!(
+            (*user).data_len != data::DATA_LEN_ZERO,
+            error::USER_DATA_LEN
+        );
+        user
+    }};
+}
+
+macro_rules! check_data_len {
+    ($account:expr, $expected:expr, $error:expr) => {
+        if_err!((*$account).data_len != $expected, $error);
+    };
+}
+
+macro_rules! account_non_dup {
+    ($input:expr, $offset:expr, $error:expr) => {{
+        let account = account_at($input, $offset);
+        if_err!(is_duplicate(account), $error);
+        account
+    }};
+}
+
 // ANCHOR: entrypoint-branching
 no_allocator!();
 nostd_panic_handler!();
@@ -92,11 +126,16 @@ unsafe fn insert(
     instruction_data_len: u64,
     n_accounts: u64,
 ) -> u64 {
-    // Error if invalid instruction data length.
+    check_instruction_data_len!(instruction_data_len, InsertInstruction);
+
+    // Error if too few accounts.
     if_err!(
-        instruction_data_len != size_of::<InsertInstruction>() as u64,
-        error::INSTRUCTION_DATA_LEN
+        n_accounts < input_buffer::N_ACCOUNTS_GENERAL,
+        error::N_ACCOUNTS
     );
+
+    let user = user_account!(input);
+    let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
 
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
 
@@ -115,11 +154,7 @@ unsafe fn initialize(
     instruction_data_len: u64,
     n_accounts: u64,
 ) -> u64 {
-    // Error if instruction data provided.
-    if_err!(
-        instruction_data_len != size_of::<InitializeInstruction>() as u64,
-        error::INSTRUCTION_DATA_LEN
-    );
+    check_instruction_data_len!(instruction_data_len, InitializeInstruction);
 
     // Error if incorrect number of accounts.
     if_err!(
@@ -128,28 +163,27 @@ unsafe fn initialize(
     );
 
     // Error if user has data.
-    let user = account_at(input, input_buffer::USER_ACCOUNT_OFF);
-    if_err!((*user).data_len != 0, error::USER_DATA_LEN);
+    let user = user_account!(input);
 
     // Error if tree is duplicate or has data.
-    let tree = account_at(input, input_buffer::TREE_ACCOUNT_OFF);
-    if_err!(is_duplicate(tree), error::TREE_DUPLICATE);
-    if_err!((*tree).data_len != 0, error::TREE_DATA_LEN);
+    let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
+    check_data_len!(tree, data::DATA_LEN_ZERO, error::TREE_DATA_LEN);
 
     // Error if System Program is duplicate or has invalid data length.
-    let system_program = account_at(input, input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF);
-    if_err!(
-        is_duplicate(system_program),
+    let system_program = account_non_dup!(
+        input,
+        input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF,
         error::SYSTEM_PROGRAM_DUPLICATE
     );
-    if_err!(
-        (*system_program).data_len as usize != input_buffer::SYSTEM_PROGRAM_DATA_LEN,
+    check_data_len!(
+        system_program,
+        input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
         error::SYSTEM_PROGRAM_DATA_LEN
     );
 
     // Error if Rent account is duplicate or has incorrect address.
-    let rent_sysvar = account_at(input, input_buffer::RENT_ACCOUNT_OFF);
-    if_err!(is_duplicate(rent_sysvar), error::RENT_DUPLICATE);
+    let rent_sysvar =
+        account_non_dup!(input, input_buffer::RENT_ACCOUNT_OFF, error::RENT_DUPLICATE);
     let rent_id = RENT_ID;
     if_err!(
         !address_eq(addr_of!((*rent_sysvar).address), addr_of!(rent_id)),

@@ -5,11 +5,16 @@ unsafe fn insert(
     instruction_data_len: u64,
     n_accounts: u64,
 ) -> u64 {
-    // Error if invalid instruction data length.
+    check_instruction_data_len!(instruction_data_len, InsertInstruction);
+
+    // Error if too few accounts.
     if_err!(
-        instruction_data_len != size_of::<InsertInstruction>() as u64,
-        error::INSTRUCTION_DATA_LEN
+        n_accounts < input_buffer::N_ACCOUNTS_GENERAL,
+        error::N_ACCOUNTS
     );
+
+    let user = user_account!(input);
+    let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
 
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
 
