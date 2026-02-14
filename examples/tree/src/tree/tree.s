@@ -330,7 +330,7 @@ initialize:
     # - [x] Instruction data pointer.
     # ---------------------------------------------------------------------
     stdw [r10 + SF_INIT_INSN_ACCOUNT_LEN_OFF], CPI_N_ACCOUNTS
-    stdw [r10 + SF_INIT_INSN_DATA_LEN_OFF], CPI_INSN_DATA_LEN
+    stdw [r10 + SF_INIT_INSN_DATA_LEN_OFF], CPI_CREATE_ACCOUNT_INSN_DATA_LEN
 
     # Pack CreateAccount instruction data.
     # ---------------------------------------------------------------------

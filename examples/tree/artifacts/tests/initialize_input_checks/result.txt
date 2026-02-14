@@ -1,6 +1,6 @@
 | Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
 |-----------|-----------|------------|----------|------------|
-| Invalid instruction data length | 8 | 9 | +1 | +12.5% |
+| Invalid instruction data length | 8 | 10 | +2 | +25.0% |
 | Too few accounts | 9 | 11 | +2 | +22.2% |
 | Too many accounts | 9 | 11 | +2 | +22.2% |
 | User has nonzero data length | 11 | 13 | +2 | +18.2% |
@@ -22,7 +22,7 @@ test tests::test_initialize_input_checks ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 8 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 9 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 10 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 9 of 1400000 compute units
