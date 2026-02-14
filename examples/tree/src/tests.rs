@@ -12,6 +12,13 @@ use tree_interface::{cpi, error_codes};
 
 const USER_LAMPORTS: u64 = 1_000_000;
 
+/// Virtual address of the input buffer in the SVM memory map.
+/// See `solana_sbpf::ebpf::MM_INPUT_START`.
+const MM_INPUT_START: u64 = 0x400000000;
+
+/// Rent exemption threshold per SIMD-0194.
+const SIMD0194_EXEMPTION_THRESHOLD: f64 = 1.0;
+
 /// Fixed costs for syscalls and CPI operations.
 mod fixed_costs {
     /// Cost for sol_try_find_program_address syscall.

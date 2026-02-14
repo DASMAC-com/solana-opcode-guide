@@ -87,8 +87,8 @@ constant_group! {
         N_PDA_SIGNERS: usize = 1,
         /// Number of seeds for CreateAccount PDA signer (bump only).
         N_SEEDS_CREATE_ACCOUNT: usize = 1,
-        /// Number of signers for Transfer CPI (none — user is already a signer).
-        N_SIGNERS_TRANSFER: u64 = 0,
+        /// PDA signers for Transfer CPI (none — user is already a signer).
+        N_PDA_SIGNERS_TRANSFER: u64 = 0,
         /// Number of seeds for PDA generation.
         N_SEEDS_TRY_FIND_PDA: u64 = 0,
         /// Tree account data length.
@@ -269,6 +269,10 @@ constant_group! {
         DISCRIMINATOR_INITIALIZE: u8 = Instruction::Initialize as u8,
         /// Insert instruction discriminator.
         DISCRIMINATOR_INSERT: u8 = Instruction::Insert as u8,
+        /// Key field in insert instruction.
+        offset!(INSERT_KEY, InsertInstruction.key),
+        /// Value field in insert instruction.
+        offset!(INSERT_VALUE, InsertInstruction.value),
     }
 }
 

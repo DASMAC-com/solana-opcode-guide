@@ -110,6 +110,8 @@
 # Initialize instruction discriminator.
 .equ INSN_DISCRIMINATOR_INITIALIZE, 0
 .equ INSN_DISCRIMINATOR_INSERT, 1 # Insert instruction discriminator.
+.equ INSN_INSERT_KEY_OFF, 1 # Key field in insert instruction.
+.equ INSN_INSERT_VALUE_OFF, 3 # Value field in insert instruction.
 
 # Init stack frame layout.
 # ------------------------
@@ -184,8 +186,8 @@
 .equ CPI_N_PDA_SIGNERS, 1
 # Number of seeds for CreateAccount PDA signer (bump only).
 .equ CPI_N_SEEDS_CREATE_ACCOUNT, 1
-# Number of signers for Transfer CPI (none — user is already a signer).
-.equ CPI_N_SIGNERS_TRANSFER, 0
+# PDA signers for Transfer CPI (none — user is already a signer).
+.equ CPI_N_PDA_SIGNERS_TRANSFER, 0
 .equ CPI_N_SEEDS_TRY_FIND_PDA, 0 # Number of seeds for PDA generation.
 .equ CPI_TREE_DATA_LEN, 24 # Tree account data length.
 # Account data scalar for base rent calculation.
@@ -395,7 +397,7 @@ initialize:
     # Packed later during bulk pointer load operation:
     # - [x] Signer seed pointer.
     # ---------------------------------------------------------------------
-    stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
+    stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS_CREATE_ACCOUNT
 
     # Bulk assign/load pointers for account metas and infos.
     # ---------------------------------------------------------------------

@@ -7,11 +7,6 @@ use tree_interface::{
     cpi, input_buffer, tree, Instruction as TreeInstruction, StackNode, TreeHeader, TreeNode,
 };
 
-/// Virtual address of the input buffer in the SVM memory map.
-/// See `solana_sbpf::ebpf::MM_INPUT_START`.
-const MM_INPUT_START: u64 = 0x400000000;
-const SIMD0194_EXEMPTION_THRESHOLD: f64 = 1.0;
-
 fn insert_setup(
     program_language: ProgramLanguage,
 ) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
@@ -28,8 +23,10 @@ fn insert_setup(
     // Valid InsertInstruction: discriminator (1) + key (u16) + value (u16) = 5 bytes.
     let instruction_data: [u8; 5] = [
         TreeInstruction::Insert as u8,
-        42, 0, // key
-        1, 0,  // value
+        42,
+        0, // key
+        1,
+        0, // value
     ];
 
     let instruction = Instruction::new_with_bytes(
@@ -79,8 +76,10 @@ fn insert_skip_alloc_setup(
 
     let instruction_data: [u8; 5] = [
         TreeInstruction::Insert as u8,
-        42, 0, // key
-        1, 0,  // value
+        42,
+        0, // key
+        1,
+        0, // value
     ];
 
     let instruction = Instruction::new_with_bytes(
@@ -145,9 +144,7 @@ impl TestCase for InsertCase {
 
     fn fixed_costs(&self) -> u64 {
         match self {
-            Self::InsertAllocHappyPath => {
-                fixed_costs::CPI_BASE + fixed_costs::SYSTEM_PROGRAM
-            }
+            Self::InsertAllocHappyPath => fixed_costs::CPI_BASE + fixed_costs::SYSTEM_PROGRAM,
             _ => 0,
         }
     }
@@ -198,8 +195,7 @@ impl TestCase for InsertCase {
                         let tree = &result.resulting_accounts[AccountIndex::Tree as usize].1;
                         let rent_data = &accounts[AccountIndex::RentSysvar as usize].1.data;
                         let rent = Rent::from_bytes(rent_data).unwrap();
-                        let expected_data_len =
-                            cpi::TREE_DATA_LEN + size_of::<TreeNode>();
+                        let expected_data_len = cpi::TREE_DATA_LEN + size_of::<TreeNode>();
                         let expected_lamports =
                             rent.try_minimum_balance(expected_data_len).unwrap();
                         let mut errors = Vec::new();
@@ -216,26 +212,41 @@ impl TestCase for InsertCase {
                                 expected_lamports, tree.lamports
                             ));
                         }
-                        // Verify next pointer advanced by one TreeNode.
-                        let expected_next = MM_INPUT_START
+                        // Verify header pointers.
+                        let header = unsafe { &*(tree.data.as_ptr() as *const TreeHeader) };
+                        let node_addr = MM_INPUT_START
                             + input_buffer::TREE_DATA_OFF as u64
-                            + size_of::<TreeHeader>() as u64
-                            + size_of::<TreeNode>() as u64;
-                        let header =
-                            unsafe { &*(tree.data.as_ptr() as *const TreeHeader) };
-                        let actual_next = header.next as u64;
-                        if actual_next != expected_next {
+                            + size_of::<TreeHeader>() as u64;
+                        let expected_next = node_addr + size_of::<TreeNode>() as u64;
+                        if header.next as u64 != expected_next {
                             errors.push(format!(
                                 "next: expected {:#x}, got {:#x}",
-                                expected_next, actual_next
+                                expected_next, header.next as u64
                             ));
+                        }
+                        if header.root as u64 != node_addr {
+                            errors.push(format!(
+                                "root: expected {:#x}, got {:#x}",
+                                node_addr, header.root as u64
+                            ));
+                        }
+                        // Verify node key and value.
+                        let node = unsafe {
+                            &*(tree.data.as_ptr().add(size_of::<TreeHeader>()) as *const TreeNode)
+                        };
+                        let key = node.key;
+                        let value = node.value;
+                        if key != 42 {
+                            errors.push(format!("key: expected 42, got {}", key));
+                        }
+                        if value != 1 {
+                            errors.push(format!("value: expected 1, got {}", value));
                         }
                         let config = Config {
                             panic: false,
                             verbose: false,
                         };
-                        if !result
-                            .run_checks(&[Check::all_rent_exempt()], &config, &setup.mollusk)
+                        if !result.run_checks(&[Check::all_rent_exempt()], &config, &setup.mollusk)
                         {
                             errors.push("not all accounts are rent exempt".to_string());
                         }

@@ -5,12 +5,6 @@ use pinocchio::sysvars::rent::Rent;
 use solana_sdk::instruction::AccountMeta;
 use tree_interface::{input_buffer, tree, Instruction as TreeInstruction, TreeHeader};
 
-const SIMD0194_EXEMPTION_THRESHOLD: f64 = 1.0;
-
-/// Virtual address of the input buffer in the SVM memory map.
-/// See `solana_sbpf::ebpf::MM_INPUT_START`.
-const MM_INPUT_START: u64 = 0x400000000;
-
 fn init_setup(
     program_language: ProgramLanguage,
 ) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {

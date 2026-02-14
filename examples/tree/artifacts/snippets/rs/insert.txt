@@ -21,7 +21,7 @@ unsafe fn insert(
 
     // Allocate or recycle a node.
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
-    let _node: *mut TreeNode = if (*tree_header).top.is_null() {
+    let node: *mut TreeNode = if (*tree_header).top.is_null() {
         // Error if wrong number of accounts passed, since need extra accounts to allocate space.
         if_err!(
             n_accounts != input_buffer::N_ACCOUNTS_INIT,
@@ -108,7 +108,7 @@ unsafe fn insert(
             addr_of!(sol_account_infos).cast(),
             cpi::N_ACCOUNTS as u64,
             addr_of!(empty_signers).cast(),
-            cpi::N_SIGNERS_TRANSFER,
+            cpi::N_PDA_SIGNERS_TRANSFER,
         );
         #[cfg(not(target_os = "solana"))]
         #[allow(path_statements)]
@@ -118,22 +118,34 @@ unsafe fn insert(
             sol_instruction;
         }
 
-        // Save pointer to newly allocated node (current next).
-        let node = (*tree_header).next;
-
         // Increase tree data length by size of one TreeNode.
         *tree_data_len += size_of::<TreeNode>() as u64;
 
         // Advance next pointer by one TreeNode.
+        let node = (*tree_header).next;
         (*tree_header).next = (*tree_header).next.add(1);
-
         node
     } else {
         // Pop node from free stack.
-        let node = (*tree_header).top.cast::<TreeNode>();
-        (*tree_header).top = (*(*tree_header).top).next;
-        node
+        let top = (*tree_header).top;
+        (*tree_header).top = (*top).next;
+        top.cast()
     };
+
+    // Initialize node as root of tree.
+    (*tree_header).root = node;
+
+    // Set key and value from instruction data. Parent, children, and color are already null/zero.
+    (*node).key = read_unaligned(
+        instruction_data
+            .add(instruction::INSERT_KEY_OFF as usize)
+            .cast(),
+    );
+    (*node).value = read_unaligned(
+        instruction_data
+            .add(instruction::INSERT_VALUE_OFF as usize)
+            .cast(),
+    );
 
     SUCCESS
 }

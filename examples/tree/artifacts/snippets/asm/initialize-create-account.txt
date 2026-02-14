@@ -73,7 +73,7 @@
     # Packed later during bulk pointer load operation:
     # - [x] Signer seed pointer.
     # ---------------------------------------------------------------------
-    stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS
+    stdw [r10 + SF_INIT_SIGNERS_SEEDS_LEN_OFF], CPI_N_SEEDS_CREATE_ACCOUNT
 
     # Bulk assign/load pointers for account metas and infos.
     # ---------------------------------------------------------------------
