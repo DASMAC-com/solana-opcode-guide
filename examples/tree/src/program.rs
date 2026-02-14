@@ -1,4 +1,4 @@
-use core::ptr::{addr_of, read_unaligned};
+use core::ptr::{addr_of, addr_of_mut, read_unaligned};
 use pinocchio::{
     account::RuntimeAccount,
     entrypoint::NON_DUP_MARKER,
@@ -178,9 +178,9 @@ unsafe fn insert(
         );
 
         // Get shifted input buffer pointer based on tree data length.
-        let tree_data_len = (*tree).data_len;
+        let tree_data_len: *mut u64 = addr_of_mut!((*tree).data_len);
         let shifted_input =
-            input.add(tree_data_len.next_multiple_of(data::BPF_ALIGN_OF_U128 as u64) as usize);
+            input.add((*tree_data_len).next_multiple_of(data::BPF_ALIGN_OF_U128 as u64) as usize);
 
         // Check system program and rent sysvar accounts using shifted input buffer pointer.
         check_cpi_accounts!(shifted_input);
