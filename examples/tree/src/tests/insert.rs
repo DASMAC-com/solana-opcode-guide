@@ -28,15 +28,18 @@ fn insert_setup(
         ],
     );
 
+    // Initialize tree account with non-null `top` pointer so insert skips allocation.
+    let mut tree_data = vec![0u8; cpi::TREE_DATA_LEN];
+    tree_data[8..16].copy_from_slice(&1u64.to_le_bytes()); // top != null
+    let mut tree_account = Account::new(0, cpi::TREE_DATA_LEN, &setup.program_id);
+    tree_account.data = tree_data;
+
     let accounts = vec![
         (
             user_pubkey,
             Account::new(USER_LAMPORTS, 0, &system_program_pubkey),
         ),
-        (
-            tree_pubkey,
-            Account::new(0, cpi::TREE_DATA_LEN, &setup.program_id),
-        ),
+        (tree_pubkey, tree_account),
     ];
 
     (setup, instruction, accounts)

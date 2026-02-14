@@ -31,6 +31,8 @@ error_codes! {
     INSTRUCTION_DISCRIMINATOR,
     /// Invalid instruction data length.
     INSTRUCTION_DATA_LEN,
+    /// Not enough accounts passed for insertion allocation.
+    N_ACCOUNTS_INSERT_ALLOCATION,
 }
 
 constant_group! {

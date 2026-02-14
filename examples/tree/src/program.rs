@@ -99,6 +99,34 @@ macro_rules! account_non_dup {
     }};
 }
 
+/// Checks the System Program and Rent sysvar accounts relative to a given input buffer pointer.
+/// In `initialize`, this is the base `input`; in `insert`, it is `shifted_input` which accounts
+/// for the tree's existing data length.
+macro_rules! check_cpi_accounts {
+    ($input:expr) => {
+        let system_program = account_non_dup!(
+            $input,
+            input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF,
+            error::SYSTEM_PROGRAM_DUPLICATE
+        );
+        check_data_len!(
+            system_program,
+            input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
+            error::SYSTEM_PROGRAM_DATA_LEN
+        );
+        let rent_sysvar = account_non_dup!(
+            $input,
+            input_buffer::RENT_ACCOUNT_OFF,
+            error::RENT_DUPLICATE
+        );
+        let rent_id = RENT_ID;
+        if_err!(
+            !address_eq(addr_of!((*rent_sysvar).address), addr_of!(rent_id)),
+            error::RENT_ADDRESS
+        );
+    };
+}
+
 // ANCHOR: entrypoint-branching
 no_allocator!();
 nostd_panic_handler!();
@@ -143,7 +171,19 @@ unsafe fn insert(
     // Allocate a node if the stack is empty.
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
     if (*tree_header).top.is_null() {
+        // Error if wrong number of accounts passed, since need extra accounts to allocate space.
+        if_err!(
+            n_accounts != input_buffer::N_ACCOUNTS_INIT,
+            error::N_ACCOUNTS_INSERT_ALLOCATION
+        );
+
+        // Get shifted input buffer pointer based on tree data length.
         let tree_data_len = (*tree).data_len;
+        let shifted_input =
+            input.add(tree_data_len.next_multiple_of(data::BPF_ALIGN_OF_U128 as u64) as usize);
+
+        // Check system program and rent sysvar accounts using shifted input buffer pointer.
+        check_cpi_accounts!(shifted_input);
     }
 
     SUCCESS
@@ -173,26 +213,7 @@ unsafe fn initialize(
     let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
     check_data_len!(tree, data::DATA_LEN_ZERO, error::TREE_DATA_LEN);
 
-    // Error if System Program is duplicate or has invalid data length.
-    let system_program = account_non_dup!(
-        input,
-        input_buffer::SYSTEM_PROGRAM_ACCOUNT_OFF,
-        error::SYSTEM_PROGRAM_DUPLICATE
-    );
-    check_data_len!(
-        system_program,
-        input_buffer::SYSTEM_PROGRAM_DATA_LEN as u64,
-        error::SYSTEM_PROGRAM_DATA_LEN
-    );
-
-    // Error if Rent account is duplicate or has incorrect address.
-    let rent_sysvar =
-        account_non_dup!(input, input_buffer::RENT_ACCOUNT_OFF, error::RENT_DUPLICATE);
-    let rent_id = RENT_ID;
-    if_err!(
-        !address_eq(addr_of!((*rent_sysvar).address), addr_of!(rent_id)),
-        error::RENT_ADDRESS
-    );
+    check_cpi_accounts!(input);
     // ANCHOR_END: initialize-input-checks
 
     // ANCHOR: initialize-pda-checks

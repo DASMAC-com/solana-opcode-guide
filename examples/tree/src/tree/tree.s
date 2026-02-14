@@ -17,6 +17,8 @@
 .equ E_PDA_MISMATCH, 10
 .equ E_INSTRUCTION_DISCRIMINATOR, 11 # Invalid instruction discriminator.
 .equ E_INSTRUCTION_DATA_LEN, 12 # Invalid instruction data length.
+# Not enough accounts passed for insertion allocation.
+.equ E_N_ACCOUNTS_INSERT_ALLOCATION, 13
 
 # Type sizes.
 # -----------
