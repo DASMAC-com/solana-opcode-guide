@@ -13,12 +13,16 @@ unsafe fn insert(
         error::N_ACCOUNTS
     );
 
+    // Error if user has data.
     let user = user_account!(input);
+
+    // Error if tree is duplicate.
     let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
 
+    // Allocate a node if the stack is empty.
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
-
-    if (*tree_header).top.is_null() { // If stack is empty, need to allocate a node.
+    if (*tree_header).top.is_null() {
+        let tree_data_len = (*tree).data_len;
     }
 
     SUCCESS
