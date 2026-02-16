@@ -1,28 +1,17 @@
 # Conventions
 
-## Self-Improvement Loop
+## Self-Improvement
 
-After every task, ask: "What did I get wrong, get told twice, or discover?
-Should it go in CLAUDE.md, a spec, a hook, a skill, or memory?"
+After every task, check what was learned and route it:
 
-## Rules
+- Repeated instruction (corrected twice): add it to CLAUDE.md.
+- Design decision: write or update a spec.
+- Repeatable workflow: propose a skill.
+- Must always happen: propose a hook.
+- Learned pattern: save to memory.
 
-- **Before implementing anything non-trivial**: write or update a spec and get
-  approval first.
-
-- **After every change**: ask the user if CLAUDE.md, specs, or skills should be
-  updated to reflect what was learned.
-
-- **Repeated instruction** (user corrects the same thing twice): add it to
-  CLAUDE.md.
-
-- **Design decision**: write or update a spec.
-
-- **Repeatable workflow**: propose a skill.
-
-- **Must always happen**: propose a hook.
-
-- **Learned pattern**: save to memory.
+Before implementing anything non-trivial, write or update a spec and get
+approval first.
 
 ## Markdown
 
