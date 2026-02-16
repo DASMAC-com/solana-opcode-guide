@@ -173,6 +173,11 @@ fn test_insert() {
 }
 
 #[test]
+fn test_insert_alloc_checks() {
+    print_comparison_table(insert::InsertCase::ALLOC_CHECK_CASES, false, false);
+}
+
+#[test]
 fn test_initialize_input_checks() {
     print_comparison_table(init::InitCase::CASES, false, false);
 }

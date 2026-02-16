@@ -287,17 +287,15 @@ unsafe fn insert(
     // Initialize node as root of tree.
     (*tree_header).root = node;
 
-    // Set key and value from instruction data. Parent, children, and color are already null/zero.
-    (*node).key = read_unaligned(
+    // Set key and value together as a single word.
+    let key_value: u32 = read_unaligned(
         instruction_data
             .add(instruction::INSERT_KEY_OFF as usize)
             .cast(),
     );
-    (*node).value = read_unaligned(
-        instruction_data
-            .add(instruction::INSERT_VALUE_OFF as usize)
-            .cast(),
-    );
+    addr_of_mut!((*node).key)
+        .cast::<u32>()
+        .write_unaligned(key_value);
 
     SUCCESS
 }

@@ -658,10 +658,8 @@ insert_mutate_new_node:
 
     # Set key and value from instruction data.
     # ---------------------------------------------------------------------
-    ldxh r4, [r2 + INSN_INSERT_KEY_OFF]
-    stxh [r9 + TREE_NODE_KEY_OFF], r4
-    ldxh r4, [r2 + INSN_INSERT_VALUE_OFF]
-    stxh [r9 + TREE_NODE_VALUE_OFF], r4
+    ldxw r4, [r2 + INSN_INSERT_KEY_OFF] # Load two fields together.
+    stxw [r9 + TREE_NODE_KEY_OFF], r4 # Store both fields together.
 
     exit
 

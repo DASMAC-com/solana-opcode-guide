@@ -4,7 +4,7 @@ use mollusk_svm::result::{Check, Config};
 use pinocchio::sysvars::rent::Rent;
 use solana_sdk::instruction::AccountMeta;
 use tree_interface::{
-    cpi, input_buffer, tree, InstructionHeader, Instruction as TreeInstruction, InsertInstruction,
+    cpi, input_buffer, tree, InsertInstruction, Instruction as TreeInstruction, InstructionHeader,
     StackNode, TreeHeader, TreeNode,
 };
 
@@ -113,12 +113,34 @@ fn insert_skip_alloc_setup(
     (setup, instruction, accounts)
 }
 
+fn insert_alloc_address_mismatch(
+    lang: ProgramLanguage,
+    account_index: usize,
+    chunk_index: usize,
+    expected_error: error_codes::error,
+) -> CaseResult {
+    let (setup, mut instruction, mut accounts) = insert_setup(lang);
+    // Flip the last byte of the 8-byte chunk to trigger a mismatch.
+    let flip_index = (chunk_index * size_of::<u64>()) + size_of::<u64>() - 1;
+    accounts[account_index].0.as_mut()[flip_index] ^= 1;
+    instruction.accounts[account_index].pubkey = accounts[account_index].0;
+    check_error(&setup, &instruction, &accounts, expected_error)
+}
+
 #[derive(Clone, Copy)]
 pub(super) enum InsertCase {
     InstructionDataLenShort,
     InstructionDataLenLong,
     InsertSkipAlloc,
     InsertAllocHappyPath,
+    NAccountsInsertAllocation,
+    SystemProgramDuplicate,
+    SystemProgramDataLen,
+    RentDuplicate,
+    RentAddressChunk0,
+    RentAddressChunk1,
+    RentAddressChunk2,
+    RentAddressChunk3,
 }
 
 impl InsertCase {
@@ -127,6 +149,17 @@ impl InsertCase {
         Self::InstructionDataLenLong,
         Self::InsertSkipAlloc,
         Self::InsertAllocHappyPath,
+    ];
+
+    pub(super) const ALLOC_CHECK_CASES: &'static [Self] = &[
+        Self::NAccountsInsertAllocation,
+        Self::SystemProgramDuplicate,
+        Self::SystemProgramDataLen,
+        Self::RentDuplicate,
+        Self::RentAddressChunk0,
+        Self::RentAddressChunk1,
+        Self::RentAddressChunk2,
+        Self::RentAddressChunk3,
     ];
 }
 
@@ -137,6 +170,14 @@ impl TestCase for InsertCase {
             Self::InstructionDataLenLong => "Instruction data too long",
             Self::InsertSkipAlloc => "Insert skip alloc",
             Self::InsertAllocHappyPath => "Insert alloc happy path",
+            Self::NAccountsInsertAllocation => "Wrong N accounts for allocation",
+            Self::SystemProgramDuplicate => "System program is duplicate",
+            Self::SystemProgramDataLen => "System program wrong data length",
+            Self::RentDuplicate => "Rent sysvar is duplicate",
+            Self::RentAddressChunk0 => "Rent address mismatch chunk 0",
+            Self::RentAddressChunk1 => "Rent address mismatch chunk 1",
+            Self::RentAddressChunk2 => "Rent address mismatch chunk 2",
+            Self::RentAddressChunk3 => "Rent address mismatch chunk 3",
         }
     }
 
@@ -185,6 +226,78 @@ impl TestCase for InsertCase {
                     },
                 }
             }
+            Self::NAccountsInsertAllocation => {
+                // Use insert_setup (top=null triggers allocation) but strip CPI accounts.
+                let (setup, mut instruction, mut accounts) = insert_setup(lang);
+                instruction.accounts.truncate(2);
+                accounts.truncate(2);
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::N_ACCOUNTS_INSERT_ALLOCATION,
+                )
+            }
+            Self::SystemProgramDuplicate => {
+                let (setup, mut instruction, mut accounts) = insert_setup(lang);
+                instruction.accounts[AccountIndex::SystemProgram as usize] =
+                    instruction.accounts[AccountIndex::User as usize].clone();
+                accounts[AccountIndex::SystemProgram as usize] =
+                    accounts[AccountIndex::User as usize].clone();
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::SYSTEM_PROGRAM_DUPLICATE,
+                )
+            }
+            Self::SystemProgramDataLen => {
+                let (setup, instruction, mut accounts) = insert_setup(lang);
+                accounts[AccountIndex::SystemProgram as usize].1.data = vec![];
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::SYSTEM_PROGRAM_DATA_LEN,
+                )
+            }
+            Self::RentDuplicate => {
+                let (setup, mut instruction, mut accounts) = insert_setup(lang);
+                instruction.accounts[AccountIndex::RentSysvar as usize] =
+                    instruction.accounts[AccountIndex::User as usize].clone();
+                accounts[AccountIndex::RentSysvar as usize] =
+                    accounts[AccountIndex::User as usize].clone();
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::RENT_DUPLICATE,
+                )
+            }
+            Self::RentAddressChunk0 => insert_alloc_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                0,
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressChunk1 => insert_alloc_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                1,
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressChunk2 => insert_alloc_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                2,
+                error_codes::error::RENT_ADDRESS,
+            ),
+            Self::RentAddressChunk3 => insert_alloc_address_mismatch(
+                lang,
+                AccountIndex::RentSysvar as usize,
+                3,
+                error_codes::error::RENT_ADDRESS,
+            ),
             Self::InsertAllocHappyPath => {
                 let (setup, instruction, accounts) = insert_setup(lang);
                 let result = setup.mollusk.process_instruction(&instruction, &accounts);
