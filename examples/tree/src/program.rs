@@ -288,14 +288,11 @@ unsafe fn insert(
     (*tree_header).root = node;
 
     // Set key and value together as a single word.
-    let key_value: u32 = read_unaligned(
+    *addr_of_mut!((*node).key).cast::<u32>() = read_unaligned(
         instruction_data
             .add(instruction::INSERT_KEY_OFF as usize)
             .cast(),
     );
-    addr_of_mut!((*node).key)
-        .cast::<u32>()
-        .write_unaligned(key_value);
 
     SUCCESS
 }
