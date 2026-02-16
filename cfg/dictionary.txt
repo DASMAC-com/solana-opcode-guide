@@ -17,7 +17,9 @@ lddw
 ldxb
 ldxdw
 ldxw
+markdownlint
 mathjax
+mdformat
 memcmp
 memcpy
 metas
