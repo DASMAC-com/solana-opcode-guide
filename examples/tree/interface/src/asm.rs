@@ -4,8 +4,8 @@ use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
 use crate::common::{
-    cpi, CreateAccountInstructionData, InitInputBuffer, InitializeInstruction, InputBufferHeader,
-    InsertInstruction, Instruction, TreeHeader, TreeNode,
+    cpi, CreateAccountInstructionData, GeneralInputBufferHeader, InitInputBuffer,
+    InitializeInstruction, InputBufferHeader, InsertInstruction, Instruction, TreeHeader, TreeNode,
 };
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{
@@ -36,6 +36,8 @@ extend_constant_group!(data {
     DATA_LEN_AND_MASK = -8,
     /// Maximum possible data length padding.
     MAX_DATA_PAD = 7,
+    /// Boolean true value.
+    BOOL_TRUE = 1,
 });
 
 extend_constant_group!(input_buffer {
@@ -67,6 +69,8 @@ extend_constant_group!(input_buffer {
     pubkey_value!(RENT_ID, RENT_ID),
     /// Program ID field for initialize instruction.
     offset_immediate!(INIT_PROGRAM_ID, InitInputBuffer.footer.program_id),
+    /// Tree top pointer field within tree data.
+    offset!(TREE_DATA_TOP, GeneralInputBufferHeader.tree_data.top),
     /// Relative offset from user data field to tree pubkey field.
     relative_offset_immediate!(
         USER_DATA,

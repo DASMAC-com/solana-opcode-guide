@@ -169,7 +169,7 @@ fn test_entrypoint_branching() {
 
 #[test]
 fn test_insert() {
-    print_comparison_table(insert::InsertCase::CASES, true, false);
+    print_comparison_table(insert::InsertCase::CASES, false, false);
 }
 
 #[test]

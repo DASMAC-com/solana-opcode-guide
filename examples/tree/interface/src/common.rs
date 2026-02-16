@@ -164,6 +164,15 @@ pub struct InitInputBufferHeader {
     pub rent: RentRuntimeAccount,
 }
 
+#[repr(C, packed)]
+/// Input buffer header for general tree instructions.
+pub struct GeneralInputBufferHeader {
+    pub n_accounts: u64,
+    pub user: EmptyRuntimeAccount,
+    pub tree_header: RuntimeAccountHeader,
+    pub tree_data: TreeHeader,
+}
+
 // ANCHOR: tree-defs-common
 #[repr(u8)]
 pub enum Color {
