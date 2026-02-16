@@ -71,6 +71,10 @@ extend_constant_group!(input_buffer {
     offset_immediate!(INIT_PROGRAM_ID, InitInputBuffer.footer.program_id),
     /// Tree top pointer field within tree data.
     offset!(TREE_DATA_TOP, GeneralInputBufferHeader.tree_data.top),
+    /// Tree next pointer field within tree data.
+    offset!(TREE_DATA_NEXT, GeneralInputBufferHeader.tree_data.next),
+    /// Tree root pointer field within tree data.
+    offset!(TREE_DATA_ROOT, GeneralInputBufferHeader.tree_data.root),
     /// Relative offset from user data field to tree pubkey field.
     relative_offset_immediate!(
         USER_DATA,
@@ -262,10 +266,6 @@ asm_constant_group! {
 
 extend_constant_group!(tree {
     prefix = "TREE",
-    /// Tree root.
-    offset!(ROOT, TreeHeader.root),
-    /// Stack top.
-    offset!(TOP, TreeHeader.top),
     /// Discriminator for insert instruction.
     DISCRIMINATOR_INSERT = Instruction::Insert as u8,
     /// Node key field.

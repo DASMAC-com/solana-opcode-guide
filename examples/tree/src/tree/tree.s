@@ -39,6 +39,7 @@
 .equ NULL, 0 # Null pointer.
 .equ DATA_LEN_AND_MASK, -8 # And mask for data length alignment.
 .equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
+.equ BOOL_TRUE, 1 # Boolean true value.
 
 # Pubkey chunking offsets.
 # ------------------------
@@ -103,6 +104,11 @@
 .equ IB_RENT_ID_CHUNK_3_HI, 0 # Rent sysvar ID (chunk 3 hi).
 # Program ID field for initialize instruction.
 .equ IB_INIT_PROGRAM_ID_OFF_IMM, 41401
+.equ IB_TREE_DATA_TOP_OFF, 10440 # Tree top pointer field within tree data.
+# Tree next pointer field within tree data.
+.equ IB_TREE_DATA_NEXT_OFF, 10448
+# Tree root pointer field within tree data.
+.equ IB_TREE_DATA_ROOT_OFF, 10432
 # Relative offset from user data field to tree pubkey field.
 .equ IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM, 10256
 
@@ -220,8 +226,6 @@
 .equ TREE_COLOR_R, 1 # Red color.
 .equ TREE_HEADER_TOP_OFF, 8 # Stack top field in header.
 .equ TREE_HEADER_NEXT_OFF, 16 # Next node field in header.
-.equ TREE_ROOT_OFF, 0 # Tree root.
-.equ TREE_TOP_OFF, 8 # Stack top.
 .equ TREE_DISCRIMINATOR_INSERT, 1 # Discriminator for insert instruction.
 .equ TREE_NODE_KEY_OFF, 24 # Node key field.
 .equ TREE_NODE_VALUE_OFF, 26 # Node value field.
@@ -503,73 +507,60 @@ insert:
     # ANCHOR_END: insert-input-checks
 
     # ANCHOR: insert-allocate
-    # Check if top is null (need allocation) or non-null (pop from stack).
+    # Branch based on state of stack top.
     # ---------------------------------------------------------------------
-    ldxdw r9, [r1 + IB_TREE_DATA_OFF + TREE_TOP_OFF]
-    jeq r9, NULL, insert_allocate
-
-    # Pop node from free stack. r9 = top (non-null).
-    # ---------------------------------------------------------------------
-    mov64 r7, r2 # Save instruction data pointer.
-    mov64 r6, r1
-    add64 r6, IB_TREE_DATA_OFF # r6 = tree header pointer.
-    ldxdw r4, [r9 + OFFSET_ZERO] # Load StackNode.next.
-    stxdw [r6 + TREE_TOP_OFF], r4 # Update top.
-    # r9 = node pointer (top cast to TreeNode).
-    ja insert_set_root
+    # Get stack top pointer.
+    ldxdw r9, [r1 + IB_TREE_DATA_TOP_OFF]
+    jne r9, NULL, insert_pop # Pop node from stack if non-null.
 
 insert_allocate:
     # Error if wrong number of accounts for allocation.
     # ---------------------------------------------------------------------
     jne r8, IB_N_ACCOUNTS_INIT, e_n_accounts_insert_allocation
 
-    mov64 r7, r2 # Save instruction data pointer.
-    mov64 r6, r1
-    add64 r6, IB_TREE_DATA_OFF # r6 = tree header pointer.
-
     # Compute shifted input buffer pointer based on tree data length.
     # ---------------------------------------------------------------------
-    mov64 r8, r1
-    add64 r8, IB_TREE_DATA_LEN_OFF # r8 = &tree.data_len.
-    ldxdw r9, [r8 + OFFSET_ZERO] # r9 = tree data_len.
-    add64 r9, MAX_DATA_PAD
-    and64 r9, DATA_LEN_AND_MASK # r9 = aligned data_len.
-    mov64 r3, r1
-    add64 r3, r9 # r3 = shifted input.
+    ldxdw r9, [r1 + IB_TREE_DATA_LEN_OFF] # Get tree data length.
+    # Store in account info for CPI.
+    stxdw [r10 + SF_INIT_TREE_INFO_DATA_LEN_OFF], r9
+    mov64 r7, r9 # Store copy for later.
+    add64 r9, MAX_DATA_PAD # Add max possible padding.
+    and64 r9, DATA_LEN_AND_MASK # Truncate to 8-byte alignment.
+    add64 r9, r1 # Increment by input buffer.
 
     # Check system program is not duplicate and has correct data length.
     # ---------------------------------------------------------------------
-    ldxb r9, [r3 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
-    jne r9, IB_NON_DUP_MARKER, e_system_program_duplicate
-    ldxdw r9, [r3 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
-    jne r9, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
+    ldxb r8, [r9 + IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF]
+    jne r8, IB_NON_DUP_MARKER, e_system_program_duplicate
+    ldxdw r8, [r9 + IB_SYSTEM_PROGRAM_DATA_LEN_OFF]
+    jne r8, IB_SYSTEM_PROGRAM_DATA_LEN, e_system_program_data_len
 
     # Check rent sysvar is not duplicate and has correct address.
     # ---------------------------------------------------------------------
-    ldxb r9, [r3 + IB_RENT_NON_DUP_MARKER_OFF]
-    jne r9, IB_NON_DUP_MARKER, e_rent_duplicate
-    ldxdw r9, [r3 + IB_RENT_ADDRESS_OFF_0]
+    ldxb r8, [r9 + IB_RENT_NON_DUP_MARKER_OFF]
+    jne r8, IB_NON_DUP_MARKER, e_rent_duplicate
+    ldxdw r8, [r9 + IB_RENT_ADDRESS_OFF_0]
     lddw r4, IB_RENT_ID_CHUNK_0
-    jne r9, r4, e_rent_address
-    ldxdw r9, [r3 + IB_RENT_ADDRESS_OFF_1]
+    jne r8, r4, e_rent_address
+    ldxdw r8, [r9 + IB_RENT_ADDRESS_OFF_1]
     lddw r4, IB_RENT_ID_CHUNK_1
-    jne r9, r4, e_rent_address
-    ldxdw r9, [r3 + IB_RENT_ADDRESS_OFF_2]
+    jne r8, r4, e_rent_address
+    ldxdw r8, [r9 + IB_RENT_ADDRESS_OFF_2]
     lddw r4, IB_RENT_ID_CHUNK_2
-    jne r9, r4, e_rent_address
-    ldxdw r9, [r3 + IB_RENT_ADDRESS_OFF_3]
+    jne r8, r4, e_rent_address
+    ldxdw r8, [r9 + IB_RENT_ADDRESS_OFF_3]
     mov32 r4, IB_RENT_ID_CHUNK_3_LO
-    jne r9, r4, e_rent_address
+    jne r8, r4, e_rent_address
 
-    # Calculate transfer lamports = lamports_per_byte * sizeof(TreeNode).
+    # Calculate transfer lamports.
     # ---------------------------------------------------------------------
-    ldxdw r9, [r3 + IB_RENT_DATA_OFF] # Load lamports per byte.
-    mul64 r9, SIZE_OF_TREE_NODE # Multiply to get transfer cost.
+    ldxdw r8, [r9 + IB_RENT_DATA_OFF] # Load lamports per byte.
+    mul64 r8, SIZE_OF_TREE_NODE # Multiply to get transfer cost.
 
     # Pack Transfer instruction data in CreateAccount slot on stack.
     # ---------------------------------------------------------------------
     stw [r10 + SF_INIT_CREATE_ACCOUNT_DISCRIMINATOR_UOFF], CPI_TRANSFER_DISCRIMINATOR
-    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF], r9
+    stxdw [r10 + SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF], r8
 
     # Pack SolInstruction.
     # ---------------------------------------------------------------------
@@ -579,20 +570,16 @@ insert_allocate:
     # Pack SolAccountMeta flags for user and tree.
     # ---------------------------------------------------------------------
     sth [r10 + SF_INIT_USER_META_IS_WRITABLE_OFF], CPI_WRITABLE_SIGNER
-    stb [r10 + SF_INIT_TREE_META_IS_WRITABLE_OFF], 1 # Writable, not signer.
+    stb [r10 + SF_INIT_TREE_META_IS_WRITABLE_OFF], BOOL_TRUE
 
     # Pack SolAccountInfo flags for user and tree.
     # ---------------------------------------------------------------------
     sth [r10 + SF_INIT_USER_INFO_IS_SIGNER_OFF], CPI_WRITABLE_SIGNER
-    stb [r10 + SF_INIT_TREE_INFO_IS_WRITABLE_UOFF], 1 # Writable only.
-
-    # Store tree data_len in account info.
-    # ---------------------------------------------------------------------
-    ldxdw r9, [r8 + OFFSET_ZERO] # Reload tree data_len.
-    stxdw [r10 + SF_INIT_TREE_INFO_DATA_LEN_OFF], r9
+    stb [r10 + SF_INIT_TREE_INFO_IS_WRITABLE_UOFF], BOOL_TRUE
 
     # Bulk assign/load pointers for account metas and infos.
     # ---------------------------------------------------------------------
+    mov64 r6, r1 # Store input buffer pointer for later.
     add64 r1, IB_USER_ADDRESS_OFF # Point to user address in input buffer.
     stxdw [r10 + SF_INIT_USER_META_PUBKEY_OFF], r1 # Store in account meta.
     stxdw [r10 + SF_INIT_USER_INFO_PUBKEY_OFF], r1 # Store in account info.
@@ -618,10 +605,12 @@ insert_allocate:
     # Point to System Program ID on zero-initialized stack.
     mov64 r4, r10
     add64 r4, SF_INIT_SYSTEM_PROGRAM_ADDRESS_OFF
-    stxdw [r10 + SF_INIT_INSN_PROGRAM_ID_OFF], r4 # Store in SolInstruction.
+    # Store in SolInstruction.
+    stxdw [r10 + SF_INIT_INSN_PROGRAM_ID_OFF], r4
     # Advance to SolAccountMeta array pointer.
     add64 r4, SF_INIT_SYSTEM_PROGRAM_ID_TO_ACCT_METAS_REL_OFF_IMM
-    stxdw [r10 + SF_INIT_INSN_ACCOUNTS_OFF], r4 # Store in SolInstruction.
+    # Store in SolInstruction.
+    stxdw [r10 + SF_INIT_INSN_ACCOUNTS_OFF], r4
     # Advance to instruction data pointer.
     add64 r4, SF_INIT_ACCT_METAS_TO_INSN_DATA_REL_OFF_IMM
     stxdw [r10 + SF_INIT_INSN_DATA_OFF], r4 # Store in SolInstruction.
@@ -630,42 +619,51 @@ insert_allocate:
     # ---------------------------------------------------------------------
     mov64 r1, r10
     add64 r1, SF_INIT_INSN_PROGRAM_ID_OFF
+    mov64 r8, r2 # Save instruction data pointer for later.
     mov64 r2, r10
     add64 r2, SF_INIT_ACCT_INFOS_OFF
     mov64 r3, CPI_N_ACCOUNTS
-    # Advance r4 to signers seeds area on zero-initialized stack.
-    add64 r4, SF_INIT_INSN_DATA_TO_SIGNER_SEEDS_REL_OFF_IMM
-    add64 r4, SF_INIT_SIGNER_SEEDS_TO_SIGNERS_SEEDS_REL_OFF_IMM
+    # Ignore PDA signer seeds pointer, since none required.
     mov64 r5, CPI_N_PDA_SIGNERS_TRANSFER
     call sol_invoke_signed_c
+    mov64 r2, r8 # Restore instruction data pointer.
+    mov64 r1, r6 # Restore input buffer pointer.
 
     # Update tree data length.
     # ---------------------------------------------------------------------
-    ldxdw r9, [r8 + OFFSET_ZERO] # Load current data_len.
-    add64 r9, SIZE_OF_TREE_NODE
-    stxdw [r8 + OFFSET_ZERO], r9 # Store updated data_len.
+    add64 r7, SIZE_OF_TREE_NODE # Increment data length.
+    stxdw [r1 + IB_TREE_DATA_LEN_OFF], r7 # Store in input buffer.
 
     # Get node = next, then advance next by one TreeNode.
     # ---------------------------------------------------------------------
-    ldxdw r9, [r6 + TREE_HEADER_NEXT_OFF] # r9 = node pointer.
-    mov64 r4, r9
-    add64 r4, SIZE_OF_TREE_NODE
-    stxdw [r6 + TREE_HEADER_NEXT_OFF], r4 # Advance next.
+    ldxdw r7, [r1 + IB_TREE_DATA_NEXT_OFF] # Get pointer to next node.
+    mov64 r9, r7 # Store node pointer for later, the new node.
+    add64 r7, SIZE_OF_TREE_NODE # Increment to point to new next.
+    stxdw [r1 + IB_TREE_DATA_NEXT_OFF], r7 # Advance next.
 
-insert_set_root:
+    # Continue insert.
+    # ---------------------------------------------------------------------
+    ja insert_mutate_new_node
+
+insert_pop:
+    # ---------------------------------------------------------------------
+    ldxdw r8, [r9 + OFFSET_ZERO] # Load StackNode.next.
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r8 # Update top in header.
+    # ANCHOR_END: insert-allocate
+
+insert_mutate_new_node:
     # Set node as root of tree.
     # ---------------------------------------------------------------------
-    stxdw [r6 + TREE_ROOT_OFF], r9
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9
 
     # Set key and value from instruction data.
     # ---------------------------------------------------------------------
-    ldxh r4, [r7 + INSN_INSERT_KEY_OFF]
-    sth [r9 + TREE_NODE_KEY_OFF], r4
-    ldxh r4, [r7 + INSN_INSERT_VALUE_OFF]
-    sth [r9 + TREE_NODE_VALUE_OFF], r4
+    ldxh r4, [r2 + INSN_INSERT_KEY_OFF]
+    stxh [r9 + TREE_NODE_KEY_OFF], r4
+    ldxh r4, [r2 + INSN_INSERT_VALUE_OFF]
+    stxh [r9 + TREE_NODE_VALUE_OFF], r4
 
     exit
-    # ANCHOR_END: insert-allocate
 
 e_instruction_data:
     mov64 r0, E_INSTRUCTION_DATA

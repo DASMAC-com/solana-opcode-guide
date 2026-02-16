@@ -38,6 +38,7 @@
 .equ NULL, 0 # Null pointer.
 .equ DATA_LEN_AND_MASK, -8 # And mask for data length alignment.
 .equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
+.equ BOOL_TRUE, 1 # Boolean true value.
 
 # Pubkey chunking offsets.
 # ------------------------
@@ -102,6 +103,11 @@
 .equ IB_RENT_ID_CHUNK_3_HI, 0 # Rent sysvar ID (chunk 3 hi).
 # Program ID field for initialize instruction.
 .equ IB_INIT_PROGRAM_ID_OFF_IMM, 41401
+.equ IB_TREE_DATA_TOP_OFF, 10440 # Tree top pointer field within tree data.
+# Tree next pointer field within tree data.
+.equ IB_TREE_DATA_NEXT_OFF, 10448
+# Tree root pointer field within tree data.
+.equ IB_TREE_DATA_ROOT_OFF, 10432
 # Relative offset from user data field to tree pubkey field.
 .equ IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM, 10256
 
@@ -219,8 +225,6 @@
 .equ TREE_COLOR_R, 1 # Red color.
 .equ TREE_HEADER_TOP_OFF, 8 # Stack top field in header.
 .equ TREE_HEADER_NEXT_OFF, 16 # Next node field in header.
-.equ TREE_ROOT_OFF, 0 # Tree root.
-.equ TREE_TOP_OFF, 8 # Stack top.
 .equ TREE_DISCRIMINATOR_INSERT, 1 # Discriminator for insert instruction.
 .equ TREE_NODE_KEY_OFF, 24 # Node key field.
 .equ TREE_NODE_VALUE_OFF, 26 # Node value field.
