@@ -1,0 +1,59 @@
+| Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|-----------|-----------|------------|----------|------------|
+| Wrong N accounts for allocation | 15 | 22 | +7 | +46.7% |
+| System program is duplicate | 23 | 30 | +7 | +30.4% |
+| System program wrong data length | 25 | 32 | +7 | +28.0% |
+| Rent sysvar is duplicate | 27 | 34 | +7 | +25.9% |
+| Rent address mismatch chunk 0 | 30 | 36 | +6 | +20.0% |
+| Rent address mismatch chunk 1 | 33 | 40 | +7 | +21.2% |
+| Rent address mismatch chunk 2 | 36 | 44 | +8 | +22.2% |
+| Rent address mismatch chunk 3 | 39 | 49 | +10 | +25.6% |
+test tests::test_insert_alloc_checks ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 15 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xd
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 22 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xd
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 23 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 30 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x6
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x4
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 32 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x4
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x7
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 34 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x7
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 30 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 33 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 40 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 44 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 39 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 49 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x8

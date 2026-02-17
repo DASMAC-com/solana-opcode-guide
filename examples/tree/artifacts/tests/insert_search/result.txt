@@ -1,0 +1,24 @@
+| Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|-----------|-----------|------------|----------|------------|
+| Dup at root | 26 | 36 | +10 | +38.5% |
+| Dup in left | 32 | 47 | +15 | +46.9% |
+| Dup in right | 33 | 45 | +12 | +36.4% |
+test tests::test_insert_search ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 26 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xe
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xe
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 32 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xe
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 47 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xe
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 33 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xe
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 45 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xe
