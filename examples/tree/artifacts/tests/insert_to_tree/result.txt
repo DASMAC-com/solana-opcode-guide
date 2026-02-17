@@ -1,0 +1,155 @@
+| Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|-----------|-----------|------------|----------|------------|
+| Empty tree | 25 | 29 | +4 | +16.0% |
+  (ASM) Empty tree: N0.color: expected R, got B
+| Case 1: left child | 30 | 52 | +22 | +73.3% |
+  (ASM) Case 1: left child: N0.L: expected 0x4000028f5, got 0x0; N1.color: expected R, got B
+| Case 1: right child | 31 | 49 | +18 | +58.1% |
+  (ASM) Case 1: right child: N0.R: expected 0x4000028f5, got 0x0; N1.color: expected R, got B
+| Case 4: left child | 30 | 56 | +26 | +86.7% |
+  (ASM) Case 4: left child: N0.L: expected 0x4000028f5, got 0x0; N0.color: expected B, got R; N1.color: expected R, got B
+| Case 4: right child | 31 | 53 | +22 | +71.0% |
+  (ASM) Case 4: right child: N0.R: expected 0x4000028f5, got 0x0; N0.color: expected B, got R; N1.color: expected R, got B
+| Case 2+3: left-left | 36 | 88 | +52 | +144.4% |
+  (ASM) Case 2+3: left-left: N0.color: expected R, got B; N1.L: expected 0x40000292f, got 0x0; N1.color: expected B, got R; N2.color: expected B, got R; N3.color: expected R, got B
+| Case 2+3: left-right | 37 | 85 | +48 | +129.7% |
+  (ASM) Case 2+3: left-right: N0.color: expected R, got B; N1.R: expected 0x40000292f, got 0x0; N1.color: expected B, got R; N2.color: expected B, got R; N3.color: expected R, got B
+| Case 2+3: right-left | 37 | 85 | +48 | +129.7% |
+  (ASM) Case 2+3: right-left: N0.color: expected R, got B; N1.color: expected B, got R; N2.L: expected 0x40000292f, got 0x0; N2.color: expected B, got R; N3.color: expected R, got B
+| Case 2+3: right-right | 38 | 82 | +44 | +115.8% |
+  (ASM) Case 2+3: right-right: N0.color: expected R, got B; N1.color: expected B, got R; N2.R: expected 0x40000292f, got 0x0; N2.color: expected B, got R; N3.color: expected R, got B
+| Case 2+1: left | 42 | 102 | +60 | +142.9% |
+  (ASM) Case 2+1: left: N1.color: expected R, got B; N2.L: expected 0x40000294c, got 0x0; N2.color: expected B, got R; N3.color: expected B, got R; N4.color: expected R, got B
+| Case 2+1: right | 45 | 94 | +49 | +108.9% |
+  (ASM) Case 2+1: right: N1.color: expected R, got B; N2.color: expected B, got R; N3.R: expected 0x40000294c, got 0x0; N3.color: expected B, got R; N4.color: expected R, got B
+| Case 6: left-left null uncle | 36 | 109 | +73 | +202.8% |
+  (ASM) Case 6: left-left null uncle: header.root: expected 0x4000028f5, got 0x4000028d8; N0.parent: expected 0x4000028f5, got 0x0; N0.L: expected 0x0, got 0x4000028f5; N0.color: expected R, got B; N1.parent: expected 0x0, got 0x4000028d8; N1.L: expected 0x400002912, got 0x0; N1.R: expected 0x4000028d8, got 0x0; N1.color: expected B, got R; N2.color: expected R, got B
+| Case 6: right-right null uncle | 38 | 103 | +65 | +171.1% |
+  (ASM) Case 6: right-right null uncle: header.root: expected 0x4000028f5, got 0x4000028d8; N0.parent: expected 0x4000028f5, got 0x0; N0.R: expected 0x0, got 0x4000028f5; N0.color: expected R, got B; N1.parent: expected 0x0, got 0x4000028d8; N1.L: expected 0x4000028d8, got 0x0; N1.R: expected 0x400002912, got 0x0; N1.color: expected B, got R; N2.color: expected R, got B
+| Case 6: left-left black uncle | 36 | 111 | +75 | +208.3% |
+  (ASM) Case 6: left-left black uncle: header.root: expected 0x4000028f5, got 0x4000028d8; N0.parent: expected 0x4000028f5, got 0x0; N0.L: expected 0x0, got 0x4000028f5; N0.color: expected R, got B; N1.parent: expected 0x0, got 0x4000028d8; N1.L: expected 0x40000292f, got 0x0; N1.R: expected 0x4000028d8, got 0x0; N1.color: expected B, got R; N3.color: expected R, got B
+| Case 6: right-right black uncle | 38 | 105 | +67 | +176.3% |
+  (ASM) Case 6: right-right black uncle: header.root: expected 0x400002912, got 0x4000028d8; N0.parent: expected 0x400002912, got 0x0; N0.R: expected 0x0, got 0x400002912; N0.color: expected R, got B; N2.parent: expected 0x0, got 0x4000028d8; N2.L: expected 0x4000028d8, got 0x0; N2.R: expected 0x40000292f, got 0x0; N2.color: expected B, got R; N3.color: expected R, got B
+| Case 5+6: left-right null uncle | 37 | 130 | +93 | +251.4% |
+  (ASM) Case 5+6: left-right null uncle: header.root: expected 0x400002912, got 0x4000028d8; N0.parent: expected 0x400002912, got 0x0; N0.L: expected 0x0, got 0x4000028f5; N0.color: expected R, got B; N1.parent: expected 0x400002912, got 0x4000028d8; N2.parent: expected 0x0, got 0x4000028f5; N2.L: expected 0x4000028f5, got 0x0; N2.R: expected 0x4000028d8, got 0x0
+| Case 5+6: right-left null uncle | 37 | 130 | +93 | +251.4% |
+  (ASM) Case 5+6: right-left null uncle: header.root: expected 0x400002912, got 0x4000028d8; N0.parent: expected 0x400002912, got 0x0; N0.R: expected 0x0, got 0x4000028f5; N0.color: expected R, got B; N1.parent: expected 0x400002912, got 0x4000028d8; N2.parent: expected 0x0, got 0x4000028f5; N2.L: expected 0x4000028d8, got 0x0; N2.R: expected 0x4000028f5, got 0x0
+| Case 5+6: left-right black uncle | 37 | 132 | +95 | +256.8% |
+  (ASM) Case 5+6: left-right black uncle: header.root: expected 0x40000292f, got 0x4000028d8; N0.parent: expected 0x40000292f, got 0x0; N0.L: expected 0x0, got 0x4000028f5; N0.color: expected R, got B; N1.parent: expected 0x40000292f, got 0x4000028d8; N3.parent: expected 0x0, got 0x4000028f5; N3.L: expected 0x4000028f5, got 0x0; N3.R: expected 0x4000028d8, got 0x0
+| Case 5+6: right-left black uncle | 37 | 132 | +95 | +256.8% |
+  (ASM) Case 5+6: right-left black uncle: header.root: expected 0x40000292f, got 0x4000028d8; N0.parent: expected 0x40000292f, got 0x0; N0.R: expected 0x0, got 0x400002912; N0.color: expected R, got B; N2.parent: expected 0x40000292f, got 0x4000028d8; N3.parent: expected 0x0, got 0x400002912; N3.L: expected 0x4000028d8, got 0x0; N3.R: expected 0x400002912, got 0x0
+test tests::test_insert_to_tree ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 29 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 30 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 52 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 31 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 49 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 30 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 56 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 31 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 53 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 88 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 85 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 85 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 38 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 82 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 42 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 102 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 45 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 94 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 109 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 38 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 103 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 111 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 38 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 105 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 130 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 130 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 132 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 132 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
