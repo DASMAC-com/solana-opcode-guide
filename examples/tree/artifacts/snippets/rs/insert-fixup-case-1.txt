@@ -1,3 +1,5 @@
+    // Main insert fixup.
+    loop {
         // Case 1.
         if (*parent).color == Color::Black {
             return SUCCESS;

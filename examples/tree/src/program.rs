@@ -9,9 +9,9 @@ use pinocchio::{
 };
 use tree_interface::{
     cpi, data, error_codes::error, input_buffer, instruction, tree, Color,
-    CreateAccountInstructionData, InitializeInstruction, InsertInstruction,
-    SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
-    TransferInstructionData, TreeHeader, TreeNode,
+    CreateAccountInstructionData, InitializeInstruction, InsertInstruction, SolAccountInfo,
+    SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds, TransferInstructionData,
+    TreeHeader, TreeNode,
 };
 #[cfg(target_os = "solana")]
 use {
@@ -334,9 +334,9 @@ unsafe fn insert(
     (*parent).child[child_dir] = node;
     // ANCHOR_END: insert-fixup-child-dir
 
+    // ANCHOR: insert-fixup-case-1
     // Main insert fixup.
     loop {
-        // ANCHOR: insert-fixup-case-1
         // Case 1.
         if (*parent).color == Color::Black {
             return SUCCESS;
@@ -409,9 +409,7 @@ unsafe fn insert(
                     (*grandparent).parent = parent;
 
                     if !great_grandparent.is_null() {
-                        let idx = (grandparent
-                            == (*great_grandparent).child[tree::DIR_R])
-                            as usize;
+                        let idx = (grandparent == (*great_grandparent).child[tree::DIR_R]) as usize;
                         (*great_grandparent).child[idx] = parent;
                     } else {
                         (*tree_header).root = parent;
@@ -478,9 +476,7 @@ unsafe fn insert(
                     (*grandparent).parent = parent;
 
                     if !great_grandparent.is_null() {
-                        let idx = (grandparent
-                            == (*great_grandparent).child[tree::DIR_R])
-                            as usize;
+                        let idx = (grandparent == (*great_grandparent).child[tree::DIR_R]) as usize;
                         (*great_grandparent).child[idx] = parent;
                     } else {
                         (*tree_header).root = parent;

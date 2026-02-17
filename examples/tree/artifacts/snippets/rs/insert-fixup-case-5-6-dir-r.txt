@@ -2,9 +2,14 @@
             // dir_r: parent is right child of grandparent.
             uncle = (*grandparent).child[tree::DIR_L];
             if uncle.is_null() || (*uncle).color == Color::Black {
-                // Case 5 dir_r: rotate parent RIGHT.
-                let new_root = (*parent).child[tree::DIR_L];
-                if node == new_root {
+                // Case 5 dir_r: rotate parent in DIR_R.
+                //
+                // Grandparent is guaranteed non-null by the case 4 check, so
+                // no root-replacement path is needed. Parent is known to be
+                // grandparent.child[DIR_R] from the dir_r branch, so the
+                // child pointer update is hardcoded without comparison.
+                if node == (*parent).child[tree::DIR_L] {
+                    let new_root = (*parent).child[tree::DIR_L];
                     let new_child = (*new_root).child[tree::DIR_R];
 
                     (*parent).child[tree::DIR_L] = new_child;
@@ -22,7 +27,17 @@
                     parent = new_root;
                 }
 
-                // Case 6 dir_r: rotate grandparent LEFT.
+                // Case 6 dir_r: rotate grandparent in DIR_L.
+                //
+                // The new root of this rotation is parent
+                // (= grandparent.child[DIR_R]), already in scope,
+                // eliminating the generic version's load of
+                // subtree.child[opposite(direction)].
+                //
+                // Great-grandparent may be null (grandparent could be root),
+                // so the null check and root-replacement path are retained.
+                // Grandparent's position under great-grandparent is unrelated
+                // to dir, so the pointer comparison is also retained.
                 {
                     let great_grandparent = (*grandparent).parent;
                     let new_child = (*parent).child[tree::DIR_L];
@@ -37,9 +52,7 @@
                     (*grandparent).parent = parent;
 
                     if !great_grandparent.is_null() {
-                        let idx = (grandparent
-                            == (*great_grandparent).child[tree::DIR_R])
-                            as usize;
+                        let idx = (grandparent == (*great_grandparent).child[tree::DIR_R]) as usize;
                         (*great_grandparent).child[idx] = parent;
                     } else {
                         (*tree_header).root = parent;

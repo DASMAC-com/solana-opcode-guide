@@ -149,23 +149,153 @@ not available in Rust, since the compiler enforces
 
 ## Insert
 
+### Input checks
+
 ::: details Implementations
 
 ::: code-group
 
 <!-- markdownlint-disable MD013 -->
 
-<<< ../../../examples/tree/artifacts/snippets/asm/insert.txt{asm} [Assembly]
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-input-checks.txt{asm} [Assembly]
 
-<<< ../../../examples/tree/artifacts/snippets/rs/insert.txt{rs} [Rust]
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-input-checks.txt{rs} [Rust]
 
 :::
 
 ::: details Benchmarking
 
-<!-- @include: ../../../examples/tree/artifacts/tests/insert/result.txt{1,5} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/insert/result.txt{1,6} -->
 
 :::
+
+<!-- markdownlint-enable MD013 -->
+
+### Allocate
+
+::: details Implementations
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-allocate.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-allocate.txt{rs} [Rust]
+
+:::
+
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/insert_alloc_checks/result.txt{1,10} -->
+
+:::
+
+<!-- markdownlint-enable MD013 -->
+
+### Search
+
+::: details Implementations
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-search.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-search.txt{rs} [Rust]
+
+:::
+
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/insert_search/result.txt{1,5} -->
+
+:::
+
+<!-- markdownlint-enable MD013 -->
+
+### Insert fixup
+
+<!-- markdownlint-disable MD013 -->
+
+::: details Insert to tree
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-to-tree.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-to-tree.txt{rs} [Rust]
+
+:::
+
+::: details Child direction
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-fixup-child-dir.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-fixup-child-dir.txt{rs} [Rust]
+
+:::
+
+::: details Case 1
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-fixup-case-1.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-fixup-case-1.txt{rs} [Rust]
+
+:::
+
+::: details Case 4
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-fixup-case-4.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-fixup-case-4.txt{rs} [Rust]
+
+:::
+
+::: details Cases 5 and 6 (left)
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-fixup-case-5-6-dir-l.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-fixup-case-5-6-dir-l.txt{rs} [Rust]
+
+:::
+
+::: details Cases 5 and 6 (right)
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-fixup-case-5-6-dir-r.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-fixup-case-5-6-dir-r.txt{rs} [Rust]
+
+:::
+
+::: details Cases 2 and 3
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/insert-fixup-case-2-3.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/insert-fixup-case-2-3.txt{rs} [Rust]
+
+:::
+
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/insert_to_tree/result.txt{1,21} -->
+
+:::
+
+<!-- markdownlint-enable MD013 -->
 
 ## :white_check_mark: All tests
 
