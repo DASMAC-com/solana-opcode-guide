@@ -9,7 +9,7 @@ use pinocchio::{
 };
 use tree_interface::{
     cpi, data, error_codes::error, input_buffer, instruction, tree, Color,
-    CreateAccountInstructionData, Direction, InitializeInstruction, InsertInstruction,
+    CreateAccountInstructionData, InitializeInstruction, InsertInstruction,
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
     TransferInstructionData, TreeHeader, TreeNode,
 };
@@ -330,12 +330,8 @@ unsafe fn insert(
 
     // ANCHOR: insert-fixup
     // Get child direction, set at parent.
-    let dir = if (key > (*parent).key) {
-        tree::DIR_R
-    } else {
-        tree::DIR_L
-    };
-    (*parent).child[dir] = node;
+    let child_dir = (key > (*parent).key) as usize;
+    (*parent).child[child_dir] = node;
 
     // Main insert fixup.
     loop {
@@ -351,70 +347,114 @@ unsafe fn insert(
             return SUCCESS;
         }
 
-        // Case 5/6.
-        let dir = direction(parent) as usize;
-        let uncle = (*grandparent).child[opposite(dir)];
-        if uncle.is_null() || (*uncle).color == Color::Black {
-            // Case 5: rotate parent in dir.
-            //
-            // Grandparent is guaranteed non-null by the case 4 check, so no
-            // root-replacement path is needed. Parent is known to be
-            // grandparent.child[dir] from the direction() call, so the child
-            // pointer update is hardcoded without comparison.
-            if node == (*parent).child[opposite(dir)] {
-                let new_root = (*parent).child[opposite(dir)];
-                let new_child = (*new_root).child[dir];
+        // Determine direction and uncle with hardcoded child indices.
+        let uncle;
+        if parent == (*grandparent).child[tree::DIR_L] {
+            // dir_l: parent is left child of grandparent.
+            uncle = (*grandparent).child[tree::DIR_R];
+            if uncle.is_null() || (*uncle).color == Color::Black {
+                // Case 5 dir_l: rotate parent LEFT.
+                let pivot = (*parent).child[tree::DIR_R];
+                if node == pivot {
+                    let new_root = pivot;
+                    let new_child = (*new_root).child[tree::DIR_L];
 
-                (*parent).child[opposite(dir)] = new_child;
-                if !new_child.is_null() {
-                    (*new_child).parent = parent;
+                    (*parent).child[tree::DIR_R] = new_child;
+                    if !new_child.is_null() {
+                        (*new_child).parent = parent;
+                    }
+
+                    (*new_root).child[tree::DIR_L] = parent;
+                    (*new_root).parent = grandparent;
+                    (*parent).parent = new_root;
+
+                    (*grandparent).child[tree::DIR_L] = new_root;
+
+                    node = parent;
+                    parent = new_root;
                 }
 
-                (*new_root).child[dir] = parent;
-                (*new_root).parent = grandparent;
-                (*parent).parent = new_root;
+                // Case 6 dir_l: rotate grandparent RIGHT.
+                {
+                    let great_grandparent = (*grandparent).parent;
+                    let new_child = (*parent).child[tree::DIR_R];
 
-                (*grandparent).child[dir] = new_root;
+                    (*grandparent).child[tree::DIR_L] = new_child;
+                    if !new_child.is_null() {
+                        (*new_child).parent = grandparent;
+                    }
 
-                node = parent;
-                parent = new_root;
+                    (*parent).child[tree::DIR_R] = grandparent;
+                    (*parent).parent = great_grandparent;
+                    (*grandparent).parent = parent;
+
+                    if !great_grandparent.is_null() {
+                        let idx = (grandparent
+                            == (*great_grandparent).child[tree::DIR_R])
+                            as usize;
+                        (*great_grandparent).child[idx] = parent;
+                    } else {
+                        (*tree_header).root = parent;
+                    }
+                }
+
+                (*parent).color = Color::Black;
+                (*grandparent).color = Color::Red;
+                return SUCCESS;
             }
+        } else {
+            // dir_r: parent is right child of grandparent.
+            uncle = (*grandparent).child[tree::DIR_L];
+            if uncle.is_null() || (*uncle).color == Color::Black {
+                // Case 5 dir_r: rotate parent RIGHT.
+                let pivot = (*parent).child[tree::DIR_L];
+                if node == pivot {
+                    let new_root = pivot;
+                    let new_child = (*new_root).child[tree::DIR_R];
 
-            // Case 6: rotate grandparent in opposite(dir).
-            //
-            // The new root of this rotation is parent
-            // (= grandparent.child[dir]), which the caller already has,
-            // eliminating the generic version's load of
-            // subtree.child[opposite(direction)].
-            //
-            // Great-grandparent may be null (grandparent could be root), so
-            // the null check and root-replacement path are retained.
-            // Grandparent's position under great-grandparent is unrelated to
-            // dir, so the pointer comparison is also retained.
-            {
-                let great_grandparent = (*grandparent).parent;
-                let new_child = (*parent).child[opposite(dir)];
+                    (*parent).child[tree::DIR_L] = new_child;
+                    if !new_child.is_null() {
+                        (*new_child).parent = parent;
+                    }
 
-                (*grandparent).child[dir] = new_child;
-                if !new_child.is_null() {
-                    (*new_child).parent = grandparent;
+                    (*new_root).child[tree::DIR_R] = parent;
+                    (*new_root).parent = grandparent;
+                    (*parent).parent = new_root;
+
+                    (*grandparent).child[tree::DIR_R] = new_root;
+
+                    node = parent;
+                    parent = new_root;
                 }
 
-                (*parent).child[opposite(dir)] = grandparent;
-                (*parent).parent = great_grandparent;
-                (*grandparent).parent = parent;
+                // Case 6 dir_r: rotate grandparent LEFT.
+                {
+                    let great_grandparent = (*grandparent).parent;
+                    let new_child = (*parent).child[tree::DIR_L];
 
-                if !great_grandparent.is_null() {
-                    let idx = (grandparent == (*great_grandparent).child[tree::DIR_R]) as usize;
-                    (*great_grandparent).child[idx] = parent;
-                } else {
-                    (*tree_header).root = parent;
+                    (*grandparent).child[tree::DIR_R] = new_child;
+                    if !new_child.is_null() {
+                        (*new_child).parent = grandparent;
+                    }
+
+                    (*parent).child[tree::DIR_L] = grandparent;
+                    (*parent).parent = great_grandparent;
+                    (*grandparent).parent = parent;
+
+                    if !great_grandparent.is_null() {
+                        let idx = (grandparent
+                            == (*great_grandparent).child[tree::DIR_R])
+                            as usize;
+                        (*great_grandparent).child[idx] = parent;
+                    } else {
+                        (*tree_header).root = parent;
+                    }
                 }
+
+                (*parent).color = Color::Black;
+                (*grandparent).color = Color::Red;
+                return SUCCESS;
             }
-
-            (*parent).color = Color::Black;
-            (*grandparent).color = Color::Red;
-            return SUCCESS;
         }
 
         // Case 2.
@@ -588,21 +628,6 @@ unsafe fn initialize(
     SUCCESS
 }
 
-/// Return the direction of the node with respect to its parent.
-#[inline(always)]
-unsafe fn direction(node: *const TreeNode) -> Direction {
-    if node == (*(*node).parent).child[tree::DIR_R] {
-        Direction::Right
-    } else {
-        Direction::Left
-    }
-}
-
-#[inline(always)]
-const fn opposite(direction: usize) -> usize {
-    1 - direction
-}
-
 #[inline(always)]
 unsafe fn search(tree_header: *const TreeHeader, key: u16) -> *mut TreeNode {
     let mut node = (*tree_header).root;
@@ -626,10 +651,11 @@ unsafe fn rotate_subtree(
     direction: usize,
 ) -> *mut TreeNode {
     let parent = (*subtree).parent;
-    let new_root = (*subtree).child[opposite(direction)];
+    let opposite = 1 - direction;
+    let new_root = (*subtree).child[opposite];
     let new_child = (*new_root).child[direction];
 
-    (*subtree).child[opposite(direction)] = new_child;
+    (*subtree).child[opposite] = new_child;
 
     if !new_child.is_null() {
         (*new_child).parent = subtree;
