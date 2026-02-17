@@ -165,7 +165,7 @@ not available in Rust, since the compiler enforces
 
 ::: details Benchmarking
 
-<!-- @include: ../../../examples/tree/artifacts/tests/insert_input_checks/result.txt{1,4} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/insert_input_checks/result.txt{1,7} -->
 
 :::
 

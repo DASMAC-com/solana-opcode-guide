@@ -482,6 +482,9 @@ pub(super) enum InsertCase {
     // Input validation.
     InputDataShort,
     InputDataLong,
+    InputNAccounts,
+    InputUserDataLen,
+    InputTreeDuplicate,
     // Allocation checks.
     AllocNAccounts,
     AllocSysprogDuplicate,
@@ -537,7 +540,13 @@ pub(super) enum InsertCase {
 }
 
 impl InsertCase {
-    pub(super) const INPUT_CASES: &'static [Self] = &[Self::InputDataShort, Self::InputDataLong];
+    pub(super) const INPUT_CASES: &'static [Self] = &[
+        Self::InputDataShort,
+        Self::InputDataLong,
+        Self::InputNAccounts,
+        Self::InputUserDataLen,
+        Self::InputTreeDuplicate,
+    ];
 
     pub(super) const ALLOC_CHECK_CASES: &'static [Self] = &[
         Self::AllocNAccounts,
@@ -594,6 +603,9 @@ impl TestCase for InsertCase {
         match self {
             Self::InputDataShort => "Instruction data too short",
             Self::InputDataLong => "Instruction data too long",
+            Self::InputNAccounts => "Too few accounts",
+            Self::InputUserDataLen => "User has nonzero data length",
+            Self::InputTreeDuplicate => "Tree account is duplicate",
             Self::AllocNAccounts => "Wrong N accounts for allocation",
             Self::AllocSysprogDuplicate => "System program is duplicate",
             Self::AllocSysprogDataLen => "System program wrong data length",
@@ -666,6 +678,41 @@ impl TestCase for InsertCase {
                     &instruction,
                     &accounts,
                     error_codes::error::INSTRUCTION_DATA_LEN,
+                )
+            }
+            Self::InputNAccounts => {
+                let (setup, mut instruction, mut accounts) = insert_skip_alloc_setup(lang);
+                // Remove tree account (1 account instead of 2).
+                instruction.accounts.pop();
+                accounts.pop();
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::N_ACCOUNTS,
+                )
+            }
+            Self::InputUserDataLen => {
+                let (setup, instruction, mut accounts) = insert_skip_alloc_setup(lang);
+                accounts[AccountIndex::User as usize].1.data = vec![1u8; 1];
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::USER_DATA_LEN,
+                )
+            }
+            Self::InputTreeDuplicate => {
+                let (setup, mut instruction, mut accounts) = insert_skip_alloc_setup(lang);
+                instruction.accounts[AccountIndex::Tree as usize] =
+                    instruction.accounts[AccountIndex::User as usize].clone();
+                accounts[AccountIndex::Tree as usize] =
+                    accounts[AccountIndex::User as usize].clone();
+                check_error(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    error_codes::error::TREE_DUPLICATE,
                 )
             }
 
