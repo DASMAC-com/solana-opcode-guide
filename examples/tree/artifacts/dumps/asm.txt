@@ -11,7 +11,7 @@ ELF Header
   Version                           0x1
   Entry point address               0xE8
   Start of program headers          64 (bytes into file)
-  Start of section headers          2768 (bytes into file)
+  Start of section headers          3408 (bytes into file)
   Flags                             0x0
   Size of this header               64 (bytes)
   Size of program headers           56 (bytes)
@@ -19,17 +19,17 @@ ELF Header
   Size of section headers           64 (bytes)
   Number of section headers         7
   Section header string table index 6
-There are 7 section headers, starting at offset 0xad0
+There are 7 section headers, starting at offset 0xd50
 
 Section Headers
   [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
-  [ 1] .text             PROGBITS        00000000000000e8 0000e8 000848 00  AX  0   0  4
-  [ 2] .dynamic          DYNAMIC         0000000000000930 000930 0000a0 10  WA  4   0  8
-  [ 3] .dynsym           DYNSYM          00000000000009d0 0009d0 000060 18   A  4   1  8
-  [ 4] .dynstr           STRTAB          0000000000000a30 000a30 000040 00   A  0   0  1
-  [ 5] .rel.dyn          REL             0000000000000a70 000a70 000030 10   A  3   0  8
-  [ 6] .s                STRTAB          0000000000000000 000aa0 00002c 00      0   0  1
+  [ 1] .text             PROGBITS        00000000000000e8 0000e8 000ac8 00  AX  0   0  4
+  [ 2] .dynamic          DYNAMIC         0000000000000bb0 000bb0 0000a0 10  WA  4   0  8
+  [ 3] .dynsym           DYNSYM          0000000000000c50 000c50 000060 18   A  4   1  8
+  [ 4] .dynstr           STRTAB          0000000000000cb0 000cb0 000040 00   A  0   0  1
+  [ 5] .rel.dyn          REL             0000000000000cf0 000cf0 000030 10   A  3   0  8
+  [ 6] .s                STRTAB          0000000000000000 000d20 00002c 00      0   0  1
 Key to Flags
   W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
   L (link order), O (extra OS processing required), G (group), T (TLS),
@@ -42,9 +42,9 @@ There are 3 program headers, starting at offset 64
 
 Program Headers
   Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
-  LOAD           0x0000e8 0x00000000000000e8 0x00000000000000e8 0x000848 0x000848 R E 0x1000
-  LOAD           0x0009d0 0x00000000000009d0 0x00000000000009d0 0x0000d0 0x0000d0 R   0x1000
-  DYNAMIC        0x000930 0x0000000000000930 0x0000000000000930 0x0000a0 0x0000a0 RW  0x8
+  LOAD           0x0000e8 0x00000000000000e8 0x00000000000000e8 0x000ac8 0x000ac8 R E 0x1000
+  LOAD           0x000c50 0x0000000000000c50 0x0000000000000c50 0x0000d0 0x0000d0 R   0x1000
+  DYNAMIC        0x000bb0 0x0000000000000bb0 0x0000000000000bb0 0x0000a0 0x0000a0 RW  0x8
 
  Section to Segment mapping
   Segment Sections...
@@ -52,20 +52,20 @@ Program Headers
    01     .dynsym .dynstr .rel.dyn 
    02     .dynamic 
    None   .s 
-Dynamic section at offset 0x930 contains 10 entries
+Dynamic section at offset 0xbb0 contains 10 entries
   Tag                Type      Name/Value
   0x000000000000001e (FLAGS)   TEXTREL 
-  0x0000000000000011 (REL)     0xa70
+  0x0000000000000011 (REL)     0xcf0
   0x0000000000000012 (RELSZ)   48 (bytes)
   0x0000000000000013 (RELENT)  16 (bytes)
-  0x0000000000000006 (SYMTAB)  0x9d0
+  0x0000000000000006 (SYMTAB)  0xc50
   0x000000000000000b (SYMENT)  24 (bytes)
-  0x0000000000000005 (STRTAB)  0xa30
+  0x0000000000000005 (STRTAB)  0xcb0
   0x000000000000000a (STRSZ)   64 (bytes)
   0x0000000000000016 (TEXTREL) 0x0
   0x0000000000000000 (NULL)    0x0
 
-Relocation section '.rel.dyn' at offset 0xa70 contains 3 entries
+Relocation section '.rel.dyn' at offset 0xcf0 contains 3 entries
     Offset             Info             Type               Symbol's Value  Symbol's Name
 0000000000000240  000000030000000a R_BPF_64_32            0000000000000000 sol_try_find_program_address
 0000000000000460  000000020000000a R_BPF_64_32            0000000000000000 sol_invoke_signed_c
@@ -91,32 +91,32 @@ Disassembly of section .text
       33	15 07 02 00 00 00 00 00	if r7 == 0x0 goto +0x2 <entrypoint+0x38>
       34	b7 00 00 00 0b 00 00 00	r0 = 0xb
       35	95 00 00 00 00 00 00 00	exit
-      36	55 09 eb 00 01 00 00 00	if r9 != 0x1 goto +0xeb <entrypoint+0x798>
-      37	55 08 ec 00 04 00 00 00	if r8 != 0x4 goto +0xec <entrypoint+0x7a8>
+      36	55 09 3b 01 01 00 00 00	if r9 != 0x1 goto +0x13b <entrypoint+0xa18>
+      37	55 08 3c 01 04 00 00 00	if r8 != 0x4 goto +0x13c <entrypoint+0xa28>
       38	79 19 58 00 00 00 00 00	r9 = *(u64 *)(r1 + 0x58)
-      39	55 09 fc 00 00 00 00 00	if r9 != 0x0 goto +0xfc <entrypoint+0x838>
+      39	55 09 4c 01 00 00 00 00	if r9 != 0x0 goto +0x14c <entrypoint+0xab8>
       40	71 19 68 28 00 00 00 00	r9 = *(u8 *)(r1 + 0x2868)
-      41	55 09 f8 00 ff 00 00 00	if r9 != 0xff goto +0xf8 <entrypoint+0x828>
+      41	55 09 48 01 ff 00 00 00	if r9 != 0xff goto +0x148 <entrypoint+0xaa8>
       42	79 19 b8 28 00 00 00 00	r9 = *(u64 *)(r1 + 0x28b8)
-      43	55 09 f4 00 00 00 00 00	if r9 != 0x0 goto +0xf4 <entrypoint+0x818>
+      43	55 09 44 01 00 00 00 00	if r9 != 0x0 goto +0x144 <entrypoint+0xa98>
       44	71 19 c8 50 00 00 00 00	r9 = *(u8 *)(r1 + 0x50c8)
-      45	55 09 f0 00 ff 00 00 00	if r9 != 0xff goto +0xf0 <entrypoint+0x808>
+      45	55 09 40 01 ff 00 00 00	if r9 != 0xff goto +0x140 <entrypoint+0xa88>
       46	79 19 18 51 00 00 00 00	r9 = *(u64 *)(r1 + 0x5118)
-      47	55 09 ec 00 0e 00 00 00	if r9 != 0xe goto +0xec <entrypoint+0x7f8>
+      47	55 09 3c 01 0e 00 00 00	if r9 != 0xe goto +0x13c <entrypoint+0xa78>
       48	71 19 38 79 00 00 00 00	r9 = *(u8 *)(r1 + 0x7938)
-      49	55 09 e8 00 ff 00 00 00	if r9 != 0xff goto +0xe8 <entrypoint+0x7e8>
+      49	55 09 38 01 ff 00 00 00	if r9 != 0xff goto +0x138 <entrypoint+0xa68>
       50	79 19 40 79 00 00 00 00	r9 = *(u64 *)(r1 + 0x7940)
       51	18 08 00 00 06 a7 d5 17 00 00 00 00 19 2c 5c 51	r8 = 0x515c2c1917d5a706 ll
-      53	5d 89 e2 00 00 00 00 00	if r9 != r8 goto +0xe2 <entrypoint+0x7d8>
+      53	5d 89 32 01 00 00 00 00	if r9 != r8 goto +0x132 <entrypoint+0xa58>
       54	79 19 48 79 00 00 00 00	r9 = *(u64 *)(r1 + 0x7948)
       55	18 08 00 00 21 8c c9 4c 00 00 00 00 3d 4a f1 7f	r8 = 0x7ff14a3d4cc98c21 ll
-      57	5d 89 de 00 00 00 00 00	if r9 != r8 goto +0xde <entrypoint+0x7d8>
+      57	5d 89 2e 01 00 00 00 00	if r9 != r8 goto +0x12e <entrypoint+0xa58>
       58	79 19 50 79 00 00 00 00	r9 = *(u64 *)(r1 + 0x7950)
       59	18 08 00 00 58 da ee 08 00 00 00 00 9b a1 fd 44	r8 = 0x44fda19b08eeda58 ll
-      61	5d 89 da 00 00 00 00 00	if r9 != r8 goto +0xda <entrypoint+0x7d8>
+      61	5d 89 2a 01 00 00 00 00	if r9 != r8 goto +0x12a <entrypoint+0xa58>
       62	79 19 58 79 00 00 00 00	r9 = *(u64 *)(r1 + 0x7958)
       63	b4 08 00 00 e3 db d9 8a	w8 = -0x7526241d
-      64	5d 89 d7 00 00 00 00 00	if r9 != r8 goto +0xd7 <entrypoint+0x7d8>
+      64	5d 89 27 01 00 00 00 00	if r9 != r8 goto +0x127 <entrypoint+0xa58>
       65	b7 02 00 00 00 00 00 00	r2 = 0x0
       66	bf 13 00 00 00 00 00 00	r3 = r1
       67	07 03 00 00 b9 a1 00 00	r3 += 0xa1b9
@@ -127,16 +127,16 @@ Disassembly of section .text
       72	85 10 00 00 ff ff ff ff	call -0x1
       73	79 19 70 28 00 00 00 00	r9 = *(u64 *)(r1 + 0x2870)
       74	79 48 00 00 00 00 00 00	r8 = *(u64 *)(r4 + 0x0)
-      75	5d 89 ca 00 00 00 00 00	if r9 != r8 goto +0xca <entrypoint+0x7c8>
+      75	5d 89 1a 01 00 00 00 00	if r9 != r8 goto +0x11a <entrypoint+0xa48>
       76	79 19 78 28 00 00 00 00	r9 = *(u64 *)(r1 + 0x2878)
       77	79 48 08 00 00 00 00 00	r8 = *(u64 *)(r4 + 0x8)
-      78	5d 89 c7 00 00 00 00 00	if r9 != r8 goto +0xc7 <entrypoint+0x7c8>
+      78	5d 89 17 01 00 00 00 00	if r9 != r8 goto +0x117 <entrypoint+0xa48>
       79	79 19 80 28 00 00 00 00	r9 = *(u64 *)(r1 + 0x2880)
       80	79 48 10 00 00 00 00 00	r8 = *(u64 *)(r4 + 0x10)
-      81	5d 89 c4 00 00 00 00 00	if r9 != r8 goto +0xc4 <entrypoint+0x7c8>
+      81	5d 89 14 01 00 00 00 00	if r9 != r8 goto +0x114 <entrypoint+0xa48>
       82	79 19 88 28 00 00 00 00	r9 = *(u64 *)(r1 + 0x2888)
       83	79 48 18 00 00 00 00 00	r8 = *(u64 *)(r4 + 0x18)
-      84	5d 89 c1 00 00 00 00 00	if r9 != r8 goto +0xc1 <entrypoint+0x7c8>
+      84	5d 89 11 01 00 00 00 00	if r9 != r8 goto +0x111 <entrypoint+0xa48>
       85	7a 0a e8 fe 02 00 00 00	*(u64 *)(r10 - 0x118) = 0x2
       86	7a 0a f8 fe 34 00 00 00	*(u64 *)(r10 - 0x108) = 0x34
       87	79 19 90 79 00 00 00 00	r9 = *(u64 *)(r1 + 0x7990)
@@ -197,15 +197,15 @@ Disassembly of section .text
      142	07 07 00 00 18 00 00 00	r7 += 0x18
      143	7b 76 10 00 00 00 00 00	*(u64 *)(r6 + 0x10) = r7
      144	95 00 00 00 00 00 00 00	exit
-     145	55 09 7e 00 05 00 00 00	if r9 != 0x5 goto +0x7e <entrypoint+0x798>
-     146	a5 08 7f 00 02 00 00 00	if r8 < 0x2 goto +0x7f <entrypoint+0x7a8>
+     145	55 09 ce 00 05 00 00 00	if r9 != 0x5 goto +0xce <entrypoint+0xa18>
+     146	a5 08 cf 00 02 00 00 00	if r8 < 0x2 goto +0xcf <entrypoint+0xa28>
      147	79 19 58 00 00 00 00 00	r9 = *(u64 *)(r1 + 0x58)
-     148	55 09 8f 00 00 00 00 00	if r9 != 0x0 goto +0x8f <entrypoint+0x838>
+     148	55 09 df 00 00 00 00 00	if r9 != 0x0 goto +0xdf <entrypoint+0xab8>
      149	71 19 68 28 00 00 00 00	r9 = *(u8 *)(r1 + 0x2868)
-     150	55 09 8b 00 ff 00 00 00	if r9 != 0xff goto +0x8b <entrypoint+0x828>
+     150	55 09 db 00 ff 00 00 00	if r9 != 0xff goto +0xdb <entrypoint+0xaa8>
      151	79 19 c8 28 00 00 00 00	r9 = *(u64 *)(r1 + 0x28c8)
      152	55 09 51 00 00 00 00 00	if r9 != 0x0 goto +0x51 <entrypoint+0x668>
-     153	55 08 7a 00 04 00 00 00	if r8 != 0x4 goto +0x7a <entrypoint+0x7b8>
+     153	55 08 ca 00 04 00 00 00	if r8 != 0x4 goto +0xca <entrypoint+0xa38>
      154	79 19 b8 28 00 00 00 00	r9 = *(u64 *)(r1 + 0x28b8)
      155	7b 9a 68 ff 00 00 00 00	*(u64 *)(r10 - 0x98) = r9
      156	bf 97 00 00 00 00 00 00	r7 = r9
@@ -213,23 +213,23 @@ Disassembly of section .text
      158	57 09 00 00 f8 ff ff ff	r9 &= -0x8
      159	0f 19 00 00 00 00 00 00	r9 += r1
      160	71 98 c8 50 00 00 00 00	r8 = *(u8 *)(r9 + 0x50c8)
-     161	55 08 7c 00 ff 00 00 00	if r8 != 0xff goto +0x7c <entrypoint+0x808>
+     161	55 08 cc 00 ff 00 00 00	if r8 != 0xff goto +0xcc <entrypoint+0xa88>
      162	79 98 18 51 00 00 00 00	r8 = *(u64 *)(r9 + 0x5118)
-     163	55 08 78 00 0e 00 00 00	if r8 != 0xe goto +0x78 <entrypoint+0x7f8>
+     163	55 08 c8 00 0e 00 00 00	if r8 != 0xe goto +0xc8 <entrypoint+0xa78>
      164	71 98 38 79 00 00 00 00	r8 = *(u8 *)(r9 + 0x7938)
-     165	55 08 74 00 ff 00 00 00	if r8 != 0xff goto +0x74 <entrypoint+0x7e8>
+     165	55 08 c4 00 ff 00 00 00	if r8 != 0xff goto +0xc4 <entrypoint+0xa68>
      166	79 98 40 79 00 00 00 00	r8 = *(u64 *)(r9 + 0x7940)
      167	18 04 00 00 06 a7 d5 17 00 00 00 00 19 2c 5c 51	r4 = 0x515c2c1917d5a706 ll
-     169	5d 48 6e 00 00 00 00 00	if r8 != r4 goto +0x6e <entrypoint+0x7d8>
+     169	5d 48 be 00 00 00 00 00	if r8 != r4 goto +0xbe <entrypoint+0xa58>
      170	79 98 48 79 00 00 00 00	r8 = *(u64 *)(r9 + 0x7948)
      171	18 04 00 00 21 8c c9 4c 00 00 00 00 3d 4a f1 7f	r4 = 0x7ff14a3d4cc98c21 ll
-     173	5d 48 6a 00 00 00 00 00	if r8 != r4 goto +0x6a <entrypoint+0x7d8>
+     173	5d 48 ba 00 00 00 00 00	if r8 != r4 goto +0xba <entrypoint+0xa58>
      174	79 98 50 79 00 00 00 00	r8 = *(u64 *)(r9 + 0x7950)
      175	18 04 00 00 58 da ee 08 00 00 00 00 9b a1 fd 44	r4 = 0x44fda19b08eeda58 ll
-     177	5d 48 66 00 00 00 00 00	if r8 != r4 goto +0x66 <entrypoint+0x7d8>
+     177	5d 48 b6 00 00 00 00 00	if r8 != r4 goto +0xb6 <entrypoint+0xa58>
      178	79 98 58 79 00 00 00 00	r8 = *(u64 *)(r9 + 0x7958)
      179	b4 04 00 00 e3 db d9 8a	w4 = -0x7526241d
-     180	5d 48 63 00 00 00 00 00	if r8 != r4 goto +0x63 <entrypoint+0x7d8>
+     180	5d 48 b3 00 00 00 00 00	if r8 != r4 goto +0xb3 <entrypoint+0xa58>
      181	79 98 90 79 00 00 00 00	r8 = *(u64 *)(r9 + 0x7990)
      182	27 08 00 00 1d 00 00 00	r8 *= 0x1d
      183	62 0a a1 fe 02 00 00 00	*(u32 *)(r10 - 0x15f) = 0x2
@@ -318,28 +318,108 @@ Disassembly of section .text
      266	55 03 02 00 00 00 00 00	if r3 != 0x0 goto +0x2 <entrypoint+0x780>
      267	72 02 1c 00 00 00 00 00	*(u8 *)(r2 + 0x1c) = 0x0
      268	95 00 00 00 00 00 00 00	exit
-     269	95 00 00 00 00 00 00 00	exit
-     270	b7 00 00 00 09 00 00 00	r0 = 0x9
-     271	95 00 00 00 00 00 00 00	exit
-     272	b7 00 00 00 0c 00 00 00	r0 = 0xc
-     273	95 00 00 00 00 00 00 00	exit
-     274	b7 00 00 00 01 00 00 00	r0 = 0x1
-     275	95 00 00 00 00 00 00 00	exit
-     276	b7 00 00 00 0d 00 00 00	r0 = 0xd
-     277	95 00 00 00 00 00 00 00	exit
-     278	b7 00 00 00 0a 00 00 00	r0 = 0xa
-     279	95 00 00 00 00 00 00 00	exit
-     280	b7 00 00 00 08 00 00 00	r0 = 0x8
-     281	95 00 00 00 00 00 00 00	exit
-     282	b7 00 00 00 07 00 00 00	r0 = 0x7
-     283	95 00 00 00 00 00 00 00	exit
-     284	b7 00 00 00 04 00 00 00	r0 = 0x4
-     285	95 00 00 00 00 00 00 00	exit
-     286	b7 00 00 00 06 00 00 00	r0 = 0x6
-     287	95 00 00 00 00 00 00 00	exit
-     288	b7 00 00 00 03 00 00 00	r0 = 0x3
-     289	95 00 00 00 00 00 00 00	exit
-     290	b7 00 00 00 05 00 00 00	r0 = 0x5
-     291	95 00 00 00 00 00 00 00	exit
-     292	b7 00 00 00 02 00 00 00	r0 = 0x2
-     293	95 00 00 00 00 00 00 00	exit
+     269	69 34 18 00 00 00 00 00	r4 = *(u16 *)(r3 + 0x18)
+     270	2d 45 24 00 00 00 00 00	if r5 > r4 goto +0x24 <entrypoint+0x8b0>
+     271	79 37 10 00 00 00 00 00	r7 = *(u64 *)(r3 + 0x10)
+     272	15 07 02 00 00 00 00 00	if r7 == 0x0 goto +0x2 <entrypoint+0x7b0>
+     273	71 78 1c 00 00 00 00 00	r8 = *(u8 *)(r7 + 0x1c)
+     274	55 08 44 00 00 00 00 00	if r8 != 0x0 goto +0x44 <entrypoint+0x9d0>
+     275	79 28 10 00 00 00 00 00	r8 = *(u64 *)(r2 + 0x10)
+     276	5d 89 0b 00 00 00 00 00	if r9 != r8 goto +0xb <entrypoint+0x818>
+     277	79 26 10 00 00 00 00 00	r6 = *(u64 *)(r2 + 0x10)
+     278	79 68 08 00 00 00 00 00	r8 = *(u64 *)(r6 + 0x8)
+     279	7b 82 10 00 00 00 00 00	*(u64 *)(r2 + 0x10) = r8
+     280	15 08 01 00 00 00 00 00	if r8 == 0x0 goto +0x1 <entrypoint+0x7e8>
+     281	7b 28 00 00 00 00 00 00	*(u64 *)(r8 + 0x0) = r2
+     282	7b 26 08 00 00 00 00 00	*(u64 *)(r6 + 0x8) = r2
+     283	7b 36 00 00 00 00 00 00	*(u64 *)(r6 + 0x0) = r3
+     284	7b 62 00 00 00 00 00 00	*(u64 *)(r2 + 0x0) = r6
+     285	7b 63 08 00 00 00 00 00	*(u64 *)(r3 + 0x8) = r6
+     286	bf 29 00 00 00 00 00 00	r9 = r2
+     287	bf 62 00 00 00 00 00 00	r2 = r6
+     288	79 34 00 00 00 00 00 00	r4 = *(u64 *)(r3 + 0x0)
+     289	79 28 10 00 00 00 00 00	r8 = *(u64 *)(r2 + 0x10)
+     290	7b 83 08 00 00 00 00 00	*(u64 *)(r3 + 0x8) = r8
+     291	15 08 01 00 00 00 00 00	if r8 == 0x0 goto +0x1 <entrypoint+0x840>
+     292	7b 38 00 00 00 00 00 00	*(u64 *)(r8 + 0x0) = r3
+     293	7b 32 10 00 00 00 00 00	*(u64 *)(r2 + 0x10) = r3
+     294	7b 42 00 00 00 00 00 00	*(u64 *)(r2 + 0x0) = r4
+     295	7b 23 00 00 00 00 00 00	*(u64 *)(r3 + 0x0) = r2
+     296	15 04 06 00 00 00 00 00	if r4 == 0x0 goto +0x6 <entrypoint+0x890>
+     297	79 48 10 00 00 00 00 00	r8 = *(u64 *)(r4 + 0x10)
+     298	5d 83 02 00 00 00 00 00	if r3 != r8 goto +0x2 <entrypoint+0x880>
+     299	7b 24 10 00 00 00 00 00	*(u64 *)(r4 + 0x10) = r2
+     300	05 00 03 00 00 00 00 00	goto +0x3 <entrypoint+0x898>
+     301	7b 24 08 00 00 00 00 00	*(u64 *)(r4 + 0x8) = r2
+     302	05 00 01 00 00 00 00 00	goto +0x1 <entrypoint+0x898>
+     303	7b 21 c0 28 00 00 00 00	*(u64 *)(r1 + 0x28c0) = r2
+     304	72 02 1c 00 00 00 00 00	*(u8 *)(r2 + 0x1c) = 0x0
+     305	72 03 1c 00 01 00 00 00	*(u8 *)(r3 + 0x1c) = 0x1
+     306	95 00 00 00 00 00 00 00	exit
+     307	79 37 08 00 00 00 00 00	r7 = *(u64 *)(r3 + 0x8)
+     308	15 07 02 00 00 00 00 00	if r7 == 0x0 goto +0x2 <entrypoint+0x8d0>
+     309	71 78 1c 00 00 00 00 00	r8 = *(u8 *)(r7 + 0x1c)
+     310	55 08 20 00 00 00 00 00	if r8 != 0x0 goto +0x20 <entrypoint+0x9d0>
+     311	79 28 08 00 00 00 00 00	r8 = *(u64 *)(r2 + 0x8)
+     312	5d 89 0b 00 00 00 00 00	if r9 != r8 goto +0xb <entrypoint+0x938>
+     313	79 26 08 00 00 00 00 00	r6 = *(u64 *)(r2 + 0x8)
+     314	79 68 10 00 00 00 00 00	r8 = *(u64 *)(r6 + 0x10)
+     315	7b 82 08 00 00 00 00 00	*(u64 *)(r2 + 0x8) = r8
+     316	15 08 01 00 00 00 00 00	if r8 == 0x0 goto +0x1 <entrypoint+0x908>
+     317	7b 28 00 00 00 00 00 00	*(u64 *)(r8 + 0x0) = r2
+     318	7b 26 10 00 00 00 00 00	*(u64 *)(r6 + 0x10) = r2
+     319	7b 36 00 00 00 00 00 00	*(u64 *)(r6 + 0x0) = r3
+     320	7b 62 00 00 00 00 00 00	*(u64 *)(r2 + 0x0) = r6
+     321	7b 63 10 00 00 00 00 00	*(u64 *)(r3 + 0x10) = r6
+     322	bf 29 00 00 00 00 00 00	r9 = r2
+     323	bf 62 00 00 00 00 00 00	r2 = r6
+     324	79 34 00 00 00 00 00 00	r4 = *(u64 *)(r3 + 0x0)
+     325	79 28 08 00 00 00 00 00	r8 = *(u64 *)(r2 + 0x8)
+     326	7b 83 10 00 00 00 00 00	*(u64 *)(r3 + 0x10) = r8
+     327	15 08 01 00 00 00 00 00	if r8 == 0x0 goto +0x1 <entrypoint+0x960>
+     328	7b 38 00 00 00 00 00 00	*(u64 *)(r8 + 0x0) = r3
+     329	7b 32 08 00 00 00 00 00	*(u64 *)(r2 + 0x8) = r3
+     330	7b 42 00 00 00 00 00 00	*(u64 *)(r2 + 0x0) = r4
+     331	7b 23 00 00 00 00 00 00	*(u64 *)(r3 + 0x0) = r2
+     332	15 04 06 00 00 00 00 00	if r4 == 0x0 goto +0x6 <entrypoint+0x9b0>
+     333	79 48 10 00 00 00 00 00	r8 = *(u64 *)(r4 + 0x10)
+     334	5d 83 02 00 00 00 00 00	if r3 != r8 goto +0x2 <entrypoint+0x9a0>
+     335	7b 24 10 00 00 00 00 00	*(u64 *)(r4 + 0x10) = r2
+     336	05 00 03 00 00 00 00 00	goto +0x3 <entrypoint+0x9b8>
+     337	7b 24 08 00 00 00 00 00	*(u64 *)(r4 + 0x8) = r2
+     338	05 00 01 00 00 00 00 00	goto +0x1 <entrypoint+0x9b8>
+     339	7b 21 c0 28 00 00 00 00	*(u64 *)(r1 + 0x28c0) = r2
+     340	72 02 1c 00 00 00 00 00	*(u8 *)(r2 + 0x1c) = 0x0
+     341	72 03 1c 00 01 00 00 00	*(u8 *)(r3 + 0x1c) = 0x1
+     342	95 00 00 00 00 00 00 00	exit
+     343	72 02 1c 00 00 00 00 00	*(u8 *)(r2 + 0x1c) = 0x0
+     344	72 07 1c 00 00 00 00 00	*(u8 *)(r7 + 0x1c) = 0x0
+     345	72 03 1c 00 01 00 00 00	*(u8 *)(r3 + 0x1c) = 0x1
+     346	bf 39 00 00 00 00 00 00	r9 = r3
+     347	79 92 00 00 00 00 00 00	r2 = *(u64 *)(r9 + 0x0)
+     348	55 02 a9 ff 00 00 00 00	if r2 != 0x0 goto -0x57 <entrypoint+0x748>
+     349	95 00 00 00 00 00 00 00	exit
+     350	b7 00 00 00 09 00 00 00	r0 = 0x9
+     351	95 00 00 00 00 00 00 00	exit
+     352	b7 00 00 00 0c 00 00 00	r0 = 0xc
+     353	95 00 00 00 00 00 00 00	exit
+     354	b7 00 00 00 01 00 00 00	r0 = 0x1
+     355	95 00 00 00 00 00 00 00	exit
+     356	b7 00 00 00 0d 00 00 00	r0 = 0xd
+     357	95 00 00 00 00 00 00 00	exit
+     358	b7 00 00 00 0a 00 00 00	r0 = 0xa
+     359	95 00 00 00 00 00 00 00	exit
+     360	b7 00 00 00 08 00 00 00	r0 = 0x8
+     361	95 00 00 00 00 00 00 00	exit
+     362	b7 00 00 00 07 00 00 00	r0 = 0x7
+     363	95 00 00 00 00 00 00 00	exit
+     364	b7 00 00 00 04 00 00 00	r0 = 0x4
+     365	95 00 00 00 00 00 00 00	exit
+     366	b7 00 00 00 06 00 00 00	r0 = 0x6
+     367	95 00 00 00 00 00 00 00	exit
+     368	b7 00 00 00 03 00 00 00	r0 = 0x3
+     369	95 00 00 00 00 00 00 00	exit
+     370	b7 00 00 00 05 00 00 00	r0 = 0x5
+     371	95 00 00 00 00 00 00 00	exit
+     372	b7 00 00 00 02 00 00 00	r0 = 0x2
+     373	95 00 00 00 00 00 00 00	exit
