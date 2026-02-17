@@ -5,6 +5,7 @@ insert_to_tree:
     stxdw [r9 + TREE_NODE_PARENT_OFF], r2 # Store parent pointer
 
     jne r2, NULL, insert_get_child_dir
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9 # Store new node as root.
     exit # Parent is null, new node at root.
 
 insert_get_child_dir:
