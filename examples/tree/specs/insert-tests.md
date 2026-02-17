@@ -277,6 +277,239 @@ After:
 Right-left variants: mirror of above (insert key=12, parent is
 R(15), double rotation goes right then left).
 
+### Case 6: non-null great-grandparent
+
+The existing case 6 tests have grandparent as root, so
+great-grandparent is always null and the root-replacement path fires.
+These variants place the rotation under a non-root grandparent to
+cover the great-grandparent child pointer update branches in the
+assembly (`insert_fixup_case_6_dir_l_left`,
+`insert_fixup_case_6_dir_r_left`, and their fall-through
+counterparts).
+
+Left-left, GP is left child of GGP (insert key=1):
+
+```text
+Before:
+  Header: root=N0  top=N4  next=<end>
+  N0: B key=20  parent=--  L=N1  R=N3
+  N1: B key=10  parent=N0  L=N2  R=--
+  N2: R key=5   parent=N1  L=--  R=--
+  N3: B key=25  parent=N0  L=--  R=--
+
+After:
+  Header: root=N0  top=--  next=<end>
+  N0: B key=20  parent=--  L=N2  R=N3
+  N1: R key=10  parent=N2  L=--  R=--   <- recolored R
+  N2: B key=5   parent=N0  L=N4  R=N1   <- recolored B
+  N3: B key=25  parent=N0  L=--  R=--
+  N4: R key=1   parent=N2  L=--  R=--   <- inserted
+```
+
+Covers: GGP non-null, GP is left child of GGP (dir_l path,
+`insert_fixup_case_6_dir_l_left`).
+
+Left-left, GP is right child of GGP (insert key=10):
+
+```text
+Before:
+  Header: root=N0  top=N4  next=<end>
+  N0: B key=5   parent=--  L=N1  R=N2
+  N1: B key=3   parent=N0  L=--  R=--
+  N2: B key=20  parent=N0  L=N3  R=--
+  N3: R key=15  parent=N2  L=--  R=--
+
+After:
+  Header: root=N0  top=--  next=<end>
+  N0: B key=5   parent=--  L=N1  R=N3
+  N1: B key=3   parent=N0  L=--  R=--
+  N2: R key=20  parent=N3  L=--  R=--   <- recolored R
+  N3: B key=15  parent=N0  L=N4  R=N2   <- recolored B
+  N4: R key=10  parent=N3  L=--  R=--   <- inserted
+```
+
+Covers: GGP non-null, GP is right child of GGP (dir_l path,
+fall-through at `jne r3, r8`).
+
+Right-right, GP is right child of GGP (insert key=25):
+
+```text
+Before:
+  Header: root=N0  top=N4  next=<end>
+  N0: B key=5   parent=--  L=N1  R=N2
+  N1: B key=3   parent=N0  L=--  R=--
+  N2: B key=15  parent=N0  L=--  R=N3
+  N3: R key=20  parent=N2  L=--  R=--
+
+After:
+  Header: root=N0  top=--  next=<end>
+  N0: B key=5   parent=--  L=N1  R=N3
+  N1: B key=3   parent=N0  L=--  R=--
+  N2: R key=15  parent=N3  L=--  R=--   <- recolored R
+  N3: B key=20  parent=N0  L=N2  R=N4   <- recolored B
+  N4: R key=25  parent=N3  L=--  R=--   <- inserted
+```
+
+Covers: GGP non-null, GP is right child of GGP (dir_r path,
+fall-through at `jne r3, r8`).
+
+Right-right, GP is left child of GGP (insert key=17):
+
+```text
+Before:
+  Header: root=N0  top=N4  next=<end>
+  N0: B key=20  parent=--  L=N1  R=N3
+  N1: B key=10  parent=N0  L=--  R=N2
+  N2: R key=15  parent=N1  L=--  R=--
+  N3: B key=25  parent=N0  L=--  R=--
+
+After:
+  Header: root=N0  top=--  next=<end>
+  N0: B key=20  parent=--  L=N2  R=N3
+  N1: R key=10  parent=N2  L=--  R=--   <- recolored R
+  N2: B key=15  parent=N0  L=N1  R=N4   <- recolored B
+  N3: B key=25  parent=N0  L=--  R=--
+  N4: R key=17  parent=N2  L=--  R=--   <- inserted
+```
+
+Covers: GGP non-null, GP is left child of GGP (dir_r path,
+`insert_fixup_case_6_dir_r_left`).
+
+### Case 2 + 6: non-null new_child in rotation
+
+The existing case 6 tests have null `new_child` in the rotation
+(parent has no child on the transferred side). These variants use
+case 2 propagation to reach case 6 with a populated subtree, so the
+`new_child` pointer is non-null and the reparenting branch fires
+(`insert_fixup_case_6_dir_l_skip` / `dir_r_skip` fall-through).
+
+Dir_l variant (insert key=1):
+
+```text
+Before:
+  Header: root=N0  top=N7  next=<end>
+  N0: B key=20  parent=--  L=N1  R=N3
+  N1: R key=10  parent=N0  L=N2  R=N6
+  N2: B key=5   parent=N1  L=N4  R=N5
+  N3: B key=25  parent=N0  L=--  R=--
+  N4: R key=3   parent=N2  L=--  R=--
+  N5: R key=7   parent=N2  L=--  R=--
+  N6: B key=15  parent=N1  L=--  R=--
+
+After:
+  Header: root=N1  top=--  next=<end>
+  N0: R key=20  parent=N1  L=N6  R=N3   <- recolored R
+  N1: B key=10  parent=--  L=N2  R=N0   <- recolored B, new root
+  N2: R key=5   parent=N1  L=N4  R=N5   <- recolored R (case 2)
+  N3: B key=25  parent=N0  L=--  R=--
+  N4: B key=3   parent=N2  L=N7  R=--   <- recolored B (case 2)
+  N5: B key=7   parent=N2  L=--  R=--   <- recolored B (case 2)
+  N6: B key=15  parent=N0  L=--  R=--   <- reparented
+  N7: R key=1   parent=N4  L=--  R=--   <- inserted
+```
+
+Path: insert at N4.L → case 2 (uncle N5 red) recolors
+N4/N5/N2 → node=N2, parent=N1 → case 6 dir_l rotates N0
+right with `new_child = N6` (non-null).
+
+Dir_r variant (insert key=30):
+
+```text
+Before:
+  Header: root=N0  top=N7  next=<end>
+  N0: B key=5   parent=--  L=N1  R=N2
+  N1: B key=3   parent=N0  L=--  R=--
+  N2: R key=15  parent=N0  L=N3  R=N4
+  N3: B key=10  parent=N2  L=--  R=--
+  N4: B key=20  parent=N2  L=N5  R=N6
+  N5: R key=17  parent=N4  L=--  R=--
+  N6: R key=25  parent=N4  L=--  R=--
+
+After:
+  Header: root=N2  top=--  next=<end>
+  N0: R key=5   parent=N2  L=N1  R=N3   <- recolored R
+  N1: B key=3   parent=N0  L=--  R=--
+  N2: B key=15  parent=--  L=N0  R=N4   <- recolored B, new root
+  N3: B key=10  parent=N0  L=--  R=--   <- reparented
+  N4: R key=20  parent=N2  L=N5  R=N6   <- recolored R (case 2)
+  N5: B key=17  parent=N4  L=--  R=--   <- recolored B (case 2)
+  N6: B key=25  parent=N4  L=--  R=N7   <- recolored B (case 2)
+  N7: R key=30  parent=N6  L=--  R=--   <- inserted
+```
+
+Path: insert at N6.R → case 2 (uncle N5 red) recolors
+N5/N6/N4 → node=N4, parent=N2 → case 6 dir_r rotates N0
+left with `new_child = N3` (non-null).
+
+### Case 2 + 5 + 6: non-null new_child in rotations
+
+The existing case 5+6 tests have null `new_child` in both rotations.
+These variants use case 2 propagation to reach case 5 with a
+populated subtree, producing non-null `new_child` in both the case 5
+and case 6 rotations (`insert_fixup_case_5_dir_l_skip` /
+`dir_r_skip` and `insert_fixup_case_6_dir_l_skip` / `dir_r_skip`
+fall-through).
+
+Dir_l variant (insert key=11):
+
+```text
+Before:
+  Header: root=N0  top=N7  next=<end>
+  N0: B key=20  parent=--  L=N1  R=N4
+  N1: R key=10  parent=N0  L=N2  R=N3
+  N2: B key=5   parent=N1  L=--  R=--
+  N3: B key=15  parent=N1  L=N5  R=N6
+  N4: B key=25  parent=N0  L=--  R=--
+  N5: R key=12  parent=N3  L=--  R=--
+  N6: R key=17  parent=N3  L=--  R=--
+
+After:
+  Header: root=N3  top=--  next=<end>
+  N0: R key=20  parent=N3  L=N6  R=N4   <- recolored R
+  N1: R key=10  parent=N3  L=N2  R=N5   <- reparented
+  N2: B key=5   parent=N1  L=--  R=--
+  N3: B key=15  parent=--  L=N1  R=N0   <- recolored B, new root
+  N4: B key=25  parent=N0  L=--  R=--
+  N5: B key=12  parent=N1  L=N7  R=--   <- recolored B, reparented
+  N6: B key=17  parent=N0  L=--  R=--   <- recolored B, reparented
+  N7: R key=11  parent=N5  L=--  R=--   <- inserted
+```
+
+Path: insert at N5.L → case 2 (uncle N6 red) recolors
+N5/N6/N3 → node=N3, parent=N1 → case 5 dir_l rotates N1
+left with `new_child = N5` (non-null) → case 6 dir_l rotates
+N0 right with `new_child = N6` (non-null).
+
+Dir_r variant (insert key=18):
+
+```text
+Before:
+  Header: root=N0  top=N7  next=<end>
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: R key=20  parent=N0  L=N3  R=N4
+  N3: B key=15  parent=N2  L=N5  R=N6
+  N4: B key=25  parent=N2  L=--  R=--
+  N5: R key=12  parent=N3  L=--  R=--
+  N6: R key=17  parent=N3  L=--  R=--
+
+After:
+  Header: root=N3  top=--  next=<end>
+  N0: R key=10  parent=N3  L=N1  R=N5   <- recolored R
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: R key=20  parent=N3  L=N6  R=N4   <- reparented
+  N3: B key=15  parent=--  L=N0  R=N2   <- recolored B, new root
+  N4: B key=25  parent=N2  L=--  R=--
+  N5: B key=12  parent=N0  L=--  R=--   <- recolored B, reparented
+  N6: B key=17  parent=N2  L=--  R=N7   <- recolored B, reparented
+  N7: R key=18  parent=N6  L=--  R=--   <- inserted
+```
+
+Path: insert at N6.R → case 2 (uncle N5 red) recolors
+N5/N6/N3 → node=N3, parent=N2 → case 5 dir_r rotates N2
+right with `new_child = N6` (non-null) → case 6 dir_r rotates
+N0 left with `new_child = N5` (non-null).
+
 ## Multi-insert integration tests
 
 A handful of sequential-insert tests to validate that chained
