@@ -1,4 +1,4 @@
 #[test]
 fn test_insert_search() {
-    print_comparison_table(insert_tree::InsertTreeCase::SEARCH_CASES, false, false);
+    print_comparison_table(insert::InsertCase::SEARCH_CASES, false, false);
 }

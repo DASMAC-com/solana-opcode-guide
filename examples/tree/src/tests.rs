@@ -1,7 +1,6 @@
 mod entrypoint;
 mod init;
 mod insert;
-mod insert_tree;
 
 use mollusk_svm::result::ProgramResult as MolluskResult;
 use solana_sdk::account::Account;
@@ -169,13 +168,18 @@ fn test_entrypoint_branching() {
 }
 
 #[test]
-fn test_insert() {
-    print_comparison_table(insert::InsertCase::CASES, false, false);
+fn test_insert_input_checks() {
+    print_comparison_table(insert::InsertCase::INPUT_CASES, false, false);
 }
 
 #[test]
 fn test_insert_alloc_checks() {
     print_comparison_table(insert::InsertCase::ALLOC_CHECK_CASES, false, false);
+}
+
+#[test]
+fn test_insert_alloc() {
+    print_comparison_table(insert::InsertCase::ALLOC_CASES, false, false);
 }
 
 #[test]
@@ -195,10 +199,10 @@ fn test_initialize_create_account() {
 
 #[test]
 fn test_insert_search() {
-    print_comparison_table(insert_tree::InsertTreeCase::SEARCH_CASES, false, false);
+    print_comparison_table(insert::InsertCase::SEARCH_CASES, false, false);
 }
 
 #[test]
 fn test_insert_to_tree() {
-    print_comparison_table(insert_tree::InsertTreeCase::TREE_CASES, false, false);
+    print_comparison_table(insert::InsertCase::TREE_CASES, false, false);
 }

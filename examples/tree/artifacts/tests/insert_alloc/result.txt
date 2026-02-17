@@ -1,0 +1,14 @@
+| Test case | Fixed CU costs | ASM (net CUs) | Rust (net CUs) | Overhead | Overhead % |
+|-----------|----------------|---------------|----------------|----------|------------|
+| Insert alloc happy path | 1096 | 101 | 129 | +28 | +27.7% |
+test tests::test_insert_alloc ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1197 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 1225 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
