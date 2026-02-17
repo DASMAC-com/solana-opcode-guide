@@ -739,11 +739,10 @@ insert_fixup_check_case_5_6_dir_l:
     jne r8, TREE_COLOR_B, insert_fixup_case_2
 
 insert_fixup_case_5_6_dir_l:
-    ldxdw r8, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r8 = parent.child[R];
-    jne r9, r8, insert_fixup_case_6_dir_l
+    ldxdw r6, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r6 = new_root = parent.child[R];
+    jne r9, r6, insert_fixup_case_6_dir_l
 
 insert_fixup_case_5_dir_l:
-    ldxdw r6, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r6 = new_root = parent.child[R];
     ldxdw r8, [r6 + TREE_NODE_CHILD_L_OFF]                                 # r8 = new_child = new_root.child[L];
     stxdw [r2 + TREE_NODE_CHILD_R_OFF], r8                                 # parent.child[R] = new_child;
     jeq r8, NULL, insert_fixup_case_5_dir_l_skip
@@ -788,11 +787,10 @@ insert_fixup_check_case_5_6_dir_r:
     jne r8, TREE_COLOR_B, insert_fixup_case_2
 
 insert_fixup_case_5_6_dir_r:
-    ldxdw r8, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r8 = parent.child[L];
-    jne r9, r8, insert_fixup_case_6_dir_r
+    ldxdw r6, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r6 = new_root = parent.child[L];
+    jne r9, r6, insert_fixup_case_6_dir_r
 
 insert_fixup_case_5_dir_r:
-    ldxdw r6, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r6 = new_root = parent.child[L];
     ldxdw r8, [r6 + TREE_NODE_CHILD_R_OFF]                                 # r8 = new_child = new_root.child[R];
     stxdw [r2 + TREE_NODE_CHILD_L_OFF], r8                                 # parent.child[L] = new_child;
     jeq r8, NULL, insert_fixup_case_5_dir_r_skip
