@@ -1,6 +1,6 @@
     // Allocate or recycle a node.
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
-    let node: *mut TreeNode = if (*tree_header).top.is_null() {
+    let mut node: *mut TreeNode = if (*tree_header).top.is_null() {
         // Error if wrong number of accounts passed, since need extra accounts to allocate space.
         if_err!(
             n_accounts != input_buffer::N_ACCOUNTS_INIT,

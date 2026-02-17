@@ -183,7 +183,7 @@ unsafe fn insert(
     // ANCHOR: insert-allocate
     // Allocate or recycle a node.
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
-    let node: *mut TreeNode = if (*tree_header).top.is_null() {
+    let mut node: *mut TreeNode = if (*tree_header).top.is_null() {
         // Error if wrong number of accounts passed, since need extra accounts to allocate space.
         if_err!(
             n_accounts != input_buffer::N_ACCOUNTS_INIT,
@@ -320,21 +320,64 @@ unsafe fn insert(
     (*node).parent = parent;
 
     // New node at root.
-    if (parent.is_null()) {
+    if parent.is_null() {
         (*tree_header).root = node;
         return SUCCESS;
     }
 
     // Get child direction, set at parent.
-    let dir = if (key > (*parent).key) {
+    let mut dir = if (key > (*parent).key) {
         tree::DIR_R
     } else {
         tree::DIR_L
     };
     (*parent).child[dir] = node;
-    // ANCHOR_END: insert-to-tree
 
+    // Rebalance the tree.
+    loop {
+        // Case 1.
+        if (*parent).color == Color::Black {
+            return SUCCESS;
+        }
+
+        let grandparent = (*parent).parent;
+        if grandparent.is_null() {
+            // Case 4.
+            (*parent).color = Color::Black;
+            return SUCCESS;
+        }
+
+        dir = direction(parent) as usize;
+        let uncle = (*grandparent).child[opposite(dir)];
+        if uncle.is_null() || (*uncle).color == Color::Black {
+            // Case 5.
+            if node == (*parent).child[opposite(dir)] {
+                rotate_subtree(tree_header, parent, dir);
+                node = parent;
+                parent = (*grandparent).child[dir];
+            }
+
+            // Case 6.
+            rotate_subtree(tree_header, grandparent, opposite(dir));
+            (*parent).color = Color::Black;
+            (*grandparent).color = Color::Red;
+            return SUCCESS;
+        }
+
+        // Case 2.
+        (*parent).color = Color::Black;
+        (*uncle).color = Color::Black;
+        (*grandparent).color = Color::Red;
+        node = grandparent;
+
+        parent = (*node).parent;
+        if parent.is_null() {
+            break;
+        }
+    }
+    // Case 3.
     SUCCESS
+    // ANCHOR_END: insert-to-tree
 }
 
 // ANCHOR: initialize-input-checks

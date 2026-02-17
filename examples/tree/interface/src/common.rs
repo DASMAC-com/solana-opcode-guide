@@ -177,6 +177,7 @@ pub struct GeneralInputBufferHeader {
 
 // ANCHOR: tree-defs-common
 #[repr(u8)]
+#[derive(PartialEq)]
 pub enum Color {
     Black,
     Red,
