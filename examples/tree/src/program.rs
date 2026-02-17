@@ -337,6 +337,7 @@ unsafe fn insert(
     };
     (*parent).child[dir] = node;
 
+    // Main insert fixup.
     loop {
         // Case 1.
         if (*parent).color == Color::Black {
@@ -350,6 +351,7 @@ unsafe fn insert(
             return SUCCESS;
         }
 
+        // Case 5/6.
         let dir = direction(parent) as usize;
         let uncle = (*grandparent).child[opposite(dir)];
         if uncle.is_null() || (*uncle).color == Color::Black {

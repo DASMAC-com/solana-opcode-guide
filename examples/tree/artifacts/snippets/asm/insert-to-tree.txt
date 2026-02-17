@@ -1,12 +1,11 @@
 insert_to_tree:
     # Flag new node as red and store parent pointer.
     # ---------------------------------------------------------------------
-    stxb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R # Flag new node as red.
-    stxdw [r9 + TREE_NODE_PARENT_OFF], r2 # Store parent pointer
+    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R # node.color = red;
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2 # node.parent = parent;
 
+    # Handle case of new node at root.
+    # ---------------------------------------------------------------------
     jne r2, NULL, insert_get_child_dir
-    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9 # Store new node as root.
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9 # root = node;
     exit # Parent is null, new node at root.
-
-insert_get_child_dir:
-    exit
