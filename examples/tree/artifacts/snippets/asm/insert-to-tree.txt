@@ -1,0 +1,11 @@
+insert_to_tree:
+    # Flag new node as red and store parent pointer.
+    # ---------------------------------------------------------------------
+    stxb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R # Flag new node as red.
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2 # Store parent pointer
+
+    jne r2, NULL, insert_get_child_dir
+    exit # Parent is null, new node at root.
+
+insert_get_child_dir:
+    exit

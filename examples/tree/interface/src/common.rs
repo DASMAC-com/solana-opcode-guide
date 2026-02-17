@@ -1,5 +1,5 @@
 use core::mem::size_of;
-use macros::{constant_group, error_codes};
+use macros::{array_fields, constant_group, error_codes};
 use pinocchio::{
     account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE},
     sysvars::rent::{Rent, ACCOUNT_STORAGE_OVERHEAD},
@@ -220,6 +220,7 @@ pub struct TreeHeader {
     pub next: *mut TreeNode,
 }
 
+#[array_fields]
 #[repr(C, packed)]
 pub struct TreeNode {
     pub parent: *mut TreeNode,

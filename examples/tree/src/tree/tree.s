@@ -230,6 +230,10 @@
 .equ TREE_DISCRIMINATOR_INSERT, 1 # Discriminator for insert instruction.
 .equ TREE_NODE_KEY_OFF, 24 # Node key field.
 .equ TREE_NODE_VALUE_OFF, 26 # Node value field.
+.equ TREE_NODE_CHILD_L_OFF, 8 # Node left child field.
+.equ TREE_NODE_CHILD_R_OFF, 16 # Node right child field.
+.equ TREE_NODE_PARENT_OFF, 0 # Node parent field.
+.equ TREE_NODE_COLOR_OFF, 28 # Color field.
 # ANCHOR_END: constants
 
 # ANCHOR: entrypoint-branching
@@ -644,25 +648,55 @@ insert_allocate:
 
     # Continue insert.
     # ---------------------------------------------------------------------
-    ja insert_mutate_new_node
+    ja insert_store_key_value_pair
 
 insert_pop:
+    # Pop node from free stack.
     # ---------------------------------------------------------------------
     ldxdw r8, [r9 + OFFSET_ZERO] # Load StackNode.next.
     stxdw [r1 + IB_TREE_DATA_TOP_OFF], r8 # Update top in header.
-    # ANCHOR_END: insert-allocate
 
-insert_mutate_new_node:
-    # Set node as root of tree.
-    # ---------------------------------------------------------------------
-    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9
-
-    # Set key and value from instruction data.
-    # ---------------------------------------------------------------------
+insert_store_key_value_pair:
     ldxw r4, [r2 + INSN_INSERT_KEY_OFF] # Load two fields together.
     stxw [r9 + TREE_NODE_KEY_OFF], r4 # Store both fields together.
+    # ANCHOR_END: insert-allocate
 
+# ANCHOR: insert-search
+insert_search:
+    ldxh r4, [r2 + INSN_INSERT_KEY_OFF] # Get key to insert.
+    mov64 r2, NULL # Set parent node as null.
+    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF] # Get root pointer for cursor.
+
+insert_search_loop:
+    jeq r3, NULL, insert_to_tree
+    mov64 r2, r3 # Update parent to current cursor.
+    ldxh r5, [r3 + TREE_NODE_KEY_OFF] # Get cursor key.
+    jlt r4, r5, insert_search_branch_l
+    jgt r4, r5, insert_search_branch_r
+    mov64 r0, E_KEY_EXISTS # Error if key already exists.
     exit
+insert_search_branch_l:
+    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]
+    ja insert_search_loop
+insert_search_branch_r:
+    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]
+    ja insert_search_loop
+# ANCHOR_END: insert-search
+
+# ANCHOR: insert-to-tree
+insert_to_tree:
+    # Flag new node as red and store parent pointer.
+    # ---------------------------------------------------------------------
+    stxb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R # Flag new node as red.
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2 # Store parent pointer
+
+    jne r2, NULL, insert_get_child_dir
+    exit # Parent is null, new node at root.
+
+insert_get_child_dir:
+    exit
+
+# ANCHOR_END: insert-to-tree
 
 e_instruction_data:
     mov64 r0, E_INSTRUCTION_DATA

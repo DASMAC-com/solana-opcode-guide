@@ -134,9 +134,14 @@ insert_allocate:
 
     # Continue insert.
     # ---------------------------------------------------------------------
-    ja insert_mutate_new_node
+    ja insert_store_key_value_pair
 
 insert_pop:
+    # Pop node from free stack.
     # ---------------------------------------------------------------------
     ldxdw r8, [r9 + OFFSET_ZERO] # Load StackNode.next.
     stxdw [r1 + IB_TREE_DATA_TOP_OFF], r8 # Update top in header.
+
+insert_store_key_value_pair:
+    ldxw r4, [r2 + INSN_INSERT_KEY_OFF] # Load two fields together.
+    stxw [r9 + TREE_NODE_KEY_OFF], r4 # Store both fields together.

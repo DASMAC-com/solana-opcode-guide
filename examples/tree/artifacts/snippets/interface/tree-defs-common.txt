@@ -42,6 +42,7 @@ pub struct TreeHeader {
     pub next: *mut TreeNode,
 }
 
+#[array_fields]
 #[repr(C, packed)]
 pub struct TreeNode {
     pub parent: *mut TreeNode,

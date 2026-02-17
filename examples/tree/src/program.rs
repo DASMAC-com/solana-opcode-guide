@@ -298,6 +298,7 @@ unsafe fn insert(
     // ANCHOR_END: insert-allocate
 
     // ANCHOR: insert-search
+    // Shift to get key only, since value is not used in tree logic.
     let key = ldxh(instruction_data, instruction::INSERT_KEY_OFF);
     let mut parent: *mut TreeNode = null_mut();
     let mut cursor = (*tree_header).root;

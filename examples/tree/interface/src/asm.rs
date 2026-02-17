@@ -4,7 +4,7 @@ use crate::bindings::{
     SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
 };
 use crate::common::{
-    cpi, CreateAccountInstructionData, GeneralInputBufferHeader, InitInputBuffer,
+    cpi, CreateAccountInstructionData, Direction, GeneralInputBufferHeader, InitInputBuffer,
     InitializeInstruction, InputBufferHeader, InsertInstruction, Instruction, TreeHeader, TreeNode,
 };
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
@@ -272,4 +272,12 @@ extend_constant_group!(tree {
     offset!(NODE_KEY, TreeNode.key),
     /// Node value field.
     offset!(NODE_VALUE, TreeNode.value),
+    /// Node left child field.
+    offset!(NODE_CHILD_L, TreeNode.child[Direction::Left as usize]),
+    /// Node right child field.
+    offset!(NODE_CHILD_R, TreeNode.child[Direction::Right as usize]),
+    /// Node parent field.
+    offset!(NODE_PARENT, TreeNode.parent),
+    /// Color field.
+    offset!(NODE_COLOR, TreeNode.color),
 });

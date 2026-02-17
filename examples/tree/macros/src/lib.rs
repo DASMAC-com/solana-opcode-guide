@@ -193,15 +193,19 @@ enum ConstantKind {
     },
     /// Offset derived from struct field path (i16 validated).
     /// Name gets `_OFF` suffix appended.
+    /// Supports optional array indexing via `__<Struct>_fields` companion module.
     Offset {
         struct_name: Ident,
-        field_path: Vec<Ident>,
+        field_path_tokens: proc_macro2::TokenStream,
+        array_index: Option<ArrayIndexInfo>,
     },
     /// Offset derived from struct field path (i32 validated).
     /// Name gets `_OFF_IMM` suffix appended. For use as BPF immediate operand.
+    /// Supports optional array indexing via `__<Struct>_fields` companion module.
     OffsetImmediate {
         struct_name: Ident,
-        field_path: Vec<Ident>,
+        field_path_tokens: proc_macro2::TokenStream,
+        array_index: Option<ArrayIndexInfo>,
     },
     /// Negative offset from end of a stack frame struct (i16 validated).
     /// Computed as `offset_of!(Struct, field) - size_of::<Struct>()`.
@@ -350,7 +354,7 @@ impl Parse for ConstantGroup {
                 let base_name: Ident = inner.parse()?;
                 inner.parse::<Token![,]>()?;
                 let struct_name: Ident = inner.parse()?;
-                let parsed = parse_stack_frame_field_path(&inner)?;
+                let parsed = parse_indexed_field_path(&inner)?;
                 let _ = content.parse::<Token![,]>();
 
                 let base_doc = const_doc.trim_end_matches('.');
@@ -424,51 +428,39 @@ impl Parse for ConstantGroup {
                     },
                 )
             } else if ident == "offset" {
-                // offset!(NAME, Struct.field.nested.path)
+                // offset!(NAME, Struct.field[expr].nested)
                 content.parse::<Token![!]>()?;
                 let inner;
                 syn::parenthesized!(inner in content);
                 let base_name: Ident = inner.parse()?;
                 inner.parse::<Token![,]>()?;
                 let struct_name: Ident = inner.parse()?;
-                let mut field_path = Vec::new();
-                while inner.peek(Token![.]) {
-                    inner.parse::<Token![.]>()?;
-                    field_path.push(inner.parse::<Ident>()?);
-                }
-                if field_path.is_empty() {
-                    return Err(inner.error("Expected at least one field after struct name"));
-                }
+                let parsed = parse_indexed_field_path(&inner)?;
                 let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
                 (
                     full_name,
                     ConstantKind::Offset {
                         struct_name,
-                        field_path,
+                        field_path_tokens: parsed.field_path_tokens,
+                        array_index: parsed.array_index,
                     },
                 )
             } else if ident == "offset_immediate" {
-                // offset_immediate!(NAME, Struct.field.nested.path)
+                // offset_immediate!(NAME, Struct.field[expr].nested)
                 content.parse::<Token![!]>()?;
                 let inner;
                 syn::parenthesized!(inner in content);
                 let base_name: Ident = inner.parse()?;
                 inner.parse::<Token![,]>()?;
                 let struct_name: Ident = inner.parse()?;
-                let mut field_path = Vec::new();
-                while inner.peek(Token![.]) {
-                    inner.parse::<Token![.]>()?;
-                    field_path.push(inner.parse::<Ident>()?);
-                }
-                if field_path.is_empty() {
-                    return Err(inner.error("Expected at least one field after struct name"));
-                }
+                let parsed = parse_indexed_field_path(&inner)?;
                 let full_name = Ident::new(&format!("{}_OFF_IMM", base_name), base_name.span());
                 (
                     full_name,
                     ConstantKind::OffsetImmediate {
                         struct_name,
-                        field_path,
+                        field_path_tokens: parsed.field_path_tokens,
+                        array_index: parsed.array_index,
                     },
                 )
             } else if ident == "stack_frame_offset" || ident == "stack_frame_offset_unaligned" {
@@ -480,7 +472,7 @@ impl Parse for ConstantGroup {
                 let base_name: Ident = inner.parse()?;
                 inner.parse::<Token![,]>()?;
                 let struct_name: Ident = inner.parse()?;
-                let parsed = parse_stack_frame_field_path(&inner)?;
+                let parsed = parse_indexed_field_path(&inner)?;
                 let full_name = Ident::new(&format!("{}{}", base_name, suffix), base_name.span());
                 (
                     full_name,
@@ -649,36 +641,40 @@ pub fn constant_group(input: TokenStream) -> TokenStream {
             }
             ConstantKind::Offset {
                 struct_name,
-                field_path,
+                field_path_tokens,
+                array_index,
             } => {
                 let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
                 const_value_strs.push(None);
+                let offset_expr = gen_offset_expr(struct_name, field_path_tokens, array_index);
 
                 const_defs.push(quote! {
                     #[doc = #doc]
-                    pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i16;
+                    pub const #name: i16 = { use super::*; (#offset_expr) as i16 };
 
                     const #assert_name: () = assert!(
-                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i16::MIN as i64)
-                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i16::MAX as i64),
+                        { use super::*; #offset_expr } >= (i16::MIN as i64)
+                            && { use super::*; #offset_expr } <= (i16::MAX as i64),
                         "Offset must fit in i16 range"
                     );
                 });
             }
             ConstantKind::OffsetImmediate {
                 struct_name,
-                field_path,
+                field_path_tokens,
+                array_index,
             } => {
                 let assert_name = Ident::new(&format!("_ASSERT_{}_FITS", name), name.span());
                 const_value_strs.push(None);
+                let offset_expr = gen_offset_expr(struct_name, field_path_tokens, array_index);
 
                 const_defs.push(quote! {
                     #[doc = #doc]
-                    pub const #name: i32 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i32;
+                    pub const #name: i32 = { use super::*; (#offset_expr) as i32 };
 
                     const #assert_name: () = assert!(
-                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i32::MIN as i64)
-                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i32::MAX as i64),
+                        { use super::*; #offset_expr } >= (i32::MIN as i64)
+                            && { use super::*; #offset_expr } <= (i32::MAX as i64),
                         "Offset immediate must fit in i32 range"
                     );
                 });
@@ -863,16 +859,19 @@ enum AsmConstantKind {
     Expr(syn::Expr),
     /// Offset derived from struct field path (i16 validated).
     /// Name gets `_OFF` suffix appended.
-    /// Supports nested fields like `Struct.field1.field2.field3`.
+    /// Supports optional array indexing via `__<Struct>_fields` companion module.
     Offset {
         struct_name: Ident,
-        field_path: Vec<Ident>,
+        field_path_tokens: proc_macro2::TokenStream,
+        array_index: Option<ArrayIndexInfo>,
     },
     /// Offset derived from struct field path (i32 validated).
     /// Name gets `_OFF_IMM` suffix appended. For use as BPF immediate operand.
+    /// Supports optional array indexing via `__<Struct>_fields` companion module.
     OffsetImmediate {
         struct_name: Ident,
-        field_path: Vec<Ident>,
+        field_path_tokens: proc_macro2::TokenStream,
+        array_index: Option<ArrayIndexInfo>,
     },
     /// Negative offset from end of a stack frame struct (i16 validated).
     /// Computed as `offset_of!(Struct, field) - size_of::<Struct>()`.
@@ -955,15 +954,15 @@ fn parse_field_path(inner: ParseStream) -> syn::Result<proc_macro2::TokenStream>
     Ok(tokens)
 }
 
-/// Result of parsing a stack frame field path.
-struct StackFrameFieldPath {
+/// Result of parsing a field path with optional array indexing.
+struct IndexedFieldPath {
     /// Token stream for `offset_of!(Struct, <path>)` (fields before any bracket).
     field_path_tokens: proc_macro2::TokenStream,
     /// Optional array index info (bracket expression, inner field access).
     array_index: Option<ArrayIndexInfo>,
 }
 
-/// Parse a stack frame field path with optional array indexing and inner field access.
+/// Parse a field path with optional array indexing and inner field access.
 ///
 /// Supports:
 /// - `Struct.field` → simple field access
@@ -972,8 +971,8 @@ struct StackFrameFieldPath {
 /// - `Struct.a.b.c` → nested field access (no array)
 ///
 /// Array element types are resolved via `__<Struct>_fields::<array_field>` type aliases
-/// generated by `#[stack_frame]`, so the element type is not required in the syntax.
-fn parse_stack_frame_field_path(inner: ParseStream) -> syn::Result<StackFrameFieldPath> {
+/// generated by `#[stack_frame]` or `#[array_fields]`.
+fn parse_indexed_field_path(inner: ParseStream) -> syn::Result<IndexedFieldPath> {
     let mut fields: Vec<Ident> = Vec::new();
     let mut tokens = proc_macro2::TokenStream::new();
 
@@ -1003,7 +1002,7 @@ fn parse_stack_frame_field_path(inner: ParseStream) -> syn::Result<StackFrameFie
 
             let array_field_name = fields.last().unwrap().clone();
 
-            return Ok(StackFrameFieldPath {
+            return Ok(IndexedFieldPath {
                 field_path_tokens: tokens,
                 array_index: Some(ArrayIndexInfo {
                     array_field_name,
@@ -1018,7 +1017,7 @@ fn parse_stack_frame_field_path(inner: ParseStream) -> syn::Result<StackFrameFie
         return Err(inner.error("Expected at least one field in path"));
     }
 
-    Ok(StackFrameFieldPath {
+    Ok(IndexedFieldPath {
         field_path_tokens: tokens,
         array_index: None,
     })
@@ -1138,7 +1137,7 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
             let base_name: Ident = inner.parse()?;
             inner.parse::<Token![,]>()?;
             let struct_name: Ident = inner.parse()?;
-            let parsed = parse_stack_frame_field_path(&inner)?;
+            let parsed = parse_indexed_field_path(&inner)?;
             let _ = content.parse::<Token![,]>();
 
             let base_doc = const_doc.trim_end_matches('.');
@@ -1281,54 +1280,39 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
                 },
             )
         } else if ident == "offset" {
-            // Parse offset!(NAME, Struct.field.nested.path)
+            // Parse offset!(NAME, Struct.field[expr].nested)
             content.parse::<Token![!]>()?;
             let inner;
             syn::parenthesized!(inner in content);
             let base_name: Ident = inner.parse()?;
             inner.parse::<Token![,]>()?;
             let struct_name: Ident = inner.parse()?;
-            // Parse field path (one or more fields separated by dots).
-            let mut field_path = Vec::new();
-            while inner.peek(Token![.]) {
-                inner.parse::<Token![.]>()?;
-                field_path.push(inner.parse::<Ident>()?);
-            }
-            if field_path.is_empty() {
-                return Err(inner.error("Expected at least one field after struct name"));
-            }
-            // Append _OFF suffix to the name.
+            let parsed = parse_indexed_field_path(&inner)?;
             let full_name = Ident::new(&format!("{}_OFF", base_name), base_name.span());
             (
                 full_name,
                 AsmConstantKind::Offset {
                     struct_name,
-                    field_path,
+                    field_path_tokens: parsed.field_path_tokens,
+                    array_index: parsed.array_index,
                 },
             )
         } else if ident == "offset_immediate" {
-            // Parse offset_immediate!(NAME, Struct.field.nested.path)
+            // Parse offset_immediate!(NAME, Struct.field[expr].nested)
             content.parse::<Token![!]>()?;
             let inner;
             syn::parenthesized!(inner in content);
             let base_name: Ident = inner.parse()?;
             inner.parse::<Token![,]>()?;
             let struct_name: Ident = inner.parse()?;
-            let mut field_path = Vec::new();
-            while inner.peek(Token![.]) {
-                inner.parse::<Token![.]>()?;
-                field_path.push(inner.parse::<Ident>()?);
-            }
-            if field_path.is_empty() {
-                return Err(inner.error("Expected at least one field after struct name"));
-            }
-            // Append _OFF_IMM suffix to the name.
+            let parsed = parse_indexed_field_path(&inner)?;
             let full_name = Ident::new(&format!("{}_OFF_IMM", base_name), base_name.span());
             (
                 full_name,
                 AsmConstantKind::OffsetImmediate {
                     struct_name,
-                    field_path,
+                    field_path_tokens: parsed.field_path_tokens,
+                    array_index: parsed.array_index,
                 },
             )
         } else if ident == "stack_frame_offset" || ident == "stack_frame_offset_unaligned" {
@@ -1340,7 +1324,7 @@ fn parse_asm_constants(content: ParseStream) -> syn::Result<Vec<AsmConstantDef>>
             let base_name: Ident = inner.parse()?;
             inner.parse::<Token![,]>()?;
             let struct_name: Ident = inner.parse()?;
-            let parsed = parse_stack_frame_field_path(&inner)?;
+            let parsed = parse_indexed_field_path(&inner)?;
             let full_name = Ident::new(&format!("{}{}", base_name, suffix), base_name.span());
             (
                 full_name,
@@ -1413,6 +1397,35 @@ impl Parse for AsmConstantGroupInput {
             prefix,
             constants,
         })
+    }
+}
+
+/// Generate an offset expression for a struct field with optional array indexing.
+///
+/// Without array index: `offset_of!(super::Struct, field) as i64`.
+/// With array index: adds `+ index * Struct::__FIELD_STRIDE` using the hidden
+/// associated constant generated by `#[array_fields]`.
+fn gen_offset_expr(
+    struct_name: &Ident,
+    field_path_tokens: &proc_macro2::TokenStream,
+    array_index: &Option<ArrayIndexInfo>,
+) -> proc_macro2::TokenStream {
+    match array_index {
+        Some(info) => {
+            let array_field_name = &info.array_field_name;
+            let index_expr = &info.index_expr;
+            let stride_const = Ident::new(
+                &format!("__{}_STRIDE", array_field_name.to_string().to_uppercase()),
+                array_field_name.span(),
+            );
+            quote! {
+                core::mem::offset_of!(super::#struct_name, #field_path_tokens) as i64
+                + (#index_expr) as i64 * (super::#struct_name::#stride_const) as i64
+            }
+        }
+        None => quote! {
+            core::mem::offset_of!(super::#struct_name, #field_path_tokens) as i64
+        },
     }
 }
 
@@ -1722,33 +1735,36 @@ pub fn asm_constant_group(input: TokenStream) -> TokenStream {
             }
             AsmConstantKind::Offset {
                 struct_name,
-                field_path,
+                field_path_tokens,
+                array_index,
             } => {
-                // Offsets are computed at runtime, no literal to preserve.
                 const_value_strs.push(None);
+                let offset_expr = gen_offset_expr(struct_name, field_path_tokens, array_index);
                 const_defs.push(quote! {
                     #[doc = #doc]
-                    pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i16;
+                    pub const #name: i16 = { use super::*; (#offset_expr) as i16 };
 
                     const #assert_name: () = assert!(
-                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i16::MIN as i64)
-                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i16::MAX as i64),
+                        { use super::*; #offset_expr } >= (i16::MIN as i64)
+                            && { use super::*; #offset_expr } <= (i16::MAX as i64),
                         "Offset must fit in i16 range"
                     );
                 });
             }
             AsmConstantKind::OffsetImmediate {
                 struct_name,
-                field_path,
+                field_path_tokens,
+                array_index,
             } => {
                 const_value_strs.push(None);
+                let offset_expr = gen_offset_expr(struct_name, field_path_tokens, array_index);
                 const_defs.push(quote! {
                     #[doc = #doc]
-                    pub const #name: i32 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i32;
+                    pub const #name: i32 = { use super::*; (#offset_expr) as i32 };
 
                     const #assert_name: () = assert!(
-                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i32::MIN as i64)
-                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i32::MAX as i64),
+                        { use super::*; #offset_expr } >= (i32::MIN as i64)
+                            && { use super::*; #offset_expr } <= (i32::MAX as i64),
                         "Offset immediate must fit in i32 range"
                     );
                 });
@@ -1998,33 +2014,36 @@ pub fn extend_constant_group(input: TokenStream) -> TokenStream {
             }
             AsmConstantKind::Offset {
                 struct_name,
-                field_path,
+                field_path_tokens,
+                array_index,
             } => {
-                // Offsets are computed at runtime, no literal to preserve.
                 const_value_strs.push(None);
+                let offset_expr = gen_offset_expr(struct_name, field_path_tokens, array_index);
                 const_defs.push(quote! {
                     #[doc = #doc]
-                    pub const #name: i16 = core::mem::offset_of!(super::#struct_name, #(#field_path).*)  as i16;
+                    pub const #name: i16 = { use super::*; (#offset_expr) as i16 };
 
                     const #assert_name: () = assert!(
-                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i16::MIN as i64)
-                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i16::MAX as i64),
+                        { use super::*; #offset_expr } >= (i16::MIN as i64)
+                            && { use super::*; #offset_expr } <= (i16::MAX as i64),
                         "Offset must fit in i16 range"
                     );
                 });
             }
             AsmConstantKind::OffsetImmediate {
                 struct_name,
-                field_path,
+                field_path_tokens,
+                array_index,
             } => {
                 const_value_strs.push(None);
+                let offset_expr = gen_offset_expr(struct_name, field_path_tokens, array_index);
                 const_defs.push(quote! {
                     #[doc = #doc]
-                    pub const #name: i32 = core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i32;
+                    pub const #name: i32 = { use super::*; (#offset_expr) as i32 };
 
                     const #assert_name: () = assert!(
-                        (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) >= (i32::MIN as i64)
-                            && (core::mem::offset_of!(super::#struct_name, #(#field_path).*) as i64) <= (i32::MAX as i64),
+                        { use super::*; #offset_expr } >= (i32::MIN as i64)
+                            && { use super::*; #offset_expr } <= (i32::MAX as i64),
                         "Offset immediate must fit in i32 range"
                     );
                 });
@@ -2411,17 +2430,12 @@ pub fn pubkey_chunk_group(_input: TokenStream) -> TokenStream {
 ///     pub type data = u8;
 /// }
 /// ```
-#[proc_macro_attribute]
-pub fn stack_frame(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let mut input = parse_macro_input!(item as syn::ItemStruct);
-
-    // Remove existing repr attributes to avoid conflicts.
-    input.attrs.retain(|attr| !attr.path().is_ident("repr"));
-
+/// Generate the `__<StructName>_fields` companion module containing type
+/// aliases for each array field's element type.
+fn gen_fields_module(input: &syn::ItemStruct) -> proc_macro2::TokenStream {
     let struct_name = &input.ident;
     let fields_mod = Ident::new(&format!("__{}_fields", struct_name), struct_name.span());
 
-    // Extract array element types for each array field.
     let mut type_aliases = Vec::new();
     if let syn::Fields::Named(ref fields) = input.fields {
         for field in &fields.named {
@@ -2437,15 +2451,90 @@ pub fn stack_frame(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     }
 
+    quote! {
+        #[doc(hidden)]
+        #[allow(non_snake_case)]
+        pub mod #fields_mod {
+            use super::*;
+            #(#type_aliases)*
+        }
+    }
+}
+
+#[proc_macro_attribute]
+pub fn stack_frame(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let mut input = parse_macro_input!(item as syn::ItemStruct);
+
+    // Remove existing repr attributes to avoid conflicts.
+    input.attrs.retain(|attr| !attr.path().is_ident("repr"));
+
+    let fields_mod = gen_fields_module(&input);
+
     let expanded = quote! {
         #[repr(C, align(8))]
         #input
 
+        #fields_mod
+    };
+
+    TokenStream::from(expanded)
+}
+
+/// Attribute macro that generates hidden associated constants for array field
+/// element sizes.
+///
+/// Enables `offset!` and `offset_immediate!` to resolve element sizes when
+/// using array index syntax (e.g., `Struct.field[expr]`).
+///
+/// Unlike `#[stack_frame]`, this does not modify the struct's `#[repr]`.
+///
+/// # Example
+/// ```ignore
+/// #[array_fields]
+/// #[repr(C, packed)]
+/// struct TreeNode {
+///     child: [*mut TreeNode; 2],
+///     key: u16,
+/// }
+/// ```
+///
+/// Generates:
+/// ```ignore
+/// impl TreeNode {
+///     const __CHILD_STRIDE: usize = core::mem::size_of::<*mut TreeNode>();
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn array_fields(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as syn::ItemStruct);
+    let struct_name = &input.ident;
+
+    let mut stride_consts = Vec::new();
+    if let syn::Fields::Named(ref fields) = input.fields {
+        for field in &fields.named {
+            if let Some(ref field_name) = field.ident {
+                if let syn::Type::Array(array_type) = &field.ty {
+                    let elem_type = &*array_type.elem;
+                    let const_name = Ident::new(
+                        &format!("__{}_STRIDE", field_name.to_string().to_uppercase()),
+                        field_name.span(),
+                    );
+                    stride_consts.push(quote! {
+                        #[doc(hidden)]
+                        pub const #const_name: usize = core::mem::size_of::<#elem_type>();
+                    });
+                }
+            }
+        }
+    }
+
+    let expanded = quote! {
+        #input
+
         #[doc(hidden)]
-        #[allow(non_snake_case)]
-        mod #fields_mod {
-            use super::*;
-            #(#type_aliases)*
+        #[allow(dead_code)]
+        impl #struct_name {
+            #(#stride_consts)*
         }
     };
 

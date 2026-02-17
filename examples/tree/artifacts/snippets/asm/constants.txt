@@ -229,3 +229,7 @@
 .equ TREE_DISCRIMINATOR_INSERT, 1 # Discriminator for insert instruction.
 .equ TREE_NODE_KEY_OFF, 24 # Node key field.
 .equ TREE_NODE_VALUE_OFF, 26 # Node value field.
+.equ TREE_NODE_CHILD_L_OFF, 8 # Node left child field.
+.equ TREE_NODE_CHILD_R_OFF, 16 # Node right child field.
+.equ TREE_NODE_PARENT_OFF, 0 # Node parent field.
+.equ TREE_NODE_COLOR_OFF, 28 # Color field.
