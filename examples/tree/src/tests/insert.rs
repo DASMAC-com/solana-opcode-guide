@@ -128,6 +128,61 @@ fn insert_alloc_address_mismatch(
     check_error(&setup, &instruction, &accounts, expected_error)
 }
 
+/// Set up an insert where the tree account is already at
+/// `MAX_PERMITTED_DATA_LENGTH` so that allocating one more `TreeNode`
+/// exceeds the absolute account size limit.
+fn insert_max_data_setup(
+    program_language: ProgramLanguage,
+) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
+    const MAX_PERMITTED_DATA_LENGTH: usize = 10 * 1024 * 1024;
+
+    let mut setup = setup_test_with_rent(program_language);
+    let (system_program_pubkey, system_program_account) =
+        program::keyed_account_for_system_program();
+    let (rent_sysvar_pubkey, rent_sysvar_account) =
+        setup.mollusk.sysvars.keyed_account_for_rent_sysvar();
+
+    let user_pubkey = Pubkey::new_unique();
+    let tree_pubkey = Pubkey::new_unique();
+
+    let insn_data = insert_instruction_data();
+    let instruction = Instruction::new_with_bytes(
+        setup.program_id,
+        unsafe { as_bytes(&insn_data) },
+        vec![
+            AccountMeta::new(user_pubkey, true),
+            AccountMeta::new(tree_pubkey, false),
+            AccountMeta::new_readonly(system_program_pubkey, false),
+            AccountMeta::new_readonly(rent_sysvar_pubkey, false),
+        ],
+    );
+
+    // Tree account already at MAX_PERMITTED_DATA_LENGTH.
+    let rent = Rent::from_bytes(&rent_sysvar_account.data).unwrap();
+    let tree_lamports = rent.try_minimum_balance(MAX_PERMITTED_DATA_LENGTH).unwrap();
+    let mut tree_account =
+        Account::new(tree_lamports, MAX_PERMITTED_DATA_LENGTH, &setup.program_id);
+    // top = null → forces allocation path (no free nodes to recycle).
+    // next → points right after current data (where the new node would go).
+    let next_ptr =
+        MM_INPUT_START + input_buffer::TREE_DATA_OFF as u64 + MAX_PERMITTED_DATA_LENGTH as u64;
+    let next_off = tree::HEADER_NEXT_OFF as usize;
+    tree_account.data[next_off..next_off + size_of::<*mut TreeNode>()]
+        .copy_from_slice(&next_ptr.to_le_bytes());
+
+    let accounts = vec![
+        (
+            user_pubkey,
+            Account::new(USER_LAMPORTS, 0, &system_program_pubkey),
+        ),
+        (tree_pubkey, tree_account),
+        (system_program_pubkey, system_program_account),
+        (rent_sysvar_pubkey, rent_sysvar_account),
+    ];
+
+    (setup, instruction, accounts)
+}
+
 // ---------------------------------------------------------------------------
 // Helpers: tree description types
 // ---------------------------------------------------------------------------
@@ -496,6 +551,8 @@ pub(super) enum InsertCase {
     AllocRentAddrChunk3,
     // Allocation happy path (CPI overhead).
     AllocHappyPath,
+    // Allocation exceeds max permitted data length.
+    AllocMaxDataLen,
     // Search — expect KEY_EXISTS error.
     SearchDupRoot,
     SearchDupLeft,
@@ -559,7 +616,7 @@ impl InsertCase {
         Self::AllocRentAddrChunk3,
     ];
 
-    pub(super) const ALLOC_CASES: &'static [Self] = &[Self::AllocHappyPath];
+    pub(super) const ALLOC_CASES: &'static [Self] = &[Self::AllocHappyPath, Self::AllocMaxDataLen];
 
     pub(super) const SEARCH_CASES: &'static [Self] = &[
         Self::SearchDupRoot,
@@ -615,6 +672,7 @@ impl TestCase for InsertCase {
             Self::AllocRentAddrChunk2 => "Rent address mismatch chunk 2",
             Self::AllocRentAddrChunk3 => "Rent address mismatch chunk 3",
             Self::AllocHappyPath => "Insert alloc happy path",
+            Self::AllocMaxDataLen => "Alloc exceeds max data length",
             Self::SearchDupRoot => "Dup at root",
             Self::SearchDupLeft => "Dup in left",
             Self::SearchDupRight => "Dup in right",
@@ -650,7 +708,9 @@ impl TestCase for InsertCase {
 
     fn fixed_costs(&self) -> u64 {
         match self {
-            Self::AllocHappyPath => fixed_costs::CPI_BASE + fixed_costs::SYSTEM_PROGRAM,
+            Self::AllocHappyPath | Self::AllocMaxDataLen => {
+                fixed_costs::CPI_BASE + fixed_costs::SYSTEM_PROGRAM
+            }
             _ => 0,
         }
     }
@@ -866,6 +926,23 @@ impl TestCase for InsertCase {
                     other => CaseResult {
                         cu: result.compute_units_consumed,
                         error: Some(format!("expected Success, got {:?}", other)),
+                    },
+                }
+            }
+
+            // ----- Allocation: max data length -----
+            Self::AllocMaxDataLen => {
+                let (setup, instruction, accounts) = insert_max_data_setup(lang);
+                let result = setup.mollusk.process_instruction(&instruction, &accounts);
+                let expected = ProgramError::InvalidRealloc;
+                match &result.program_result {
+                    MolluskResult::Failure(err) if *err == expected => CaseResult {
+                        cu: result.compute_units_consumed,
+                        error: None,
+                    },
+                    other => CaseResult {
+                        cu: result.compute_units_consumed,
+                        error: Some(format!("expected Failure({:?}), got {:?}", expected, other)),
                     },
                 }
             }
