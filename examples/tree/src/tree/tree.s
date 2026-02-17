@@ -19,6 +19,7 @@
 .equ E_INSTRUCTION_DATA_LEN, 12 # Invalid instruction data length.
 # Not enough accounts passed for insertion allocation.
 .equ E_N_ACCOUNTS_INSERT_ALLOCATION, 13
+.equ E_KEY_EXISTS, 14 # Key already exists in tree during insertion.
 
 # Type sizes.
 # -----------

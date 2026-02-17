@@ -1,0 +1,15 @@
+    let key = ldxh(instruction_data, instruction::INSERT_KEY_OFF);
+    let mut parent = (*tree_header).root;
+    loop {
+        if parent.is_null() {
+            break;
+        }
+        let parent_key = (*parent).key;
+        if key > parent_key {
+            parent = (*parent).child[tree::DIR_R];
+        } else if key < parent_key {
+            parent = (*parent).child[tree::DIR_L];
+        } else {
+            return error::KEY_EXISTS.into();
+        }
+    }

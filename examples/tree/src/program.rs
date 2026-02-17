@@ -1,4 +1,4 @@
-use core::ptr::{addr_of, addr_of_mut, read_unaligned};
+use core::ptr::{addr_of, addr_of_mut, null_mut, read_unaligned};
 use pinocchio::{
     account::RuntimeAccount,
     entrypoint::NON_DUP_MARKER,
@@ -8,9 +8,10 @@ use pinocchio::{
     Address, SUCCESS,
 };
 use tree_interface::{
-    cpi, data, error_codes::error, input_buffer, instruction, tree, CreateAccountInstructionData,
-    Direction, InitializeInstruction, InsertInstruction, SolAccountInfo, SolAccountMeta,
-    SolInstruction, SolSignerSeed, SolSignerSeeds, TransferInstructionData, TreeHeader, TreeNode,
+    cpi, data, error_codes::error, input_buffer, instruction, tree, Color,
+    CreateAccountInstructionData, Direction, InitializeInstruction, InsertInstruction,
+    SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
+    TransferInstructionData, TreeHeader, TreeNode,
 };
 #[cfg(target_os = "solana")]
 use {
@@ -28,6 +29,16 @@ unsafe fn account_at(input: *mut u8, offset: i16) -> *mut RuntimeAccount {
 #[inline(always)]
 unsafe fn ldxb(ptr: *const u8, offset: i16) -> u8 {
     read_unaligned(ptr.add(offset as usize))
+}
+
+#[inline(always)]
+unsafe fn ldxh(ptr: *const u8, offset: i16) -> u16 {
+    read_unaligned(ptr.add(offset as usize).cast())
+}
+
+#[inline(always)]
+unsafe fn ldxw(ptr: *const u8, offset: i16) -> u32 {
+    read_unaligned(ptr.add(offset as usize).cast())
 }
 
 #[inline(always)]
@@ -282,17 +293,46 @@ unsafe fn insert(
         (*tree_header).top = (*top).next;
         top.cast()
     };
+    // Set key and value together as a single word.
+    *addr_of_mut!((*node).key).cast() = ldxw(instruction_data, instruction::INSERT_KEY_OFF);
     // ANCHOR_END: insert-allocate
 
-    // Initialize node as root of tree.
-    (*tree_header).root = node;
+    // ANCHOR: insert-search
+    let key = ldxh(instruction_data, instruction::INSERT_KEY_OFF);
+    let mut parent = (*tree_header).root;
+    loop {
+        if parent.is_null() {
+            break;
+        }
+        let parent_key = (*parent).key;
+        if key > parent_key {
+            parent = (*parent).child[tree::DIR_R];
+        } else if key < parent_key {
+            parent = (*parent).child[tree::DIR_L];
+        } else {
+            return error::KEY_EXISTS.into();
+        }
+    }
+    // ANCHOR_END: insert-search
 
-    // Set key and value together as a single word.
-    *addr_of_mut!((*node).key).cast::<u32>() = read_unaligned(
-        instruction_data
-            .add(instruction::INSERT_KEY_OFF as usize)
-            .cast(),
-    );
+    // ANCHOR: insert-to-tree
+    (*node).color = Color::Red;
+    (*node).parent = parent;
+
+    // New node at root.
+    if (parent.is_null()) {
+        (*tree_header).root = node;
+        return SUCCESS;
+    }
+
+    // Get child direction, set at parent.
+    let dir = if (key > (*parent).key) {
+        tree::DIR_R
+    } else {
+        tree::DIR_L
+    };
+    (*parent).child[dir] = node;
+    // ANCHOR_END: insert-to-tree
 
     SUCCESS
 }
@@ -465,6 +505,21 @@ unsafe fn direction(node: *const TreeNode) -> Direction {
 #[inline(always)]
 const fn opposite(direction: usize) -> usize {
     1 - direction
+}
+
+#[inline(always)]
+unsafe fn search(tree_header: *const TreeHeader, key: u16) -> *mut TreeNode {
+    let mut node = (*tree_header).root;
+    loop {
+        if node.is_null() {
+            break;
+        }
+        if (*node).key == key {
+            break;
+        }
+        node = (*node).child[(key > (*node).key) as usize];
+    }
+    node
 }
 
 /// Rotate the subtree rooted at `subtree` in the given direction, returning new root of subtree.

@@ -1,0 +1,16 @@
+    (*node).color = Color::Red;
+    (*node).parent = parent;
+
+    // New node at root.
+    if (parent.is_null()) {
+        (*tree_header).root = node;
+        return SUCCESS;
+    }
+
+    // Get child direction, set at parent.
+    let dir = if (key > (*parent).key) {
+        tree::DIR_R
+    } else {
+        tree::DIR_L
+    };
+    (*parent).child[dir] = node;

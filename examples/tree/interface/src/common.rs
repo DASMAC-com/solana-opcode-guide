@@ -33,6 +33,8 @@ error_codes! {
     INSTRUCTION_DATA_LEN,
     /// Not enough accounts passed for insertion allocation.
     N_ACCOUNTS_INSERT_ALLOCATION,
+    /// Key already exists in tree during insertion.
+    KEY_EXISTS,
 }
 
 constant_group! {

@@ -110,3 +110,5 @@
         (*tree_header).top = (*top).next;
         top.cast()
     };
+    // Set key and value together as a single word.
+    *addr_of_mut!((*node).key).cast() = ldxw(instruction_data, instruction::INSERT_KEY_OFF);
