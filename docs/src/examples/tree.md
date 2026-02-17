@@ -291,7 +291,7 @@ not available in Rust, since the compiler enforces
 
 ::: details Benchmarking
 
-<!-- @include: ../../../examples/tree/artifacts/tests/insert_to_tree/result.txt{1,21} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/insert_to_tree/result.txt{1,29} -->
 
 :::
 

@@ -373,6 +373,17 @@ pub(super) enum InsertTreeCase {
     Case56RightNull,
     Case56LeftBlack,
     Case56RightBlack,
+    // Case 6: non-null great-grandparent.
+    Case6GgpLeftLeft,
+    Case6GgpLeftRight,
+    Case6GgpRightRight,
+    Case6GgpRightLeft,
+    // Case 2+6: non-null new_child in rotation.
+    Case26Left,
+    Case26Right,
+    // Case 2+5+6: non-null new_child in rotations.
+    Case256Left,
+    Case256Right,
 }
 
 impl InsertTreeCase {
@@ -402,6 +413,14 @@ impl InsertTreeCase {
         Self::Case56RightNull,
         Self::Case56LeftBlack,
         Self::Case56RightBlack,
+        Self::Case6GgpLeftLeft,
+        Self::Case6GgpLeftRight,
+        Self::Case6GgpRightRight,
+        Self::Case6GgpRightLeft,
+        Self::Case26Left,
+        Self::Case26Right,
+        Self::Case256Left,
+        Self::Case256Right,
     ];
 }
 
@@ -430,6 +449,14 @@ impl TestCase for InsertTreeCase {
             Self::Case56RightNull => "Case 5+6: right-left null uncle",
             Self::Case56LeftBlack => "Case 5+6: left-right black uncle",
             Self::Case56RightBlack => "Case 5+6: right-left black uncle",
+            Self::Case6GgpLeftLeft => "Case 6: GGP non-null, LL GP-left",
+            Self::Case6GgpLeftRight => "Case 6: GGP non-null, LL GP-right",
+            Self::Case6GgpRightRight => "Case 6: GGP non-null, RR GP-right",
+            Self::Case6GgpRightLeft => "Case 6: GGP non-null, RR GP-left",
+            Self::Case26Left => "Case 2+6: non-null new_child dir_l",
+            Self::Case26Right => "Case 2+6: non-null new_child dir_r",
+            Self::Case256Left => "Case 2+5+6: non-null new_child dir_l",
+            Self::Case256Right => "Case 2+5+6: non-null new_child dir_r",
         }
     }
 
@@ -874,6 +901,253 @@ impl TestCase for InsertTreeCase {
                     ],
                 };
                 run_success(lang, &desc, 12, &exp)
+            }
+
+            // ----- Case 6: non-null great-grandparent -----
+
+            // LL, GP is left child of GGP. Insert 1.
+            // B(20) root, B(10) left with R(5) left, B(25) right.
+            // Case 6 dir_l rotates GP=B(10) right under GGP=B(20).
+            // GGP.child[L] = parent (GP was left child).
+            Self::Case6GgpLeftLeft => {
+                let desc = TreeDesc {
+                    root: Some(0),
+                    nodes: &[
+                        node(20, B, None, Some(1), Some(3)),
+                        node(10, B, Some(0), Some(2), None),
+                        node(5, R, Some(1), None, None),
+                        node(25, B, Some(0), None, None),
+                    ],
+                };
+                let exp = ExpectedTree {
+                    root: Some(0),
+                    top: None,
+                    nodes: vec![
+                        expected(20, 20, B, None, Some(2), Some(3)),
+                        expected(10, 10, R, Some(2), None, None),
+                        expected(5, 5, B, Some(0), Some(4), Some(1)),
+                        expected(25, 25, B, Some(0), None, None),
+                        expected(1, TEST_VALUE, R, Some(2), None, None),
+                    ],
+                };
+                run_success(lang, &desc, 1, &exp)
+            }
+            // LL, GP is right child of GGP. Insert 10.
+            // B(5) root, B(3) left, B(20) right with R(15) left.
+            // Case 6 dir_l rotates GP=B(20) right under GGP=B(5).
+            // GGP.child[R] = parent (GP was right child).
+            Self::Case6GgpLeftRight => {
+                let desc = TreeDesc {
+                    root: Some(0),
+                    nodes: &[
+                        node(5, B, None, Some(1), Some(2)),
+                        node(3, B, Some(0), None, None),
+                        node(20, B, Some(0), Some(3), None),
+                        node(15, R, Some(2), None, None),
+                    ],
+                };
+                let exp = ExpectedTree {
+                    root: Some(0),
+                    top: None,
+                    nodes: vec![
+                        expected(5, 5, B, None, Some(1), Some(3)),
+                        expected(3, 3, B, Some(0), None, None),
+                        expected(20, 20, R, Some(3), None, None),
+                        expected(15, 15, B, Some(0), Some(4), Some(2)),
+                        expected(10, TEST_VALUE, R, Some(3), None, None),
+                    ],
+                };
+                run_success(lang, &desc, 10, &exp)
+            }
+            // RR, GP is right child of GGP. Insert 25.
+            // B(5) root, B(3) left, B(15) right with R(20) right.
+            // Case 6 dir_r rotates GP=B(15) left under GGP=B(5).
+            // GGP.child[R] = parent (GP was right child).
+            Self::Case6GgpRightRight => {
+                let desc = TreeDesc {
+                    root: Some(0),
+                    nodes: &[
+                        node(5, B, None, Some(1), Some(2)),
+                        node(3, B, Some(0), None, None),
+                        node(15, B, Some(0), None, Some(3)),
+                        node(20, R, Some(2), None, None),
+                    ],
+                };
+                let exp = ExpectedTree {
+                    root: Some(0),
+                    top: None,
+                    nodes: vec![
+                        expected(5, 5, B, None, Some(1), Some(3)),
+                        expected(3, 3, B, Some(0), None, None),
+                        expected(15, 15, R, Some(3), None, None),
+                        expected(20, 20, B, Some(0), Some(2), Some(4)),
+                        expected(25, TEST_VALUE, R, Some(3), None, None),
+                    ],
+                };
+                run_success(lang, &desc, 25, &exp)
+            }
+            // RR, GP is left child of GGP. Insert 17.
+            // B(20) root, B(10) left with R(15) right, B(25) right.
+            // Case 6 dir_r rotates GP=B(10) left under GGP=B(20).
+            // GGP.child[L] = parent (GP was left child).
+            Self::Case6GgpRightLeft => {
+                let desc = TreeDesc {
+                    root: Some(0),
+                    nodes: &[
+                        node(20, B, None, Some(1), Some(3)),
+                        node(10, B, Some(0), None, Some(2)),
+                        node(15, R, Some(1), None, None),
+                        node(25, B, Some(0), None, None),
+                    ],
+                };
+                let exp = ExpectedTree {
+                    root: Some(0),
+                    top: None,
+                    nodes: vec![
+                        expected(20, 20, B, None, Some(2), Some(3)),
+                        expected(10, 10, R, Some(2), None, None),
+                        expected(15, 15, B, Some(0), Some(1), Some(4)),
+                        expected(25, 25, B, Some(0), None, None),
+                        expected(17, TEST_VALUE, R, Some(2), None, None),
+                    ],
+                };
+                run_success(lang, &desc, 17, &exp)
+            }
+
+            // ----- Case 2+6: non-null new_child in rotation -----
+
+            // Dir_l: insert 1 into 7-node tree.
+            // Case 2 recolors at bottom, then case 6 dir_l rotates with
+            // new_child = B(15) non-null.
+            Self::Case26Left => {
+                let desc = TreeDesc {
+                    root: Some(0),
+                    nodes: &[
+                        node(20, B, None, Some(1), Some(3)),
+                        node(10, R, Some(0), Some(2), Some(6)),
+                        node(5, B, Some(1), Some(4), Some(5)),
+                        node(25, B, Some(0), None, None),
+                        node(3, R, Some(2), None, None),
+                        node(7, R, Some(2), None, None),
+                        node(15, B, Some(1), None, None),
+                    ],
+                };
+                let exp = ExpectedTree {
+                    root: Some(1),
+                    top: None,
+                    nodes: vec![
+                        expected(20, 20, R, Some(1), Some(6), Some(3)),
+                        expected(10, 10, B, None, Some(2), Some(0)),
+                        expected(5, 5, R, Some(1), Some(4), Some(5)),
+                        expected(25, 25, B, Some(0), None, None),
+                        expected(3, 3, B, Some(2), Some(7), None),
+                        expected(7, 7, B, Some(2), None, None),
+                        expected(15, 15, B, Some(0), None, None),
+                        expected(1, TEST_VALUE, R, Some(4), None, None),
+                    ],
+                };
+                run_success(lang, &desc, 1, &exp)
+            }
+            // Dir_r: insert 30 into 7-node tree.
+            // Case 2 recolors at bottom, then case 6 dir_r rotates with
+            // new_child = B(10) non-null.
+            Self::Case26Right => {
+                let desc = TreeDesc {
+                    root: Some(0),
+                    nodes: &[
+                        node(5, B, None, Some(1), Some(2)),
+                        node(3, B, Some(0), None, None),
+                        node(15, R, Some(0), Some(3), Some(4)),
+                        node(10, B, Some(2), None, None),
+                        node(20, B, Some(2), Some(5), Some(6)),
+                        node(17, R, Some(4), None, None),
+                        node(25, R, Some(4), None, None),
+                    ],
+                };
+                let exp = ExpectedTree {
+                    root: Some(2),
+                    top: None,
+                    nodes: vec![
+                        expected(5, 5, R, Some(2), Some(1), Some(3)),
+                        expected(3, 3, B, Some(0), None, None),
+                        expected(15, 15, B, None, Some(0), Some(4)),
+                        expected(10, 10, B, Some(0), None, None),
+                        expected(20, 20, R, Some(2), Some(5), Some(6)),
+                        expected(17, 17, B, Some(4), None, None),
+                        expected(25, 25, B, Some(4), None, Some(7)),
+                        expected(30, TEST_VALUE, R, Some(6), None, None),
+                    ],
+                };
+                run_success(lang, &desc, 30, &exp)
+            }
+
+            // ----- Case 2+5+6: non-null new_child in rotations -----
+
+            // Dir_l: insert 11 into 7-node tree.
+            // Case 2 recolors at bottom, then case 5 dir_l rotates with
+            // new_child = B(12) non-null, then case 6 dir_l rotates with
+            // new_child = B(17) non-null.
+            Self::Case256Left => {
+                let desc = TreeDesc {
+                    root: Some(0),
+                    nodes: &[
+                        node(20, B, None, Some(1), Some(4)),
+                        node(10, R, Some(0), Some(2), Some(3)),
+                        node(5, B, Some(1), None, None),
+                        node(15, B, Some(1), Some(5), Some(6)),
+                        node(25, B, Some(0), None, None),
+                        node(12, R, Some(3), None, None),
+                        node(17, R, Some(3), None, None),
+                    ],
+                };
+                let exp = ExpectedTree {
+                    root: Some(3),
+                    top: None,
+                    nodes: vec![
+                        expected(20, 20, R, Some(3), Some(6), Some(4)),
+                        expected(10, 10, R, Some(3), Some(2), Some(5)),
+                        expected(5, 5, B, Some(1), None, None),
+                        expected(15, 15, B, None, Some(1), Some(0)),
+                        expected(25, 25, B, Some(0), None, None),
+                        expected(12, 12, B, Some(1), Some(7), None),
+                        expected(17, 17, B, Some(0), None, None),
+                        expected(11, TEST_VALUE, R, Some(5), None, None),
+                    ],
+                };
+                run_success(lang, &desc, 11, &exp)
+            }
+            // Dir_r: insert 18 into 7-node tree.
+            // Case 2 recolors at bottom, then case 5 dir_r rotates with
+            // new_child = B(17) non-null, then case 6 dir_r rotates with
+            // new_child = B(12) non-null.
+            Self::Case256Right => {
+                let desc = TreeDesc {
+                    root: Some(0),
+                    nodes: &[
+                        node(10, B, None, Some(1), Some(2)),
+                        node(5, B, Some(0), None, None),
+                        node(20, R, Some(0), Some(3), Some(4)),
+                        node(15, B, Some(2), Some(5), Some(6)),
+                        node(25, B, Some(2), None, None),
+                        node(12, R, Some(3), None, None),
+                        node(17, R, Some(3), None, None),
+                    ],
+                };
+                let exp = ExpectedTree {
+                    root: Some(3),
+                    top: None,
+                    nodes: vec![
+                        expected(10, 10, R, Some(3), Some(1), Some(5)),
+                        expected(5, 5, B, Some(0), None, None),
+                        expected(20, 20, R, Some(3), Some(6), Some(4)),
+                        expected(15, 15, B, None, Some(0), Some(2)),
+                        expected(25, 25, B, Some(2), None, None),
+                        expected(12, 12, B, Some(0), None, None),
+                        expected(17, 17, B, Some(2), None, Some(7)),
+                        expected(18, TEST_VALUE, R, Some(6), None, None),
+                    ],
+                };
+                run_success(lang, &desc, 18, &exp)
             }
         }
     }
