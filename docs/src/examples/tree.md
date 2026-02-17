@@ -165,7 +165,7 @@ not available in Rust, since the compiler enforces
 
 ::: details Benchmarking
 
-<!-- @include: ../../../examples/tree/artifacts/tests/insert/result.txt{1,6} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/insert_input_checks/result.txt{1,4} -->
 
 :::
 
@@ -189,6 +189,7 @@ not available in Rust, since the compiler enforces
 
 <!-- @include: ../../../examples/tree/artifacts/tests/insert_alloc_checks/result.txt{1,10} -->
 
+<!-- @include: ../../../examples/tree/artifacts/tests/insert_alloc/result.txt{1,3} -->
 :::
 
 <!-- markdownlint-enable MD013 -->

@@ -8,9 +8,6 @@ use tree_interface::{
     InstructionHeader, StackNode, TreeHeader, TreeNode,
 };
 
-const TEST_KEY: u16 = 42;
-const TEST_VALUE: u16 = 1;
-
 // ---------------------------------------------------------------------------
 // Helpers: allocation setup
 // ---------------------------------------------------------------------------
@@ -20,8 +17,8 @@ fn insert_instruction_data() -> InsertInstruction {
         header: InstructionHeader {
             discriminator: TreeInstruction::Insert as u8,
         },
-        key: TEST_KEY,
-        value: TEST_VALUE,
+        key: 42,
+        value: 1,
     }
 }
 
@@ -368,7 +365,7 @@ fn insert_tree_setup(
             discriminator: TreeInstruction::Insert as u8,
         },
         key: insert_key,
-        value: TEST_VALUE,
+        value: 1,
     };
 
     let instruction = Instruction::new_with_bytes(
@@ -796,11 +793,11 @@ impl TestCase for InsertCase {
                         };
                         let key = node.key;
                         let value = node.value;
-                        if key != TEST_KEY {
-                            errors.push(format!("key: expected {}, got {}", TEST_KEY, key));
+                        if key != 42 {
+                            errors.push(format!("key: expected 42, got {}", key));
                         }
-                        if value != TEST_VALUE {
-                            errors.push(format!("value: expected {}, got {}", TEST_VALUE, value));
+                        if value != 1 {
+                            errors.push(format!("value: expected 1, got {}", value));
                         }
                         let config = Config {
                             panic: false,
@@ -868,7 +865,7 @@ impl TestCase for InsertCase {
                 let exp = ExpectedTree {
                     root: Some(0),
                     top: None,
-                    nodes: vec![expected(42, TEST_VALUE, R, None, None, None)],
+                    nodes: vec![expected(42, 1, R, None, None, None)],
                 };
                 run_success(lang, &desc, 42, &exp)
             }
@@ -886,7 +883,7 @@ impl TestCase for InsertCase {
                     top: None,
                     nodes: vec![
                         expected(10, 10, B, None, Some(1), None),
-                        expected(5, TEST_VALUE, R, Some(0), None, None),
+                        expected(5, 1, R, Some(0), None, None),
                     ],
                 };
                 run_success(lang, &desc, 5, &exp)
@@ -902,7 +899,7 @@ impl TestCase for InsertCase {
                     top: None,
                     nodes: vec![
                         expected(10, 10, B, None, None, Some(1)),
-                        expected(15, TEST_VALUE, R, Some(0), None, None),
+                        expected(15, 1, R, Some(0), None, None),
                     ],
                 };
                 run_success(lang, &desc, 15, &exp)
@@ -921,7 +918,7 @@ impl TestCase for InsertCase {
                     top: None,
                     nodes: vec![
                         expected(10, 10, B, None, Some(1), None),
-                        expected(5, TEST_VALUE, R, Some(0), None, None),
+                        expected(5, 1, R, Some(0), None, None),
                     ],
                 };
                 run_success(lang, &desc, 5, &exp)
@@ -937,7 +934,7 @@ impl TestCase for InsertCase {
                     top: None,
                     nodes: vec![
                         expected(10, 10, B, None, None, Some(1)),
-                        expected(15, TEST_VALUE, R, Some(0), None, None),
+                        expected(15, 1, R, Some(0), None, None),
                     ],
                 };
                 run_success(lang, &desc, 15, &exp)
@@ -962,7 +959,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, None, Some(1), Some(2)),
                         expected(5, 5, B, Some(0), Some(3), None),
                         expected(15, 15, B, Some(0), None, None),
-                        expected(1, TEST_VALUE, R, Some(1), None, None),
+                        expected(1, 1, R, Some(1), None, None),
                     ],
                 };
                 run_success(lang, &desc, 1, &exp)
@@ -983,7 +980,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, None, Some(1), Some(2)),
                         expected(5, 5, B, Some(0), None, Some(3)),
                         expected(15, 15, B, Some(0), None, None),
-                        expected(7, TEST_VALUE, R, Some(1), None, None),
+                        expected(7, 1, R, Some(1), None, None),
                     ],
                 };
                 run_success(lang, &desc, 7, &exp)
@@ -1004,7 +1001,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, None, Some(1), Some(2)),
                         expected(5, 5, B, Some(0), None, None),
                         expected(15, 15, B, Some(0), Some(3), None),
-                        expected(12, TEST_VALUE, R, Some(2), None, None),
+                        expected(12, 1, R, Some(2), None, None),
                     ],
                 };
                 run_success(lang, &desc, 12, &exp)
@@ -1025,7 +1022,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, None, Some(1), Some(2)),
                         expected(5, 5, B, Some(0), None, None),
                         expected(15, 15, B, Some(0), None, Some(3)),
-                        expected(20, TEST_VALUE, R, Some(2), None, None),
+                        expected(20, 1, R, Some(2), None, None),
                     ],
                 };
                 run_success(lang, &desc, 20, &exp)
@@ -1053,7 +1050,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, Some(0), Some(2), Some(3)),
                         expected(5, 5, B, Some(1), Some(4), None),
                         expected(15, 15, B, Some(1), None, None),
-                        expected(1, TEST_VALUE, R, Some(2), None, None),
+                        expected(1, 1, R, Some(2), None, None),
                     ],
                 };
                 run_success(lang, &desc, 1, &exp)
@@ -1077,7 +1074,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, Some(0), Some(2), Some(3)),
                         expected(5, 5, B, Some(1), None, None),
                         expected(15, 15, B, Some(1), None, Some(4)),
-                        expected(20, TEST_VALUE, R, Some(3), None, None),
+                        expected(20, 1, R, Some(3), None, None),
                     ],
                 };
                 run_success(lang, &desc, 20, &exp)
@@ -1101,7 +1098,7 @@ impl TestCase for InsertCase {
                     nodes: vec![
                         expected(10, 10, R, Some(1), None, None),
                         expected(5, 5, B, None, Some(2), Some(0)),
-                        expected(1, TEST_VALUE, R, Some(1), None, None),
+                        expected(1, 1, R, Some(1), None, None),
                     ],
                 };
                 run_success(lang, &desc, 1, &exp)
@@ -1122,7 +1119,7 @@ impl TestCase for InsertCase {
                     nodes: vec![
                         expected(10, 10, R, Some(1), None, None),
                         expected(15, 15, B, None, Some(0), Some(2)),
-                        expected(20, TEST_VALUE, R, Some(1), None, None),
+                        expected(20, 1, R, Some(1), None, None),
                     ],
                 };
                 run_success(lang, &desc, 20, &exp)
@@ -1145,7 +1142,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, Some(1), None, Some(2)),
                         expected(5, 5, B, None, Some(3), Some(0)),
                         expected(15, 15, B, Some(0), None, None),
-                        expected(1, TEST_VALUE, R, Some(1), None, None),
+                        expected(1, 1, R, Some(1), None, None),
                     ],
                 };
                 run_success(lang, &desc, 1, &exp)
@@ -1168,7 +1165,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, Some(2), Some(1), None),
                         expected(5, 5, B, Some(0), None, None),
                         expected(15, 15, B, None, Some(0), Some(3)),
-                        expected(20, TEST_VALUE, R, Some(2), None, None),
+                        expected(20, 1, R, Some(2), None, None),
                     ],
                 };
                 run_success(lang, &desc, 20, &exp)
@@ -1192,7 +1189,7 @@ impl TestCase for InsertCase {
                     nodes: vec![
                         expected(10, 10, R, Some(2), None, None),
                         expected(5, 5, R, Some(2), None, None),
-                        expected(7, TEST_VALUE, B, None, Some(1), Some(0)),
+                        expected(7, 1, B, None, Some(1), Some(0)),
                     ],
                 };
                 run_success(lang, &desc, 7, &exp)
@@ -1213,7 +1210,7 @@ impl TestCase for InsertCase {
                     nodes: vec![
                         expected(10, 10, R, Some(2), None, None),
                         expected(15, 15, R, Some(2), None, None),
-                        expected(12, TEST_VALUE, B, None, Some(0), Some(1)),
+                        expected(12, 1, B, None, Some(0), Some(1)),
                     ],
                 };
                 run_success(lang, &desc, 12, &exp)
@@ -1236,7 +1233,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, Some(3), None, Some(2)),
                         expected(5, 5, R, Some(3), None, None),
                         expected(15, 15, B, Some(0), None, None),
-                        expected(7, TEST_VALUE, B, None, Some(1), Some(0)),
+                        expected(7, 1, B, None, Some(1), Some(0)),
                     ],
                 };
                 run_success(lang, &desc, 7, &exp)
@@ -1259,7 +1256,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, Some(3), Some(1), None),
                         expected(5, 5, B, Some(0), None, None),
                         expected(15, 15, R, Some(3), None, None),
-                        expected(12, TEST_VALUE, B, None, Some(0), Some(2)),
+                        expected(12, 1, B, None, Some(0), Some(2)),
                     ],
                 };
                 run_success(lang, &desc, 12, &exp)
@@ -1289,7 +1286,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, Some(2), None, None),
                         expected(5, 5, B, Some(0), Some(4), Some(1)),
                         expected(25, 25, B, Some(0), None, None),
-                        expected(1, TEST_VALUE, R, Some(2), None, None),
+                        expected(1, 1, R, Some(2), None, None),
                     ],
                 };
                 run_success(lang, &desc, 1, &exp)
@@ -1316,7 +1313,7 @@ impl TestCase for InsertCase {
                         expected(3, 3, B, Some(0), None, None),
                         expected(20, 20, R, Some(3), None, None),
                         expected(15, 15, B, Some(0), Some(4), Some(2)),
-                        expected(10, TEST_VALUE, R, Some(3), None, None),
+                        expected(10, 1, R, Some(3), None, None),
                     ],
                 };
                 run_success(lang, &desc, 10, &exp)
@@ -1343,7 +1340,7 @@ impl TestCase for InsertCase {
                         expected(3, 3, B, Some(0), None, None),
                         expected(15, 15, R, Some(3), None, None),
                         expected(20, 20, B, Some(0), Some(2), Some(4)),
-                        expected(25, TEST_VALUE, R, Some(3), None, None),
+                        expected(25, 1, R, Some(3), None, None),
                     ],
                 };
                 run_success(lang, &desc, 25, &exp)
@@ -1370,7 +1367,7 @@ impl TestCase for InsertCase {
                         expected(10, 10, R, Some(2), None, None),
                         expected(15, 15, B, Some(0), Some(1), Some(4)),
                         expected(25, 25, B, Some(0), None, None),
-                        expected(17, TEST_VALUE, R, Some(2), None, None),
+                        expected(17, 1, R, Some(2), None, None),
                     ],
                 };
                 run_success(lang, &desc, 17, &exp)
@@ -1405,7 +1402,7 @@ impl TestCase for InsertCase {
                         expected(3, 3, B, Some(2), Some(7), None),
                         expected(7, 7, B, Some(2), None, None),
                         expected(15, 15, B, Some(0), None, None),
-                        expected(1, TEST_VALUE, R, Some(4), None, None),
+                        expected(1, 1, R, Some(4), None, None),
                     ],
                 };
                 run_success(lang, &desc, 1, &exp)
@@ -1437,7 +1434,7 @@ impl TestCase for InsertCase {
                         expected(20, 20, R, Some(2), Some(5), Some(6)),
                         expected(17, 17, B, Some(4), None, None),
                         expected(25, 25, B, Some(4), None, Some(7)),
-                        expected(30, TEST_VALUE, R, Some(6), None, None),
+                        expected(30, 1, R, Some(6), None, None),
                     ],
                 };
                 run_success(lang, &desc, 30, &exp)
@@ -1473,7 +1470,7 @@ impl TestCase for InsertCase {
                         expected(25, 25, B, Some(0), None, None),
                         expected(12, 12, B, Some(1), Some(7), None),
                         expected(17, 17, B, Some(0), None, None),
-                        expected(11, TEST_VALUE, R, Some(5), None, None),
+                        expected(11, 1, R, Some(5), None, None),
                     ],
                 };
                 run_success(lang, &desc, 11, &exp)
@@ -1506,7 +1503,7 @@ impl TestCase for InsertCase {
                         expected(25, 25, B, Some(2), None, None),
                         expected(12, 12, B, Some(0), None, None),
                         expected(17, 17, B, Some(2), None, Some(7)),
-                        expected(18, TEST_VALUE, R, Some(6), None, None),
+                        expected(18, 1, R, Some(6), None, None),
                     ],
                 };
                 run_success(lang, &desc, 18, &exp)
