@@ -1678,13 +1678,15 @@ struct MultiInsertStep<'a> {
     expected: TreeSpec<'a>,
 }
 
-fn run_multi_insert(lang: ProgramLanguage, steps: &[MultiInsertStep]) {
+fn run_multi_insert(lang: ProgramLanguage, steps: &[MultiInsertStep]) -> CaseResult {
     let setup = setup_test(lang);
     let (system_program_pubkey, _) = program::keyed_account_for_system_program();
 
     let user_pubkey = Pubkey::new_unique();
     let (tree_pubkey, mut tree_account) =
         build_empty_tree(steps.len(), &setup.program_id);
+
+    let mut total_cu = 0u64;
 
     for (i, step) in steps.iter().enumerate() {
         let insn_data = InsertInstruction {
@@ -1713,27 +1715,87 @@ fn run_multi_insert(lang: ProgramLanguage, steps: &[MultiInsertStep]) {
         ];
 
         let result = setup.mollusk.process_instruction(&instruction, &accounts);
+        total_cu += result.compute_units_consumed;
         match &result.program_result {
             MolluskResult::Success => {
                 tree_account =
                     result.resulting_accounts[AccountIndex::Tree as usize].1.clone();
                 if let Err(e) = assert_tree_account(&tree_account.data, &step.expected) {
-                    panic!(
-                        "step {} (key={}): {}",
-                        i, step.key, e
-                    );
+                    return CaseResult {
+                        cu: total_cu,
+                        error: Some(format!("step {} (key={}): {}", i, step.key, e)),
+                    };
                 }
             }
-            other => panic!(
-                "step {} (key={}): expected Success, got {:?}",
-                i, step.key, other
-            ),
+            other => {
+                return CaseResult {
+                    cu: total_cu,
+                    error: Some(format!(
+                        "step {} (key={}): expected Success, got {:?}",
+                        i, step.key, other
+                    )),
+                };
+            }
+        }
+    }
+
+    CaseResult {
+        cu: total_cu,
+        error: None,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Multi-insert case enum
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Copy)]
+pub(super) enum MultiInsertCase {
+    /// 10, 5, 15 — case 2+3 recolor only.
+    Balanced3,
+    /// 10, 5, 1 — case 5+6 right rotation.
+    LeftSkew,
+    /// 10, 15, 20 — case 5+6 left rotation.
+    RightSkew,
+    /// 10, 5, 7 — case 4+5+6 double rotation.
+    Zigzag,
+    /// 10, 5, 15, 3, 7, 12, 20 — full 7-node tree.
+    Full7,
+}
+
+impl MultiInsertCase {
+    pub(super) const CASES: &'static [Self] = &[
+        Self::Balanced3,
+        Self::LeftSkew,
+        Self::RightSkew,
+        Self::Zigzag,
+        Self::Full7,
+    ];
+}
+
+impl TestCase for MultiInsertCase {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::Balanced3 => "3-node balanced (10,5,15)",
+            Self::LeftSkew => "Left-skew rotation (10,5,1)",
+            Self::RightSkew => "Right-skew rotation (10,15,20)",
+            Self::Zigzag => "Zigzag double rotation (10,5,7)",
+            Self::Full7 => "7-node full tree (10,5,15,3,7,12,20)",
+        }
+    }
+
+    fn run(&self, lang: ProgramLanguage) -> CaseResult {
+        match self {
+            Self::Balanced3 => run_balanced_3(lang),
+            Self::LeftSkew => run_left_skew(lang),
+            Self::RightSkew => run_right_skew(lang),
+            Self::Zigzag => run_zigzag(lang),
+            Self::Full7 => run_full_7(lang),
         }
     }
 }
 
-pub(super) fn test_multi_insert(lang: ProgramLanguage) {
-    // 3-node balanced: 10, 5, 15.
+fn run_balanced_3(lang: ProgramLanguage) -> CaseResult {
     run_multi_insert(lang, &[
         MultiInsertStep {
             key: 10,
@@ -1766,9 +1828,10 @@ pub(super) fn test_multi_insert(lang: ProgramLanguage) {
                 ],
             },
         },
-    ]);
+    ])
+}
 
-    // Left-skew: 10, 5, 1 → right rotation.
+fn run_left_skew(lang: ProgramLanguage) -> CaseResult {
     run_multi_insert(lang, &[
         MultiInsertStep {
             key: 10,
@@ -1801,9 +1864,10 @@ pub(super) fn test_multi_insert(lang: ProgramLanguage) {
                 ],
             },
         },
-    ]);
+    ])
+}
 
-    // Right-skew: 10, 15, 20 → left rotation.
+fn run_right_skew(lang: ProgramLanguage) -> CaseResult {
     run_multi_insert(lang, &[
         MultiInsertStep {
             key: 10,
@@ -1836,9 +1900,10 @@ pub(super) fn test_multi_insert(lang: ProgramLanguage) {
                 ],
             },
         },
-    ]);
+    ])
+}
 
-    // Zigzag: 10, 5, 7 → double rotation.
+fn run_zigzag(lang: ProgramLanguage) -> CaseResult {
     run_multi_insert(lang, &[
         MultiInsertStep {
             key: 10,
@@ -1871,9 +1936,10 @@ pub(super) fn test_multi_insert(lang: ProgramLanguage) {
                 ],
             },
         },
-    ]);
+    ])
+}
 
-    // 7-node full: 10, 5, 15, 3, 7, 12, 20.
+fn run_full_7(lang: ProgramLanguage) -> CaseResult {
     run_multi_insert(lang, &[
         MultiInsertStep {
             key: 10,
@@ -1964,5 +2030,5 @@ pub(super) fn test_multi_insert(lang: ProgramLanguage) {
                 ],
             },
         },
-    ]);
+    ])
 }

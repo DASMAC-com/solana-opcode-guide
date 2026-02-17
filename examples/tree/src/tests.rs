@@ -224,6 +224,5 @@ fn test_insert_to_tree() {
 
 #[test]
 fn test_multi_insert() {
-    insert::test_multi_insert(ProgramLanguage::Assembly);
-    insert::test_multi_insert(ProgramLanguage::Rust);
+    print_comparison_table(insert::MultiInsertCase::CASES);
 }
