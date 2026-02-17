@@ -200,5 +200,5 @@ fn test_insert_search() {
 
 #[test]
 fn test_insert_to_tree() {
-    print_comparison_table(insert_tree::InsertTreeCase::TREE_CASES, true, false);
+    print_comparison_table(insert_tree::InsertTreeCase::TREE_CASES, false, false);
 }

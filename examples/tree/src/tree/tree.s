@@ -662,24 +662,24 @@ insert_store_key_value_pair:
     # ANCHOR_END: insert-allocate
 
 # ANCHOR: insert-search
-insert_search:
-    ldxh r4, [r2 + INSN_INSERT_KEY_OFF] # r4 = insn.key;
-    mov64 r2, NULL # r2 = parent = null;
-    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF] # r3 = cursor = root;
+insert_search:                                                             # r9 = node
+    ldxh r4, [r2 + INSN_INSERT_KEY_OFF]                                    # r4 = insn.key;
+    mov64 r2, NULL                                                         # r2 = parent = null;
+    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF]                                 # r3 = cursor = root;
 
 insert_search_loop:
     jeq r3, NULL, insert_to_tree
-    mov64 r2, r3 # r2 = parent = cursor;
-    ldxh r5, [r3 + TREE_NODE_KEY_OFF] # r5 = cursor.key;
+    mov64 r2, r3                                                           # r2 = parent = cursor;
+    ldxh r5, [r3 + TREE_NODE_KEY_OFF]                                      # r5 = cursor.key;
     jlt r4, r5, insert_search_branch_l
     jgt r4, r5, insert_search_branch_r
     mov64 r0, E_KEY_EXISTS # Error if key already exists.
     exit
 insert_search_branch_l:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF] # r3 = cursor.child[left];
+    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r3 = cursor.child[left];
     ja insert_search_loop
 insert_search_branch_r:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF] # r3 = cursor.child[right];
+    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r3 = cursor.child[right];
     ja insert_search_loop
 # ANCHOR_END: insert-search
 
@@ -687,13 +687,13 @@ insert_search_branch_r:
 insert_to_tree:
     # Flag new node as red and store parent pointer.
     # ---------------------------------------------------------------------
-    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R # node.color = red;
-    stxdw [r9 + TREE_NODE_PARENT_OFF], r2 # node.parent = parent;
+    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = parent;
 
     # Handle case of new node at root.
     # ---------------------------------------------------------------------
     jne r2, NULL, insert_get_child_dir
-    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9 # root = node;
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9                                 # root = node;
     exit # Parent is null, new node at root.
 # ANCHOR_END: insert-to-tree
 
@@ -701,33 +701,77 @@ insert_to_tree:
 insert_get_child_dir:
     # Get child direction, set at parent.
     # ---------------------------------------------------------------------
-    ldxh r5, [r2 + TREE_NODE_KEY_OFF] # r5 = parent.key;
+    ldxh r5, [r2 + TREE_NODE_KEY_OFF]                                      # r5 = parent.key;
     jgt r4, r5, insert_get_child_dir_branch_r
 insert_get_child_dir_branch_l:
-    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9 # parent.child[left] = node;
+    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9                                 # parent.child[left] = node;
     ja insert_fixup_main
 insert_get_child_dir_branch_r:
-    stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9 # parent.child[right] = node;
+    stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9                                 # parent.child[right] = node;
 
 insert_fixup_main:
     # Case 1.
     # ---------------------------------------------------------------------
-    ldxb r6, [r2 + TREE_NODE_COLOR_OFF] # r6 = parent.color;
+    ldxb r6, [r2 + TREE_NODE_COLOR_OFF]                                    # r6 = parent.color;
     jne r6, TREE_COLOR_B, insert_fixup_check_case_4
     exit # If parent is black, tree is still valid, so exit.
 
 insert_fixup_check_case_4:
     # Check case 4.
     # ---------------------------------------------------------------------
-    ldxdw r3, [r2 + TREE_NODE_PARENT_OFF] # r3 = grandparent;
+    ldxdw r3, [r2 + TREE_NODE_PARENT_OFF]                                  # r3 = grandparent;
     jne r3, NULL, insert_fixup_check_case_5_6
-    stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B # parent.color = black;
+    stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
     exit
 
 insert_fixup_check_case_5_6:
-    # Get parent's direction as a child.
+    # Get uncle and check for case 5 or 6.
     # ---------------------------------------------------------------------
+    ldxh r4, [r3 + TREE_NODE_KEY_OFF]                                      # r4 = grandparent.key;
+    jgt r5, r4, insert_fixup_check_case_5_6_dir_r
+
+insert_fixup_check_case_5_6_dir_l:
+    ldxdw r7, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r7 = uncle;
+    jeq r7, NULL, insert_fixup_case_5_6_dir_l
+    ldxb r8, [r7 + TREE_NODE_COLOR_OFF]                                    # r8 = uncle.color;
+    jne r8, TREE_COLOR_B, insert_fixup_case_2
+
+insert_fixup_case_5_6_dir_l:
+    ldxdw r8, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r8 = parent.child[right];
+    jne r9, r8, insert_fixup_case_6_dir_l
+
+insert_fixup_case_5_dir_l:
+    # rotate_subtree(tree_header, parent, left);
+    # ---------------------------------------------------------------------
+
+insert_fixup_case_6_dir_l:
     exit
+
+insert_fixup_check_case_5_6_dir_r:
+    ldxdw r7, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r7 = uncle;
+    jeq r7, NULL, insert_fixup_case_5_6_dir_r
+    ldxb r8, [r7 + TREE_NODE_COLOR_OFF]                                    # r8 = uncle.color;
+    jne r8, TREE_COLOR_B, insert_fixup_case_2
+
+insert_fixup_case_5_6_dir_r:
+    ldxdw r8, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r8 = parent.child[left];
+    jne r9, r8, insert_fixup_case_6_dir_r
+
+insert_fixup_case_5_dir_r:
+    # rotate_subtree(tree_header, parent, right);
+    # ---------------------------------------------------------------------
+
+insert_fixup_case_6_dir_r:
+    exit
+
+insert_fixup_case_2:
+    stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
+    stb [r7 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # uncle.color = black;
+    stb [r3 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # grandparent.color = red;
+    mov64 r9, r3                                                           # r9 = node = grandparent;
+    ldxdw r2, [r9 + TREE_NODE_PARENT_OFF]                                  # r2 = parent = node.parent;
+    jne r2, NULL, insert_fixup_main
+    exit # Case 3.
 # ANCHOR_END: insert-fixup
 
 

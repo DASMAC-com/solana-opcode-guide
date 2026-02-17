@@ -1,19 +1,19 @@
-insert_search:
-    ldxh r4, [r2 + INSN_INSERT_KEY_OFF] # r4 = insn.key;
-    mov64 r2, NULL # r2 = parent = null;
-    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF] # r3 = cursor = root;
+insert_search:                                                             # r9 = node
+    ldxh r4, [r2 + INSN_INSERT_KEY_OFF]                                    # r4 = insn.key;
+    mov64 r2, NULL                                                         # r2 = parent = null;
+    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF]                                 # r3 = cursor = root;
 
 insert_search_loop:
     jeq r3, NULL, insert_to_tree
-    mov64 r2, r3 # r2 = parent = cursor;
-    ldxh r5, [r3 + TREE_NODE_KEY_OFF] # r5 = cursor.key;
+    mov64 r2, r3                                                           # r2 = parent = cursor;
+    ldxh r5, [r3 + TREE_NODE_KEY_OFF]                                      # r5 = cursor.key;
     jlt r4, r5, insert_search_branch_l
     jgt r4, r5, insert_search_branch_r
     mov64 r0, E_KEY_EXISTS # Error if key already exists.
     exit
 insert_search_branch_l:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF] # r3 = cursor.child[left];
+    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r3 = cursor.child[left];
     ja insert_search_loop
 insert_search_branch_r:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF] # r3 = cursor.child[right];
+    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r3 = cursor.child[right];
     ja insert_search_loop
