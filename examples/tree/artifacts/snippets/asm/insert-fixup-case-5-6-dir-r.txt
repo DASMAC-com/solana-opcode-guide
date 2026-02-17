@@ -1,0 +1,47 @@
+insert_fixup_check_case_5_6_dir_r:
+    ldxdw r7, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r7 = uncle;
+    jeq r7, NULL, insert_fixup_case_5_6_dir_r
+    ldxb r8, [r7 + TREE_NODE_COLOR_OFF]                                    # r8 = uncle.color;
+    jne r8, TREE_COLOR_B, insert_fixup_case_2
+
+insert_fixup_case_5_6_dir_r:
+    ldxdw r6, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r6 = new_root = parent.child[L];
+    jne r9, r6, insert_fixup_case_6_dir_r
+
+insert_fixup_case_5_dir_r:
+    ldxdw r8, [r6 + TREE_NODE_CHILD_R_OFF]                                 # r8 = new_child = new_root.child[R];
+    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r8                                 # parent.child[L] = new_child;
+    jeq r8, NULL, insert_fixup_case_5_dir_r_skip
+    stxdw [r8 + TREE_NODE_PARENT_OFF], r2                                  # new_child.parent = parent;
+insert_fixup_case_5_dir_r_skip:
+    stxdw [r6 + TREE_NODE_CHILD_R_OFF], r2                                 # new_root.child[R] = parent;
+    stxdw [r6 + TREE_NODE_PARENT_OFF], r3                                  # new_root.parent = grandparent;
+    stxdw [r2 + TREE_NODE_PARENT_OFF], r6                                  # parent.parent = new_root;
+    stxdw [r3 + TREE_NODE_CHILD_R_OFF], r6                                 # grandparent.child[R] = new_root;
+    mov64 r9, r2                                                           # node = old parent;
+    mov64 r2, r6                                                           # parent = new_root;
+
+insert_fixup_case_6_dir_r:
+    ldxdw r4, [r3 + TREE_NODE_PARENT_OFF]                                  # r4 = great-grandparent;
+    ldxdw r8, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r8 = new_child = parent.child[L];
+    stxdw [r3 + TREE_NODE_CHILD_R_OFF], r8                                 # grandparent.child[R] = new_child;
+    jeq r8, NULL, insert_fixup_case_6_dir_r_skip
+    stxdw [r8 + TREE_NODE_PARENT_OFF], r3                                  # new_child.parent = grandparent;
+insert_fixup_case_6_dir_r_skip:
+    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r3                                 # parent.child[L] = grandparent;
+    stxdw [r2 + TREE_NODE_PARENT_OFF], r4                                  # parent.parent = great-grandparent;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r2                                  # grandparent.parent = parent;
+    jeq r4, NULL, insert_fixup_case_6_dir_r_root
+    ldxdw r8, [r4 + TREE_NODE_CHILD_R_OFF]                                 # r8 = great-grandparent.child[R];
+    jne r3, r8, insert_fixup_case_6_dir_r_left
+    stxdw [r4 + TREE_NODE_CHILD_R_OFF], r2                                 # great-grandparent.child[R] = parent;
+    ja insert_fixup_case_6_dir_r_color
+insert_fixup_case_6_dir_r_left:
+    stxdw [r4 + TREE_NODE_CHILD_L_OFF], r2                                 # great-grandparent.child[L] = parent;
+    ja insert_fixup_case_6_dir_r_color
+insert_fixup_case_6_dir_r_root:
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r2                                 # tree.root = parent;
+insert_fixup_case_6_dir_r_color:
+    stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
+    stb [r3 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # grandparent.color = red;
+    exit

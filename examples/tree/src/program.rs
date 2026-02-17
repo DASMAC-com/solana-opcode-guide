@@ -328,35 +328,45 @@ unsafe fn insert(
     }
     // ANCHOR_END: insert-to-tree
 
-    // ANCHOR: insert-fixup
+    // ANCHOR: insert-fixup-child-dir
     // Get child direction, set at parent.
     let child_dir = (key > (*parent).key) as usize;
     (*parent).child[child_dir] = node;
+    // ANCHOR_END: insert-fixup-child-dir
 
     // Main insert fixup.
     loop {
+        // ANCHOR: insert-fixup-case-1
         // Case 1.
         if (*parent).color == Color::Black {
             return SUCCESS;
         }
+        // ANCHOR_END: insert-fixup-case-1
 
+        // ANCHOR: insert-fixup-case-4
         let grandparent = (*parent).parent;
         if grandparent.is_null() {
             // Case 4.
             (*parent).color = Color::Black;
             return SUCCESS;
         }
+        // ANCHOR_END: insert-fixup-case-4
 
+        // ANCHOR: insert-fixup-case-5-6-dir-l
         // Determine direction and uncle with hardcoded child indices.
         let uncle;
         if parent == (*grandparent).child[tree::DIR_L] {
             // dir_l: parent is left child of grandparent.
             uncle = (*grandparent).child[tree::DIR_R];
             if uncle.is_null() || (*uncle).color == Color::Black {
-                // Case 5 dir_l: rotate parent LEFT.
-                let pivot = (*parent).child[tree::DIR_R];
-                if node == pivot {
-                    let new_root = pivot;
+                // Case 5 dir_l: rotate parent in DIR_L.
+                //
+                // Grandparent is guaranteed non-null by the case 4 check, so
+                // no root-replacement path is needed. Parent is known to be
+                // grandparent.child[DIR_L] from the dir_l branch, so the
+                // child pointer update is hardcoded without comparison.
+                if node == (*parent).child[tree::DIR_R] {
+                    let new_root = (*parent).child[tree::DIR_R];
                     let new_child = (*new_root).child[tree::DIR_L];
 
                     (*parent).child[tree::DIR_R] = new_child;
@@ -374,7 +384,17 @@ unsafe fn insert(
                     parent = new_root;
                 }
 
-                // Case 6 dir_l: rotate grandparent RIGHT.
+                // Case 6 dir_l: rotate grandparent in DIR_R.
+                //
+                // The new root of this rotation is parent
+                // (= grandparent.child[DIR_L]), already in scope,
+                // eliminating the generic version's load of
+                // subtree.child[opposite(direction)].
+                //
+                // Great-grandparent may be null (grandparent could be root),
+                // so the null check and root-replacement path are retained.
+                // Grandparent's position under great-grandparent is unrelated
+                // to dir, so the pointer comparison is also retained.
                 {
                     let great_grandparent = (*grandparent).parent;
                     let new_child = (*parent).child[tree::DIR_R];
@@ -402,14 +422,20 @@ unsafe fn insert(
                 (*grandparent).color = Color::Red;
                 return SUCCESS;
             }
+        // ANCHOR_END: insert-fixup-case-5-6-dir-l
+        // ANCHOR: insert-fixup-case-5-6-dir-r
         } else {
             // dir_r: parent is right child of grandparent.
             uncle = (*grandparent).child[tree::DIR_L];
             if uncle.is_null() || (*uncle).color == Color::Black {
-                // Case 5 dir_r: rotate parent RIGHT.
-                let pivot = (*parent).child[tree::DIR_L];
-                if node == pivot {
-                    let new_root = pivot;
+                // Case 5 dir_r: rotate parent in DIR_R.
+                //
+                // Grandparent is guaranteed non-null by the case 4 check, so
+                // no root-replacement path is needed. Parent is known to be
+                // grandparent.child[DIR_R] from the dir_r branch, so the
+                // child pointer update is hardcoded without comparison.
+                if node == (*parent).child[tree::DIR_L] {
+                    let new_root = (*parent).child[tree::DIR_L];
                     let new_child = (*new_root).child[tree::DIR_R];
 
                     (*parent).child[tree::DIR_L] = new_child;
@@ -427,7 +453,17 @@ unsafe fn insert(
                     parent = new_root;
                 }
 
-                // Case 6 dir_r: rotate grandparent LEFT.
+                // Case 6 dir_r: rotate grandparent in DIR_L.
+                //
+                // The new root of this rotation is parent
+                // (= grandparent.child[DIR_R]), already in scope,
+                // eliminating the generic version's load of
+                // subtree.child[opposite(direction)].
+                //
+                // Great-grandparent may be null (grandparent could be root),
+                // so the null check and root-replacement path are retained.
+                // Grandparent's position under great-grandparent is unrelated
+                // to dir, so the pointer comparison is also retained.
                 {
                     let great_grandparent = (*grandparent).parent;
                     let new_child = (*parent).child[tree::DIR_L];
@@ -456,7 +492,9 @@ unsafe fn insert(
                 return SUCCESS;
             }
         }
+        // ANCHOR_END: insert-fixup-case-5-6-dir-r
 
+        // ANCHOR: insert-fixup-case-2-3
         // Case 2.
         (*parent).color = Color::Black;
         (*uncle).color = Color::Black;
@@ -471,7 +509,7 @@ unsafe fn insert(
     // Case 3.
     SUCCESS
 }
-// ANCHOR_END: insert-fixup
+// ANCHOR_END: insert-fixup-case-2-3
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]

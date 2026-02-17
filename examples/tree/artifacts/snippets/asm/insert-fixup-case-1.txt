@@ -1,0 +1,8 @@
+insert_fixup_main:
+                                                                           # r2 := parent
+                                                                           # r5 := parent.key
+    # Case 1.                                                              # r9 := node
+    # ---------------------------------------------------------------------
+    ldxb r6, [r2 + TREE_NODE_COLOR_OFF]                                    # r6 = parent.color;
+    jne r6, TREE_COLOR_B, insert_fixup_check_case_4
+    exit # If parent is black, tree is still valid, so exit.

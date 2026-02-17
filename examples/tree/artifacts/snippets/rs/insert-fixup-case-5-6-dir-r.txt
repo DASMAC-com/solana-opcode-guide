@@ -1,0 +1,53 @@
+        } else {
+            // dir_r: parent is right child of grandparent.
+            uncle = (*grandparent).child[tree::DIR_L];
+            if uncle.is_null() || (*uncle).color == Color::Black {
+                // Case 5 dir_r: rotate parent RIGHT.
+                let new_root = (*parent).child[tree::DIR_L];
+                if node == new_root {
+                    let new_child = (*new_root).child[tree::DIR_R];
+
+                    (*parent).child[tree::DIR_L] = new_child;
+                    if !new_child.is_null() {
+                        (*new_child).parent = parent;
+                    }
+
+                    (*new_root).child[tree::DIR_R] = parent;
+                    (*new_root).parent = grandparent;
+                    (*parent).parent = new_root;
+
+                    (*grandparent).child[tree::DIR_R] = new_root;
+
+                    node = parent;
+                    parent = new_root;
+                }
+
+                // Case 6 dir_r: rotate grandparent LEFT.
+                {
+                    let great_grandparent = (*grandparent).parent;
+                    let new_child = (*parent).child[tree::DIR_L];
+
+                    (*grandparent).child[tree::DIR_R] = new_child;
+                    if !new_child.is_null() {
+                        (*new_child).parent = grandparent;
+                    }
+
+                    (*parent).child[tree::DIR_L] = grandparent;
+                    (*parent).parent = great_grandparent;
+                    (*grandparent).parent = parent;
+
+                    if !great_grandparent.is_null() {
+                        let idx = (grandparent
+                            == (*great_grandparent).child[tree::DIR_R])
+                            as usize;
+                        (*great_grandparent).child[idx] = parent;
+                    } else {
+                        (*tree_header).root = parent;
+                    }
+                }
+
+                (*parent).color = Color::Black;
+                (*grandparent).color = Color::Red;
+                return SUCCESS;
+            }
+        }

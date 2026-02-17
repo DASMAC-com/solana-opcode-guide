@@ -1,0 +1,10 @@
+insert_get_child_dir:
+    # Get child direction, set at parent.
+    # ---------------------------------------------------------------------
+    ldxh r5, [r2 + TREE_NODE_KEY_OFF]                                      # r5 = parent.key;
+    jgt r4, r5, insert_get_child_dir_branch_r
+insert_get_child_dir_branch_l:
+    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9                                 # parent.child[L] = node;
+    ja insert_fixup_main
+insert_get_child_dir_branch_r:
+    stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9                                 # parent.child[R] = node;

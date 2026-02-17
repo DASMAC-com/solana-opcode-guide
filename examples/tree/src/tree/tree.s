@@ -697,7 +697,7 @@ insert_to_tree:
     exit # Parent is null, new node at root.
 # ANCHOR_END: insert-to-tree
 
-# ANCHOR: insert-fixup
+# ANCHOR: insert-fixup-child-dir
 insert_get_child_dir:
     # Get child direction, set at parent.
     # ---------------------------------------------------------------------
@@ -708,7 +708,9 @@ insert_get_child_dir_branch_l:
     ja insert_fixup_main
 insert_get_child_dir_branch_r:
     stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9                                 # parent.child[R] = node;
+# ANCHOR_END: insert-fixup-child-dir
 
+# ANCHOR: insert-fixup-case-1
 insert_fixup_main:
                                                                            # r2 := parent
                                                                            # r5 := parent.key
@@ -717,7 +719,9 @@ insert_fixup_main:
     ldxb r6, [r2 + TREE_NODE_COLOR_OFF]                                    # r6 = parent.color;
     jne r6, TREE_COLOR_B, insert_fixup_check_case_4
     exit # If parent is black, tree is still valid, so exit.
+# ANCHOR_END: insert-fixup-case-1
 
+# ANCHOR: insert-fixup-case-4
 insert_fixup_check_case_4:
     # Check case 4.
     # ---------------------------------------------------------------------
@@ -725,7 +729,9 @@ insert_fixup_check_case_4:
     jne r3, NULL, insert_fixup_check_case_5_6
     stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
     exit
+# ANCHOR_END: insert-fixup-case-4
 
+# ANCHOR: insert-fixup-case-5-6-dir-l
 insert_fixup_check_case_5_6:
     # Get uncle and check for case 5 or 6.
     # ---------------------------------------------------------------------
@@ -779,7 +785,9 @@ insert_fixup_case_6_dir_l_color:
     stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
     stb [r3 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # grandparent.color = red;
     exit
+# ANCHOR_END: insert-fixup-case-5-6-dir-l
 
+# ANCHOR: insert-fixup-case-5-6-dir-r
 insert_fixup_check_case_5_6_dir_r:
     ldxdw r7, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r7 = uncle;
     jeq r7, NULL, insert_fixup_case_5_6_dir_r
@@ -827,7 +835,9 @@ insert_fixup_case_6_dir_r_color:
     stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
     stb [r3 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # grandparent.color = red;
     exit
+# ANCHOR_END: insert-fixup-case-5-6-dir-r
 
+# ANCHOR: insert-fixup-case-2-3
 insert_fixup_case_2:
                                                                            # r2 := parent
                                                                            # r3 := grandparent
@@ -841,7 +851,7 @@ insert_fixup_case_2:
     ldxdw r2, [r9 + TREE_NODE_PARENT_OFF]                                  # parent = node.parent;
     jne r2, NULL, insert_fixup_main
     exit # Case 3.
-# ANCHOR_END: insert-fixup
+# ANCHOR_END: insert-fixup-case-2-3
 
 
 e_instruction_data:
