@@ -1,8 +1,4 @@
 use super::*;
-use mollusk_svm::program;
-use mollusk_svm::result::{Check, Config};
-use pinocchio::sysvars::rent::Rent;
-use solana_sdk::instruction::AccountMeta;
 use tree_interface::{input_buffer, tree, Instruction as TreeInstruction, TreeHeader};
 
 fn init_setup(
@@ -80,16 +76,12 @@ fn pda_init_setup(
 fn run_address_mismatch(
     lang: ProgramLanguage,
     account_index: usize,
-    word_index: usize,
-    word_size: usize,
+    chunk_index: usize,
+    chunk_size: usize,
     expected_error: error_codes::error,
 ) -> CaseResult {
     let (setup, mut instruction, mut accounts) = pda_init_setup(lang);
-
-    let flip_index = (word_index * word_size) + (word_size - 1);
-    accounts[account_index].0.as_mut()[flip_index] ^= 1;
-    instruction.accounts[account_index].pubkey = accounts[account_index].0;
-
+    flip_account_address(&mut instruction, &mut accounts, account_index, chunk_index, chunk_size);
     check_error(&setup, &instruction, &accounts, expected_error)
 }
 
@@ -176,10 +168,10 @@ impl TestCase for InitCase {
             Self::RentAddressWord5 => "Rent address mismatch word 5",
             Self::RentAddressWord6 => "Rent address mismatch word 6",
             Self::RentAddressWord7 => "Rent address mismatch word 7",
-            Self::PdaMismatchChunk0 => "PDA mismatch chunk 1",
-            Self::PdaMismatchChunk1 => "PDA mismatch chunk 2",
-            Self::PdaMismatchChunk2 => "PDA mismatch chunk 3",
-            Self::PdaMismatchChunk3 => "PDA mismatch chunk 4",
+            Self::PdaMismatchChunk0 => "PDA mismatch chunk 0",
+            Self::PdaMismatchChunk1 => "PDA mismatch chunk 1",
+            Self::PdaMismatchChunk2 => "PDA mismatch chunk 2",
+            Self::PdaMismatchChunk3 => "PDA mismatch chunk 3",
             Self::UserInsufficientLamports => "User has insufficient Lamports",
             Self::SystemProgramAddress => "System Program is wrong address",
             Self::CreateAccountHappyPath => "CreateAccount happy path",
@@ -188,24 +180,6 @@ impl TestCase for InitCase {
 
     fn fixed_costs(&self) -> u64 {
         match self {
-            // Input checks - no syscalls.
-            Self::InstructionData
-            | Self::NAccountsTooFew
-            | Self::NAccountsTooMany
-            | Self::UserDataLen
-            | Self::TreeDuplicate
-            | Self::TreeDataLen
-            | Self::SystemProgramDuplicate
-            | Self::SystemProgramDataLen
-            | Self::RentDuplicate
-            | Self::RentAddressWord0
-            | Self::RentAddressWord1
-            | Self::RentAddressWord2
-            | Self::RentAddressWord3
-            | Self::RentAddressWord4
-            | Self::RentAddressWord5
-            | Self::RentAddressWord6
-            | Self::RentAddressWord7 => 0,
             // PDA checks - sol_try_find_program_address only.
             Self::PdaMismatchChunk0
             | Self::PdaMismatchChunk1
@@ -221,6 +195,7 @@ impl TestCase for InitCase {
                     + fixed_costs::CPI_BASE
                     + fixed_costs::SYSTEM_PROGRAM
             }
+            _ => 0,
         }
     }
 
@@ -419,37 +394,25 @@ impl TestCase for InitCase {
             Self::UserInsufficientLamports => {
                 let (setup, instruction, mut accounts) = pda_init_setup(lang);
                 accounts[AccountIndex::User as usize].1.lamports = 0;
-                let result = setup.mollusk.process_instruction(&instruction, &accounts);
                 // SystemError::ResultWithNegativeLamports.
-                let expected = ProgramError::Custom(1);
-                match &result.program_result {
-                    MolluskResult::Failure(err) if *err == expected => CaseResult {
-                        cu: result.compute_units_consumed,
-                        error: None,
-                    },
-                    other => CaseResult {
-                        cu: result.compute_units_consumed,
-                        error: Some(format!("expected Failure({:?}), got {:?}", expected, other)),
-                    },
-                }
+                check_result(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    ProgramError::Custom(1),
+                )
             }
             Self::SystemProgramAddress => {
                 let (setup, mut instruction, mut accounts) = pda_init_setup(lang);
                 let fake_pubkey = Pubkey::new_unique();
                 accounts[AccountIndex::SystemProgram as usize].0 = fake_pubkey;
                 instruction.accounts[AccountIndex::SystemProgram as usize].pubkey = fake_pubkey;
-                let result = setup.mollusk.process_instruction(&instruction, &accounts);
-                let expected = ProgramError::NotEnoughAccountKeys;
-                match &result.program_result {
-                    MolluskResult::Failure(err) if *err == expected => CaseResult {
-                        cu: result.compute_units_consumed,
-                        error: None,
-                    },
-                    other => CaseResult {
-                        cu: result.compute_units_consumed,
-                        error: Some(format!("expected Failure({:?}), got {:?}", expected, other)),
-                    },
-                }
+                check_result(
+                    &setup,
+                    &instruction,
+                    &accounts,
+                    ProgramError::NotEnoughAccountKeys,
+                )
             }
             Self::CreateAccountHappyPath => {
                 let (setup, instruction, accounts) = pda_init_setup(lang);

@@ -2,9 +2,11 @@ mod entrypoint;
 mod init;
 mod insert;
 
-use mollusk_svm::result::ProgramResult as MolluskResult;
+use mollusk_svm::program;
+use mollusk_svm::result::{Check, Config, ProgramResult as MolluskResult};
+use pinocchio::sysvars::rent::Rent;
 use solana_sdk::account::Account;
-use solana_sdk::instruction::Instruction;
+use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use test_utils::{setup_test, ProgramLanguage, TestSetup};
@@ -53,14 +55,13 @@ struct CaseResult {
     error: Option<String>,
 }
 
-fn check_error(
+fn check_result(
     setup: &TestSetup,
     instruction: &Instruction,
     accounts: &[(Pubkey, Account)],
-    expected_error: error_codes::error,
+    expected: ProgramError,
 ) -> CaseResult {
     let result = setup.mollusk.process_instruction(instruction, accounts);
-    let expected = ProgramError::Custom(expected_error.into());
     match &result.program_result {
         MolluskResult::Failure(err) if *err == expected => CaseResult {
             cu: result.compute_units_consumed,
@@ -73,6 +74,32 @@ fn check_error(
     }
 }
 
+fn flip_account_address(
+    instruction: &mut Instruction,
+    accounts: &mut [(Pubkey, Account)],
+    account_index: usize,
+    chunk_index: usize,
+    chunk_size: usize,
+) {
+    let flip_index = (chunk_index * chunk_size) + chunk_size - 1;
+    accounts[account_index].0.as_mut()[flip_index] ^= 1;
+    instruction.accounts[account_index].pubkey = accounts[account_index].0;
+}
+
+fn check_error(
+    setup: &TestSetup,
+    instruction: &Instruction,
+    accounts: &[(Pubkey, Account)],
+    expected_error: error_codes::error,
+) -> CaseResult {
+    check_result(
+        setup,
+        instruction,
+        accounts,
+        ProgramError::Custom(expected_error.into()),
+    )
+}
+
 trait TestCase: Copy {
     fn name(&self) -> &'static str;
     fn run(&self, lang: ProgramLanguage) -> CaseResult;
@@ -83,11 +110,7 @@ trait TestCase: Copy {
     }
 }
 
-fn print_comparison_table<T: TestCase>(
-    cases: &[T],
-    allow_asm_failures: bool,
-    allow_rust_failures: bool,
-) {
+fn print_comparison_table<T: TestCase>(cases: &[T]) {
     let mut failures = Vec::new();
     let has_fixed_costs = cases.iter().any(|c| c.fixed_costs() > 0);
 
@@ -140,18 +163,10 @@ fn print_comparison_table<T: TestCase>(
         }
 
         if let Some(err) = &asm.error {
-            if allow_asm_failures {
-                println!("  (ASM) {}: {}", case.name(), err);
-            } else {
-                failures.push(format!("  ASM {}: {}", case.name(), err));
-            }
+            failures.push(format!("  ASM {}: {}", case.name(), err));
         }
         if let Some(err) = &rs.error {
-            if allow_rust_failures {
-                println!("  (Rust) {}: {}", case.name(), err);
-            } else {
-                failures.push(format!("  Rust {}: {}", case.name(), err));
-            }
+            failures.push(format!("  Rust {}: {}", case.name(), err));
         }
     }
 
@@ -164,45 +179,51 @@ fn print_comparison_table<T: TestCase>(
 
 #[test]
 fn test_entrypoint_branching() {
-    print_comparison_table(entrypoint::EntrypointCase::CASES, false, false);
+    print_comparison_table(entrypoint::EntrypointCase::CASES);
 }
 
 #[test]
 fn test_insert_input_checks() {
-    print_comparison_table(insert::InsertCase::INPUT_CASES, false, false);
+    print_comparison_table(insert::InsertCase::INPUT_CASES);
 }
 
 #[test]
 fn test_insert_alloc_checks() {
-    print_comparison_table(insert::InsertCase::ALLOC_CHECK_CASES, false, false);
+    print_comparison_table(insert::InsertCase::ALLOC_CHECK_CASES);
 }
 
 #[test]
 fn test_insert_alloc() {
-    print_comparison_table(insert::InsertCase::ALLOC_CASES, false, false);
+    print_comparison_table(insert::InsertCase::ALLOC_CASES);
 }
 
 #[test]
 fn test_initialize_input_checks() {
-    print_comparison_table(init::InitCase::CASES, false, false);
+    print_comparison_table(init::InitCase::CASES);
 }
 
 #[test]
 fn test_initialize_pda_checks() {
-    print_comparison_table(init::InitCase::PDA_CASES, false, false);
+    print_comparison_table(init::InitCase::PDA_CASES);
 }
 
 #[test]
 fn test_initialize_create_account() {
-    print_comparison_table(init::InitCase::CPI_CASES, false, false);
+    print_comparison_table(init::InitCase::CPI_CASES);
 }
 
 #[test]
 fn test_insert_search() {
-    print_comparison_table(insert::InsertCase::SEARCH_CASES, false, false);
+    print_comparison_table(insert::InsertCase::SEARCH_CASES);
 }
 
 #[test]
 fn test_insert_to_tree() {
-    print_comparison_table(insert::InsertCase::TREE_CASES, false, false);
+    print_comparison_table(insert::InsertCase::TREE_CASES);
+}
+
+#[test]
+fn test_multi_insert() {
+    insert::test_multi_insert(ProgramLanguage::Assembly);
+    insert::test_multi_insert(ProgramLanguage::Rust);
 }

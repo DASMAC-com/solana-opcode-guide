@@ -1,6 +1,4 @@
 use super::*;
-use mollusk_svm::program;
-use solana_sdk::instruction::AccountMeta;
 
 #[derive(Clone, Copy)]
 pub(super) enum EntrypointCase {

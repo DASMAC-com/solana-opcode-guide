@@ -26,10 +26,8 @@ pub struct InsertInstruction {
 
 #[repr(C, packed)]
 /// Value in r0.
-struct Return {
-    /// If a value is retrieved from the tree, it's encoded in high bits.
-    maybe_value: u16,
-    /// Nonzero iff error.
+struct RemoveReturn {
+    value: u16,
     status: u16,
 }
 
