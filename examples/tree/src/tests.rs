@@ -1,6 +1,7 @@
 mod entrypoint;
 mod init;
 mod insert;
+mod insert_tree;
 
 use mollusk_svm::result::ProgramResult as MolluskResult;
 use solana_sdk::account::Account;
@@ -190,4 +191,14 @@ fn test_initialize_pda_checks() {
 #[test]
 fn test_initialize_create_account() {
     print_comparison_table(init::InitCase::CPI_CASES, false, false);
+}
+
+#[test]
+fn test_insert_search() {
+    print_comparison_table(insert_tree::InsertTreeCase::SEARCH_CASES, true, false);
+}
+
+#[test]
+fn test_insert_to_tree() {
+    print_comparison_table(insert_tree::InsertTreeCase::TREE_CASES, true, false);
 }

@@ -1,14 +1,16 @@
     let key = ldxh(instruction_data, instruction::INSERT_KEY_OFF);
-    let mut parent = (*tree_header).root;
+    let mut parent: *mut TreeNode = null_mut();
+    let mut cursor = (*tree_header).root;
     loop {
-        if parent.is_null() {
+        if cursor.is_null() {
             break;
         }
-        let parent_key = (*parent).key;
-        if key > parent_key {
-            parent = (*parent).child[tree::DIR_R];
-        } else if key < parent_key {
-            parent = (*parent).child[tree::DIR_L];
+        parent = cursor;
+        let cursor_key = (*cursor).key;
+        if key > cursor_key {
+            cursor = (*cursor).child[tree::DIR_R];
+        } else if key < cursor_key {
+            cursor = (*cursor).child[tree::DIR_L];
         } else {
             return error::KEY_EXISTS.into();
         }
