@@ -663,23 +663,23 @@ insert_store_key_value_pair:
 
 # ANCHOR: insert-search
 insert_search:
-    ldxh r4, [r2 + INSN_INSERT_KEY_OFF] # Get key to insert.
-    mov64 r2, NULL # Set parent node as null.
-    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF] # Get root pointer for cursor.
+    ldxh r4, [r2 + INSN_INSERT_KEY_OFF] # r4 = insn.key;
+    mov64 r2, NULL # r2 = parent = null;
+    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF] # r3 = cursor = root;
 
 insert_search_loop:
     jeq r3, NULL, insert_to_tree
-    mov64 r2, r3 # Update parent to current cursor.
-    ldxh r5, [r3 + TREE_NODE_KEY_OFF] # Get cursor key.
+    mov64 r2, r3 # r2 = parent = cursor;
+    ldxh r5, [r3 + TREE_NODE_KEY_OFF] # r5 = cursor.key;
     jlt r4, r5, insert_search_branch_l
     jgt r4, r5, insert_search_branch_r
     mov64 r0, E_KEY_EXISTS # Error if key already exists.
     exit
 insert_search_branch_l:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]
+    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF] # r3 = cursor.child[left];
     ja insert_search_loop
 insert_search_branch_r:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]
+    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF] # r3 = cursor.child[right];
     ja insert_search_loop
 # ANCHOR_END: insert-search
 
@@ -687,17 +687,49 @@ insert_search_branch_r:
 insert_to_tree:
     # Flag new node as red and store parent pointer.
     # ---------------------------------------------------------------------
-    stxb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R # Flag new node as red.
-    stxdw [r9 + TREE_NODE_PARENT_OFF], r2 # Store parent pointer
+    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R # node.color = red;
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2 # node.parent = parent;
 
+    # Handle case of new node at root.
+    # ---------------------------------------------------------------------
     jne r2, NULL, insert_get_child_dir
-    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9 # Store new node as root.
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9 # root = node;
     exit # Parent is null, new node at root.
+# ANCHOR_END: insert-to-tree
 
+# ANCHOR: insert-fixup
 insert_get_child_dir:
+    # Get child direction, set at parent.
+    # ---------------------------------------------------------------------
+    ldxh r5, [r2 + TREE_NODE_KEY_OFF] # r5 = parent.key;
+    jgt r4, r5, insert_get_child_dir_branch_r
+insert_get_child_dir_branch_l:
+    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9 # parent.child[left] = node;
+    ja insert_fixup_main
+insert_get_child_dir_branch_r:
+    stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9 # parent.child[right] = node;
+
+insert_fixup_main:
+    # Case 1.
+    # ---------------------------------------------------------------------
+    ldxb r6, [r2 + TREE_NODE_COLOR_OFF] # r6 = parent.color;
+    jne r6, TREE_COLOR_B, insert_fixup_check_case_4
+    exit # If parent is black, tree is still valid, so exit.
+
+insert_fixup_check_case_4:
+    # Check case 4.
+    # ---------------------------------------------------------------------
+    ldxdw r3, [r2 + TREE_NODE_PARENT_OFF] # r3 = grandparent;
+    jne r3, NULL, insert_fixup_check_case_5_6
+    stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B # parent.color = black;
     exit
 
-# ANCHOR_END: insert-to-tree
+insert_fixup_check_case_5_6:
+    # Get parent's direction as a child.
+    # ---------------------------------------------------------------------
+    exit
+# ANCHOR_END: insert-fixup
+
 
 e_instruction_data:
     mov64 r0, E_INSTRUCTION_DATA

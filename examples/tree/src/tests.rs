@@ -195,7 +195,7 @@ fn test_initialize_create_account() {
 
 #[test]
 fn test_insert_search() {
-    print_comparison_table(insert_tree::InsertTreeCase::SEARCH_CASES, true, false);
+    print_comparison_table(insert_tree::InsertTreeCase::SEARCH_CASES, false, false);
 }
 
 #[test]

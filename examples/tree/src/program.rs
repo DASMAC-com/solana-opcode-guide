@@ -326,16 +326,17 @@ unsafe fn insert(
         (*tree_header).root = node;
         return SUCCESS;
     }
+    // ANCHOR_END: insert-to-tree
 
+    // ANCHOR: insert-fixup
     // Get child direction, set at parent.
-    let mut dir = if (key > (*parent).key) {
+    let dir = if (key > (*parent).key) {
         tree::DIR_R
     } else {
         tree::DIR_L
     };
     (*parent).child[dir] = node;
 
-    // Rebalance the tree.
     loop {
         // Case 1.
         if (*parent).color == Color::Black {
@@ -349,7 +350,7 @@ unsafe fn insert(
             return SUCCESS;
         }
 
-        dir = direction(parent) as usize;
+        let dir = direction(parent) as usize;
         let uncle = (*grandparent).child[opposite(dir)];
         if uncle.is_null() || (*uncle).color == Color::Black {
             // Case 5.
@@ -379,8 +380,8 @@ unsafe fn insert(
     }
     // Case 3.
     SUCCESS
-    // ANCHOR_END: insert-to-tree
 }
+// ANCHOR_END: insert-fixup
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]
