@@ -355,15 +355,63 @@ unsafe fn insert(
         let dir = direction(parent) as usize;
         let uncle = (*grandparent).child[opposite(dir)];
         if uncle.is_null() || (*uncle).color == Color::Black {
-            // Case 5.
+            // Case 5: rotate parent in dir.
+            //
+            // Grandparent is guaranteed non-null by the case 4 check, so no
+            // root-replacement path is needed. Parent is known to be
+            // grandparent.child[dir] from the direction() call, so the child
+            // pointer update is hardcoded without comparison.
             if node == (*parent).child[opposite(dir)] {
-                rotate_subtree(tree_header, parent, dir);
+                let new_root = (*parent).child[opposite(dir)];
+                let new_child = (*new_root).child[dir];
+
+                (*parent).child[opposite(dir)] = new_child;
+                if !new_child.is_null() {
+                    (*new_child).parent = parent;
+                }
+
+                (*new_root).child[dir] = parent;
+                (*new_root).parent = grandparent;
+                (*parent).parent = new_root;
+
+                (*grandparent).child[dir] = new_root;
+
                 node = parent;
-                parent = (*grandparent).child[dir];
+                parent = new_root;
             }
 
-            // Case 6.
-            rotate_subtree(tree_header, grandparent, opposite(dir));
+            // Case 6: rotate grandparent in opposite(dir).
+            //
+            // The new root of this rotation is parent
+            // (= grandparent.child[dir]), which the caller already has,
+            // eliminating the generic version's load of
+            // subtree.child[opposite(direction)].
+            //
+            // Great-grandparent may be null (grandparent could be root), so
+            // the null check and root-replacement path are retained.
+            // Grandparent's position under great-grandparent is unrelated to
+            // dir, so the pointer comparison is also retained.
+            {
+                let great_grandparent = (*grandparent).parent;
+                let new_child = (*parent).child[opposite(dir)];
+
+                (*grandparent).child[dir] = new_child;
+                if !new_child.is_null() {
+                    (*new_child).parent = grandparent;
+                }
+
+                (*parent).child[opposite(dir)] = grandparent;
+                (*parent).parent = great_grandparent;
+                (*grandparent).parent = parent;
+
+                if !great_grandparent.is_null() {
+                    let idx = (grandparent == (*great_grandparent).child[tree::DIR_R]) as usize;
+                    (*great_grandparent).child[idx] = parent;
+                } else {
+                    (*tree_header).root = parent;
+                }
+            }
+
             (*parent).color = Color::Black;
             (*grandparent).color = Color::Red;
             return SUCCESS;

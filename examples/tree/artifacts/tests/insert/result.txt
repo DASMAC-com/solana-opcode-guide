@@ -1,27 +1,27 @@
 | Test case | Fixed CU costs | ASM (net CUs) | Rust (net CUs) | Overhead | Overhead % |
 |-----------|----------------|---------------|----------------|----------|------------|
-| Instruction data too short | 0 | 7 | 12 | +5 | +71.4% |
-| Instruction data too long | 0 | 7 | 12 | +5 | +71.4% |
-| Insert skip alloc | 0 | 25 | 29 | +4 | +16.0% |
-| Insert alloc happy path | 1096 | 101 | 134 | +33 | +32.7% |
+| Instruction data too short | 0 | 7 | 9 | +2 | +28.6% |
+| Instruction data too long | 0 | 7 | 9 | +2 | +28.6% |
+| Insert skip alloc | 0 | 25 | 27 | +2 | +8.0% |
+| Insert alloc happy path | 1096 | 101 | 129 | +28 | +27.7% |
 test tests::test_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 7 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 12 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 9 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 7 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 12 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 9 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xc
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 29 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
@@ -31,5 +31,5 @@ test tests::test_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
 [ ... DEBUG ... ] Program 11111111111111111111111111111111 success
-[ ... DEBUG ... ] Program DASMAC... consumed 1230 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 1225 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success

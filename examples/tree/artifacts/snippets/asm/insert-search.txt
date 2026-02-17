@@ -12,8 +12,8 @@ insert_search_loop:
     mov64 r0, E_KEY_EXISTS # Error if key already exists.
     exit
 insert_search_branch_l:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r3 = cursor.child[left];
+    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r3 = cursor.child[L];
     ja insert_search_loop
 insert_search_branch_r:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r3 = cursor.child[right];
+    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r3 = cursor.child[R];
     ja insert_search_loop

@@ -676,10 +676,10 @@ insert_search_loop:
     mov64 r0, E_KEY_EXISTS # Error if key already exists.
     exit
 insert_search_branch_l:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r3 = cursor.child[left];
+    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r3 = cursor.child[L];
     ja insert_search_loop
 insert_search_branch_r:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r3 = cursor.child[right];
+    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r3 = cursor.child[R];
     ja insert_search_loop
 # ANCHOR_END: insert-search
 
@@ -704,10 +704,10 @@ insert_get_child_dir:
     ldxh r5, [r2 + TREE_NODE_KEY_OFF]                                      # r5 = parent.key;
     jgt r4, r5, insert_get_child_dir_branch_r
 insert_get_child_dir_branch_l:
-    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9                                 # parent.child[left] = node;
+    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9                                 # parent.child[L] = node;
     ja insert_fixup_main
 insert_get_child_dir_branch_r:
-    stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9                                 # parent.child[right] = node;
+    stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9                                 # parent.child[R] = node;
 
 insert_fixup_main:
                                                                            # r2 := parent
@@ -739,13 +739,10 @@ insert_fixup_check_case_5_6_dir_l:
     jne r8, TREE_COLOR_B, insert_fixup_case_2
 
 insert_fixup_case_5_6_dir_l:
-    ldxdw r8, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r8 = parent.child[right];
+    ldxdw r8, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r8 = parent.child[R];
     jne r9, r8, insert_fixup_case_6_dir_l
 
 insert_fixup_case_5_dir_l:
-    # rotate_subtree(tree_header, parent, LEFT)
-    # subtree=r2(parent), grandparent=r3(non-null), dir=L, opp=R
-    # ---------------------------------------------------------------------
     ldxdw r6, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r6 = new_root = parent.child[R];
     ldxdw r8, [r6 + TREE_NODE_CHILD_L_OFF]                                 # r8 = new_child = new_root.child[L];
     stxdw [r2 + TREE_NODE_CHILD_R_OFF], r8                                 # parent.child[R] = new_child;
@@ -760,9 +757,6 @@ insert_fixup_case_5_dir_l_skip:
     mov64 r2, r6                                                           # parent = new_root;
 
 insert_fixup_case_6_dir_l:
-    # rotate_subtree(tree_header, grandparent, RIGHT)
-    # subtree=r3(grandparent), new_root=r2(parent), dir=R, opp=L
-    # ---------------------------------------------------------------------
     ldxdw r4, [r3 + TREE_NODE_PARENT_OFF]                                  # r4 = great-grandparent;
     ldxdw r8, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r8 = new_child = parent.child[R];
     stxdw [r3 + TREE_NODE_CHILD_L_OFF], r8                                 # grandparent.child[L] = new_child;
@@ -794,13 +788,10 @@ insert_fixup_check_case_5_6_dir_r:
     jne r8, TREE_COLOR_B, insert_fixup_case_2
 
 insert_fixup_case_5_6_dir_r:
-    ldxdw r8, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r8 = parent.child[left];
+    ldxdw r8, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r8 = parent.child[L];
     jne r9, r8, insert_fixup_case_6_dir_r
 
 insert_fixup_case_5_dir_r:
-    # rotate_subtree(tree_header, parent, RIGHT)
-    # subtree=r2(parent), grandparent=r3(non-null), dir=R, opp=L
-    # ---------------------------------------------------------------------
     ldxdw r6, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r6 = new_root = parent.child[L];
     ldxdw r8, [r6 + TREE_NODE_CHILD_R_OFF]                                 # r8 = new_child = new_root.child[R];
     stxdw [r2 + TREE_NODE_CHILD_L_OFF], r8                                 # parent.child[L] = new_child;
@@ -815,9 +806,6 @@ insert_fixup_case_5_dir_r_skip:
     mov64 r2, r6                                                           # parent = new_root;
 
 insert_fixup_case_6_dir_r:
-    # rotate_subtree(tree_header, grandparent, LEFT)
-    # subtree=r3(grandparent), new_root=r2(parent), dir=L, opp=R
-    # ---------------------------------------------------------------------
     ldxdw r4, [r3 + TREE_NODE_PARENT_OFF]                                  # r4 = great-grandparent;
     ldxdw r8, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r8 = new_child = parent.child[L];
     stxdw [r3 + TREE_NODE_CHILD_R_OFF], r8                                 # grandparent.child[R] = new_child;
