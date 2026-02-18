@@ -319,6 +319,9 @@ unsafe fn insert(
                 (*node).color = Color::Red;
                 (*node).parent = parent;
                 (*parent).child[tree::DIR_R] = node;
+                if (*parent).color == Color::Black {
+                    return SUCCESS;
+                }
                 break;
             }
         } else if likely(key < cursor_key) {
@@ -327,6 +330,9 @@ unsafe fn insert(
                 (*node).color = Color::Red;
                 (*node).parent = parent;
                 (*parent).child[tree::DIR_L] = node;
+                if (*parent).color == Color::Black {
+                    return SUCCESS;
+                }
                 break;
             }
         } else {
