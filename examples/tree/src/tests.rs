@@ -1,6 +1,8 @@
+mod common;
 mod entrypoint;
 mod init;
 mod insert;
+mod remove;
 
 use mollusk_svm::program;
 use mollusk_svm::result::{Check, Config, ProgramResult as MolluskResult};
@@ -225,4 +227,14 @@ fn test_insert_to_tree() {
 #[test]
 fn test_multi_insert() {
     print_comparison_table(insert::MultiInsertCase::CASES);
+}
+
+#[test]
+fn test_remove_input_checks() {
+    print_comparison_table(remove::RemoveCase::INPUT_CASES);
+}
+
+#[test]
+fn test_remove_search() {
+    print_comparison_table(remove::RemoveCase::SEARCH_CASES);
 }
