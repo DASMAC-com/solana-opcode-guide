@@ -307,9 +307,9 @@ unsafe fn insert(
         }
         parent = cursor;
         let cursor_key = (*cursor).key;
-        if key > cursor_key {
+        if likely(key > cursor_key) {
             cursor = (*cursor).child[tree::DIR_R];
-        } else if key < cursor_key {
+        } else if likely(key < cursor_key) {
             cursor = (*cursor).child[tree::DIR_L];
         } else {
             return error::KEY_EXISTS.into();
