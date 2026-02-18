@@ -36,17 +36,21 @@ New helpers in `tests/remove.rs` (remove-specific):
 
 ## Return value verification
 
-On success the program returns `RemoveReturn` packed in `r0`:
+The program returns `0` (`SUCCESS`) on a successful remove. The
+SVM only persists account modifications when the program returns
+zero; any non-zero `r0` is interpreted as
+`ProgramError::Custom(r0)` and all account changes are reverted.
 
-```text
-r0 = (value << 16) | REMOVE_STATUS_OK
-```
+Tests verify `MolluskResult::Success` (not a custom error code).
 
-The Solana runtime interprets any non-zero `r0` as
-`ProgramError::Custom(r0)`. Tests must verify the result is
-`ProgramError::Custom((value as u32) << 16 | REMOVE_STATUS_OK as u32)` where `REMOVE_STATUS_OK` equals `error::N_CODES`
-(currently 15). This confirms both the value field (bits 16-31)
-and the status field (bits 0-15) are encoded correctly.
+### Removed value verification
+
+Because the return code cannot carry the removed value (non-zero
+would revert the tree mutation), tests verify the value by
+inspecting the freed node on the stack. The freed node's `key`,
+`value`, and `color` fields are not cleared by remove (see "Freed
+node verification" below), so `assert_tree_account` confirms that
+the freed node retains the correct value.
 
 ## Freed node verification
 
@@ -62,15 +66,17 @@ the free stack. The full-state assertion must verify:
 
 The `key`, `value`, and `color` fields of the freed node are not
 cleared by remove (insert overwrites them when the node is
-recycled). Tests should still assert their values to confirm remove
-does not clobber them unexpectedly -- they should retain whatever
-values they had before removal.
+recycled). Tests must assert these fields retain their pre-removal
+values. In particular, the freed node's `value` field serves as
+the primary mechanism for verifying which value was removed --
+since the return code is `0` (see "Return value verification"
+above), the value cannot be communicated via `r0`.
 
-The existing `assert_tree_account` already checks every field of
-every node in the buffer, so including the freed node slot in the
-expected `TreeSpec.nodes` list is sufficient. No new assertion
-helper is needed; the freed node is simply a `NodeSpec` with null
-children and `parent` set to the old stack top index.
+The existing `assert_tree_account` checks every field of every
+node in the buffer, so including the freed node slot in the
+expected `TreeSpec.nodes` list is sufficient. The freed node is a
+`NodeSpec` with null children, `parent` set to the old stack top
+index, and the original `key`/`value`/`color` preserved.
 
 ## `build_tree_account` adjustment
 
@@ -410,9 +416,12 @@ After:
   Header: root=N3  top=N1  next=--
   N0: B key=10  parent=N3  L=--  R=--   <- recolored B
   N1: key=5 color=B  parent=--  L=--  R=--   <- freed
-  N2: R key=20  parent=N3  L=--  R=--   <- recolored R
+  N2: B key=20  parent=N3  L=--  R=--   <- recolored B
   N3: B key=15  parent=--  L=N0  R=N2   <- new root
 ```
+
+Trace: case 5 sets `distant_nephew = sibling` (N2), then case 6
+sets `distant_nephew->color = BLACK`. N2 ends up BLACK, not RED.
 
 Dir_r variant (remove key=20):
 
@@ -427,10 +436,13 @@ Before:
 After:
   Header: root=N3  top=N2  next=--
   N0: B key=10  parent=N3  L=--  R=--   <- recolored B
-  N1: R key=5   parent=N3  L=--  R=--   <- recolored R
+  N1: B key=5   parent=N3  L=--  R=--   <- recolored B
   N2: key=20 color=B  parent=--  L=--  R=--   <- freed
   N3: B key=7   parent=--  L=N1  R=N0   <- new root
 ```
+
+Trace: case 5 sets `distant_nephew = sibling` (N1), then case 6
+sets `distant_nephew->color = BLACK`. N1 ends up BLACK, not RED.
 
 ### Case 3 + case 4: red sibling, then recolor
 
@@ -438,91 +450,289 @@ Red sibling is rotated, making the old close_nephew the new
 sibling. If the new sibling has two black/null nephews, recolor
 (case 4).
 
-Dir_l variant (remove key=3):
+Dir_l variant (remove key=5):
 
 ```text
 Before:
   Header: root=N0  top=--  next=--
   N0: B key=10  parent=--  L=N1  R=N2
-  N1: B key=5   parent=N0  L=N4  R=--
-  N2: R key=20  parent=N0  L=N3  R=N5
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: R key=20  parent=N0  L=N3  R=N4
   N3: B key=15  parent=N2  L=--  R=--
-  N4: B key=3   parent=N1  L=--  R=--
+  N4: B key=25  parent=N2  L=--  R=--
 
-After remove key=5 (successor swap from N4, delete N4 as black
-leaf, dir=L relative to N1):
-  Header: root=N2  top=N4  next=--
-  N0: B key=10  parent=N2  L=N1  R=N3   <- reparented
-  N1: B key=3   parent=N0  L=--  R=--   <- swapped key/val
-  N2: B key=20  parent=--  L=N0  R=N5   <- recolored B, new root
-  N3: R key=15  parent=N0  L=--  R=--   <- recolored R (case 4)
-  N4: key=3 color=B  parent=--  L=--  R=--   <- freed
-  N5: B key=25  parent=N2  L=--  R=--
+After:
+  Header: root=N2  top=N1  next=--
+  N0: B key=10  parent=N2  L=--  R=N3  <- recolored B
+  N1: key=5 color=B  parent=--  L=--  R=--  <- freed
+  N2: B key=20  parent=--  L=N0  R=N4 <- new root, recolored B
+  N3: R key=15  parent=N0  L=--  R=--  <- recolored R (case 4)
+  N4: B key=25  parent=N2  L=--  R=--
 ```
 
-These trees are moderately complex. Exact before/after states
-should be verified by hand or with a reference implementation
-during test construction. The spec lists the required paths; the
-implementation fills in precise node layouts.
+Trace: case 3 rotates N0 left (N2 becomes root), recolors
+`N0=RED, N2=BLACK`, new sibling = N3. New nephews both null ->
+case 4 (parent N0 is RED): `N3.color = RED, N0.color = BLACK`.
+
+Dir_r variant (remove key=20):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: R key=5   parent=N0  L=N3  R=N4
+  N2: B key=20  parent=N0  L=--  R=--
+  N3: B key=3   parent=N1  L=--  R=--
+  N4: B key=7   parent=N1  L=--  R=--
+
+After:
+  Header: root=N1  top=N2  next=--
+  N0: B key=10  parent=N1  L=N4  R=--  <- recolored B
+  N1: B key=5   parent=--  L=N3  R=N0 <- new root, recolored B
+  N2: key=20 color=B  parent=--  L=--  R=--  <- freed
+  N3: B key=3   parent=N1  L=--  R=--
+  N4: R key=7   parent=N0  L=--  R=--  <- recolored R (case 4)
+```
+
+Trace: case 3 rotates N0 right (N1 becomes root), recolors
+`N0=RED, N1=BLACK`, new sibling = N4. New nephews both null ->
+case 4 (parent N0 is RED): `N4.color = RED, N0.color = BLACK`.
 
 ### Case 3 + case 6: red sibling, then distant nephew red
 
 After the case 3 rotation, the new sibling's distant nephew is
 red. Jump directly to case 6.
 
-Dir_l and dir_r variants needed.
+Dir_l variant (remove key=5):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: R key=20  parent=N0  L=N3  R=N5
+  N3: B key=15  parent=N2  L=--  R=N4
+  N4: R key=17  parent=N3  L=--  R=--
+  N5: B key=25  parent=N2  L=--  R=--
+
+After:
+  Header: root=N2  top=N1  next=--
+  N0: B key=10  parent=N3  L=--  R=--   <- recolored B
+  N1: key=5 color=B  parent=--  L=--  R=--   <- freed
+  N2: B key=20  parent=--  L=N3  R=N5  <- new root, recolored B
+  N3: R key=15  parent=N2  L=N0  R=N4  <- recolored R
+  N4: B key=17  parent=N3  L=--  R=--  <- recolored B
+  N5: B key=25  parent=N2  L=--  R=--
+```
+
+Trace: case 3 rotates N0 left (N2 becomes root), recolors
+`N0=RED, N2=BLACK`, new sibling = N3. Distant nephew =
+`N3.child[R]` = N4 (RED) -> case 6. Rotate N0 left again (N3
+becomes N0's parent), `N3.color = N0.color = RED`,
+`N0.color = BLACK`, `N4.color = BLACK`.
+
+Dir_r variant (remove key=20):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: R key=5   parent=N0  L=N4  R=N3
+  N2: B key=20  parent=N0  L=--  R=--
+  N3: B key=7   parent=N1  L=N5  R=--
+  N4: B key=3   parent=N1  L=--  R=--
+  N5: R key=6   parent=N3  L=--  R=--
+
+After:
+  Header: root=N1  top=N2  next=--
+  N0: B key=10  parent=N3  L=--  R=--  <- recolored B
+  N1: B key=5   parent=--  L=N4  R=N3 <- new root, recolored B
+  N2: key=20 color=B  parent=--  L=--  R=--  <- freed
+  N3: R key=7   parent=N1  L=N5  R=N0 <- recolored R
+  N4: B key=3   parent=N1  L=--  R=--
+  N5: B key=6   parent=N3  L=--  R=--  <- recolored B
+```
+
+Trace: case 3 rotates N0 right (N1 becomes root), recolors
+`N0=RED, N1=BLACK`, new sibling = N3. Distant nephew =
+`N3.child[L]` = N5 (RED) -> case 6. Rotate N0 right again (N3
+becomes N0's parent), `N3.color = N0.color = RED`,
+`N0.color = BLACK`, `N5.color = BLACK`.
 
 ### Case 3 + case 5 + case 6: red sibling, then double rotation
 
 After the case 3 rotation, the new sibling's close nephew is red
 and distant nephew is black. Case 5 rotates, then case 6 rotates.
 
-Dir_l and dir_r variants needed.
+Dir_l variant (remove key=5):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: R key=20  parent=N0  L=N3  R=N5
+  N3: B key=15  parent=N2  L=N4  R=--
+  N4: R key=13  parent=N3  L=--  R=--
+  N5: B key=25  parent=N2  L=--  R=--
+
+After:
+  Header: root=N2  top=N1  next=--
+  N0: B key=10  parent=N4  L=--  R=--  <- recolored B
+  N1: key=5 color=B  parent=--  L=--  R=--  <- freed
+  N2: B key=20  parent=--  L=N4  R=N5 <- root, recolored B
+  N3: B key=15  parent=N4  L=--  R=--  <- recolored B
+  N4: R key=13  parent=N2  L=N0  R=N3 <- recolored R
+  N5: B key=25  parent=N2  L=--  R=--
+```
+
+Trace: case 3 rotates N0 left (N2 becomes root), recolors
+`N0=RED, N2=BLACK`, new sibling = N3. Distant nephew =
+`N3.child[R]` = null -> not red. Close nephew =
+`N3.child[L]` = N4 (RED) -> case 5. Case 5 rotates N3 right
+(N4 takes N3's place), `N3.color = RED`, `N4.color = BLACK`,
+`distant_nephew = N3`, `sibling = N4`. Case 6 rotates N0 left
+(N4 takes N0's place), `N4.color = N0.color = RED`,
+`N0.color = BLACK`, `N3.color = BLACK`.
+
+Dir_r variant (remove key=20):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: R key=5   parent=N0  L=N4  R=N3
+  N2: B key=20  parent=N0  L=--  R=--
+  N3: B key=7   parent=N1  L=--  R=N5
+  N4: B key=3   parent=N1  L=--  R=--
+  N5: R key=8   parent=N3  L=--  R=--
+
+After:
+  Header: root=N1  top=N2  next=--
+  N0: B key=10  parent=N5  L=--  R=--  <- recolored B
+  N1: B key=5   parent=--  L=N4  R=N5 <- root, recolored B
+  N2: key=20 color=B  parent=--  L=--  R=--  <- freed
+  N3: B key=7   parent=N5  L=--  R=--  <- recolored B
+  N4: B key=3   parent=N1  L=--  R=--
+  N5: R key=8   parent=N1  L=N3  R=N0 <- recolored R
+```
+
+Trace: case 3 rotates N0 right (N1 becomes root), recolors
+`N0=RED, N1=BLACK`, new sibling = N3. Distant nephew =
+`N3.child[L]` = null -> not red. Close nephew =
+`N3.child[R]` = N5 (RED) -> case 5. Case 5 rotates N3 left
+(N5 takes N3's place), `N3.color = RED`, `N5.color = BLACK`,
+`distant_nephew = N3`, `sibling = N5`. Case 6 rotates N0 right
+(N5 takes N0's place), `N5.color = N0.color = RED`,
+`N0.color = BLACK`, `N3.color = BLACK`.
 
 ### Case 2: propagation
 
 Black sibling, both nephews black, black parent. Recolor sibling
 red and propagate upward with `node = parent`.
 
-Dir_l variant (remove key=3):
+Dir_l variant (remove key=5):
 
 ```text
 Before:
   Header: root=N0  top=--  next=--
   N0: B key=10  parent=--  L=N1  R=N2
-  N1: B key=5   parent=N0  L=N3  R=--
+  N1: B key=5   parent=N0  L=--  R=--
   N2: B key=15  parent=N0  L=--  R=--
-  N3: B key=3   parent=N1  L=--  R=--
 
-After remove key=5 (successor swap from N3, delete N3 as black
-leaf):
-  Header: root=N0  top=N3  next=--
-  N0: B key=10  parent=--  L=N1  R=N2
-  N1: B key=3   parent=N0  L=--  R=--   <- swapped key/val
-  N2: R key=15  parent=N0  L=--  R=--   <- recolored R (case 2)
-  N3: key=3 color=B  parent=--  L=--  R=--   <- freed
+After:
+  Header: root=N0  top=N1  next=--
+  N0: B key=10  parent=--  L=--  R=N2
+  N1: key=5 color=B  parent=--  L=--  R=--  <- freed
+  N2: R key=15  parent=N0  L=--  R=--  <- recolored R (case 2)
 ```
 
-Wait -- after case 2 recolors sibling and propagates to N0 (the
-root), the while condition `parent = node->parent` is null, so
-the loop exits. But N0 is already black, so the tree is valid
-with a shorter black height. The resulting tree has N2 as red,
-which combined with case 2's recolor of the sibling means the
-tree stays balanced.
+Trace: sibling N2 is BLACK, both nephews null, parent N0 is
+BLACK -> case 2: `N2.color = RED`, `node = N0`,
+`parent = N0.parent = null` -> loop exits (case 1: root).
+Tree black height decreases by one uniformly.
 
-Exact states for case 2 propagation chains (case 2 → case 4,
-case 2 → case 6, etc.) require larger trees and should be
-verified during implementation.
+Dir_r variant (remove key=15):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: B key=15  parent=N0  L=--  R=--
+
+After:
+  Header: root=N0  top=N2  next=--
+  N0: B key=10  parent=--  L=N1  R=--
+  N1: R key=5   parent=N0  L=--  R=--  <- recolored R (case 2)
+  N2: key=15 color=B  parent=--  L=--  R=--  <- freed
+```
+
+Trace: mirror of dir_l.
 
 ### Case 2 + case 4: propagate then red parent
 
 Case 2 propagates upward, reaching a red parent. Case 4 recolors
 and terminates.
 
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=20  parent=--  L=N1  R=N4
+  N1: R key=10  parent=N0  L=N2  R=N3
+  N2: B key=5   parent=N1  L=--  R=--
+  N3: B key=15  parent=N1  L=--  R=--
+  N4: B key=25  parent=N0  L=--  R=--
+
+After (remove key=5):
+  Header: root=N0  top=N2  next=--
+  N0: B key=20  parent=--  L=N1  R=N4
+  N1: B key=10  parent=N0  L=--  R=N3  <- recolored B (case 4)
+  N2: key=5 color=B  parent=--  L=--  R=--  <- freed
+  N3: R key=15  parent=N1  L=--  R=--  <- recolored R (case 4)
+  N4: B key=25  parent=N0  L=--  R=--
+```
+
+Trace: N2 is black leaf, dir=L, parent=N1. Sibling N3 BLACK,
+nephews null. `parent->color == RED` (N1 is RED) -> case 4:
+`N3.color = RED`, `N1.color = BLACK`, return. Note: despite the
+test name, this exercises case 4 directly (not case 2 then 4),
+because the parent is already red on the first iteration. The
+deeper tree (5 nodes vs 3 in the plain case 4 tests) exercises
+the code path where the rebalanced subtree is not the root.
+
 ### Case 2 + case 6: propagate then rotation
 
 Case 2 propagates upward, reaching a position where the distant
 nephew is red. Case 6 rotates and terminates.
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=20  parent=--  L=N1  R=N4
+  N1: B key=10  parent=N0  L=N2  R=N3
+  N2: B key=5   parent=N1  L=--  R=--
+  N3: B key=15  parent=N1  L=--  R=--
+  N4: B key=30  parent=N0  L=--  R=N5
+  N5: R key=35  parent=N4  L=--  R=--
+
+After (remove key=5):
+  Header: root=N4  top=N2  next=--
+  N0: B key=20  parent=N4  L=N1  R=--  <- recolored B
+  N1: B key=10  parent=N0  L=--  R=N3
+  N2: key=5 color=B  parent=--  L=--  R=--  <- freed
+  N3: R key=15  parent=N1  L=--  R=--  <- recolored R (case 2)
+  N4: B key=30  parent=--  L=N0  R=N5 <- new root
+  N5: B key=35  parent=N4  L=--  R=--  <- recolored B
+```
+
+Trace: N2 is black leaf, dir=L, parent=N1. Sibling N3 BLACK,
+nephews null, parent N1 BLACK -> case 2: `N3.color = RED`,
+`node = N1`, `parent = N0`. Recompute `dir = direction(N1) = L`.
+Sibling = N0.child[R] = N4 (BLACK). Distant nephew =
+N4.child[R] = N5 (RED) -> case 6. Rotate N0 left:
+`N4.color = N0.color = B`, `N0.color = BLACK`,
+`N5.color = BLACK`.
 
 ## Case 6: parent null check variants
 

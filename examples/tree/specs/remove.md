@@ -325,15 +325,17 @@ are also overwritten by insert, so they do not need clearing.
 
 ### Return value
 
-On success, return `RemoveReturn` packed in `r0`:
+On success, return `r0 = 0` (`SUCCESS`). The SVM only persists
+account modifications when the program returns zero; any non-zero
+`r0` is treated as `ProgramError::Custom(r0)` and all account
+changes are reverted. This means the removed value cannot be
+encoded in `r0`.
 
-```text
-r0 = (value << 16) | REMOVE_STATUS_OK
-```
-
-This matches the `RemoveReturn` struct layout (`status` at bits
-0-15, `value` at bits 16-31). Error codes are returned as plain
-`r0` values with zero upper bits, so there is no ambiguity.
+The removed value can be read from the freed node after
+execution: since remove does not clear the freed node's `key`,
+`value`, or `color` fields, the caller can dereference
+`header.top` in the resulting account data to recover the
+value that was associated with the removed key.
 
 ## Rust implementation notes
 
