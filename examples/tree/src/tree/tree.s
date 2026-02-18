@@ -20,6 +20,7 @@
 # Not enough accounts passed for insertion allocation.
 .equ E_N_ACCOUNTS_INSERT_ALLOCATION, 13
 .equ E_KEY_EXISTS, 14 # Key already exists in tree during insertion.
+.equ E_KEY_DOES_NOT_EXIST, 15 # Key does not exist in tree during removal.
 
 # Type sizes.
 # -----------
@@ -30,6 +31,7 @@
 .equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
 .equ SIZE_OF_INITIALIZE_INSTRUCTION, 1 # Size of InitializeInstruction.
 .equ SIZE_OF_INSERT_INSTRUCTION, 5 # Size of InsertInstruction.
+.equ SIZE_OF_REMOVE_INSTRUCTION, 3 # Size of RemoveInstruction.
 .equ SIZE_OF_TREE_NODE, 29 # Size of TreeNode.
 
 # Data layout constants.
@@ -124,7 +126,7 @@
 .equ INSN_INSERT_VALUE_OFF, 3 # Value field in insert instruction.
 .equ INSN_REMOVE_KEY_OFF, 1 # Key field in remove instruction.
 # Status value for successful remove (first non-error code).
-.equ INSN_REMOVE_STATUS_OK, 14
+.equ INSN_REMOVE_STATUS_OK, 15
 
 # Init stack frame layout.
 # ------------------------
@@ -253,6 +255,7 @@ entrypoint:
     # Jump to branch for given discriminator.
     # ---------------------------------------------------------------------
     jeq r7, INSN_DISCRIMINATOR_INSERT, insert
+    jeq r7, INSN_DISCRIMINATOR_REMOVE, remove
     jeq r7, INSN_DISCRIMINATOR_INITIALIZE, initialize
     # Error if invalid discriminator provided.
     mov64 r0, E_INSTRUCTION_DISCRIMINATOR
@@ -861,6 +864,30 @@ insert_fixup_case_2:
     jne r2, NULL, insert_fixup_main
     exit # Case 3.
 # ANCHOR_END: insert-fixup-case-2-3
+
+# ANCHOR: remove-input-checks
+remove:
+    # Error if invalid instruction data length.
+    # ---------------------------------------------------------------------
+    jne r9, SIZE_OF_REMOVE_INSTRUCTION, e_instruction_data_len
+
+    # Error if too few accounts.
+    # ---------------------------------------------------------------------
+    jlt r8, IB_N_ACCOUNTS_GENERAL, e_n_accounts
+
+    # Error if user has data.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
+    jne r9, DATA_LEN_ZERO, e_user_data_len
+
+    # Error if tree is duplicate.
+    # ---------------------------------------------------------------------
+    ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
+    # ANCHOR_END: remove-input-checks
+
+    mov64 r0, E_KEY_DOES_NOT_EXIST
+    exit
 
 
 e_instruction_data:

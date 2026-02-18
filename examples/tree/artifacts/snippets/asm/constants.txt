@@ -19,6 +19,7 @@
 # Not enough accounts passed for insertion allocation.
 .equ E_N_ACCOUNTS_INSERT_ALLOCATION, 13
 .equ E_KEY_EXISTS, 14 # Key already exists in tree during insertion.
+.equ E_KEY_DOES_NOT_EXIST, 15 # Key does not exist in tree during removal.
 
 # Type sizes.
 # -----------
@@ -29,6 +30,7 @@
 .equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
 .equ SIZE_OF_INITIALIZE_INSTRUCTION, 1 # Size of InitializeInstruction.
 .equ SIZE_OF_INSERT_INSTRUCTION, 5 # Size of InsertInstruction.
+.equ SIZE_OF_REMOVE_INSTRUCTION, 3 # Size of RemoveInstruction.
 .equ SIZE_OF_TREE_NODE, 29 # Size of TreeNode.
 
 # Data layout constants.
@@ -123,7 +125,7 @@
 .equ INSN_INSERT_VALUE_OFF, 3 # Value field in insert instruction.
 .equ INSN_REMOVE_KEY_OFF, 1 # Key field in remove instruction.
 # Status value for successful remove (first non-error code).
-.equ INSN_REMOVE_STATUS_OK, 14
+.equ INSN_REMOVE_STATUS_OK, 15
 
 # Init stack frame layout.
 # ------------------------

@@ -5,7 +5,8 @@ use crate::bindings::{
 };
 use crate::common::{
     cpi, CreateAccountInstructionData, Direction, GeneralInputBufferHeader, InitInputBuffer,
-    InitializeInstruction, InputBufferHeader, InsertInstruction, Instruction, TreeHeader, TreeNode,
+    InitializeInstruction, InputBufferHeader, InsertInstruction, Instruction, RemoveInstruction,
+    TreeHeader, TreeNode,
 };
 use macros::{asm_constant_group, extend_constant_group, pubkey_chunk_group, sizes, stack_frame};
 use pinocchio::{
@@ -24,6 +25,7 @@ sizes! {
     TreeHeader,
     InitializeInstruction,
     InsertInstruction,
+    RemoveInstruction,
     TreeNode,
 }
 

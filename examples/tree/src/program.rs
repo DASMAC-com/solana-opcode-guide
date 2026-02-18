@@ -9,9 +9,9 @@ use pinocchio::{
 };
 use tree_interface::{
     cpi, data, error_codes::error, input_buffer, instruction, tree, Color,
-    CreateAccountInstructionData, InitializeInstruction, InsertInstruction, SolAccountInfo,
-    SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds, TransferInstructionData,
-    TreeHeader, TreeNode,
+    CreateAccountInstructionData, InitializeInstruction, InsertInstruction, RemoveInstruction,
+    SolAccountInfo, SolAccountMeta, SolInstruction, SolSignerSeed, SolSignerSeeds,
+    TransferInstructionData, TreeHeader, TreeNode,
 };
 #[cfg(target_os = "solana")]
 use {
@@ -149,6 +149,8 @@ pub unsafe extern "C" fn entrypoint(input: *mut u8, instruction_data: *mut u8) -
     let instruction_discriminator = ldxb(instruction_data, instruction::DISCRIMINATOR_OFF);
     if likely(instruction_discriminator == instruction::DISCRIMINATOR_INSERT) {
         insert(input, instruction_data, instruction_data_len, n_accounts)
+    } else if likely(instruction_discriminator == instruction::DISCRIMINATOR_REMOVE) {
+        remove(input, instruction_data, instruction_data_len, n_accounts)
     } else if likely(instruction_discriminator == instruction::DISCRIMINATOR_INITIALIZE) {
         initialize(input, instruction_data, instruction_data_len, n_accounts)
     } else {
@@ -519,6 +521,32 @@ unsafe fn insert(
     SUCCESS
 }
 // ANCHOR_END: insert-fixup-case-2-3
+
+// ANCHOR: remove-input-checks
+#[inline(always)]
+unsafe fn remove(
+    input: *mut u8,
+    instruction_data: *mut u8,
+    instruction_data_len: u64,
+    n_accounts: u64,
+) -> u64 {
+    check_instruction_data_len!(instruction_data_len, RemoveInstruction);
+
+    // Error if too few accounts.
+    if_err!(
+        n_accounts < input_buffer::N_ACCOUNTS_GENERAL,
+        error::N_ACCOUNTS
+    );
+
+    // Error if user has data.
+    let _user = user_account!(input);
+
+    // Error if tree is duplicate.
+    let _tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
+    // ANCHOR_END: remove-input-checks
+
+    error::KEY_DOES_NOT_EXIST.into()
+}
 
 // ANCHOR: initialize-input-checks
 #[inline(always)]

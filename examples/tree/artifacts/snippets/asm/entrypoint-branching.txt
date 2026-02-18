@@ -10,6 +10,7 @@ entrypoint:
     # Jump to branch for given discriminator.
     # ---------------------------------------------------------------------
     jeq r7, INSN_DISCRIMINATOR_INSERT, insert
+    jeq r7, INSN_DISCRIMINATOR_REMOVE, remove
     jeq r7, INSN_DISCRIMINATOR_INITIALIZE, initialize
     # Error if invalid discriminator provided.
     mov64 r0, E_INSTRUCTION_DISCRIMINATOR

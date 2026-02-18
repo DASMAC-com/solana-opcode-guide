@@ -36,6 +36,8 @@ error_codes! {
     N_ACCOUNTS_INSERT_ALLOCATION,
     /// Key already exists in tree during insertion.
     KEY_EXISTS,
+    /// Key does not exist in tree during removal.
+    KEY_DOES_NOT_EXIST,
 }
 
 constant_group! {
