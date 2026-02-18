@@ -1,122 +1,122 @@
 | Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
 |-----------|-----------|------------|----------|------------|
-| 3-node balanced (10,5,15) | 100 | 127 | +27 | +27.0% |
-| Left-skew rotation (10,5,1) | 125 | 163 | +38 | +30.4% |
-| Right-skew rotation (10,15,20) | 126 | 153 | +27 | +21.4% |
-| Zigzag double rotation (10,5,7) | 134 | 167 | +33 | +24.6% |
-| 7-node full tree (10,5,15,3,7,12,20) | 284 | 375 | +91 | +32.0% |
+| 3-node balanced (10,5,15) | 91 | 111 | +20 | +22.0% |
+| Left-skew rotation (10,5,1) | 115 | 141 | +26 | +22.6% |
+| Right-skew rotation (10,15,20) | 116 | 136 | +20 | +17.2% |
+| Zigzag double rotation (10,5,7) | 124 | 147 | +23 | +18.5% |
+| 7-node full tree (10,5,15,3,7,12,20) | 255 | 313 | +58 | +22.7% |
 test tests::test_multi_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 39 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 53 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 47 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 39 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 61 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 32 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 53 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 44 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 83 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 40 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 39 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 62 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 56 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 50 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 76 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 39 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 44 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 70 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 53 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 87 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 39 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 36 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 56 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 42 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 43 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 43 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 57 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 53 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 43 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 66 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 65 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 44 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 76 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 32 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 51 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 38 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 38 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 44 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 40 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 62 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 47 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 75 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 47 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 58 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 59 of 1400000 compute units
-[ ... DEBUG ... ] Program DASMAC... success
-[ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 56 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 46 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success

@@ -1,8 +1,0 @@
-    (*node).color = Color::Red;
-    (*node).parent = parent;
-
-    // New node at root.
-    if parent.is_null() {
-        (*tree_header).root = node;
-        return SUCCESS;
-    }

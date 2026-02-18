@@ -301,38 +301,39 @@ unsafe fn insert(
     let key = ldxh(instruction_data, instruction::INSERT_KEY_OFF);
     let mut parent: *mut TreeNode = null_mut();
     let mut cursor = (*tree_header).root;
+
+    // Root is null: new node becomes root.
+    if cursor.is_null() {
+        (*node).color = Color::Red;
+        (*node).parent = parent;
+        (*tree_header).root = node;
+        return SUCCESS;
+    }
+
     loop {
-        if cursor.is_null() {
-            break;
-        }
         parent = cursor;
         let cursor_key = (*cursor).key;
         if likely(key > cursor_key) {
-            cursor = (*cursor).child[tree::DIR_R];
+            cursor = (*parent).child[tree::DIR_R];
+            if cursor.is_null() {
+                (*node).color = Color::Red;
+                (*node).parent = parent;
+                (*parent).child[tree::DIR_R] = node;
+                break;
+            }
         } else if likely(key < cursor_key) {
-            cursor = (*cursor).child[tree::DIR_L];
+            cursor = (*parent).child[tree::DIR_L];
+            if cursor.is_null() {
+                (*node).color = Color::Red;
+                (*node).parent = parent;
+                (*parent).child[tree::DIR_L] = node;
+                break;
+            }
         } else {
             return error::KEY_EXISTS.into();
         }
     }
     // ANCHOR_END: insert-search
-
-    // ANCHOR: insert-to-tree
-    (*node).color = Color::Red;
-    (*node).parent = parent;
-
-    // New node at root.
-    if parent.is_null() {
-        (*tree_header).root = node;
-        return SUCCESS;
-    }
-    // ANCHOR_END: insert-to-tree
-
-    // ANCHOR: insert-fixup-child-dir
-    // Get child direction, set at parent.
-    let child_dir = (key > (*parent).key) as usize;
-    (*parent).child[child_dir] = node;
-    // ANCHOR_END: insert-fixup-child-dir
 
     // ANCHOR: insert-fixup-case-1
     // Main insert fixup.

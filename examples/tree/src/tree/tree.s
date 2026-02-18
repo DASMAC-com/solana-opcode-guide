@@ -119,8 +119,12 @@
 # Initialize instruction discriminator.
 .equ INSN_DISCRIMINATOR_INITIALIZE, 0
 .equ INSN_DISCRIMINATOR_INSERT, 1 # Insert instruction discriminator.
+.equ INSN_DISCRIMINATOR_REMOVE, 2 # Remove instruction discriminator.
 .equ INSN_INSERT_KEY_OFF, 1 # Key field in insert instruction.
 .equ INSN_INSERT_VALUE_OFF, 3 # Value field in insert instruction.
+.equ INSN_REMOVE_KEY_OFF, 1 # Key field in remove instruction.
+# Status value for successful remove (first non-error code).
+.equ INSN_REMOVE_STATUS_OK, 14
 
 # Init stack frame layout.
 # ------------------------
@@ -666,49 +670,41 @@ insert_search:                                                             # r9 
     ldxh r4, [r2 + INSN_INSERT_KEY_OFF]                                    # r4 = insn.key;
     mov64 r2, NULL                                                         # r2 = parent = null;
     ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF]                                 # r3 = cursor = root;
+    jeq r3, NULL, insert_root
 
 insert_search_loop:
-    jeq r3, NULL, insert_to_tree
     mov64 r2, r3                                                           # r2 = parent = cursor;
     ldxh r5, [r3 + TREE_NODE_KEY_OFF]                                      # r5 = cursor.key;
     jlt r4, r5, insert_search_branch_l
     jgt r4, r5, insert_search_branch_r
     mov64 r0, E_KEY_EXISTS # Error if key already exists.
     exit
-insert_search_branch_l:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r3 = cursor.child[L];
-    ja insert_search_loop
-insert_search_branch_r:
-    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r3 = cursor.child[R];
-    ja insert_search_loop
-# ANCHOR_END: insert-search
 
-# ANCHOR: insert-to-tree
-insert_to_tree:
-    # Flag new node as red and store parent pointer.
+insert_root:
+    # Root is null: new node becomes root.
     # ---------------------------------------------------------------------
     stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
-    stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = parent;
-
-    # Handle case of new node at root.
-    # ---------------------------------------------------------------------
-    jne r2, NULL, insert_get_child_dir
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = null;
     stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9                                 # root = node;
-    exit # Parent is null, new node at root.
-# ANCHOR_END: insert-to-tree
+    exit
 
-# ANCHOR: insert-fixup-child-dir
-insert_get_child_dir:
-    # Get child direction, set at parent.
-    # ---------------------------------------------------------------------
-    ldxh r5, [r2 + TREE_NODE_KEY_OFF]                                      # r5 = parent.key;
-    jgt r4, r5, insert_get_child_dir_branch_r
-insert_get_child_dir_branch_l:
+insert_search_branch_l:
+    ldxdw r3, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r3 = parent.child[L];
+    jne r3, NULL, insert_search_loop
+    # Null child: insert node as left child of parent.
+    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = parent;
     stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9                                 # parent.child[L] = node;
     ja insert_fixup_main
-insert_get_child_dir_branch_r:
+
+insert_search_branch_r:
+    ldxdw r3, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r3 = parent.child[R];
+    jne r3, NULL, insert_search_loop
+    # Null child: insert node as right child of parent.
+    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = parent;
     stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9                                 # parent.child[R] = node;
-# ANCHOR_END: insert-fixup-child-dir
+# ANCHOR_END: insert-search
 
 # ANCHOR: insert-fixup-case-1
 insert_fixup_main:

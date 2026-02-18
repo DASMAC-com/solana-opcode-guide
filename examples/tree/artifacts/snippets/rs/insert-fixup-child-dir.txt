@@ -1,3 +1,0 @@
-    // Get child direction, set at parent.
-    let child_dir = (key > (*parent).key) as usize;
-    (*parent).child[child_dir] = node;

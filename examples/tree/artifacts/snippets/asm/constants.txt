@@ -118,8 +118,12 @@
 # Initialize instruction discriminator.
 .equ INSN_DISCRIMINATOR_INITIALIZE, 0
 .equ INSN_DISCRIMINATOR_INSERT, 1 # Insert instruction discriminator.
+.equ INSN_DISCRIMINATOR_REMOVE, 2 # Remove instruction discriminator.
 .equ INSN_INSERT_KEY_OFF, 1 # Key field in insert instruction.
 .equ INSN_INSERT_VALUE_OFF, 3 # Value field in insert instruction.
+.equ INSN_REMOVE_KEY_OFF, 1 # Key field in remove instruction.
+# Status value for successful remove (first non-error code).
+.equ INSN_REMOVE_STATUS_OK, 14
 
 # Init stack frame layout.
 # ------------------------

@@ -220,26 +220,6 @@ not available in Rust, since the compiler enforces
 
 <!-- markdownlint-disable MD013 -->
 
-::: details Insert to tree
-
-::: code-group
-
-<<< ../../../examples/tree/artifacts/snippets/asm/insert-to-tree.txt{asm} [Assembly]
-
-<<< ../../../examples/tree/artifacts/snippets/rs/insert-to-tree.txt{rs} [Rust]
-
-:::
-
-::: details Child direction
-
-::: code-group
-
-<<< ../../../examples/tree/artifacts/snippets/asm/insert-fixup-child-dir.txt{asm} [Assembly]
-
-<<< ../../../examples/tree/artifacts/snippets/rs/insert-fixup-child-dir.txt{rs} [Rust]
-
-:::
-
 ::: details Case 1
 
 ::: code-group
