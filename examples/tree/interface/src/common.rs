@@ -1,4 +1,5 @@
 use core::mem::size_of;
+use error_codes::error;
 use macros::{array_fields, constant_group, error_codes};
 use pinocchio::{
     account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE},
@@ -237,13 +238,14 @@ pub struct StackNode {
 // ANCHOR_END: tree-defs-common
 
 // ANCHOR: instructions
-
 #[repr(u8)]
 pub enum Instruction {
     /// Initialize the tree.
     Initialize,
     /// Insert key-value pair.
     Insert,
+    /// Remove key-value pair.
+    Remove,
 }
 
 #[repr(C, packed)]
@@ -264,8 +266,14 @@ pub struct InsertInstruction {
 }
 
 #[repr(C, packed)]
+pub struct RemoveInstruction {
+    pub header: InstructionHeader,
+    pub key: u16,
+}
+
+#[repr(C, packed)]
 /// Value in r0.
-struct RemoveReturn {
+pub struct RemoveReturn {
     value: u16,
     status: u16,
 }
@@ -280,10 +288,16 @@ constant_group! {
         DISCRIMINATOR_INITIALIZE: u8 = Instruction::Initialize as u8,
         /// Insert instruction discriminator.
         DISCRIMINATOR_INSERT: u8 = Instruction::Insert as u8,
+        /// Remove instruction discriminator.
+        DISCRIMINATOR_REMOVE: u8 = Instruction::Remove as u8,
         /// Key field in insert instruction.
         offset!(INSERT_KEY, InsertInstruction.key),
         /// Value field in insert instruction.
         offset!(INSERT_VALUE, InsertInstruction.value),
+        /// Key field in remove instruction.
+        offset!(REMOVE_KEY, RemoveInstruction.key),
+        /// Status value for successful remove (first non-error code).
+        REMOVE_STATUS_OK: u16 = error::N_CODES as u16,
     }
 }
 

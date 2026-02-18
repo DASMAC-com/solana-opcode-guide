@@ -97,12 +97,19 @@ pub fn error_codes(input: TokenStream) -> TokenStream {
     let header = asm_header("Error codes.");
     let body = asm_lines.join("\n");
 
+    let n_codes = input.entries.len() as u32;
+
     let expanded = quote! {
         pub mod error_codes {
             #[repr(u32)]
             #[allow(non_camel_case_types)]
             pub enum error {
                 #(#variant_defs),*
+            }
+
+            impl error {
+                /// Total number of error codes.
+                pub const N_CODES: u32 = #n_codes;
             }
 
             impl From<error> for u32 {
