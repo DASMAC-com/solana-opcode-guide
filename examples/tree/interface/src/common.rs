@@ -276,8 +276,8 @@ pub struct RemoveInstruction {
 #[repr(C, packed)]
 /// Value in r0.
 pub struct RemoveReturn {
-    value: u16,
     status: u16,
+    value: u16,
 }
 
 constant_group! {

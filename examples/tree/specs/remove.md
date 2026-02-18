@@ -328,11 +328,11 @@ are also overwritten by insert, so they do not need clearing.
 On success, return `RemoveReturn` packed in `r0`:
 
 ```text
-r0 = (REMOVE_STATUS_OK << 16) | value
+r0 = (value << 16) | REMOVE_STATUS_OK
 ```
 
-This matches the `RemoveReturn` struct layout (`value` at bits
-0-15, `status` at bits 16-31). Error codes are returned as plain
+This matches the `RemoveReturn` struct layout (`status` at bits
+0-15, `value` at bits 16-31). Error codes are returned as plain
 `r0` values with zero upper bits, so there is no ambiguity.
 
 ## Rust implementation notes
