@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Evaluate whether the interaction you just completed warrants self-improvement. If this was a substantive task (not a trivial question or explanation), check what was learned and take action:\n\n- Repeated instruction (corrected 2+ times): add it to CLAUDE.md.\n- Design decision: write or update a spec.\n- Repeatable workflow: propose a skill.\n- Must always happen: propose a hook.\n- Learned pattern: save to memory.\n\nIf nothing applies, do nothing.",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
