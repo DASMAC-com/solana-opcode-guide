@@ -695,7 +695,10 @@ insert_search_branch_l:
     stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
     stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = parent;
     stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9                                 # parent.child[L] = node;
-    ja insert_fixup_main
+    # Inline case 1: if parent is black, tree is valid.
+    ldxb r6, [r2 + TREE_NODE_COLOR_OFF]                                    # r6 = parent.color;
+    jne r6, TREE_COLOR_B, insert_fixup_check_case_4
+    exit
 
 insert_search_branch_r:
     ldxdw r3, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r3 = parent.child[R];

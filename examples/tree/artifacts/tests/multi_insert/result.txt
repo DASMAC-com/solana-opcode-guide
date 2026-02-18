@@ -1,16 +1,16 @@
 | Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
 |-----------|-----------|------------|----------|------------|
-| 3-node balanced (10,5,15) | 91 | 111 | +20 | +22.0% |
-| Left-skew rotation (10,5,1) | 115 | 141 | +26 | +22.6% |
+| 3-node balanced (10,5,15) | 90 | 111 | +21 | +23.3% |
+| Left-skew rotation (10,5,1) | 113 | 141 | +28 | +24.8% |
 | Right-skew rotation (10,15,20) | 116 | 136 | +20 | +17.2% |
-| Zigzag double rotation (10,5,7) | 124 | 147 | +23 | +18.5% |
-| 7-node full tree (10,5,15,3,7,12,20) | 255 | 313 | +58 | +22.7% |
+| Zigzag double rotation (10,5,7) | 123 | 147 | +24 | +19.5% |
+| 7-node full tree (10,5,15,3,7,12,20) | 252 | 313 | +61 | +24.2% |
 test tests::test_multi_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 34 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 32 of 1400000 compute units
@@ -28,10 +28,10 @@ test tests::test_multi_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 34 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 56 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 55 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 27 of 1400000 compute units
@@ -64,7 +64,7 @@ test tests::test_multi_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 34 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 65 of 1400000 compute units
@@ -82,19 +82,19 @@ test tests::test_multi_insert ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 24 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 35 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 34 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 32 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 51 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 50 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 38 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 37 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 38 of 1400000 compute units
