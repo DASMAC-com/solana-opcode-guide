@@ -410,8 +410,11 @@ unsafe fn insert(
                     (*grandparent).parent = parent;
 
                     if !great_grandparent.is_null() {
-                        let idx = (grandparent == (*great_grandparent).child[tree::DIR_R]) as usize;
-                        (*great_grandparent).child[idx] = parent;
+                        if grandparent == (*great_grandparent).child[tree::DIR_R] {
+                            (*great_grandparent).child[tree::DIR_R] = parent;
+                        } else {
+                            (*great_grandparent).child[tree::DIR_L] = parent;
+                        }
                     } else {
                         (*tree_header).root = parent;
                     }
@@ -477,8 +480,11 @@ unsafe fn insert(
                     (*grandparent).parent = parent;
 
                     if !great_grandparent.is_null() {
-                        let idx = (grandparent == (*great_grandparent).child[tree::DIR_R]) as usize;
-                        (*great_grandparent).child[idx] = parent;
+                        if grandparent == (*great_grandparent).child[tree::DIR_R] {
+                            (*great_grandparent).child[tree::DIR_R] = parent;
+                        } else {
+                            (*great_grandparent).child[tree::DIR_L] = parent;
+                        }
                     } else {
                         (*tree_header).root = parent;
                     }
@@ -701,7 +707,11 @@ unsafe fn rotate_subtree(
     (*subtree).parent = new_root;
 
     if !parent.is_null() {
-        (*parent).child[(subtree == (*parent).child[tree::DIR_R]) as usize] = new_root;
+        if subtree == (*parent).child[tree::DIR_R] {
+            (*parent).child[tree::DIR_R] = new_root;
+        } else {
+            (*parent).child[tree::DIR_L] = new_root;
+        }
     } else {
         (*tree).root = new_root;
     }

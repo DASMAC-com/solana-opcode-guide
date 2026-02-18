@@ -54,8 +54,11 @@
                     (*grandparent).parent = parent;
 
                     if !great_grandparent.is_null() {
-                        let idx = (grandparent == (*great_grandparent).child[tree::DIR_R]) as usize;
-                        (*great_grandparent).child[idx] = parent;
+                        if grandparent == (*great_grandparent).child[tree::DIR_R] {
+                            (*great_grandparent).child[tree::DIR_R] = parent;
+                        } else {
+                            (*great_grandparent).child[tree::DIR_L] = parent;
+                        }
                     } else {
                         (*tree_header).root = parent;
                     }

@@ -11,21 +11,21 @@
 | Case 2+3: right-right | 52 | 59 | +7 | +13.5% |
 | Case 2+1: left | 57 | 71 | +14 | +24.6% |
 | Case 2+1: right | 60 | 67 | +7 | +11.7% |
-| Case 6: left-left null uncle | 55 | 70 | +15 | +27.3% |
+| Case 6: left-left null uncle | 55 | 69 | +14 | +25.5% |
 | Case 6: right-right null uncle | 57 | 66 | +9 | +15.8% |
-| Case 6: left-left black uncle | 57 | 72 | +15 | +26.3% |
+| Case 6: left-left black uncle | 57 | 71 | +14 | +24.6% |
 | Case 6: right-right black uncle | 59 | 69 | +10 | +16.9% |
-| Case 5+6: left-right null uncle | 65 | 76 | +11 | +16.9% |
+| Case 5+6: left-right null uncle | 65 | 75 | +10 | +15.4% |
 | Case 5+6: right-left null uncle | 65 | 74 | +9 | +13.8% |
-| Case 5+6: left-right black uncle | 67 | 78 | +11 | +16.4% |
+| Case 5+6: left-right black uncle | 67 | 77 | +10 | +14.9% |
 | Case 5+6: right-left black uncle | 67 | 77 | +10 | +14.9% |
-| Case 6: GGP non-null, LL GP-left | 62 | 84 | +22 | +35.5% |
-| Case 6: GGP non-null, LL GP-right | 63 | 82 | +19 | +30.2% |
-| Case 6: GGP non-null, RR GP-right | 65 | 79 | +14 | +21.5% |
-| Case 6: GGP non-null, RR GP-left | 64 | 81 | +17 | +26.6% |
-| Case 2+6: non-null new_child dir_l | 84 | 103 | +19 | +22.6% |
+| Case 6: GGP non-null, LL GP-left | 62 | 80 | +18 | +29.0% |
+| Case 6: GGP non-null, LL GP-right | 63 | 80 | +17 | +27.0% |
+| Case 6: GGP non-null, RR GP-right | 65 | 77 | +12 | +18.5% |
+| Case 6: GGP non-null, RR GP-left | 64 | 77 | +13 | +20.3% |
+| Case 2+6: non-null new_child dir_l | 84 | 102 | +18 | +21.4% |
 | Case 2+6: non-null new_child dir_r | 88 | 97 | +9 | +10.2% |
-| Case 2+5+6: non-null new_child dir_l | 95 | 109 | +14 | +14.7% |
+| Case 2+5+6: non-null new_child dir_l | 95 | 108 | +13 | +13.7% |
 | Case 2+5+6: non-null new_child dir_r | 97 | 105 | +8 | +8.2% |
 test tests::test_insert_to_tree ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
@@ -98,7 +98,7 @@ test tests::test_insert_to_tree ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 55 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 70 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 69 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 57 of 1400000 compute units
@@ -110,7 +110,7 @@ test tests::test_insert_to_tree ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 57 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 72 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 71 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 59 of 1400000 compute units
@@ -122,7 +122,7 @@ test tests::test_insert_to_tree ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 65 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 76 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 75 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 65 of 1400000 compute units
@@ -134,7 +134,7 @@ test tests::test_insert_to_tree ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 67 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 78 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 77 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 67 of 1400000 compute units
@@ -146,31 +146,31 @@ test tests::test_insert_to_tree ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 62 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 84 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 80 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 63 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 82 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 80 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 65 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 79 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 77 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 64 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 81 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 77 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 84 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 103 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 102 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 88 of 1400000 compute units
@@ -182,7 +182,7 @@ test tests::test_insert_to_tree ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 95 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 109 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 108 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... success
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 97 of 1400000 compute units
