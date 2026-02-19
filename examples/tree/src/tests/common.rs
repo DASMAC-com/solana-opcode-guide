@@ -246,6 +246,251 @@ pub(super) fn assert_tree_account(data: &[u8], expected: &TreeSpec) -> Result<()
 }
 
 // ---------------------------------------------------------------------------
+// Invariant checker (operates on TreeSpec, not account data)
+// ---------------------------------------------------------------------------
+
+/// Check all structural invariants of a `TreeSpec`.
+///
+/// Verifies BST ordering, parent-child consistency, RBT coloring rules,
+/// and free stack validity. Returns `Ok(())` if all invariants hold,
+/// or `Err` with descriptions of all violations found.
+///
+/// See `specs/tree-invariants.md` for the full specification.
+pub(super) fn assert_invariants(desc: &TreeSpec) -> Result<(), String> {
+    let mut errors = Vec::new();
+    let n = desc.nodes.len();
+
+    // --- Collect tree nodes (reachable from root via child pointers) ---
+    let mut tree_set = vec![false; n];
+    if let Some(root) = desc.root {
+        if root >= n {
+            errors.push(format!("root index {} out of bounds (n={})", root, n));
+        } else {
+            collect_reachable(desc.nodes, root, &mut tree_set, &mut errors);
+        }
+    }
+
+    // --- Collect free stack nodes ---
+    let mut stack_set = vec![false; n];
+    {
+        let mut cur = desc.top;
+        while let Some(i) = cur {
+            if i >= n {
+                break; // Slot beyond described nodes (pre-allocated).
+            }
+            if stack_set[i] {
+                errors.push(format!("FS: cycle in free stack at N{}", i));
+                break;
+            }
+            stack_set[i] = true;
+            cur = desc.nodes[i].parent; // parent field = StackNode.next
+        }
+    }
+
+    // --- FS-2: disjoint sets and coverage ---
+    for i in 0..n {
+        if tree_set[i] && stack_set[i] {
+            errors.push(format!(
+                "FS-2 (disjoint): N{} in both tree and free stack",
+                i
+            ));
+        }
+        if !tree_set[i] && !stack_set[i] {
+            errors.push(format!(
+                "FS-2 (coverage): N{} neither in tree nor on free stack",
+                i
+            ));
+        }
+    }
+
+    // --- BST and RBT checks (only on tree nodes) ---
+    if let Some(root) = desc.root {
+        if root < n {
+            // BST-2: root has no parent.
+            if desc.nodes[root].parent.is_some() {
+                errors.push(format!(
+                    "BST-2: root N{} has parent={:?}",
+                    root, desc.nodes[root].parent
+                ));
+            }
+        }
+
+        for i in 0..n {
+            if !tree_set[i] {
+                continue;
+            }
+            let nd = &desc.nodes[i];
+
+            // RBT-1: valid coloring.
+            if nd.color != B && nd.color != R {
+                errors.push(format!("RBT-1 (valid coloring): N{} color={}", i, nd.color));
+            }
+
+            // BST-2: parent-child consistency (non-root).
+            if i != root {
+                match nd.parent {
+                    None => errors.push(format!("BST-2: non-root N{} has no parent", i)),
+                    Some(p) => {
+                        if p >= n {
+                            errors.push(format!("BST-2: N{}.parent={} out of bounds", i, p));
+                        } else {
+                            let par = &desc.nodes[p];
+                            if par.left != Some(i) && par.right != Some(i) {
+                                errors.push(format!(
+                                    "BST-2: N{}.parent=N{} but N{} has L={:?} R={:?}",
+                                    i, p, p, par.left, par.right
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // BST-2: children point back.
+            if let Some(l) = nd.left {
+                if l < n && desc.nodes[l].parent != Some(i) {
+                    errors.push(format!(
+                        "BST-2: N{}.L=N{} but N{}.parent={:?}",
+                        i, l, l, desc.nodes[l].parent
+                    ));
+                }
+            }
+            if let Some(r) = nd.right {
+                if r < n && desc.nodes[r].parent != Some(i) {
+                    errors.push(format!(
+                        "BST-2: N{}.R=N{} but N{}.parent={:?}",
+                        i, r, r, desc.nodes[r].parent
+                    ));
+                }
+            }
+
+            // RBT-3: no red-red.
+            if nd.color == R {
+                if let Some(l) = nd.left {
+                    if l < n && desc.nodes[l].color == R {
+                        errors.push(format!(
+                            "RBT-3 (no red-red): N{} (RED) has red child N{} at L",
+                            i, l
+                        ));
+                    }
+                }
+                if let Some(r) = nd.right {
+                    if r < n && desc.nodes[r].color == R {
+                        errors.push(format!(
+                            "RBT-3 (no red-red): N{} (RED) has red child N{} at R",
+                            i, r
+                        ));
+                    }
+                }
+            }
+
+            // RBT-C: one-child corollary.
+            let has_l = nd.left.is_some();
+            let has_r = nd.right.is_some();
+            if has_l != has_r {
+                let child = nd.left.or(nd.right).unwrap();
+                if child < n && desc.nodes[child].color != R {
+                    errors.push(format!(
+                        "RBT-C (one-child): N{} has one child N{} which is BLACK",
+                        i, child
+                    ));
+                }
+            }
+        }
+
+        // BST-1: in-order traversal yields strictly increasing keys.
+        if root < n {
+            let mut keys = Vec::new();
+            inorder_keys(desc.nodes, root, &mut keys);
+            for w in keys.windows(2) {
+                if w[0] >= w[1] {
+                    errors.push(format!(
+                        "BST-1 (ordering): keys not strictly increasing: {} >= {}",
+                        w[0], w[1]
+                    ));
+                    break;
+                }
+            }
+
+            // RBT-4: uniform black depth.
+            if let Err(e) = black_height(desc.nodes, root) {
+                errors.push(e);
+            }
+        }
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.join("; "))
+    }
+}
+
+/// Walk tree from `idx` via child pointers, marking visited nodes.
+fn collect_reachable(
+    nodes: &[NodeSpec],
+    idx: usize,
+    visited: &mut Vec<bool>,
+    errors: &mut Vec<String>,
+) {
+    if idx >= nodes.len() {
+        errors.push(format!(
+            "child index {} out of bounds (n={})",
+            idx,
+            nodes.len()
+        ));
+        return;
+    }
+    if visited[idx] {
+        errors.push(format!("cycle in tree at N{}", idx));
+        return;
+    }
+    visited[idx] = true;
+    if let Some(l) = nodes[idx].left {
+        collect_reachable(nodes, l, visited, errors);
+    }
+    if let Some(r) = nodes[idx].right {
+        collect_reachable(nodes, r, visited, errors);
+    }
+}
+
+/// Collect keys via in-order traversal.
+fn inorder_keys(nodes: &[NodeSpec], idx: usize, keys: &mut Vec<u16>) {
+    if let Some(l) = nodes[idx].left {
+        if l < nodes.len() {
+            inorder_keys(nodes, l, keys);
+        }
+    }
+    keys.push(nodes[idx].key);
+    if let Some(r) = nodes[idx].right {
+        if r < nodes.len() {
+            inorder_keys(nodes, r, keys);
+        }
+    }
+}
+
+/// Compute the black height of a subtree. Returns `Err` if any node has
+/// unequal left/right black heights (RBT-4 violation).
+fn black_height(nodes: &[NodeSpec], idx: usize) -> Result<usize, String> {
+    let nd = &nodes[idx];
+    let lbh = match nd.left {
+        Some(l) if l < nodes.len() => black_height(nodes, l)?,
+        _ => 0,
+    };
+    let rbh = match nd.right {
+        Some(r) if r < nodes.len() => black_height(nodes, r)?,
+        _ => 0,
+    };
+    if lbh != rbh {
+        return Err(format!(
+            "RBT-4 (uniform black depth): N{} (key={}) L black height={}, R black height={}",
+            idx, nd.key, lbh, rbh
+        ));
+    }
+    Ok(lbh + if nd.color == B { 1 } else { 0 })
+}
+
+// ---------------------------------------------------------------------------
 // Shorthand constructors
 // ---------------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
 use super::common::*;
 use super::*;
 use tree_interface::{
-    input_buffer, instruction, InsertInstruction, Instruction as TreeInstruction,
+    input_buffer, InsertInstruction, Instruction as TreeInstruction,
     InstructionHeader, RemoveInstruction, StackNode, TreeHeader, TreeNode,
 };
 
@@ -63,23 +63,26 @@ fn remove_input_setup(
 // Helpers: remove runners
 // ---------------------------------------------------------------------------
 
-/// Execute a remove and verify success with full tree state and return value.
+/// Execute a remove and verify success with full tree state.
 ///
-/// On success, the program returns `(value << 16) | REMOVE_STATUS_OK` encoded
-/// as `ProgramError::Custom(...)`.
+/// On success, the program returns 0. Account changes are only persisted
+/// by the SVM when the program returns 0.
 fn run_remove_success(
     lang: ProgramLanguage,
     desc: &TreeSpec,
     remove_key: u16,
-    expected_value: u16,
     expected: &TreeSpec,
 ) -> CaseResult {
+    if let Err(e) = assert_invariants(desc) {
+        return CaseResult { cu: 0, error: Some(format!("desc invariant: {}", e)) };
+    }
+    if let Err(e) = assert_invariants(expected) {
+        return CaseResult { cu: 0, error: Some(format!("exp invariant: {}", e)) };
+    }
     let (setup, instruction, accounts) = remove_setup(lang, desc, remove_key);
-    let expected_r0 =
-        ((expected_value as u32) << 16) | instruction::REMOVE_STATUS_OK as u32;
     let result = setup.mollusk.process_instruction(&instruction, &accounts);
     match &result.program_result {
-        MolluskResult::Failure(err) if *err == ProgramError::Custom(expected_r0) => {
+        MolluskResult::Success => {
             let tree_data = &result.resulting_accounts[AccountIndex::Tree as usize]
                 .1
                 .data;
@@ -96,10 +99,7 @@ fn run_remove_success(
         }
         other => CaseResult {
             cu: result.compute_units_consumed,
-            error: Some(format!(
-                "expected Failure(Custom({:#x})), got {:?}",
-                expected_r0, other
-            )),
+            error: Some(format!("expected Success, got {:?}", other)),
         },
     }
 }
@@ -110,6 +110,9 @@ fn run_remove_not_found(
     desc: &TreeSpec,
     remove_key: u16,
 ) -> CaseResult {
+    if let Err(e) = assert_invariants(desc) {
+        return CaseResult { cu: 0, error: Some(format!("desc invariant: {}", e)) };
+    }
     let (setup, instruction, accounts) = remove_setup(lang, desc, remove_key);
     check_error(
         &setup,
@@ -125,7 +128,7 @@ fn run_remove_not_found(
 
 enum MultiStep {
     Insert { key: u16, value: u16 },
-    Remove { key: u16, expected_value: u16 },
+    Remove { key: u16 },
 }
 
 struct MultiStepCase<'a> {
@@ -143,7 +146,18 @@ fn run_multi_step(lang: ProgramLanguage, n_slots: usize, steps: &[MultiStepCase]
     let mut total_cu = 0u64;
 
     for (i, step) in steps.iter().enumerate() {
-        let (insn_bytes, expected_result): (Vec<u8>, _) = match &step.step {
+        if let Err(e) = assert_invariants(&step.expected) {
+            let step_desc = match &step.step {
+                MultiStep::Insert { key, .. } => format!("insert key={}", key),
+                MultiStep::Remove { key, .. } => format!("remove key={}", key),
+            };
+            return CaseResult {
+                cu: 0,
+                error: Some(format!("step {} ({}) exp invariant: {}", i, step_desc, e)),
+            };
+        }
+
+        let insn_bytes: Vec<u8> = match &step.step {
             MultiStep::Insert { key, value } => {
                 let insn = InsertInstruction {
                     header: InstructionHeader {
@@ -152,18 +166,16 @@ fn run_multi_step(lang: ProgramLanguage, n_slots: usize, steps: &[MultiStepCase]
                     key: *key,
                     value: *value,
                 };
-                (unsafe { as_bytes(&insn) }.to_vec(), None)
+                unsafe { as_bytes(&insn) }.to_vec()
             }
-            MultiStep::Remove { key, expected_value } => {
+            MultiStep::Remove { key } => {
                 let insn = RemoveInstruction {
                     header: InstructionHeader {
                         discriminator: TreeInstruction::Remove as u8,
                     },
                     key: *key,
                 };
-                let r0 = ((*expected_value as u32) << 16)
-                    | instruction::REMOVE_STATUS_OK as u32;
-                (unsafe { as_bytes(&insn) }.to_vec(), Some(r0))
+                unsafe { as_bytes(&insn) }.to_vec()
             }
         };
 
@@ -187,18 +199,8 @@ fn run_multi_step(lang: ProgramLanguage, n_slots: usize, steps: &[MultiStepCase]
         let result = setup.mollusk.process_instruction(&instruction, &accounts);
         total_cu += result.compute_units_consumed;
 
-        // Check program result.
-        let ok = match (&result.program_result, expected_result) {
-            (MolluskResult::Success, None) => true,
-            (MolluskResult::Failure(err), Some(r0))
-                if *err == ProgramError::Custom(r0) =>
-            {
-                true
-            }
-            _ => false,
-        };
-
-        if !ok {
+        // Both insert and remove return 0 on success.
+        if result.program_result != MolluskResult::Success {
             let step_desc = match &step.step {
                 MultiStep::Insert { key, .. } => format!("insert key={}", key),
                 MultiStep::Remove { key, .. } => format!("remove key={}", key),
@@ -206,8 +208,8 @@ fn run_multi_step(lang: ProgramLanguage, n_slots: usize, steps: &[MultiStepCase]
             return CaseResult {
                 cu: total_cu,
                 error: Some(format!(
-                    "step {} ({}): expected {:?}, got {:?}",
-                    i, step_desc, expected_result, result.program_result
+                    "step {} ({}): expected Success, got {:?}",
+                    i, step_desc, result.program_result
                 )),
             };
         }
@@ -504,7 +506,7 @@ impl TestCase for RemoveCase {
                     top: Some(0),
                     nodes: &[node(10, B, None, None, None)],
                 };
-                run_remove_success(lang, &desc, 10, 10, &exp)
+                run_remove_success(lang, &desc, 10, &exp)
             }
 
             // Simple case 3: remove red leaf (left child).
@@ -525,7 +527,7 @@ impl TestCase for RemoveCase {
                         node(5, R, None, None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Simple case 3: remove red leaf (right child).
@@ -546,7 +548,7 @@ impl TestCase for RemoveCase {
                         node(15, R, None, None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 15, 15, &exp)
+                run_remove_success(lang, &desc, 15, &exp)
             }
 
             // Simple case 1: one child at root (right child).
@@ -567,7 +569,7 @@ impl TestCase for RemoveCase {
                         node(15, B, None, None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 10, 10, &exp)
+                run_remove_success(lang, &desc, 10, &exp)
             }
 
             // Simple case 1: one child at root (left child).
@@ -588,7 +590,7 @@ impl TestCase for RemoveCase {
                         node(5, B, None, None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 10, 10, &exp)
+                run_remove_success(lang, &desc, 10, &exp)
             }
 
             // Simple case 1: one child non-root (right child).
@@ -613,19 +615,21 @@ impl TestCase for RemoveCase {
                         node(20, B, Some(0), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 15, 15, &exp)
+                run_remove_success(lang, &desc, 15, &exp)
             }
 
             // ----- Successor swap -----
 
             // Successor is immediate right child.
+            // B(10) with R(5) left, R(15) right. Remove 10: swap with
+            // successor N2(15), then delete N2 (red leaf, simple case 3).
             Self::SuccessorImmediate => {
                 let desc = TreeSpec {
                     root: Some(0),
                     top: None,
                     nodes: &[
                         node(10, B, None, Some(1), Some(2)),
-                        node(5, B, Some(0), None, None),
+                        node(5, R, Some(0), None, None),
                         node(15, R, Some(0), None, None),
                     ],
                 };
@@ -634,11 +638,11 @@ impl TestCase for RemoveCase {
                     top: Some(2),
                     nodes: &[
                         node(15, B, None, Some(1), None).val(15),
-                        node(5, B, Some(0), None, None),
+                        node(5, R, Some(0), None, None),
                         node(15, R, None, None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 10, 10, &exp)
+                run_remove_success(lang, &desc, 10, &exp)
             }
 
             // Successor with deep left descent.
@@ -665,7 +669,7 @@ impl TestCase for RemoveCase {
                         node(25, R, Some(2), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 10, 10, &exp)
+                run_remove_success(lang, &desc, 10, &exp)
             }
 
             // Successor with right child.
@@ -690,7 +694,7 @@ impl TestCase for RemoveCase {
                         node(20, B, Some(0), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 10, 10, &exp)
+                run_remove_success(lang, &desc, 10, &exp)
             }
 
             // ----- Rebalancing -----
@@ -715,7 +719,7 @@ impl TestCase for RemoveCase {
                         node(15, R, Some(0), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 4 dir_r.
@@ -738,7 +742,7 @@ impl TestCase for RemoveCase {
                         node(15, B, None, None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 15, 15, &exp)
+                run_remove_success(lang, &desc, 15, &exp)
             }
 
             // Case 6 dir_l: black sibling, distant nephew red.
@@ -763,7 +767,7 @@ impl TestCase for RemoveCase {
                         node(20, B, Some(2), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 6 dir_r.
@@ -788,7 +792,7 @@ impl TestCase for RemoveCase {
                         node(3, B, Some(1), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 20, 20, &exp)
+                run_remove_success(lang, &desc, 20, &exp)
             }
 
             // Case 5+6 dir_l.
@@ -809,11 +813,11 @@ impl TestCase for RemoveCase {
                     nodes: &[
                         node(10, B, Some(3), None, None),
                         node(5, B, None, None, None),
-                        node(20, R, Some(3), None, None),
+                        node(20, B, Some(3), None, None),
                         node(15, B, None, Some(0), Some(2)),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 5+6 dir_r.
@@ -833,12 +837,12 @@ impl TestCase for RemoveCase {
                     top: Some(2),
                     nodes: &[
                         node(10, B, Some(3), None, None),
-                        node(5, R, Some(3), None, None),
+                        node(5, B, Some(3), None, None),
                         node(20, B, None, None, None),
                         node(7, B, None, Some(1), Some(0)),
                     ],
                 };
-                run_remove_success(lang, &desc, 20, 20, &exp)
+                run_remove_success(lang, &desc, 20, &exp)
             }
 
             // Case 3 -> 4 dir_l.
@@ -865,7 +869,7 @@ impl TestCase for RemoveCase {
                         node(25, B, Some(2), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 3 -> 4 dir_r.
@@ -892,7 +896,7 @@ impl TestCase for RemoveCase {
                         node(7, R, Some(0), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 20, 20, &exp)
+                run_remove_success(lang, &desc, 20, &exp)
             }
 
             // Case 3 -> 6 dir_l.
@@ -916,12 +920,12 @@ impl TestCase for RemoveCase {
                         node(10, B, Some(3), None, None),
                         node(5, B, None, None, None),
                         node(20, B, None, Some(3), Some(5)),
-                        node(15, B, Some(2), Some(0), Some(4)),
-                        node(17, R, Some(3), None, None),
+                        node(15, R, Some(2), Some(0), Some(4)),
+                        node(17, B, Some(3), None, None),
                         node(25, B, Some(2), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 3 -> 6 dir_r.
@@ -945,12 +949,12 @@ impl TestCase for RemoveCase {
                         node(10, B, Some(3), None, None),
                         node(5, B, None, Some(4), Some(3)),
                         node(20, B, None, None, None),
-                        node(7, B, Some(1), Some(5), Some(0)),
+                        node(7, R, Some(1), Some(5), Some(0)),
                         node(3, B, Some(1), None, None),
-                        node(6, R, Some(3), None, None),
+                        node(6, B, Some(3), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 20, 20, &exp)
+                run_remove_success(lang, &desc, 20, &exp)
             }
 
             // Case 3 -> 5 -> 6 dir_l.
@@ -974,12 +978,12 @@ impl TestCase for RemoveCase {
                         node(10, B, Some(4), None, None),
                         node(5, B, None, None, None),
                         node(20, B, None, Some(4), Some(5)),
-                        node(15, R, Some(4), None, None),
-                        node(13, B, Some(2), Some(0), Some(3)),
+                        node(15, B, Some(4), None, None),
+                        node(13, R, Some(2), Some(0), Some(3)),
                         node(25, B, Some(2), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 3 -> 5 -> 6 dir_r.
@@ -1003,12 +1007,12 @@ impl TestCase for RemoveCase {
                         node(10, B, Some(5), None, None),
                         node(5, B, None, Some(4), Some(5)),
                         node(20, B, None, None, None),
-                        node(7, R, Some(5), None, None),
+                        node(7, B, Some(5), None, None),
                         node(3, B, Some(1), None, None),
-                        node(8, B, Some(1), Some(3), Some(0)),
+                        node(8, R, Some(1), Some(3), Some(0)),
                     ],
                 };
-                run_remove_success(lang, &desc, 20, 20, &exp)
+                run_remove_success(lang, &desc, 20, &exp)
             }
 
             // Case 2: propagate to root (dir_l).
@@ -1031,7 +1035,7 @@ impl TestCase for RemoveCase {
                         node(15, R, Some(0), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 2: propagate to root (dir_r).
@@ -1054,7 +1058,7 @@ impl TestCase for RemoveCase {
                         node(15, B, None, None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 15, 15, &exp)
+                run_remove_success(lang, &desc, 15, &exp)
             }
 
             // Case 2 -> 4: propagate then red parent.
@@ -1081,10 +1085,13 @@ impl TestCase for RemoveCase {
                         node(25, B, Some(0), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 2 -> 6: propagate then distant nephew red.
+            // 9-node tree with bh=3 at root. Remove B(5) leaf:
+            // case 2 at B(10), propagate to B(20), then case 6
+            // (distant nephew R(35) is red).
             Self::Case2Then6 => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -1094,26 +1101,35 @@ impl TestCase for RemoveCase {
                         node(10, B, Some(0), Some(2), Some(3)),
                         node(5, B, Some(1), None, None),
                         node(15, B, Some(1), None, None),
-                        node(30, B, Some(0), None, Some(5)),
-                        node(35, R, Some(4), None, None),
+                        node(30, B, Some(0), Some(5), Some(6)),
+                        node(25, B, Some(4), None, None),
+                        node(35, R, Some(4), Some(7), Some(8)),
+                        node(33, B, Some(6), None, None),
+                        node(40, B, Some(6), None, None),
                     ],
                 };
                 let exp = TreeSpec {
                     root: Some(4),
                     top: Some(2),
                     nodes: &[
-                        node(20, B, Some(4), Some(1), None),
+                        node(20, B, Some(4), Some(1), Some(5)),
                         node(10, B, Some(0), None, Some(3)),
                         node(5, B, None, None, None),
                         node(15, R, Some(1), None, None),
-                        node(30, B, None, Some(0), Some(5)),
-                        node(35, B, Some(4), None, None),
+                        node(30, B, None, Some(0), Some(6)),
+                        node(25, B, Some(0), None, None),
+                        node(35, B, Some(4), Some(7), Some(8)),
+                        node(33, B, Some(6), None, None),
+                        node(40, B, Some(6), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 6 with non-null new_child dir_l.
+            // B(10) root, B(5) left, B(20) right with R(15)/R(25).
+            // Remove B(5): case 6 rotates left; new_child R(15) is
+            // reparented from B(20).child[L] to B(10).child[R].
             Self::Case6NewChildL => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -1122,7 +1138,7 @@ impl TestCase for RemoveCase {
                         node(10, B, None, Some(1), Some(2)),
                         node(5, B, Some(0), None, None),
                         node(20, B, Some(0), Some(3), Some(4)),
-                        node(15, B, Some(2), None, None),
+                        node(15, R, Some(2), None, None),
                         node(25, R, Some(2), None, None),
                     ],
                 };
@@ -1133,14 +1149,17 @@ impl TestCase for RemoveCase {
                         node(10, B, Some(2), None, Some(3)),
                         node(5, B, None, None, None),
                         node(20, B, None, Some(0), Some(4)),
-                        node(15, B, Some(0), None, None),
+                        node(15, R, Some(0), None, None),
                         node(25, B, Some(2), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 6 with non-null new_child dir_r.
+            // B(10) root, B(5) left with R(3)/R(7), B(20) right.
+            // Remove B(20): case 6 rotates right; new_child R(7) is
+            // reparented from B(5).child[R] to B(10).child[L].
             Self::Case6NewChildR => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -1150,7 +1169,7 @@ impl TestCase for RemoveCase {
                         node(5, B, Some(0), Some(3), Some(4)),
                         node(20, B, Some(0), None, None),
                         node(3, R, Some(1), None, None),
-                        node(7, B, Some(1), None, None),
+                        node(7, R, Some(1), None, None),
                     ],
                 };
                 let exp = TreeSpec {
@@ -1161,10 +1180,10 @@ impl TestCase for RemoveCase {
                         node(5, B, None, Some(3), Some(0)),
                         node(20, B, None, None, None),
                         node(3, B, Some(1), None, None),
-                        node(7, B, Some(0), None, None),
+                        node(7, R, Some(0), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 20, 20, &exp)
+                run_remove_success(lang, &desc, 20, &exp)
             }
 
             // Case 6 parent=root dir_l (same tree as Case6L).
@@ -1189,7 +1208,7 @@ impl TestCase for RemoveCase {
                         node(20, B, Some(2), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 6 parent=root dir_r.
@@ -1214,10 +1233,14 @@ impl TestCase for RemoveCase {
                         node(3, B, Some(1), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 20, 20, &exp)
+                run_remove_success(lang, &desc, 20, &exp)
             }
 
             // Case 6 parent=GGP left child dir_l.
+            // 8-node tree, bh=3 at root. N1(B(10)) is left child of
+            // root B(30). Remove B(5) from N1's left: case 6 rotates
+            // N1 left, N3(B(20)) takes N1's place. GGP N0 updates
+            // child[L] = N3.
             Self::Case6ParentGgpL => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -1228,7 +1251,9 @@ impl TestCase for RemoveCase {
                         node(5, B, Some(1), None, None),
                         node(20, B, Some(1), None, Some(4)),
                         node(25, R, Some(3), None, None),
-                        node(35, B, Some(0), None, None),
+                        node(40, B, Some(0), Some(6), Some(7)),
+                        node(35, B, Some(5), None, None),
+                        node(45, B, Some(5), None, None),
                     ],
                 };
                 let exp = TreeSpec {
@@ -1240,39 +1265,49 @@ impl TestCase for RemoveCase {
                         node(5, B, None, None, None),
                         node(20, B, Some(0), Some(1), Some(4)),
                         node(25, B, Some(3), None, None),
-                        node(35, B, Some(0), None, None),
+                        node(40, B, Some(0), Some(6), Some(7)),
+                        node(35, B, Some(5), None, None),
+                        node(45, B, Some(5), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 6 parent=GGP right child dir_r.
+            // 8-node tree, bh=3 at root. N1(B(20)) is right child of
+            // root B(5). Remove B(25) from N1's right: case 6 rotates
+            // N1 right, N2(B(10)) takes N1's place. GGP N0 updates
+            // child[R] = N2.
             Self::Case6ParentGgpR => {
                 let desc = TreeSpec {
                     root: Some(0),
                     top: None,
                     nodes: &[
-                        node(5, B, None, Some(4), Some(1)),
+                        node(5, B, None, Some(5), Some(1)),
                         node(20, B, Some(0), Some(2), Some(3)),
-                        node(10, B, Some(1), Some(5), None),
+                        node(10, B, Some(1), Some(4), None),
                         node(25, B, Some(1), None, None),
-                        node(3, B, Some(0), None, None),
                         node(7, R, Some(2), None, None),
+                        node(2, B, Some(0), Some(6), Some(7)),
+                        node(1, B, Some(5), None, None),
+                        node(3, B, Some(5), None, None),
                     ],
                 };
                 let exp = TreeSpec {
                     root: Some(0),
                     top: Some(3),
                     nodes: &[
-                        node(5, B, None, Some(4), Some(2)),
+                        node(5, B, None, Some(5), Some(2)),
                         node(20, B, Some(2), None, None),
-                        node(10, B, Some(0), Some(5), Some(1)),
+                        node(10, B, Some(0), Some(4), Some(1)),
                         node(25, B, None, None, None),
-                        node(3, B, Some(0), None, None),
                         node(7, B, Some(2), None, None),
+                        node(2, B, Some(0), Some(6), Some(7)),
+                        node(1, B, Some(5), None, None),
+                        node(3, B, Some(5), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 25, 25, &exp)
+                run_remove_success(lang, &desc, 25, &exp)
             }
 
             // Case 3 parent=root dir_l.
@@ -1299,7 +1334,7 @@ impl TestCase for RemoveCase {
                         node(25, B, Some(2), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 5, 5, &exp)
+                run_remove_success(lang, &desc, 5, &exp)
             }
 
             // Case 3 parent=root dir_r.
@@ -1326,7 +1361,7 @@ impl TestCase for RemoveCase {
                         node(7, R, Some(0), None, None),
                     ],
                 };
-                run_remove_success(lang, &desc, 20, 20, &exp)
+                run_remove_success(lang, &desc, 20, &exp)
             }
         }
     }
@@ -1398,7 +1433,7 @@ impl TestCase for MultiRemoveCase {
                     },
                 },
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 5, expected_value: 1 },
+                    step: MultiStep::Remove { key: 5 },
                     expected: TreeSpec {
                         root: Some(0),
                         top: Some(1),
@@ -1507,7 +1542,7 @@ impl TestCase for MultiRemoveCase {
                 // Remove all: 3, 20, 7, 12, 5, 15, 10.
                 // Removing leaves first to simplify expected states.
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 3, expected_value: 1 },
+                    step: MultiStep::Remove { key: 3 },
                     expected: TreeSpec {
                         root: Some(0),
                         top: Some(3),
@@ -1523,7 +1558,7 @@ impl TestCase for MultiRemoveCase {
                     },
                 },
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 20, expected_value: 1 },
+                    step: MultiStep::Remove { key: 20 },
                     expected: TreeSpec {
                         root: Some(0),
                         top: Some(6),
@@ -1531,7 +1566,7 @@ impl TestCase for MultiRemoveCase {
                             node(10, R, None, Some(1), Some(2)).val(1),
                             node(5, B, Some(0), None, Some(4)).val(1),
                             node(15, B, Some(0), Some(5), None).val(1),
-                            node(3, R, Some(6), None, None).val(1),
+                            node(3, R, None, None, None).val(1),
                             node(7, R, Some(1), None, None).val(1),
                             node(12, R, Some(2), None, None).val(1),
                             node(20, R, Some(3), None, None).val(1),
@@ -1539,7 +1574,7 @@ impl TestCase for MultiRemoveCase {
                     },
                 },
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 7, expected_value: 1 },
+                    step: MultiStep::Remove { key: 7 },
                     expected: TreeSpec {
                         root: Some(0),
                         top: Some(4),
@@ -1547,7 +1582,7 @@ impl TestCase for MultiRemoveCase {
                             node(10, R, None, Some(1), Some(2)).val(1),
                             node(5, B, Some(0), None, None).val(1),
                             node(15, B, Some(0), Some(5), None).val(1),
-                            node(3, R, Some(6), None, None).val(1),
+                            node(3, R, None, None, None).val(1),
                             node(7, R, Some(6), None, None).val(1),
                             node(12, R, Some(2), None, None).val(1),
                             node(20, R, Some(3), None, None).val(1),
@@ -1555,7 +1590,7 @@ impl TestCase for MultiRemoveCase {
                     },
                 },
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 12, expected_value: 1 },
+                    step: MultiStep::Remove { key: 12 },
                     expected: TreeSpec {
                         root: Some(0),
                         top: Some(5),
@@ -1563,7 +1598,7 @@ impl TestCase for MultiRemoveCase {
                             node(10, R, None, Some(1), Some(2)).val(1),
                             node(5, B, Some(0), None, None).val(1),
                             node(15, B, Some(0), None, None).val(1),
-                            node(3, R, Some(6), None, None).val(1),
+                            node(3, R, None, None, None).val(1),
                             node(7, R, Some(6), None, None).val(1),
                             node(12, R, Some(4), None, None).val(1),
                             node(20, R, Some(3), None, None).val(1),
@@ -1571,7 +1606,7 @@ impl TestCase for MultiRemoveCase {
                     },
                 },
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 5, expected_value: 1 },
+                    step: MultiStep::Remove { key: 5 },
                     expected: TreeSpec {
                         root: Some(0),
                         top: Some(1),
@@ -1579,7 +1614,7 @@ impl TestCase for MultiRemoveCase {
                             node(10, B, None, None, Some(2)).val(1),
                             node(5, B, Some(5), None, None).val(1),
                             node(15, R, Some(0), None, None).val(1),
-                            node(3, R, Some(6), None, None).val(1),
+                            node(3, R, None, None, None).val(1),
                             node(7, R, Some(6), None, None).val(1),
                             node(12, R, Some(4), None, None).val(1),
                             node(20, R, Some(3), None, None).val(1),
@@ -1587,7 +1622,7 @@ impl TestCase for MultiRemoveCase {
                     },
                 },
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 15, expected_value: 1 },
+                    step: MultiStep::Remove { key: 15 },
                     expected: TreeSpec {
                         root: Some(0),
                         top: Some(2),
@@ -1595,7 +1630,7 @@ impl TestCase for MultiRemoveCase {
                             node(10, B, None, None, None).val(1),
                             node(5, B, Some(5), None, None).val(1),
                             node(15, R, Some(1), None, None).val(1),
-                            node(3, R, Some(6), None, None).val(1),
+                            node(3, R, None, None, None).val(1),
                             node(7, R, Some(6), None, None).val(1),
                             node(12, R, Some(4), None, None).val(1),
                             node(20, R, Some(3), None, None).val(1),
@@ -1603,7 +1638,7 @@ impl TestCase for MultiRemoveCase {
                     },
                 },
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 10, expected_value: 1 },
+                    step: MultiStep::Remove { key: 10 },
                     expected: TreeSpec {
                         root: None,
                         top: Some(0),
@@ -1611,7 +1646,7 @@ impl TestCase for MultiRemoveCase {
                             node(10, B, Some(2), None, None).val(1),
                             node(5, B, Some(5), None, None).val(1),
                             node(15, R, Some(1), None, None).val(1),
-                            node(3, R, Some(6), None, None).val(1),
+                            node(3, R, None, None, None).val(1),
                             node(7, R, Some(6), None, None).val(1),
                             node(12, R, Some(4), None, None).val(1),
                             node(20, R, Some(3), None, None).val(1),
@@ -1655,7 +1690,7 @@ impl TestCase for MultiRemoveCase {
                 },
                 // Remove 5: red leaf removal, N1 freed onto stack.
                 MultiStepCase {
-                    step: MultiStep::Remove { key: 5, expected_value: 5 },
+                    step: MultiStep::Remove { key: 5 },
                     expected: TreeSpec {
                         root: Some(0),
                         top: Some(1),

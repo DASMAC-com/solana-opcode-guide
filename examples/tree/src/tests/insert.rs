@@ -234,6 +234,12 @@ fn run_success(
     insert_key: u16,
     expected: &TreeSpec,
 ) -> CaseResult {
+    if let Err(e) = assert_invariants(desc) {
+        return CaseResult { cu: 0, error: Some(format!("desc invariant: {}", e)) };
+    }
+    if let Err(e) = assert_invariants(expected) {
+        return CaseResult { cu: 0, error: Some(format!("exp invariant: {}", e)) };
+    }
     let (setup, instruction, accounts) = insert_tree_setup(lang, desc, insert_key);
     let result = setup.mollusk.process_instruction(&instruction, &accounts);
     match &result.program_result {
@@ -261,6 +267,9 @@ fn run_success(
 
 /// Run an insert and check for KEY_EXISTS error.
 fn run_dup_error(lang: ProgramLanguage, desc: &TreeSpec, insert_key: u16) -> CaseResult {
+    if let Err(e) = assert_invariants(desc) {
+        return CaseResult { cu: 0, error: Some(format!("desc invariant: {}", e)) };
+    }
     let (setup, instruction, accounts) = insert_tree_setup(lang, desc, insert_key);
     check_error(
         &setup,
@@ -316,16 +325,12 @@ pub(super) enum InsertCase {
     // Case 2+1: red uncle, propagate to black ancestor.
     Case21Left,
     Case21Right,
-    // Case 6: single rotation (outer child).
+    // Case 6: single rotation (outer child, null uncle).
     Case6LeftNull,
     Case6RightNull,
-    Case6LeftBlack,
-    Case6RightBlack,
-    // Case 5+6: double rotation (inner child).
+    // Case 5+6: double rotation (inner child, null uncle).
     Case56LeftNull,
     Case56RightNull,
-    Case56LeftBlack,
-    Case56RightBlack,
     // Case 6: non-null great-grandparent.
     Case6GgpLeftLeft,
     Case6GgpLeftRight,
@@ -381,12 +386,8 @@ impl InsertCase {
         Self::Case21Right,
         Self::Case6LeftNull,
         Self::Case6RightNull,
-        Self::Case6LeftBlack,
-        Self::Case6RightBlack,
         Self::Case56LeftNull,
         Self::Case56RightNull,
-        Self::Case56LeftBlack,
-        Self::Case56RightBlack,
         Self::Case6GgpLeftLeft,
         Self::Case6GgpLeftRight,
         Self::Case6GgpRightRight,
@@ -432,12 +433,8 @@ impl TestCase for InsertCase {
             Self::Case21Right => "Case 2+1: right",
             Self::Case6LeftNull => "Case 6: left-left null uncle",
             Self::Case6RightNull => "Case 6: right-right null uncle",
-            Self::Case6LeftBlack => "Case 6: left-left black uncle",
-            Self::Case6RightBlack => "Case 6: right-right black uncle",
             Self::Case56LeftNull => "Case 5+6: left-right null uncle",
             Self::Case56RightNull => "Case 5+6: right-left null uncle",
-            Self::Case56LeftBlack => "Case 5+6: left-right black uncle",
-            Self::Case56RightBlack => "Case 5+6: right-left black uncle",
             Self::Case6GgpLeftLeft => "Case 6: GGP non-null, LL GP-left",
             Self::Case6GgpLeftRight => "Case 6: GGP non-null, LL GP-right",
             Self::Case6GgpRightRight => "Case 6: GGP non-null, RR GP-right",
@@ -903,52 +900,56 @@ impl TestCase for InsertCase {
 
             // ----- Case 2+1: red uncle, propagate to black ancestor -----
 
-            // Before: B(20) root, B(10) left of root, R(5) left of 10, R(15) right of 10.
-            // After: B(20), R(10), B(5), B(15), R(1) inserted.
+            // Before: B(20) root, B(10) left with R(5)/R(15), B(25) right.
+            // After: B(20), R(10), B(5)/B(15), B(25), R(1) inserted.
             Self::Case21Left => {
                 let desc = TreeSpec {
                     root: Some(0),
                     top: None,
                     nodes: &[
-                        node(20, B, None, Some(1), None),
+                        node(20, B, None, Some(1), Some(4)),
                         node(10, B, Some(0), Some(2), Some(3)),
                         node(5, R, Some(1), None, None),
                         node(15, R, Some(1), None, None),
+                        node(25, B, Some(0), None, None),
                     ],
                 };
                 let exp = TreeSpec {
                     root: Some(0),
                     top: None,
                     nodes: &[
-                        node(20, B, None, Some(1), None),
+                        node(20, B, None, Some(1), Some(4)),
                         node(10, R, Some(0), Some(2), Some(3)),
-                        node(5, B, Some(1), Some(4), None),
+                        node(5, B, Some(1), Some(5), None),
                         node(15, B, Some(1), None, None),
+                        node(25, B, Some(0), None, None),
                         node(1, R, Some(2), None, None),
                     ],
                 };
                 run_success(lang, &desc, 1, &exp)
             }
-            // Mirror: B(2) root, B(10) right of root, R(5) left of 10, R(15) right of 10.
+            // Mirror: B(2) root, B(1) left, B(10) right with R(5)/R(15).
             Self::Case21Right => {
                 let desc = TreeSpec {
                     root: Some(0),
                     top: None,
                     nodes: &[
-                        node(2, B, None, None, Some(1)),
+                        node(2, B, None, Some(4), Some(1)),
                         node(10, B, Some(0), Some(2), Some(3)),
                         node(5, R, Some(1), None, None),
                         node(15, R, Some(1), None, None),
+                        node(1, B, Some(0), None, None),
                     ],
                 };
                 let exp = TreeSpec {
                     root: Some(0),
                     top: None,
                     nodes: &[
-                        node(2, B, None, None, Some(1)),
+                        node(2, B, None, Some(4), Some(1)),
                         node(10, R, Some(0), Some(2), Some(3)),
                         node(5, B, Some(1), None, None),
-                        node(15, B, Some(1), None, Some(4)),
+                        node(15, B, Some(1), None, Some(5)),
+                        node(1, B, Some(0), None, None),
                         node(20, R, Some(3), None, None).val(1),
                     ],
                 };
@@ -1001,55 +1002,6 @@ impl TestCase for InsertCase {
                 };
                 run_success(lang, &desc, 20, &exp)
             }
-            // Left-left, black uncle: B(10) root, R(5) left, B(15) right, insert 1.
-            // After: B(5) new root, R(1) left, R(10) right with B(15) as 10's right.
-            Self::Case6LeftBlack => {
-                let desc = TreeSpec {
-                    root: Some(0),
-                    top: None,
-                    nodes: &[
-                        node(10, B, None, Some(1), Some(2)),
-                        node(5, R, Some(0), None, None),
-                        node(15, B, Some(0), None, None),
-                    ],
-                };
-                let exp = TreeSpec {
-                    root: Some(1),
-                    top: None,
-                    nodes: &[
-                        node(10, R, Some(1), None, Some(2)),
-                        node(5, B, None, Some(3), Some(0)),
-                        node(15, B, Some(0), None, None),
-                        node(1, R, Some(1), None, None),
-                    ],
-                };
-                run_success(lang, &desc, 1, &exp)
-            }
-            // Right-right, black uncle: B(10) root, B(5) left, R(15) right, insert 20.
-            // After: B(15) new root, R(10) left with B(5) as 10's left, R(20) right.
-            Self::Case6RightBlack => {
-                let desc = TreeSpec {
-                    root: Some(0),
-                    top: None,
-                    nodes: &[
-                        node(10, B, None, Some(1), Some(2)),
-                        node(5, B, Some(0), None, None),
-                        node(15, R, Some(0), None, None),
-                    ],
-                };
-                let exp = TreeSpec {
-                    root: Some(2),
-                    top: None,
-                    nodes: &[
-                        node(10, R, Some(2), Some(1), None),
-                        node(5, B, Some(0), None, None),
-                        node(15, B, None, Some(0), Some(3)),
-                        node(20, R, Some(2), None, None).val(1),
-                    ],
-                };
-                run_success(lang, &desc, 20, &exp)
-            }
-
             // ----- Case 5+6: double rotation (inner child) -----
 
             // Left-right, null uncle: B(10) root, R(5) left, insert 7.
@@ -1096,55 +1048,6 @@ impl TestCase for InsertCase {
                 };
                 run_success(lang, &desc, 12, &exp)
             }
-            // Left-right, black uncle: B(10) root, R(5) left, B(15) right, insert 7.
-            // After: B(7) new root, R(5) left, R(10) right with B(15) as 10's right.
-            Self::Case56LeftBlack => {
-                let desc = TreeSpec {
-                    root: Some(0),
-                    top: None,
-                    nodes: &[
-                        node(10, B, None, Some(1), Some(2)),
-                        node(5, R, Some(0), None, None),
-                        node(15, B, Some(0), None, None),
-                    ],
-                };
-                let exp = TreeSpec {
-                    root: Some(3),
-                    top: None,
-                    nodes: &[
-                        node(10, R, Some(3), None, Some(2)),
-                        node(5, R, Some(3), None, None),
-                        node(15, B, Some(0), None, None),
-                        node(7, B, None, Some(1), Some(0)).val(1),
-                    ],
-                };
-                run_success(lang, &desc, 7, &exp)
-            }
-            // Right-left, black uncle: B(10) root, B(5) left, R(15) right, insert 12.
-            // After: B(12) new root, R(10) left with B(5) as 10's left, R(15) right.
-            Self::Case56RightBlack => {
-                let desc = TreeSpec {
-                    root: Some(0),
-                    top: None,
-                    nodes: &[
-                        node(10, B, None, Some(1), Some(2)),
-                        node(5, B, Some(0), None, None),
-                        node(15, R, Some(0), None, None),
-                    ],
-                };
-                let exp = TreeSpec {
-                    root: Some(3),
-                    top: None,
-                    nodes: &[
-                        node(10, R, Some(3), Some(1), None),
-                        node(5, B, Some(0), None, None),
-                        node(15, R, Some(3), None, None),
-                        node(12, B, None, Some(0), Some(2)).val(1),
-                    ],
-                };
-                run_success(lang, &desc, 12, &exp)
-            }
-
             // ----- Case 6: non-null great-grandparent -----
 
             // LL, GP is left child of GGP. Insert 1.
@@ -1424,6 +1327,13 @@ fn run_multi_insert(lang: ProgramLanguage, steps: &[MultiInsertStep]) -> CaseRes
     let mut total_cu = 0u64;
 
     for (i, step) in steps.iter().enumerate() {
+        if let Err(e) = assert_invariants(&step.expected) {
+            return CaseResult {
+                cu: 0,
+                error: Some(format!("step {} (key={}) exp invariant: {}", i, step.key, e)),
+            };
+        }
+
         let insn_data = InsertInstruction {
             header: InstructionHeader {
                 discriminator: TreeInstruction::Insert as u8,

@@ -231,13 +231,13 @@ the successor instead.
 Before:
   Header: root=N0  top=--  next=--
   N0: B key=10  parent=--  L=N1  R=N2
-  N1: B key=5   parent=N0  L=--  R=--
+  N1: R key=5   parent=N0  L=--  R=--
   N2: R key=15  parent=N0  L=--  R=--
 
 After remove key=10 (returns value=10):
   Header: root=N0  top=N2  next=--
   N0: B key=15 val=15  parent=--  L=N1  R=--  <- copied from successor
-  N1: B key=5   parent=N0  L=--  R=--
+  N1: R key=5   parent=N0  L=--  R=--
   N2: key=15 color=R  parent=--  L=--  R=--   <- freed (was successor)
 ```
 
@@ -368,34 +368,51 @@ After:
 The rotation transfers sibling's child on the `dir` side to
 parent. When that child is non-null, it must be reparented.
 
-Dir_l variant (remove key=3):
+The sibling must have both children non-null: the distant nephew
+is RED (triggering case 6) and the close nephew is the new_child
+that gets transferred. For a valid RBT with a black leaf on one
+side and sibling bh=1 on the other, the sibling has two RED
+children (both bh=0).
+
+Dir_l variant (remove key=5):
 
 ```text
 Before:
   Header: root=N0  top=--  next=--
   N0: B key=10  parent=--  L=N1  R=N2
-  N1: B key=5   parent=N0  L=N4  R=--
-  N2: B key=20  parent=N0  L=N3  R=N5
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: B key=20  parent=N0  L=N3  R=N4
   N3: R key=15  parent=N2  L=--  R=--
-  N4: B key=3   parent=N1  L=--  R=--
-  N5: R key=25  parent=N2  L=--  R=--
+  N4: R key=25  parent=N2  L=--  R=--
 
-After remove key=5 (successor swap: N1 gets key=3 from N4,
-then delete N4 which is a black leaf):
-  Header: root=N0  top=N4  next=--
-  N0: B key=10  parent=N2  L=N1  R=N3   <- reparented
-  N1: B key=3   parent=N0  L=--  R=--   <- copied from successor
-  N2: B key=20  parent=--  L=N0  R=N5   <- new root
-  N3: B key=15  parent=N0  L=--  R=--   <- reparented, recolored B
-  N4: key=3 color=B  parent=--  L=--  R=--   <- freed
-  N5: B key=25  parent=N2  L=--  R=--   <- recolored B
+After:
+  Header: root=N2  top=N1  next=--
+  N0: B key=10  parent=N2  L=--  R=N3   <- R=N3 (new_child)
+  N1: key=5 color=B  parent=--  L=--  R=--   <- freed
+  N2: B key=20  parent=--  L=N0  R=N4   <- new root
+  N3: R key=15  parent=N0  L=--  R=--   <- reparented to N0
+  N4: B key=25  parent=N2  L=--  R=--   <- recolored B
 ```
 
-Wait -- this case is getting complex because it also involves a
-successor swap. A cleaner test isolates the rotation by removing
-a black leaf directly. Concrete before/after states for non-null
-new_child cases will be determined during implementation when
-exact tree shapes are constructed.
+Dir_r variant (remove key=20):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=N3  R=N4
+  N2: B key=20  parent=N0  L=--  R=--
+  N3: R key=3   parent=N1  L=--  R=--
+  N4: R key=7   parent=N1  L=--  R=--
+
+After:
+  Header: root=N1  top=N2  next=--
+  N0: B key=10  parent=N1  L=N4  R=--   <- L=N4 (new_child)
+  N1: B key=5   parent=--  L=N3  R=N0   <- new root
+  N2: key=20 color=B  parent=--  L=--  R=--   <- freed
+  N3: B key=3   parent=N1  L=--  R=--   <- recolored B
+  N4: R key=7   parent=N0  L=--  R=--   <- reparented to N0
+```
 
 ### Case 5 + 6: close nephew red, distant nephew black
 
@@ -706,6 +723,11 @@ the code path where the rebalanced subtree is not the root.
 Case 2 propagates upward, reaching a position where the distant
 nephew is red. Case 6 rotates and terminates.
 
+The right subtree of the root must have bh=2 (matching the left)
+with a RED distant nephew. This requires B(30) with B(25) left
+and R(35) right, where R(35) has two B leaf children (33, 40),
+giving bh=1 per child path under B(30). Total: 9 nodes.
+
 ```text
 Before:
   Header: root=N0  top=--  next=--
@@ -713,26 +735,33 @@ Before:
   N1: B key=10  parent=N0  L=N2  R=N3
   N2: B key=5   parent=N1  L=--  R=--
   N3: B key=15  parent=N1  L=--  R=--
-  N4: B key=30  parent=N0  L=--  R=N5
-  N5: R key=35  parent=N4  L=--  R=--
+  N4: B key=30  parent=N0  L=N5  R=N6
+  N5: B key=25  parent=N4  L=--  R=--
+  N6: R key=35  parent=N4  L=N7  R=N8
+  N7: B key=33  parent=N6  L=--  R=--
+  N8: B key=40  parent=N6  L=--  R=--
 
 After (remove key=5):
   Header: root=N4  top=N2  next=--
-  N0: B key=20  parent=N4  L=N1  R=--  <- recolored B
+  N0: B key=20  parent=N4  L=N1  R=N5  <- reparented, R=N5
   N1: B key=10  parent=N0  L=--  R=N3
   N2: key=5 color=B  parent=--  L=--  R=--  <- freed
   N3: R key=15  parent=N1  L=--  R=--  <- recolored R (case 2)
-  N4: B key=30  parent=--  L=N0  R=N5 <- new root
-  N5: B key=35  parent=N4  L=--  R=--  <- recolored B
+  N4: B key=30  parent=--  L=N0  R=N6  <- new root
+  N5: B key=25  parent=N0  L=--  R=--  <- reparented to N0
+  N6: B key=35  parent=N4  L=N7  R=N8  <- recolored B
+  N7: B key=33  parent=N6  L=--  R=--
+  N8: B key=40  parent=N6  L=--  R=--
 ```
 
 Trace: N2 is black leaf, dir=L, parent=N1. Sibling N3 BLACK,
 nephews null, parent N1 BLACK -> case 2: `N3.color = RED`,
 `node = N1`, `parent = N0`. Recompute `dir = direction(N1) = L`.
 Sibling = N0.child[R] = N4 (BLACK). Distant nephew =
-N4.child[R] = N5 (RED) -> case 6. Rotate N0 left:
+N4.child[R] = N6 (RED) -> case 6. Rotate N0 left: N5 (B(25))
+reparented from N4.child[L] to N0.child[R].
 `N4.color = N0.color = B`, `N0.color = BLACK`,
-`N5.color = BLACK`.
+`N6.color = BLACK`.
 
 ## Case 6: parent null check variants
 

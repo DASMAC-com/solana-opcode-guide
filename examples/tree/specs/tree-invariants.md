@@ -96,12 +96,23 @@ passes through the same number of black nodes. This count
 (excluding the node itself, including null as black) is the
 node's _black height_. (Wikipedia rule 4.)
 
-### RBT-5: root is black
+### RBT-5: root is black (omitted)
 
-The root of the tree must be black. (This is a consequence of
-RBT-3 applied at the root's parent, which is null/black, but it
-is listed explicitly because some formulations of the red-black
-tree definition include it as a separate rule.)
+From Wikipedia:
+
+> Some authors, e.g. Cormen & al., claim "the root is black" as
+> fifth requirement; but not Mehlhorn & Sanders or Sedgewick &
+> Wayne. Since the root can always be changed from red to black,
+> this rule has little effect on analysis. This article also omits
+> it, because it slightly disturbs the recursive algorithms and
+> proofs.
+
+This invariant is **not checked** by `assert_invariants`. The
+insert algorithm in this codebase follows the Wikipedia
+formulation which omits the root-is-black rule. A red root is
+valid: it does not violate any of the four core rules (RBT-1
+through RBT-4) and does not affect the structural correctness of
+the tree.
 
 ### RBT-C: one-child corollary
 
@@ -167,8 +178,6 @@ The function should verify, given a `TreeSpec`:
 1. **RBT-4 (uniform black depth):** Compute the black height of
    each node recursively. All paths from the root to null must
    yield the same count.
-1. **RBT-5 (root is black):** If root is non-null, its color is
-   `B`.
 1. **RBT-C (one-child corollary):** If a node has exactly one
    child, that child is red.
 1. **FS-1 (stack top):** If `top` is `Some(i)`, then `i` is a
