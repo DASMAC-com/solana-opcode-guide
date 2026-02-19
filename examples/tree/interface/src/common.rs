@@ -273,13 +273,6 @@ pub struct RemoveInstruction {
     pub key: u16,
 }
 
-#[repr(C, packed)]
-/// Value in r0.
-pub struct RemoveReturn {
-    status: u16,
-    value: u16,
-}
-
 constant_group! {
     /// Offsets for instruction processing.
     instruction {
@@ -298,8 +291,6 @@ constant_group! {
         offset!(INSERT_VALUE, InsertInstruction.value),
         /// Key field in remove instruction.
         offset!(REMOVE_KEY, RemoveInstruction.key),
-        /// Status value for successful remove (first non-error code).
-        REMOVE_STATUS_OK: u16 = error::N_CODES as u16,
     }
 }
 
