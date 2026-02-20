@@ -884,7 +884,36 @@ remove:
     jne r9, IB_NON_DUP_MARKER, e_tree_duplicate
     # ANCHOR_END: remove-input-checks
 
+# ANCHOR: remove-search
+remove_search:
+    ldxh r4, [r2 + INSN_REMOVE_KEY_OFF]                                    # r4 = key;
+    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF]                                 # r3 = node = root;
+    jeq r3, NULL, e_key_does_not_exist
+
+remove_search_loop:
+    ldxh r5, [r3 + TREE_NODE_KEY_OFF]                                      # r5 = node.key;
+    jeq r4, r5, remove_found
+    jgt r4, r5, remove_search_r
+
+remove_search_l:
+    ldxdw r3, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r3 = node.child[L];
+    jne r3, NULL, remove_search_loop
     mov64 r0, E_KEY_DOES_NOT_EXIST
+    exit
+
+remove_search_r:
+    ldxdw r3, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r3 = node.child[R];
+    jne r3, NULL, remove_search_loop
+
+e_key_does_not_exist:
+    mov64 r0, E_KEY_DOES_NOT_EXIST
+    exit
+
+remove_found:                                                              # r3 = found node
+# ANCHOR_END: remove-search
+
+    # TODO: successor swap, simple removal, rebalancing, recycle.
+    mov64 r0, 0
     exit
 
 
