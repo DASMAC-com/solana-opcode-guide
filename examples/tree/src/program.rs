@@ -138,6 +138,16 @@ macro_rules! check_cpi_accounts {
     };
 }
 
+macro_rules! remove_recycle_node {
+    ($node:expr, $tree_header:expr) => {
+        (*$node).child[tree::DIR_L] = null_mut();
+        (*$node).child[tree::DIR_R] = null_mut();
+        (*$node).parent = (*$tree_header).top.cast();
+        (*$tree_header).top = $node.cast();
+        return SUCCESS;
+    };
+}
+
 macro_rules! remove_simple_2_child_replace {
     ($node:expr, $child:expr, $tree_header:expr) => {
         let parent = (*$node).parent;
@@ -152,7 +162,7 @@ macro_rules! remove_simple_2_child_replace {
         } else {
             (*$tree_header).root = $child;
         }
-        return SUCCESS;
+        remove_recycle_node!($node, $tree_header);
     };
 }
 
@@ -602,8 +612,12 @@ unsafe fn remove(
                 }
                 successor = left;
             }
-            (*node).key = (*successor).key;
-            (*node).value = (*successor).value;
+            // Copy successor's key/value to the found node as a u32
+            // pair. The successor's fields are left as-is (insert
+            // overwrites both when reusing the node from the stack).
+            let node_kv: *mut u32 = addr_of_mut!((*node).key).cast();
+            let successor_kv: *const u32 = addr_of!((*successor).key).cast();
+            node_kv.write_unaligned(read_unaligned(successor_kv));
             node = successor;
             // ANCHOR_END: remove-simple-1
             // ANCHOR: remove-simple-2
@@ -618,16 +632,27 @@ unsafe fn remove(
         let child = (*node).child[tree::DIR_R];
         remove_simple_2_child_replace!(node, child, tree_header);
         // ANCHOR_END: remove-simple-2
+        // ANCHOR: remove-simple-3
     } else if unlikely((*node).parent.is_null()) {
-        // Simple case 3
-        return SUCCESS;
+        // Simple case 3: root leaf.
+        (*tree_header).root = null_mut();
+        remove_recycle_node!(node, tree_header);
+    // ANCHOR_END: remove-simple-3
+    // ANCHOR: remove-simple-4
     } else if (*node).color == Color::Red {
-        // Simple case 4.
-        return SUCCESS;
-    } else {
-        // Simple case 5.
+        // Simple case 4: red leaf.
+        let parent = (*node).parent;
+        if node == (*parent).child[tree::DIR_R] {
+            (*parent).child[tree::DIR_R] = null_mut();
+        } else {
+            (*parent).child[tree::DIR_L] = null_mut();
+        }
+        remove_recycle_node!(node, tree_header);
+        // ANCHOR_END: remove-simple-4
     };
-    SUCCESS
+    // ANCHOR: remove-complex
+    remove_recycle_node!(node, tree_header);
+    // ANCHOR_END: remove-complex
 }
 
 // ANCHOR: initialize-input-checks

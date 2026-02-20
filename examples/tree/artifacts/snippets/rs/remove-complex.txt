@@ -1,0 +1,1 @@
+    remove_recycle_node!(node, tree_header);

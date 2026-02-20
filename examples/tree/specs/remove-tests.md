@@ -160,17 +160,87 @@ Verbatim from Wikipedia, preceding the rebalancing algorithm:
 
 Mapping to test sections:
 
-- 2-child case → Successor swap tests (#16--#18).
-- 1-child case → Simple case 1 tests (#13--#15).
-- Root leaf → Simple case 2 test (#10).
-- Red leaf → Simple case 3 tests (#11--#12).
-- Black leaf → Rebalancing tests (#19--#42).
+- Simple case 1 (2 children) → Successor swap tests (#17--#19).
+- Simple case 2 (1 child) → Tests #10--#13.
+- Simple case 3 (root leaf) → Test #14.
+- Simple case 4 (red leaf) → Tests #15--#16.
+- Complex case (black leaf) → Rebalancing tests (#20--#43).
 
 ## Simple removal cases
 
 These cases do not trigger rebalancing.
 
-### Simple case 2: remove root leaf
+### Simple case 2: node with one child
+
+A node with exactly one child must be black, and the child must
+be red (RB invariant). Replace the node with its child and
+recolor the child black.
+
+Right child at root (remove key=10):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=--  R=N1
+  N1: R key=15  parent=N0  L=--  R=--
+
+After:
+  Header: root=N1  top=N0  next=--
+  N0: key=10 color=B  parent=--  L=--  R=--   <- freed
+  N1: B key=15  parent=--  L=--  R=--   <- recolored B, new root
+```
+
+Left child at root (remove key=10, child is N1 at L):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=--
+  N1: R key=5   parent=N0  L=--  R=--
+
+After:
+  Header: root=N1  top=N0  next=--
+  N0: key=10 color=B  parent=--  L=--  R=--   <- freed
+  N1: B key=5   parent=--  L=--  R=--   <- recolored B, new root
+```
+
+Non-root right child (remove key=15):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: B key=15  parent=N0  L=--  R=N3
+  N3: R key=20  parent=N2  L=--  R=--
+
+After:
+  Header: root=N0  top=N2  next=--
+  N0: B key=10  parent=--  L=N1  R=N3
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: key=15 color=B  parent=--  L=--  R=--   <- freed
+  N3: B key=20  parent=N0  L=--  R=--   <- recolored B
+```
+
+Non-root left child (remove key=5):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=N3  R=--
+  N2: B key=15  parent=N0  L=--  R=--
+  N3: R key=3   parent=N1  L=--  R=--
+
+After:
+  Header: root=N0  top=N1  next=--
+  N0: B key=10  parent=--  L=N3  R=N2
+  N1: key=5 color=B  parent=--  L=--  R=--   <- freed
+  N2: B key=15  parent=N0  L=--  R=--
+  N3: B key=3   parent=N0  L=--  R=--   <- recolored B
+```
+
+### Simple case 3: remove root leaf
 
 Single-node tree. Root becomes null, node is freed.
 
@@ -186,7 +256,7 @@ After remove key=10 (returns value=10):
 
 `parent` (= `StackNode.next`) is null because the stack was empty.
 
-### Simple case 3: remove red leaf
+### Simple case 4: remove red leaf
 
 Red leaf with a black parent. Detach the leaf.
 
@@ -206,58 +276,6 @@ After:
 
 Right child variant (remove key=15): mirror with N1 as right
 child of N0.
-
-### Simple case 1: node with one child
-
-A node with exactly one child must be black, and the child must
-be red (RB invariant). Replace the node with its child and
-recolor the child black.
-
-Right child variant (remove key=10):
-
-```text
-Before:
-  Header: root=N0  top=--  next=--
-  N0: B key=10  parent=--  L=--  R=N1
-  N1: R key=15  parent=N0  L=--  R=--
-
-After:
-  Header: root=N1  top=N0  next=--
-  N0: key=10 color=B  parent=--  L=--  R=--   <- freed
-  N1: B key=15  parent=--  L=--  R=--   <- recolored B, new root
-```
-
-Left child variant (remove key=10, child is N1 at L):
-
-```text
-Before:
-  Header: root=N0  top=--  next=--
-  N0: B key=10  parent=--  L=N1  R=--
-  N1: R key=5   parent=N0  L=--  R=--
-
-After:
-  Header: root=N1  top=N0  next=--
-  N0: key=10 color=B  parent=--  L=--  R=--   <- freed
-  N1: B key=5   parent=--  L=--  R=--   <- recolored B, new root
-```
-
-Non-root variant (remove key=15):
-
-```text
-Before:
-  Header: root=N0  top=--  next=--
-  N0: B key=10  parent=--  L=N1  R=N2
-  N1: B key=5   parent=N0  L=--  R=--
-  N2: B key=15  parent=N0  L=--  R=N3
-  N3: R key=20  parent=N2  L=--  R=--
-
-After:
-  Header: root=N0  top=N2  next=--
-  N0: B key=10  parent=--  L=N1  R=N3
-  N1: B key=5   parent=N0  L=--  R=--
-  N2: key=15 color=B  parent=--  L=--  R=--   <- freed
-  N3: B key=20  parent=N0  L=--  R=--   <- recolored B
-```
 
 ## Successor swap cases
 
@@ -864,61 +882,57 @@ case 6.
 | 8   | Not found (right) |
 | 9   | Not found (deep)  |
 
-### Simple removal
+### Simple removal (no rebalancing)
 
-| #   | Case                              | Direction |
-| --- | --------------------------------- | --------- |
-| 10  | Root leaf (simple case 2)         | --        |
-| 11  | Red leaf (simple case 3)          | L         |
-| 12  | Red leaf (simple case 3)          | R         |
-| 13  | One child at root (simple case 1) | R child   |
-| 14  | One child at root (simple case 1) | L child   |
-| 15  | One child non-root (sc 1)         | R child   |
+| #   | Case                            | Direction |
+| --- | ------------------------------- | --------- |
+| 10  | One child at root (sc 2)        | R child   |
+| 11  | One child at root (sc 2)        | L child   |
+| 12  | One child non-root (sc 2)       | R child   |
+| 13  | One child non-root (sc 2)       | L child   |
+| 14  | Root leaf (sc 3)                | --        |
+| 15  | Red leaf (sc 4)                 | L         |
+| 16  | Red leaf (sc 4)                 | R         |
+| 17  | Successor immediate R (sc 1)    | --        |
+| 18  | Successor deep L descent (sc 1) | --        |
+| 19  | Successor with R child (sc 1)   | --        |
 
-### Successor swap
-
-| #   | Case                       |
-| --- | -------------------------- |
-| 16  | Immediate right child      |
-| 17  | Deep left descent          |
-| 18  | Successor with right child |
-
-### Rebalancing (black leaf removal)
+### Rebalancing (complex case, black leaf removal)
 
 | #   | Path                          | Dir |
 | --- | ----------------------------- | --- |
-| 19  | Case 4                        | L   |
-| 20  | Case 4                        | R   |
-| 21  | Case 6                        | L   |
-| 22  | Case 6                        | R   |
-| 23  | Case 5 + 6                    | L   |
-| 24  | Case 5 + 6                    | R   |
-| 25  | Case 3 → 4                    | L   |
-| 26  | Case 3 → 4                    | R   |
-| 27  | Case 3 → 6                    | L   |
-| 28  | Case 3 → 6                    | R   |
-| 29  | Case 3 → 5 → 6                | L   |
-| 30  | Case 3 → 5 → 6                | R   |
-| 31  | Case 2 (propagate to root)    | L   |
-| 32  | Case 2 (propagate to root)    | R   |
-| 33  | Case 2 → 4                    | --  |
-| 34  | Case 2 → 6                    | --  |
-| 35  | Case 6 non-null new_child     | L   |
-| 36  | Case 6 non-null new_child     | R   |
-| 37  | Case 6 parent=root            | L   |
-| 38  | Case 6 parent=root            | R   |
-| 39  | Case 6 parent=GGP left child  | L   |
-| 40  | Case 6 parent=GGP right child | R   |
-| 41  | Case 3 parent=root            | L   |
-| 42  | Case 3 parent=root            | R   |
+| 20  | Case 4                        | L   |
+| 21  | Case 4                        | R   |
+| 22  | Case 6                        | L   |
+| 23  | Case 6                        | R   |
+| 24  | Case 5 + 6                    | L   |
+| 25  | Case 5 + 6                    | R   |
+| 26  | Case 3 → 4                    | L   |
+| 27  | Case 3 → 4                    | R   |
+| 28  | Case 3 → 6                    | L   |
+| 29  | Case 3 → 6                    | R   |
+| 30  | Case 3 → 5 → 6                | L   |
+| 31  | Case 3 → 5 → 6                | R   |
+| 32  | Case 2 (propagate to root)    | L   |
+| 33  | Case 2 (propagate to root)    | R   |
+| 34  | Case 2 → 4                    | --  |
+| 35  | Case 2 → 6                    | --  |
+| 36  | Case 6 non-null new_child     | L   |
+| 37  | Case 6 non-null new_child     | R   |
+| 38  | Case 6 parent=root            | L   |
+| 39  | Case 6 parent=root            | R   |
+| 40  | Case 6 parent=GGP left child  | L   |
+| 41  | Case 6 parent=GGP right child | R   |
+| 42  | Case 3 parent=root            | L   |
+| 43  | Case 3 parent=root            | R   |
 
 ### Multi-step integration
 
 | #   | Case                              |
 | --- | --------------------------------- |
-| 43  | Insert 3, remove 1 (minimal)      |
-| 44  | Insert 7, remove all (full cycle) |
-| 45  | Insert-remove-insert (recycling)  |
+| 44  | Insert 3, remove 1 (minimal)      |
+| 45  | Insert 7, remove all (full cycle) |
+| 46  | Insert-remove-insert (recycling)  |
 
 ## Multi-step integration tests
 

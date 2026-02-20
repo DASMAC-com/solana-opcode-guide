@@ -239,15 +239,10 @@ fn test_remove_search() {
     print_comparison_table(remove::RemoveCase::SEARCH_CASES);
 }
 
-// #[test]
-// fn test_remove_simple() {
-//     print_comparison_table(remove::RemoveCase::SIMPLE_CASES);
-// }
-
-// #[test]
-// fn test_remove_successor() {
-//     print_comparison_table(remove::RemoveCase::SUCCESSOR_CASES);
-// }
+#[test]
+fn test_remove_simple() {
+    print_comparison_table(remove::RemoveCase::SIMPLE_CASES);
+}
 
 // #[test]
 // fn test_remove_rebalance() {

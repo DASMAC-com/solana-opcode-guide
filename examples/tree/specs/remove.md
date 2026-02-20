@@ -16,8 +16,8 @@ The implementation proceeds incrementally:
    branch, and input validation for both `tree.s` and `program.rs`.
 1. **Search.** BST key lookup returning the found node or error.
 1. **BST delete preparation and simple removal.** Successor swap,
-   simple cases 1-4.
-1. **Rebalancing.** Simple case 4 fixup loop using
+   simple cases 1--4.
+1. **Rebalancing.** Complex case (black leaf) fixup loop using
    `rotate_subtree`.
 1. **Node recycling and return value.** Free-stack push and
    `RemoveReturn` encoding.
@@ -116,13 +116,13 @@ Verbatim from Wikipedia, preceding the rebalancing algorithm:
 > has no proper child (⇔ only NULL children). In the first
 > iteration, N is replaced by NULL.
 
-Mapping to simple cases and implementation steps:
+Mapping to cases and implementation steps:
 
 - Simple case 1 (2 children) → Step 2 (successor swap).
 - Simple case 2 (1 child) → Step 3.
 - Simple case 3 (root leaf) → Step 3.
 - Simple case 4 (red leaf) → Step 3.
-- Simple case 5 (black leaf) → Step 3 + Step 4 (rebalancing).
+- Complex case (black leaf) → Step 4 (rebalancing).
 
 ### Step 1 -- search
 
@@ -222,7 +222,7 @@ parent.child[direction(node)] = null
 
 No rebalancing needed.
 
-**Simple case 5 -- black leaf** (`node.color == Black`,
+**Complex case -- black leaf** (`node.color == Black`,
 `parent != null`):
 
 Detach the node, then rebalance. The direction must be computed
@@ -235,7 +235,7 @@ parent.child[dir] = null
 # Execute rebalancing with (parent, dir).
 ```
 
-### Step 4 -- rebalancing (simple case 5 only)
+### Step 4 -- rebalancing (complex case only)
 
 Verbatim from Wikipedia, following the rebalancing algorithm:
 
@@ -514,14 +514,14 @@ Sibling is black, `distant_nephew` is red. `new_child` is
 ## Key invariants
 
 - `direction(node)` requires `node.parent` to be non-null. This
-  holds at every call site: simple case 4 guarantees a non-null
+  holds at every call site: the complex case guarantees a non-null
   parent at entry, and the while condition filters null parents on
   re-entry.
 - A node with exactly one child must be black with a red child.
   This follows from red-black tree properties (equal black height
   on all paths).
 - The in-order successor has no left child. It may have a right
-  child, which is handled by simple case 1 after the swap.
+  child, which is handled by simple case 2 after the swap.
 - After case 3 (red sibling rotation), the new sibling is
   `close_nephew` from before the rotation. The algorithm
   reassigns `sibling = close_nephew` before checking nephews.

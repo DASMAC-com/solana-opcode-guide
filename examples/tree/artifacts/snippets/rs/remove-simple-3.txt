@@ -1,0 +1,4 @@
+    } else if unlikely((*node).parent.is_null()) {
+        // Simple case 3: root leaf.
+        (*tree_header).root = null_mut();
+        remove_recycle_node!(node, tree_header);
