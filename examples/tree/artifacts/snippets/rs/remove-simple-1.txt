@@ -1,0 +1,14 @@
+    if !(*node).child[tree::DIR_L].is_null() {
+        if !(*node).child[tree::DIR_R].is_null() {
+            // Simple case 1: successor swap.
+            let mut successor = (*node).child[tree::DIR_R];
+            loop {
+                let left = (*successor).child[tree::DIR_L];
+                if left.is_null() {
+                    break;
+                }
+                successor = left;
+            }
+            (*node).key = (*successor).key;
+            (*node).value = (*successor).value;
+            node = successor;

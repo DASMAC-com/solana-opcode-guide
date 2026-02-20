@@ -1,0 +1,10 @@
+        } else {
+            // Simple case 2: one child (L).
+            let child = (*node).child[tree::DIR_L];
+            remove_simple_2_child_replace!(node, child, tree_header);
+        }
+    };
+    if !(*node).child[tree::DIR_R].is_null() {
+        // Simple case 2: one child (R).
+        let child = (*node).child[tree::DIR_R];
+        remove_simple_2_child_replace!(node, child, tree_header);

@@ -138,6 +138,24 @@ macro_rules! check_cpi_accounts {
     };
 }
 
+macro_rules! remove_simple_2_child_replace {
+    ($node:expr, $child:expr, $tree_header:expr) => {
+        let parent = (*$node).parent;
+        (*$child).parent = parent;
+        (*$child).color = Color::Black;
+        if !parent.is_null() {
+            if $node == (*parent).child[tree::DIR_R] {
+                (*parent).child[tree::DIR_R] = $child;
+            } else {
+                (*parent).child[tree::DIR_L] = $child;
+            }
+        } else {
+            (*$tree_header).root = $child;
+        }
+        return SUCCESS;
+    };
+}
+
 // ANCHOR: entrypoint-branching
 no_allocator!();
 nostd_panic_handler!();
@@ -572,21 +590,35 @@ unsafe fn remove(
     }
     // ANCHOR_END: remove-search
 
-    // ANCHOR: remove-delete-simple-1
-    let parent = (*node).parent;
+    // ANCHOR: remove-simple-1
     if !(*node).child[tree::DIR_L].is_null() {
         if !(*node).child[tree::DIR_R].is_null() {
-            // Simple case 1.
-            // ANCHOR_END: remove-delete-simple-1
+            // Simple case 1: successor swap.
+            let mut successor = (*node).child[tree::DIR_R];
+            loop {
+                let left = (*successor).child[tree::DIR_L];
+                if left.is_null() {
+                    break;
+                }
+                successor = left;
+            }
+            (*node).key = (*successor).key;
+            (*node).value = (*successor).value;
+            node = successor;
+            // ANCHOR_END: remove-simple-1
+            // ANCHOR: remove-simple-2
         } else {
-            // Simple case 2.
-            return SUCCESS;
+            // Simple case 2: one child (L).
+            let child = (*node).child[tree::DIR_L];
+            remove_simple_2_child_replace!(node, child, tree_header);
         }
     };
     if !(*node).child[tree::DIR_R].is_null() {
-        // Simple case 2.
-        return SUCCESS;
-    } else if unlikely(parent.is_null()) {
+        // Simple case 2: one child (R).
+        let child = (*node).child[tree::DIR_R];
+        remove_simple_2_child_replace!(node, child, tree_header);
+        // ANCHOR_END: remove-simple-2
+    } else if unlikely((*node).parent.is_null()) {
         // Simple case 3
         return SUCCESS;
     } else if (*node).color == Color::Red {
