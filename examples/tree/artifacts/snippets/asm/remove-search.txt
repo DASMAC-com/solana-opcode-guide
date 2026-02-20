@@ -1,7 +1,7 @@
 remove_search:
-    ldxh r4, [r2 + INSN_REMOVE_KEY_OFF]                                    # r4 = key;
     ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF]                                 # r3 = node = root;
     jeq r3, NULL, e_key_does_not_exist
+    ldxh r4, [r2 + INSN_REMOVE_KEY_OFF]                                    # r4 = key;
 
 remove_search_loop:
     ldxh r5, [r3 + TREE_NODE_KEY_OFF]                                      # r5 = node.key;

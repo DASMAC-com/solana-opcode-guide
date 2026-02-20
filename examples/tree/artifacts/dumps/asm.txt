@@ -415,9 +415,9 @@ Disassembly of section .text
      363	55 09 28 00 00 00 00 00	if r9 != 0x0 goto +0x28 <entrypoint+0xbb8>
      364	71 19 68 28 00 00 00 00	r9 = *(u8 *)(r1 + 0x2868)
      365	55 09 24 00 ff 00 00 00	if r9 != 0xff goto +0x24 <entrypoint+0xba8>
-     366	69 24 01 00 00 00 00 00	r4 = *(u16 *)(r2 + 0x1)
-     367	79 13 c0 28 00 00 00 00	r3 = *(u64 *)(r1 + 0x28c0)
-     368	15 03 09 00 00 00 00 00	if r3 == 0x0 goto +0x9 <entrypoint+0xae8>
+     366	79 13 c0 28 00 00 00 00	r3 = *(u64 *)(r1 + 0x28c0)
+     367	15 03 0a 00 00 00 00 00	if r3 == 0x0 goto +0xa <entrypoint+0xae8>
+     368	69 24 01 00 00 00 00 00	r4 = *(u16 *)(r2 + 0x1)
      369	69 35 18 00 00 00 00 00	r5 = *(u16 *)(r3 + 0x18)
      370	1d 54 09 00 00 00 00 00	if r4 == r5 goto +0x9 <entrypoint+0xaf8>
      371	2d 54 04 00 00 00 00 00	if r4 > r5 goto +0x4 <entrypoint+0xad8>

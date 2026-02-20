@@ -547,13 +547,13 @@ unsafe fn remove(
 
     // ANCHOR: remove-search
     let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
-    let key = ldxh(instruction_data, instruction::REMOVE_KEY_OFF);
     let mut node = (*tree_header).root;
 
     if node.is_null() {
         return error::KEY_DOES_NOT_EXIST.into();
     }
 
+    let key = ldxh(instruction_data, instruction::REMOVE_KEY_OFF);
     loop {
         let node_key = (*node).key;
         if key > node_key {

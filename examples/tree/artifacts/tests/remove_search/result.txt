@@ -1,12 +1,12 @@
 | Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
 |-----------|-----------|------------|----------|------------|
-| Empty tree | 16 | 16 | +0 | +0.0% |
+| Empty tree | 15 | 16 | +1 | +6.7% |
 | Not found (left) | 21 | 25 | +4 | +19.0% |
 | Not found (right) | 21 | 23 | +2 | +9.5% |
 | Not found (deep) | 26 | 30 | +4 | +15.4% |
 test tests::test_remove_search ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 16 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 15 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xf
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 16 of 1400000 compute units
