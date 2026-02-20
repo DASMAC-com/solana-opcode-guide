@@ -272,7 +272,7 @@ not available in Rust, since the compiler enforces
 
 ::: details Benchmarking
 
-<!-- @include: ../../../examples/tree/artifacts/tests/insert_to_tree/result.txt{1,29} -->
+<!-- @include: ../../../examples/tree/artifacts/tests/insert_to_tree/result.txt{1,25} -->
 
 <!-- @include: ../../../examples/tree/artifacts/tests/multi_insert/result.txt{1,7} -->
 

@@ -124,8 +124,6 @@
 .equ INSN_INSERT_KEY_OFF, 1 # Key field in insert instruction.
 .equ INSN_INSERT_VALUE_OFF, 3 # Value field in insert instruction.
 .equ INSN_REMOVE_KEY_OFF, 1 # Key field in remove instruction.
-# Status value for successful remove (first non-error code).
-.equ INSN_REMOVE_STATUS_OK, 15
 
 # Init stack frame layout.
 # ------------------------

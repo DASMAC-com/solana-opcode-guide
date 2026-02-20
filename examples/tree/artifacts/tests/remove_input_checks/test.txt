@@ -1,0 +1,4 @@
+#[test]
+fn test_remove_input_checks() {
+    print_comparison_table(remove::RemoveCase::INPUT_CASES);
+}

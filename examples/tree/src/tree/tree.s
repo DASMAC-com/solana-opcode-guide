@@ -125,8 +125,6 @@
 .equ INSN_INSERT_KEY_OFF, 1 # Key field in insert instruction.
 .equ INSN_INSERT_VALUE_OFF, 3 # Value field in insert instruction.
 .equ INSN_REMOVE_KEY_OFF, 1 # Key field in remove instruction.
-# Status value for successful remove (first non-error code).
-.equ INSN_REMOVE_STATUS_OK, 15
 
 # Init stack frame layout.
 # ------------------------
@@ -671,7 +669,6 @@ insert_store_key_value_pair:
 # ANCHOR: insert-search
 insert_search:                                                             # r9 = node
     ldxh r4, [r2 + INSN_INSERT_KEY_OFF]                                    # r4 = insn.key;
-    mov64 r2, NULL                                                         # r2 = parent = null;
     ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF]                                 # r3 = cursor = root;
     jeq r3, NULL, insert_root
 
@@ -687,6 +684,7 @@ insert_root:
     # Root is null: new node becomes root.
     # ---------------------------------------------------------------------
     stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
+    mov64 r2, NULL                                                         # r2 = parent = null;
     stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = null;
     stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9                                 # root = node;
     exit

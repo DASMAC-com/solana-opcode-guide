@@ -1,15 +1,15 @@
     let key = ldxh(instruction_data, instruction::INSERT_KEY_OFF);
-    let mut parent: *mut TreeNode = null_mut();
     let mut cursor = (*tree_header).root;
 
     // Root is null: new node becomes root.
     if cursor.is_null() {
         (*node).color = Color::Red;
-        (*node).parent = parent;
+        (*node).parent = null_mut();
         (*tree_header).root = node;
         return SUCCESS;
     }
 
+    let mut parent: *mut TreeNode;
     loop {
         parent = cursor;
         let cursor_key = (*cursor).key;

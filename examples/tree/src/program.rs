@@ -301,17 +301,17 @@ unsafe fn insert(
 
     // ANCHOR: insert-search
     let key = ldxh(instruction_data, instruction::INSERT_KEY_OFF);
-    let mut parent: *mut TreeNode = null_mut();
     let mut cursor = (*tree_header).root;
 
     // Root is null: new node becomes root.
     if cursor.is_null() {
         (*node).color = Color::Red;
-        (*node).parent = parent;
+        (*node).parent = null_mut();
         (*tree_header).root = node;
         return SUCCESS;
     }
 
+    let mut parent: *mut TreeNode;
     loop {
         parent = cursor;
         let cursor_key = (*cursor).key;
@@ -545,7 +545,35 @@ unsafe fn remove(
     let _tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
     // ANCHOR_END: remove-input-checks
 
-    error::KEY_DOES_NOT_EXIST.into()
+    // ANCHOR: remove-search
+    let tree_header: *mut TreeHeader = input.add(input_buffer::TREE_DATA_OFF as usize).cast();
+    let key = ldxh(instruction_data, instruction::REMOVE_KEY_OFF);
+    let mut node = (*tree_header).root;
+
+    if node.is_null() {
+        return error::KEY_DOES_NOT_EXIST.into();
+    }
+
+    loop {
+        let node_key = (*node).key;
+        if key > node_key {
+            node = (*node).child[tree::DIR_R];
+            if node.is_null() {
+                return error::KEY_DOES_NOT_EXIST.into();
+            }
+        } else if key < node_key {
+            node = (*node).child[tree::DIR_L];
+            if node.is_null() {
+                return error::KEY_DOES_NOT_EXIST.into();
+            }
+        } else {
+            break;
+        }
+    }
+    // ANCHOR_END: remove-search
+
+    // TODO: successor swap, simple removal, rebalancing, recycle.
+    0
 }
 
 // ANCHOR: initialize-input-checks

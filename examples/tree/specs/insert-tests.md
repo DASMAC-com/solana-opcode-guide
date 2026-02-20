@@ -216,22 +216,13 @@ After:
   N2: R key=1   parent=N1  L=--  R=--   <- inserted
 ```
 
-Left-left, black uncle variant (insert key=1):
-
-```text
-Before:
-  Header: root=N0  top=N3  next=<end>
-  N0: B key=10  parent=--  L=N1  R=N2
-  N1: R key=5   parent=N0  L=--  R=--
-  N2: B key=15  parent=N0  L=--  R=--
-
-After:
-  Header: root=N1  top=--  next=<end>
-  N0: R key=10  parent=N1  L=--  R=N2   <- recolored R
-  N1: B key=5   parent=--  L=N3  R=N0   <- recolored B, new root
-  N2: B key=15  parent=N0  L=--  R=--
-  N3: R key=1   parent=N1  L=--  R=--   <- inserted
-```
+A non-null black uncle at the same depth as a null uncle is
+impossible in a valid red-black tree. The parent is red (otherwise
+no fixup triggers), so it contributes 0 to the black height. A
+non-null black uncle contributes at least 1. These cannot balance
+(RBT-4 violation). A non-null black uncle only appears after
+case 2 propagation up the tree, which is covered by the case 2+6
+tests below.
 
 Right-right variants: mirror of above (insert key=20, parent is
 R(15), rotation goes left).
@@ -257,22 +248,9 @@ After:
   N2: B key=7   parent=--  L=N1  R=N0   <- inserted, new root
 ```
 
-Left-right, black uncle variant (insert key=7):
-
-```text
-Before:
-  Header: root=N0  top=N3  next=<end>
-  N0: B key=10  parent=--  L=N1  R=N2
-  N1: R key=5   parent=N0  L=--  R=--
-  N2: B key=15  parent=N0  L=--  R=--
-
-After:
-  Header: root=N3  top=--  next=<end>
-  N0: R key=10  parent=N3  L=--  R=N2   <- recolored R
-  N1: R key=5   parent=N3  L=--  R=--
-  N2: B key=15  parent=N0  L=--  R=--
-  N3: B key=7   parent=--  L=N1  R=N0   <- inserted, new root
-```
+As with case 6 above, a non-null black uncle at the same depth
+is impossible in a valid red-black tree (RBT-4). Case 2+5+6
+tests cover the non-null black uncle scenario via propagation.
 
 Right-left variants: mirror of above (insert key=12, parent is
 R(15), double rotation goes right then left).
