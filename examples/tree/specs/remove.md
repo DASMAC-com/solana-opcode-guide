@@ -84,6 +84,46 @@ two-account path).
 1. Recycle the removed node to the free stack.
 1. Return `RemoveReturn { value, REMOVE_STATUS_OK }`.
 
+### Wikipedia reference -- simple cases
+
+Verbatim from Wikipedia, preceding the rebalancing algorithm:
+
+> When the deleted node has 2 children (non-NULL), then we can
+> swap its value with its in-order successor (the leftmost child
+> of the right subtree), and then delete the successor instead.
+> Since the successor is leftmost, it can only have a right
+> child (non-NULL) or no child at all.
+>
+> When the deleted node has only 1 child (non-NULL). In this
+> case, just replace the node with its child, and color it
+> black. The single child (non-NULL) must be red according to
+> conclusion 5, and the deleted node must be black according to
+> requirement 3.
+>
+> When the deleted node has no children (both NULL) and is the
+> root, replace it with NULL. The tree is empty.
+>
+> When the deleted node has no children (both NULL), and is red,
+> simply remove the leaf node.
+>
+> When the deleted node has no children (both NULL), and is
+> black, deleting it will create an imbalance, and requires a
+> rebalance, as covered in the next section.
+>
+> **Removal of a black non-root leaf**
+>
+> The complex case is when N is not the root, colored black and
+> has no proper child (⇔ only NULL children). In the first
+> iteration, N is replaced by NULL.
+
+Mapping to implementation steps:
+
+- 2-child case → Step 2 (successor swap).
+- 1-child case → Step 3, simple case 1.
+- Root leaf → Step 3, simple case 2.
+- Red leaf → Step 3, simple case 3.
+- Black leaf → Step 3, simple case 4 + Step 4 (rebalancing).
+
 ### Step 1 -- search
 
 Based on the insert search pattern but without inlined fixup
@@ -194,6 +234,24 @@ parent.child[dir] = null
 ```
 
 ### Step 4 -- rebalancing (simple case 4 only)
+
+Verbatim from Wikipedia, following the rebalancing algorithm:
+
+> The rebalancing loop of the delete operation has the following
+> invariant:
+>
+> At the beginning of each iteration the black height of N
+> equals the iteration number minus one, which means that in the
+> first iteration it is zero and that N is a true black node in
+> higher iterations.
+>
+> The number of black nodes on the paths through N is one less
+> than before the deletion, whereas it is unchanged on all other
+> paths, so that there is a black-violation at P if other paths
+> exist.
+>
+> All other properties (including requirement 3) are satisfied
+> throughout the tree.
 
 Entry: `parent` is the former parent of the removed node, `dir` is
 the direction of the removed node relative to `parent`.
