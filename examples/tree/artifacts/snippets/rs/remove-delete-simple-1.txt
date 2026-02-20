@@ -1,0 +1,4 @@
+    let parent = (*node).parent;
+    if !(*node).child[tree::DIR_L].is_null() {
+        if !(*node).child[tree::DIR_R].is_null() {
+            // Simple case 1.

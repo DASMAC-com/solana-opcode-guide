@@ -116,13 +116,13 @@ Verbatim from Wikipedia, preceding the rebalancing algorithm:
 > has no proper child (⇔ only NULL children). In the first
 > iteration, N is replaced by NULL.
 
-Mapping to implementation steps:
+Mapping to simple cases and implementation steps:
 
-- 2-child case → Step 2 (successor swap).
-- 1-child case → Step 3, simple case 1.
-- Root leaf → Step 3, simple case 2.
-- Red leaf → Step 3, simple case 3.
-- Black leaf → Step 3, simple case 4 + Step 4 (rebalancing).
+- Simple case 1 (2 children) → Step 2 (successor swap).
+- Simple case 2 (1 child) → Step 3.
+- Simple case 3 (root leaf) → Step 3.
+- Simple case 4 (red leaf) → Step 3.
+- Simple case 5 (black leaf) → Step 3 + Step 4 (rebalancing).
 
 ### Step 1 -- search
 
@@ -162,10 +162,12 @@ remove_found:
 Rust uses the existing `search()` function, which has the same
 logic in compact form.
 
-### Step 2 -- BST delete preparation
+### Step 2 -- BST delete preparation (simple case 1)
 
-If `node` has two non-null children, find the in-order successor
-(leftmost node in the right subtree) and copy its data:
+**Simple case 1 -- two children** (both children non-null):
+
+Find the in-order successor (leftmost node in the right subtree)
+and copy its data:
 
 ```text
 successor = node.child[R]
@@ -186,7 +188,7 @@ If `node` originally had zero or one child, this step is skipped.
 Let `child` be the non-null child of `node` (or null if `node` is
 a leaf), and `parent = node.parent`.
 
-**Simple case 1 -- one child** (`child != null`):
+**Simple case 2 -- one child** (`child != null`):
 
 In a valid red-black tree, a node with exactly one child must be
 black, and the child must be red. Replace node with child and
@@ -203,7 +205,7 @@ child.color = Black
 
 No rebalancing needed.
 
-**Simple case 2 -- root leaf** (`parent == null`, no children):
+**Simple case 3 -- root leaf** (`parent == null`, no children):
 
 ```text
 tree.root = null
@@ -211,7 +213,7 @@ tree.root = null
 
 No rebalancing needed.
 
-**Simple case 3 -- red leaf** (`node.color == Red`,
+**Simple case 4 -- red leaf** (`node.color == Red`,
 `parent != null`):
 
 ```text
@@ -220,7 +222,7 @@ parent.child[direction(node)] = null
 
 No rebalancing needed.
 
-**Simple case 4 -- black leaf** (`node.color == Black`,
+**Simple case 5 -- black leaf** (`node.color == Black`,
 `parent != null`):
 
 Detach the node, then rebalance. The direction must be computed
@@ -233,7 +235,7 @@ parent.child[dir] = null
 # Execute rebalancing with (parent, dir).
 ```
 
-### Step 4 -- rebalancing (simple case 4 only)
+### Step 4 -- rebalancing (simple case 5 only)
 
 Verbatim from Wikipedia, following the rebalancing algorithm:
 

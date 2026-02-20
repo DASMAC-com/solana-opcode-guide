@@ -572,8 +572,30 @@ unsafe fn remove(
     }
     // ANCHOR_END: remove-search
 
-    // TODO: successor swap, simple removal, rebalancing, recycle.
-    0
+    // ANCHOR: remove-delete-simple-1
+    let parent = (*node).parent;
+    if !(*node).child[tree::DIR_L].is_null() {
+        if !(*node).child[tree::DIR_R].is_null() {
+            // Simple case 1.
+            // ANCHOR_END: remove-delete-simple-1
+        } else {
+            // Simple case 2.
+            return SUCCESS;
+        }
+    };
+    if !(*node).child[tree::DIR_R].is_null() {
+        // Simple case 2.
+        return SUCCESS;
+    } else if unlikely(parent.is_null()) {
+        // Simple case 3
+        return SUCCESS;
+    } else if (*node).color == Color::Red {
+        // Simple case 4.
+        return SUCCESS;
+    } else {
+        // Simple case 5.
+    };
+    SUCCESS
 }
 
 // ANCHOR: initialize-input-checks
