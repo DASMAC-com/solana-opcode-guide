@@ -280,6 +280,52 @@ not available in Rust, since the compiler enforces
 
 <!-- markdownlint-enable MD013 -->
 
+## Remove
+
+### Input checks
+
+::: details Implementations
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/remove-input-checks.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/remove-input-checks.txt{rs} [Rust]
+
+:::
+
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/remove_input_checks/result.txt{1,7} -->
+
+:::
+
+<!-- markdownlint-enable MD013 -->
+
+### Search
+
+::: details Implementations
+
+::: code-group
+
+<!-- markdownlint-disable MD013 -->
+
+<<< ../../../examples/tree/artifacts/snippets/asm/remove-search.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/remove-search.txt{rs} [Rust]
+
+:::
+
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/remove_search/result.txt{1,6} -->
+
+:::
+
+<!-- markdownlint-enable MD013 -->
+
 ## :white_check_mark: All tests
 
 ::: details `tests.rs`
