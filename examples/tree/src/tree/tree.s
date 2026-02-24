@@ -982,7 +982,11 @@ remove_check_simple_4:                                                     # r5 
 
 remove_simple_4_dir_l:
     stdw [r5 + TREE_NODE_CHILD_L_OFF], NULL                                # parent.child[L] = null;
+    ja remove_recycle
 # ANCHOR_END: remove-simple-4
+
+remove_complex:
+    # TODO: complex case (black non-root leaf).
 
 remove_recycle:
     # Recycle node to free stack.
@@ -993,9 +997,6 @@ remove_recycle:
     stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
     stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
     exit
-
-remove_complex:
-    # TODO: complex case (black non-root leaf).
 
 e_instruction_data:
     mov64 r0, E_INSTRUCTION_DATA

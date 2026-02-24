@@ -160,11 +160,11 @@ Verbatim from Wikipedia, preceding the rebalancing algorithm:
 
 Mapping to test sections:
 
-- Simple case 1 (2 children) → Successor swap tests (#17--#19).
-- Simple case 2 (1 child) → Tests #10--#13.
-- Simple case 3 (root leaf) → Test #14.
-- Simple case 4 (red leaf) → Tests #15--#16.
-- Complex case (black leaf) → Rebalancing tests (#20--#43).
+- Simple case 1 (2 children) → Successor swap tests (#19--#21).
+- Simple case 2 (1 child) → Tests #10--#15.
+- Simple case 3 (root leaf) → Test #16.
+- Simple case 4 (red leaf) → Tests #17--#18.
+- Complex case (black leaf) → Rebalancing tests (#22--#45).
 
 ## Simple removal cases
 
@@ -239,6 +239,54 @@ After:
   N2: B key=15  parent=N0  L=--  R=--
   N3: B key=3   parent=N0  L=--  R=--   <- recolored B
 ```
+
+Non-root right child, left position (remove key=5):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=--  R=N3
+  N2: B key=15  parent=N0  L=--  R=--
+  N3: R key=7   parent=N1  L=--  R=--
+
+After:
+  Header: root=N0  top=N1  next=--
+  N0: B key=10  parent=--  L=N3  R=N2
+  N1: key=5 color=B  parent=--  L=--  R=--   <- freed
+  N2: B key=15  parent=N0  L=--  R=--
+  N3: B key=7   parent=N0  L=--  R=--   <- recolored B
+```
+
+Node N1 has only a right child and is the left child of its
+parent. Exercises `parent.child[L] = child` in the R-child call
+site of `remove_simple_2_child_replace` (Rust line 633). In the
+assembly, exercises `remove_simple_2_dir_l` entered via
+`remove_check_child_r`.
+
+Non-root left child, right position (remove key=15):
+
+```text
+Before:
+  Header: root=N0  top=--  next=--
+  N0: B key=10  parent=--  L=N1  R=N2
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: B key=15  parent=N0  L=N3  R=--
+  N3: R key=12  parent=N2  L=--  R=--
+
+After:
+  Header: root=N0  top=N2  next=--
+  N0: B key=10  parent=--  L=N1  R=N3
+  N1: B key=5   parent=N0  L=--  R=--
+  N2: key=15 color=B  parent=--  L=--  R=--   <- freed
+  N3: B key=12  parent=N0  L=--  R=--   <- recolored B
+```
+
+Node N2 has only a left child and is the right child of its
+parent. Exercises `parent.child[R] = child` in the L-child call
+site of `remove_simple_2_child_replace` (Rust line 627). In the
+assembly, exercises `parent.child[R] = child` entered via
+`remove_simple_2_child_l` from the simple-1 L-only branch.
 
 ### Simple case 3: remove root leaf
 
@@ -348,6 +396,57 @@ After remove key=10 (returns value=10):
 
 Successor N2 has one child (N3). Simple case 1: replace N2 with
 N3, recolor N3 black.
+
+## Simple case branch coverage
+
+### Assembly branches (`tree.s`)
+
+Each branch corresponds to a conditional jump in the remove path.
+"Taken/not-taken" refers to the `jeq`/`jne` outcome.
+
+| ID  | Branch                    | Tests         |
+| --- | ------------------------- | ------------- |
+| B1  | found : L==null           | 10,12,14--18  |
+| B2  | found : R==null           | 11,13,15      |
+| B3  | found : both non-null     | 19--21        |
+| B4  | successor : L==null       | 19,21         |
+| B5  | successor : L!=null       | 20            |
+| B6  | check_child_r : R==null   | 14--20        |
+| B7  | check_child_r : R!=null   | 10,12,21      |
+| B8  | simple_2 : parent==null   | 10,11         |
+| B9  | simple_2 : R direction    | 12,15,21      |
+| B10 | simple_2 : L direction    | 13,14         |
+| B11 | simple_3_4 : parent==null | 16            |
+| B12 | simple_3_4 : parent!=null | 17--20        |
+| B13 | simple_4 : color!=RED     | (rebalancing) |
+| B14 | simple_4 : R direction    | 18,19         |
+| B15 | simple_4 : L direction    | 17,20         |
+
+All branches except B13 are exercised by the simple removal
+tests. B13 is the entry to the complex rebalancing case, covered
+by tests #22--#45.
+
+### Rust macro call-site coverage
+
+`remove_simple_2_child_replace!` expands at two call sites,
+producing separate compiled code for each. Full branch coverage
+requires exercising all three parent-direction branches at each
+site.
+
+| Site | Parent dir | Tests  |
+| ---- | ---------- | ------ |
+| L627 | null       | 11     |
+| L627 | R          | 15     |
+| L627 | L          | 13     |
+| R633 | null       | 10     |
+| R633 | R          | 12, 21 |
+| R633 | L          | 14     |
+
+`remove_recycle_node!` is a straight-line macro (no branches)
+called from four sites: both `remove_simple_2_child_replace`
+expansions, simple case 3, and simple case 4. All sites are
+exercised by the simple tests. The free-stack state (empty vs
+non-empty) is covered by tests #46--#48 (multi-step integration).
 
 ## Wikipedia reference -- rebalancing loop invariant
 
@@ -884,55 +983,57 @@ case 6.
 
 ### Simple removal (no rebalancing)
 
-| #   | Case                            | Direction |
-| --- | ------------------------------- | --------- |
-| 10  | One child at root (sc 2)        | R child   |
-| 11  | One child at root (sc 2)        | L child   |
-| 12  | One child non-root (sc 2)       | R child   |
-| 13  | One child non-root (sc 2)       | L child   |
-| 14  | Root leaf (sc 3)                | --        |
-| 15  | Red leaf (sc 4)                 | L         |
-| 16  | Red leaf (sc 4)                 | R         |
-| 17  | Successor immediate R (sc 1)    | --        |
-| 18  | Successor deep L descent (sc 1) | --        |
-| 19  | Successor with R child (sc 1)   | --        |
+| #   | Case                            | Direction      |
+| --- | ------------------------------- | -------------- |
+| 10  | One child at root (sc 2)        | R child        |
+| 11  | One child at root (sc 2)        | L child        |
+| 12  | One child non-root (sc 2)       | R child, R pos |
+| 13  | One child non-root (sc 2)       | L child, L pos |
+| 14  | One child non-root (sc 2)       | R child, L pos |
+| 15  | One child non-root (sc 2)       | L child, R pos |
+| 16  | Root leaf (sc 3)                | --             |
+| 17  | Red leaf (sc 4)                 | L              |
+| 18  | Red leaf (sc 4)                 | R              |
+| 19  | Successor immediate R (sc 1)    | --             |
+| 20  | Successor deep L descent (sc 1) | --             |
+| 21  | Successor with R child (sc 1)   | --             |
 
 ### Rebalancing (complex case, black leaf removal)
 
 | #   | Path                          | Dir |
 | --- | ----------------------------- | --- |
-| 20  | Case 4                        | L   |
-| 21  | Case 4                        | R   |
-| 22  | Case 6                        | L   |
-| 23  | Case 6                        | R   |
-| 24  | Case 5 + 6                    | L   |
-| 25  | Case 5 + 6                    | R   |
-| 26  | Case 3 → 4                    | L   |
-| 27  | Case 3 → 4                    | R   |
-| 28  | Case 3 → 6                    | L   |
-| 29  | Case 3 → 6                    | R   |
-| 30  | Case 3 → 5 → 6                | L   |
-| 31  | Case 3 → 5 → 6                | R   |
-| 32  | Case 2 (propagate to root)    | L   |
-| 33  | Case 2 (propagate to root)    | R   |
-| 34  | Case 2 → 4                    | --  |
-| 35  | Case 2 → 6                    | --  |
-| 36  | Case 6 non-null new_child     | L   |
-| 37  | Case 6 non-null new_child     | R   |
-| 38  | Case 6 parent=root            | L   |
-| 39  | Case 6 parent=root            | R   |
-| 40  | Case 6 parent=GGP left child  | L   |
-| 41  | Case 6 parent=GGP right child | R   |
-| 42  | Case 3 parent=root            | L   |
-| 43  | Case 3 parent=root            | R   |
+| 22  | Case 4                        | L   |
+| 23  | Case 4                        | R   |
+| 24  | Case 6                        | L   |
+| 25  | Case 6                        | R   |
+| 26  | Case 5 + 6                    | L   |
+| 27  | Case 5 + 6                    | R   |
+| 28  | Case 3 → 4                    | L   |
+| 29  | Case 3 → 4                    | R   |
+| 30  | Case 3 → 6                    | L   |
+| 31  | Case 3 → 6                    | R   |
+| 32  | Case 3 → 5 → 6                | L   |
+| 33  | Case 3 → 5 → 6                | R   |
+| 34  | Case 2 (propagate to root)    | L   |
+| 35  | Case 2 (propagate to root)    | R   |
+| 36  | Case 2 → 4                    | --  |
+| 37  | Case 2 → 6                    | --  |
+| 38  | Case 6 non-null new_child     | L   |
+| 39  | Case 6 non-null new_child     | R   |
+| 40  | Case 6 parent=root            | L   |
+| 41  | Case 6 parent=root            | R   |
+| 42  | Case 6 parent=GGP left child  | L   |
+| 43  | Case 6 parent=GGP right child | R   |
+| 44  | Case 3 parent=root            | L   |
+| 45  | Case 3 parent=root            | R   |
 
 ### Multi-step integration
 
 | #   | Case                              |
 | --- | --------------------------------- |
-| 44  | Insert 3, remove 1 (minimal)      |
-| 45  | Insert 7, remove all (full cycle) |
-| 46  | Insert-remove-insert (recycling)  |
+| 46  | Insert 3, remove 1 (minimal)      |
+| 47  | Insert 7, remove all (full cycle) |
+| 48  | Insert-remove-insert (recycling)  |
 
 ## Multi-step integration tests
 
