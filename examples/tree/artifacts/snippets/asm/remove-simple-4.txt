@@ -10,3 +10,4 @@ remove_check_simple_4:                                                     # r5 
 
 remove_simple_4_dir_l:
     stdw [r5 + TREE_NODE_CHILD_L_OFF], NULL                                # parent.child[L] = null;
+    ja remove_recycle

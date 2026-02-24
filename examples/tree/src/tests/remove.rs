@@ -250,7 +250,7 @@ pub(super) enum RemoveCase {
     SearchNotFoundLeft,
     SearchNotFoundRight,
     SearchNotFoundDeep,
-    // Simple removal (cases 10-15).
+    // Simple removal (cases 10-18).
     SimpleRootLeaf,
     SimpleRedLeafL,
     SimpleRedLeafR,
@@ -258,11 +258,13 @@ pub(super) enum RemoveCase {
     SimpleOneChildRootL,
     SimpleOneChildNonRootR,
     SimpleOneChildNonRootL,
-    // Successor swap (cases 17-19).
+    SimpleOneChildNonRootRL,
+    SimpleOneChildNonRootLR,
+    // Successor swap (cases 19-21).
     SuccessorImmediate,
     SuccessorDeep,
     SuccessorWithChild,
-    // Rebalancing (cases 19-42).
+    // Rebalancing (cases 22-45).
     Case4L,
     Case4R,
     Case6L,
@@ -310,6 +312,8 @@ impl RemoveCase {
         Self::SimpleOneChildRootL,
         Self::SimpleOneChildNonRootR,
         Self::SimpleOneChildNonRootL,
+        Self::SimpleOneChildNonRootRL,
+        Self::SimpleOneChildNonRootLR,
         Self::SimpleRootLeaf,
         Self::SimpleRedLeafL,
         Self::SimpleRedLeafR,
@@ -358,16 +362,18 @@ impl TestCase for RemoveCase {
             Self::SearchNotFoundLeft => "Not found (left)",
             Self::SearchNotFoundRight => "Not found (right)",
             Self::SearchNotFoundDeep => "Not found (deep)",
-            Self::SimpleRootLeaf => "Root leaf (sc 2)",
-            Self::SimpleRedLeafL => "Red leaf L (sc 3)",
-            Self::SimpleRedLeafR => "Red leaf R (sc 3)",
-            Self::SimpleOneChildRootR => "One child root R (sc 1)",
-            Self::SimpleOneChildRootL => "One child root L (sc 1)",
-            Self::SimpleOneChildNonRootR => "One child non-root R (sc 2)",
-            Self::SimpleOneChildNonRootL => "One child non-root L (sc 2)",
-            Self::SuccessorImmediate => "Successor immediate R",
-            Self::SuccessorDeep => "Successor deep L descent",
-            Self::SuccessorWithChild => "Successor with R child",
+            Self::SimpleRootLeaf => "Root leaf (sc 3)",
+            Self::SimpleRedLeafL => "Red leaf L (sc 4)",
+            Self::SimpleRedLeafR => "Red leaf R (sc 4)",
+            Self::SimpleOneChildRootR => "One child root R (sc 2)",
+            Self::SimpleOneChildRootL => "One child root L (sc 2)",
+            Self::SimpleOneChildNonRootR => "One child non-root R,R (sc 2)",
+            Self::SimpleOneChildNonRootL => "One child non-root L,L (sc 2)",
+            Self::SimpleOneChildNonRootRL => "One child non-root R,L (sc 2)",
+            Self::SimpleOneChildNonRootLR => "One child non-root L,R (sc 2)",
+            Self::SuccessorImmediate => "Successor immediate R (sc 1)",
+            Self::SuccessorDeep => "Successor deep L descent (sc 1)",
+            Self::SuccessorWithChild => "Successor with R child (sc 1)",
             Self::Case4L => "Case 4 dir_l",
             Self::Case4R => "Case 4 dir_r",
             Self::Case6L => "Case 6 dir_l",
@@ -494,7 +500,7 @@ impl TestCase for RemoveCase {
 
             // ----- Simple removal -----
 
-            // Simple case 2: remove root leaf.
+            // Simple case 3: root leaf.
             Self::SimpleRootLeaf => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -509,7 +515,7 @@ impl TestCase for RemoveCase {
                 run_remove_success(lang, &desc, 10, &exp)
             }
 
-            // Simple case 3: remove red leaf (left child).
+            // Simple case 4: red leaf (left child).
             Self::SimpleRedLeafL => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -530,7 +536,7 @@ impl TestCase for RemoveCase {
                 run_remove_success(lang, &desc, 5, &exp)
             }
 
-            // Simple case 3: remove red leaf (right child).
+            // Simple case 4: red leaf (right child).
             Self::SimpleRedLeafR => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -551,7 +557,7 @@ impl TestCase for RemoveCase {
                 run_remove_success(lang, &desc, 15, &exp)
             }
 
-            // Simple case 1: one child at root (right child).
+            // Simple case 2: one child at root (right child).
             Self::SimpleOneChildRootR => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -572,7 +578,7 @@ impl TestCase for RemoveCase {
                 run_remove_success(lang, &desc, 10, &exp)
             }
 
-            // Simple case 1: one child at root (left child).
+            // Simple case 2: one child at root (left child).
             Self::SimpleOneChildRootL => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -593,7 +599,7 @@ impl TestCase for RemoveCase {
                 run_remove_success(lang, &desc, 10, &exp)
             }
 
-            // Simple case 1: one child non-root (right child).
+            // Simple case 2: one child non-root (R child, R pos).
             Self::SimpleOneChildNonRootR => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -617,6 +623,7 @@ impl TestCase for RemoveCase {
                 };
                 run_remove_success(lang, &desc, 15, &exp)
             }
+            // Simple case 2: one child non-root (L child, L pos).
             Self::SimpleOneChildNonRootL => {
                 let desc = TreeSpec {
                     root: Some(0),
@@ -641,11 +648,63 @@ impl TestCase for RemoveCase {
                 run_remove_success(lang, &desc, 5, &exp)
             }
 
+            // Simple case 2: one child non-root (R child, L pos).
+            // Node has R child, node is L child of parent.
+            Self::SimpleOneChildNonRootRL => {
+                let desc = TreeSpec {
+                    root: Some(0),
+                    top: None,
+                    nodes: &[
+                        node(10, B, None, Some(1), Some(2)),
+                        node(5, B, Some(0), None, Some(3)),
+                        node(15, B, Some(0), None, None),
+                        node(7, R, Some(1), None, None),
+                    ],
+                };
+                let exp = TreeSpec {
+                    root: Some(0),
+                    top: Some(1),
+                    nodes: &[
+                        node(10, B, None, Some(3), Some(2)),
+                        node(5, B, None, None, None),
+                        node(15, B, Some(0), None, None),
+                        node(7, B, Some(0), None, None),
+                    ],
+                };
+                run_remove_success(lang, &desc, 5, &exp)
+            }
+
+            // Simple case 2: one child non-root (L child, R pos).
+            // Node has L child, node is R child of parent.
+            Self::SimpleOneChildNonRootLR => {
+                let desc = TreeSpec {
+                    root: Some(0),
+                    top: None,
+                    nodes: &[
+                        node(10, B, None, Some(1), Some(2)),
+                        node(5, B, Some(0), None, None),
+                        node(15, B, Some(0), Some(3), None),
+                        node(12, R, Some(2), None, None),
+                    ],
+                };
+                let exp = TreeSpec {
+                    root: Some(0),
+                    top: Some(2),
+                    nodes: &[
+                        node(10, B, None, Some(1), Some(3)),
+                        node(5, B, Some(0), None, None),
+                        node(15, B, None, None, None),
+                        node(12, B, Some(0), None, None),
+                    ],
+                };
+                run_remove_success(lang, &desc, 15, &exp)
+            }
+
             // ----- Successor swap -----
 
             // Successor is immediate right child.
             // B(10) with R(5) left, R(15) right. Remove 10: swap with
-            // successor N2(15), then delete N2 (red leaf, simple case 3).
+            // successor N2(15), then delete N2 (red leaf, simple case 4).
             Self::SuccessorImmediate => {
                 let desc = TreeSpec {
                     root: Some(0),
