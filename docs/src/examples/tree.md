@@ -326,6 +326,58 @@ not available in Rust, since the compiler enforces
 
 <!-- markdownlint-enable MD013 -->
 
+### Simple cases
+
+<!-- markdownlint-disable MD013 -->
+
+::: details Simple case 1: successor swap
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/remove-simple-1.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/remove-simple-1.txt{rs} [Rust]
+
+:::
+
+::: details Simple case 2: one-child replacement
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/remove-simple-2.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/remove-simple-2.txt{rs} [Rust]
+
+:::
+
+::: details Simple case 3: root leaf
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/remove-simple-3.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/remove-simple-3.txt{rs} [Rust]
+
+:::
+
+::: details Simple case 4: red leaf
+
+::: code-group
+
+<<< ../../../examples/tree/artifacts/snippets/asm/remove-simple-4.txt{asm} [Assembly]
+
+<<< ../../../examples/tree/artifacts/snippets/rs/remove-simple-4.txt{rs} [Rust]
+
+:::
+
+::: details Benchmarking
+
+<!-- @include: ../../../examples/tree/artifacts/tests/remove_simple/result.txt{1,14} -->
+
+:::
+
+<!-- markdownlint-enable MD013 -->
+
 [ilp]: https://en.wikipedia.org/wiki/Instruction-level_parallelism
 [pda]: https://solana.com/docs/core/pda
 [tail call]: https://en.wikipedia.org/wiki/Tail_call
