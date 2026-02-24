@@ -1,0 +1,20 @@
+remove_found:
+    ldxdw r4, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r4 = node.child[L];
+    jeq r4, NULL, remove_check_child_r
+    ldxdw r5, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r5 = node.child[R];
+    jeq r5, NULL, remove_simple_2_child_l
+
+    # Simple case 1: successor swap.
+    # ---------------------------------------------------------------------
+remove_successor_loop:
+    ldxdw r4, [r5 + TREE_NODE_CHILD_L_OFF]                                 # r4 = successor.child[L];
+    jeq r4, NULL, remove_successor_copy
+    mov64 r5, r4                                                           # successor = left;
+    ja remove_successor_loop
+
+remove_successor_copy:
+    # Copy key/value pair as u32 from successor to found node.
+    # ---------------------------------------------------------------------
+    ldxw r4, [r5 + TREE_NODE_KEY_OFF]                                      # r4 = successor.{key,value};
+    stxw [r3 + TREE_NODE_KEY_OFF], r4                                      # node.{key,value} = r4;
+    mov64 r3, r5                                                           # node = successor;

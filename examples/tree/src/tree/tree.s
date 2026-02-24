@@ -908,14 +908,94 @@ remove_search_r:
 e_key_does_not_exist:
     mov64 r0, E_KEY_DOES_NOT_EXIST
     exit
-
-remove_found:                                                              # r3 = found node
 # ANCHOR_END: remove-search
 
-    # TODO: successor swap, simple removal, rebalancing, recycle.
-    mov64 r0, 0
+# ANCHOR: remove-simple-1
+remove_found:
+    ldxdw r4, [r3 + TREE_NODE_CHILD_L_OFF]                                 # r4 = node.child[L];
+    jeq r4, NULL, remove_check_child_r
+    ldxdw r5, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r5 = node.child[R];
+    jeq r5, NULL, remove_simple_2_child_l
+
+    # Simple case 1: successor swap.
+    # ---------------------------------------------------------------------
+remove_successor_loop:
+    ldxdw r4, [r5 + TREE_NODE_CHILD_L_OFF]                                 # r4 = successor.child[L];
+    jeq r4, NULL, remove_successor_copy
+    mov64 r5, r4                                                           # successor = left;
+    ja remove_successor_loop
+
+remove_successor_copy:
+    # Copy key/value pair as u32 from successor to found node.
+    # ---------------------------------------------------------------------
+    ldxw r4, [r5 + TREE_NODE_KEY_OFF]                                      # r4 = successor.{key,value};
+    stxw [r3 + TREE_NODE_KEY_OFF], r4                                      # node.{key,value} = r4;
+    mov64 r3, r5                                                           # node = successor;
+# ANCHOR_END: remove-simple-1
+
+# ANCHOR: remove-simple-2
+remove_check_child_r:                                                      # r3 = node
+    ldxdw r4, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r4 = node.child[R];
+    jeq r4, NULL, remove_check_simple_3_4
+
+remove_simple_2_child_l:                                                   # r4 = child
+    # Simple case 2: replace node with child, recolor child black.
+    # ---------------------------------------------------------------------
+    ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # r5 = parent;
+    stxdw [r4 + TREE_NODE_PARENT_OFF], r5                                  # child.parent = parent;
+    stb [r4 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # child.color = black;
+    jeq r5, NULL, remove_simple_2_root
+    ldxdw r6, [r5 + TREE_NODE_CHILD_R_OFF]                                 # r6 = parent.child[R];
+    jne r3, r6, remove_simple_2_dir_l
+    stxdw [r5 + TREE_NODE_CHILD_R_OFF], r4                                 # parent.child[R] = child;
+    ja remove_recycle
+
+remove_simple_2_dir_l:
+    stxdw [r5 + TREE_NODE_CHILD_L_OFF], r4                                 # parent.child[L] = child;
+    ja remove_recycle
+
+remove_simple_2_root:
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r4                                 # tree.root = child;
+    ja remove_recycle
+# ANCHOR_END: remove-simple-2
+
+# ANCHOR: remove-simple-3
+remove_check_simple_3_4:                                                   # r3 = node
+    # Simple case 3: root leaf — clear root.
+    # ---------------------------------------------------------------------
+    ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # r5 = parent;
+    jne r5, NULL, remove_check_simple_4
+    stdw [r1 + IB_TREE_DATA_ROOT_OFF], NULL                                # tree.root = null;
+    ja remove_recycle
+# ANCHOR_END: remove-simple-3
+
+# ANCHOR: remove-simple-4
+remove_check_simple_4:                                                     # r5 = parent
+    # Simple case 4: red leaf — detach from parent.
+    # ---------------------------------------------------------------------
+    ldxb r4, [r3 + TREE_NODE_COLOR_OFF]                                    # r4 = node.color;
+    jne r4, TREE_COLOR_R, remove_complex
+    ldxdw r4, [r5 + TREE_NODE_CHILD_R_OFF]                                 # r4 = parent.child[R];
+    jne r3, r4, remove_simple_4_dir_l
+    stdw [r5 + TREE_NODE_CHILD_R_OFF], NULL                                # parent.child[R] = null;
+    ja remove_recycle
+
+remove_simple_4_dir_l:
+    stdw [r5 + TREE_NODE_CHILD_L_OFF], NULL                                # parent.child[L] = null;
+# ANCHOR_END: remove-simple-4
+
+remove_recycle:
+    # Recycle node to free stack.
+    # ---------------------------------------------------------------------
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
     exit
 
+remove_complex:
+    # TODO: complex case (black non-root leaf).
 
 e_instruction_data:
     mov64 r0, E_INSTRUCTION_DATA

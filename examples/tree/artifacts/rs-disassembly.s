@@ -6,12 +6,12 @@ entrypoint:
   ldxdw r3, [r2-8]
   ldxb r5, [r2+0]
   jne r5, 1, jmp_0780
-  jne r3, 5, jmp_0cb0
-  jlt r4, 2, jmp_0cc0
+  jne r3, 5, jmp_0e90
+  jlt r4, 2, jmp_0ea0
   ldxdw r3, [r1+88]
-  jne r3, 0, jmp_0cd0
+  jne r3, 0, jmp_0eb0
   ldxb r3, [r1+10344]
-  jne r3, 255, jmp_0ce0
+  jne r3, 255, jmp_0ec0
   mov64 r6, r1
   add64 r6, 10432
   ldxdw r3, [r1+10440]
@@ -36,7 +36,7 @@ jmp_00b0:
   ja jmp_0120
 
 jmp_00e8:
-  jge r5, r4, jmp_0838
+  jge r5, r4, jmp_0a18
   ldxdw r4, [r2+8]
   jne r4, 0, jmp_00b0
   stxdw [r3+0], r2
@@ -106,7 +106,7 @@ jmp_0268:
   ja jmp_0698
 
 jmp_0278:
-  jne r4, 4, jmp_0828
+  jne r4, 4, jmp_0830
   ldxdw r3, [r1+10424]
   mov64 r5, r3
   add64 r5, 7
@@ -114,11 +114,11 @@ jmp_0278:
   mov64 r4, r1
   add64 r4, r5
   ldxb r5, [r4+20680]
-  jne r5, 255, jmp_0cf0
+  jne r5, 255, jmp_0ed0
   ldxdw r5, [r4+20760]
-  jne r5, 14, jmp_0d00
+  jne r5, 14, jmp_0ee0
   ldxb r5, [r4+31032]
-  jne r5, 255, jmp_0d10
+  jne r5, 255, jmp_0ef0
   mov64 r0, 8
   mov32 r5, 399877894
   hor64 r5, 1364995097
@@ -297,57 +297,143 @@ jmp_0738:
   ja jmp_0238
 
 jmp_0780:
-  jne r5, 2, jmp_0848
-  jne r3, 3, jmp_0cb0
-  jlt r4, 2, jmp_0cc0
+  jne r5, 2, jmp_0a28
+  jne r3, 3, jmp_0e90
+  jlt r4, 2, jmp_0ea0
   ldxdw r3, [r1+88]
-  jne r3, 0, jmp_0cd0
+  jne r3, 0, jmp_0eb0
   ldxb r3, [r1+10344]
-  jne r3, 255, jmp_0ce0
+  jne r3, 255, jmp_0ec0
   mov64 r0, 15
-  ldxdw r1, [r1+10432]
-  jeq r1, 0, jmp_06a8
-  ldxh r2, [r2+1]
+  ldxdw r3, [r1+10432]
+  jeq r3, 0, jmp_06a8
+  ldxh r4, [r2+1]
   ja jmp_07f0
 
 jmp_07e0:
-  ldxdw r1, [r1+16]
-  jeq r1, 0, jmp_06a8
+  ldxdw r3, [r3+16]
+  jeq r3, 0, jmp_06a8
 
 jmp_07f0:
-  ldxh r3, [r1+24]
-  mov64 r4, r2
-  jgt r4, r3, jmp_07e0
-  jge r4, r3, jmp_05f0
-  ldxdw r1, [r1+8]
-  jne r1, 0, jmp_07f0
+  ldxh r5, [r3+24]
+  mov64 r6, r4
+  jgt r6, r5, jmp_07e0
+  ldxdw r2, [r3+8]
+  jge r6, r5, jmp_0840
+  mov64 r3, r2
+  jne r2, 0, jmp_07f0
   ja jmp_06a8
 
-jmp_0828:
+jmp_0830:
   mov64 r0, 13
   ja jmp_06a8
 
-jmp_0838:
+jmp_0840:
+  jeq r2, 0, jmp_0888
+  ldxdw r4, [r3+16]
+  jeq r4, 0, jmp_0928
+
+jmp_0858:
+  mov64 r2, r4
+  ldxdw r4, [r2+8]
+  jne r4, 0, jmp_0858
+  ldxw r4, [r2+24]
+  stxw [r3+24], r4
+  ja jmp_0890
+
+jmp_0888:
+  mov64 r2, r3
+
+jmp_0890:
+  ldxdw r4, [r2+0]
+  mov64 r3, r2
+  add64 r3, 8
+  ldxdw r5, [r2+16]
+  jeq r5, 0, jmp_08f0
+  stxdw [r5+0], r4
+  stb [r5+28], 0
+  jeq r4, 0, jmp_0978
+  ldxdw r0, [r4+16]
+  jeq r2, r0, jmp_0988
+  stxdw [r4+8], r5
+  ja jmp_09e8
+
+jmp_08f0:
+  jeq r4, 0, jmp_0f00
+  ldxb r5, [r2+28]
+  jne r5, 1, jmp_09e8
+  ldxdw r5, [r4+16]
+  jeq r2, r5, jmp_09e0
+  stdw [r4+8], 0
+  ja jmp_09e8
+
+jmp_0928:
+  mov64 r4, r3
+  add64 r4, 8
+  ldxdw r5, [r3+0]
+  stxdw [r2+0], r5
+  stb [r2+28], 0
+  jeq r5, 0, jmp_0998
+  ldxdw r0, [r5+16]
+  jeq r3, r0, jmp_09a8
+  stxdw [r5+8], r2
+  ja jmp_09b0
+
+jmp_0978:
+  stxdw [r1+10432], r5
+  ja jmp_09e8
+
+jmp_0988:
+  stxdw [r4+16], r5
+  ja jmp_09e8
+
+jmp_0998:
+  stxdw [r1+10432], r2
+  ja jmp_09b0
+
+jmp_09a8:
+  stxdw [r5+16], r2
+
+jmp_09b0:
+  stdw [r4+8], 0
+  stdw [r4+0], 0
+  ldxdw r2, [r1+10440]
+  stxdw [r3+0], r2
+  stxdw [r1+10440], r3
+  ja jmp_05f0
+
+jmp_09e0:
+  stdw [r4+16], 0
+
+jmp_09e8:
+  stdw [r3+8], 0
+  stdw [r3+0], 0
+  ldxdw r3, [r1+10440]
+  stxdw [r2+0], r3
+  stxdw [r1+10440], r2
+  ja jmp_05f0
+
+jmp_0a18:
   mov64 r0, 14
   ja jmp_06a8
 
-jmp_0848:
+jmp_0a28:
   mov64 r8, r1
-  jne r5, 0, jmp_0d30
-  jne r3, 1, jmp_0cb0
-  jne r4, 4, jmp_0cc0
+  jne r5, 0, jmp_0f20
+  jne r3, 1, jmp_0e90
+  jne r4, 4, jmp_0ea0
   ldxdw r1, [r8+88]
-  jne r1, 0, jmp_0cd0
+  jne r1, 0, jmp_0eb0
   ldxb r1, [r8+10344]
-  jne r1, 255, jmp_0ce0
+  jne r1, 255, jmp_0ec0
   ldxdw r1, [r8+10424]
-  jne r1, 0, jmp_0d20
+  jne r1, 0, jmp_0f10
   ldxb r1, [r8+20680]
-  jne r1, 255, jmp_0cf0
+  jne r1, 255, jmp_0ed0
   ldxdw r1, [r8+20760]
-  jne r1, 14, jmp_0d00
+  jne r1, 14, jmp_0ee0
   ldxb r1, [r8+31032]
-  jne r1, 255, jmp_0d10
+  jne r1, 255, jmp_0ef0
   mov64 r0, 8
   mov32 r1, 399877894
   hor64 r1, 1364995097
@@ -474,38 +560,42 @@ jmp_0848:
   stxdw [r8+10448], r1
   ja jmp_05f0
 
-jmp_0cb0:
+jmp_0e90:
   mov64 r0, 12
   ja jmp_06a8
 
-jmp_0cc0:
+jmp_0ea0:
   mov64 r0, 1
   ja jmp_06a8
 
-jmp_0cd0:
+jmp_0eb0:
   mov64 r0, 2
   ja jmp_06a8
 
-jmp_0ce0:
+jmp_0ec0:
   mov64 r0, 5
   ja jmp_06a8
 
-jmp_0cf0:
+jmp_0ed0:
   mov64 r0, 6
   ja jmp_06a8
 
-jmp_0d00:
+jmp_0ee0:
   mov64 r0, 4
   ja jmp_06a8
 
-jmp_0d10:
+jmp_0ef0:
   mov64 r0, 7
   ja jmp_06a8
 
-jmp_0d20:
+jmp_0f00:
+  stdw [r1+10432], 0
+  ja jmp_09e8
+
+jmp_0f10:
   mov64 r0, 3
   ja jmp_06a8
 
-jmp_0d30:
+jmp_0f20:
   mov64 r0, 11
   ja jmp_06a8

@@ -21,5 +21,3 @@ remove_search_r:
 e_key_does_not_exist:
     mov64 r0, E_KEY_DOES_NOT_EXIST
     exit
-
-remove_found:                                                              # r3 = found node

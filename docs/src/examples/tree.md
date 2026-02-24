@@ -326,14 +326,6 @@ not available in Rust, since the compiler enforces
 
 <!-- markdownlint-enable MD013 -->
 
-## :white_check_mark: All tests
-
-::: details `tests.rs`
-
-<<< ../../../examples/tree/src/tests.rs{rs:line-numbers}
-
-:::
-
 [ilp]: https://en.wikipedia.org/wiki/Instruction-level_parallelism
 [pda]: https://solana.com/docs/core/pda
 [tail call]: https://en.wikipedia.org/wiki/Tail_call

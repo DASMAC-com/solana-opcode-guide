@@ -1,9 +1,9 @@
 | Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
 |-----------|-----------|------------|----------|------------|
 | Empty tree | 15 | 16 | +1 | +6.7% |
-| Not found (left) | 21 | 25 | +4 | +19.0% |
-| Not found (right) | 21 | 23 | +2 | +9.5% |
-| Not found (deep) | 26 | 30 | +4 | +15.4% |
+| Not found (left) | 21 | 28 | +7 | +33.3% |
+| Not found (right) | 21 | 25 | +4 | +19.0% |
+| Not found (deep) | 26 | 33 | +7 | +26.9% |
 test tests::test_remove_search ... ok
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 15 of 1400000 compute units
@@ -15,17 +15,17 @@ test tests::test_remove_search ... ok
 [ ... DEBUG ... ] Program DASMAC... consumed 21 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xf
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 28 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xf
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 21 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xf
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 23 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 25 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xf
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
 [ ... DEBUG ... ] Program DASMAC... consumed 26 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xf
 [ ... DEBUG ... ] Program DASMAC... invoke [1]
-[ ... DEBUG ... ] Program DASMAC... consumed 30 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... consumed 33 of 1400000 compute units
 [ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xf

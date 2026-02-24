@@ -1,0 +1,7 @@
+remove_check_simple_3_4:                                                   # r3 = node
+    # Simple case 3: root leaf — clear root.
+    # ---------------------------------------------------------------------
+    ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # r5 = parent;
+    jne r5, NULL, remove_check_simple_4
+    stdw [r1 + IB_TREE_DATA_ROOT_OFF], NULL                                # tree.root = null;
+    ja remove_recycle
