@@ -404,23 +404,23 @@ N3, recolor N3 black.
 Each branch corresponds to a conditional jump in the remove path.
 "Taken/not-taken" refers to the `jeq`/`jne` outcome.
 
-| ID  | Branch                    | Tests         |
-| --- | ------------------------- | ------------- |
-| B1  | found : L==null           | 10,12,14--18  |
-| B2  | found : R==null           | 11,13,15      |
-| B3  | found : both non-null     | 19--21        |
-| B4  | successor : L==null       | 19,21         |
-| B5  | successor : L!=null       | 20            |
-| B6  | check_child_r : R==null   | 14--20        |
-| B7  | check_child_r : R!=null   | 10,12,21      |
-| B8  | simple_2 : parent==null   | 10,11         |
-| B9  | simple_2 : R direction    | 12,15,21      |
-| B10 | simple_2 : L direction    | 13,14         |
-| B11 | simple_3_4 : parent==null | 16            |
-| B12 | simple_3_4 : parent!=null | 17--20        |
-| B13 | simple_4 : color!=RED     | (rebalancing) |
-| B14 | simple_4 : R direction    | 18,19         |
-| B15 | simple_4 : L direction    | 17,20         |
+| ID  | Branch                    | Tests             |
+| --- | ------------------------- | ----------------- |
+| B1  | found : L==null           | 10,12,14,16,17,18 |
+| B2  | found : R==null           | 11,13,15          |
+| B3  | found : both non-null     | 19--21            |
+| B4  | successor : L==null       | 19,20,21          |
+| B5  | successor : L!=null       | 20                |
+| B6  | check_child_r : R==null   | 16,17,18,19,20    |
+| B7  | check_child_r : R!=null   | 10,12,14,21       |
+| B8  | simple_2 : parent==null   | 10,11             |
+| B9  | simple_2 : R direction    | 12,15,21          |
+| B10 | simple_2 : L direction    | 13,14             |
+| B11 | simple_3_4 : parent==null | 16                |
+| B12 | simple_3_4 : parent!=null | 17--20            |
+| B13 | simple_4 : color!=RED     | (rebalancing)     |
+| B14 | simple_4 : R direction    | 18,19             |
+| B15 | simple_4 : L direction    | 17,20             |
 
 All branches except B13 are exercised by the simple removal
 tests. B13 is the entry to the complex rebalancing case, covered
@@ -430,23 +430,27 @@ by tests #22--#45.
 
 `remove_simple_2_child_replace!` expands at two call sites,
 producing separate compiled code for each. Full branch coverage
-requires exercising all three parent-direction branches at each
-site.
+requires exercising all three parent-direction branches at both
+sites.
 
-| Site | Parent dir | Tests  |
-| ---- | ---------- | ------ |
-| L627 | null       | 11     |
-| L627 | R          | 15     |
-| L627 | L          | 13     |
-| R633 | null       | 10     |
-| R633 | R          | 12, 21 |
-| R633 | L          | 14     |
+| Site    | Parent dir | Tests  |
+| ------- | ---------- | ------ |
+| L-child | null       | 11     |
+| L-child | R          | 15     |
+| L-child | L          | 13     |
+| R-child | null       | 10     |
+| R-child | R          | 12, 21 |
+| R-child | L          | 14     |
 
 `remove_recycle_node!` is a straight-line macro (no branches)
-called from four sites: both `remove_simple_2_child_replace`
+called from four sites: both `remove_simple_2_child_replace!`
 expansions, simple case 3, and simple case 4. All sites are
-exercised by the simple tests. The free-stack state (empty vs
-non-empty) is covered by tests #46--#48 (multi-step integration).
+exercised by the simple tests.
+
+Any macro used for decomposition must have its call-site
+variants covered by tests. Free-stack state (empty vs
+non-empty) is covered by the multi-step integration tests
+(#46--#48).
 
 ## Wikipedia reference -- rebalancing loop invariant
 

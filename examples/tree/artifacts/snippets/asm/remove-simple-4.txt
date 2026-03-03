@@ -6,8 +6,18 @@ remove_check_simple_4:                                                     # r5 
     ldxdw r4, [r5 + TREE_NODE_CHILD_R_OFF]                                 # r4 = parent.child[R];
     jne r3, r4, remove_simple_4_dir_l
     stdw [r5 + TREE_NODE_CHILD_R_OFF], NULL                                # parent.child[R] = null;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
 
 remove_simple_4_dir_l:
     stdw [r5 + TREE_NODE_CHILD_L_OFF], NULL                                # parent.child[L] = null;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit

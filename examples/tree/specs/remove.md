@@ -425,6 +425,83 @@ value that was associated with the removed key.
   - Inline case 5+6 at each goto site (four sites: two inside
     the red-sibling block, two outside).
 
+## Rust implementation — macro-based decomposition
+
+The Rust remove function uses nested conditional checks with
+macros for code reuse. After finding the node to remove and
+saving `value = node.value`:
+
+- Check if left child exists. If yes, check right child:
+  - Both children present → **simple case 1** (successor swap).
+    Copy key/value from the in-order successor to the found
+    node, then reassign `node = successor`. Fall through to
+    check the successor's right child.
+  - Left child only → **simple case 2** (L-only child). Invoke
+    `remove_simple_2_child_replace!` with
+    `child = node.child[L]`.
+- Check right child (reached when no left child, or after
+  simple case 1):
+  - Right child present → **simple case 3** (R-only child).
+    Invoke `remove_simple_2_child_replace!` with
+    `child = node.child[R]`.
+  - No right child → **simple case 4** (leaf removal). Handle
+    root-leaf, red-leaf, or black-leaf (complex case) inline.
+
+`remove_simple_2_child_replace!` handles child replacement at
+two call sites (one for the L-child case, one for the R-child
+case). Each expansion produces independent compiled code.
+`remove_recycle_node!` handles recycling the removed node at
+each removal path.
+
+This macro-based structure with nested `if/else` produces
+better compiler output than a linear restructure. The compiler
+optimizes each macro expansion independently, producing tighter
+code than a unified block.
+
+## Recycle inlining optimization
+
+The six `ja remove_recycle` jumps in `tree.s` are each inlined with
+the 5-instruction recycle sequence plus `exit`. The
+`remove_recycle:` label is preserved as a reference comment in the
+assembly source.
+
+Rationale: this matches what the Rust compiler already does. The
+Rust `remove()` function has no shared recycle subroutine — each
+removal path inlines the free-stack push and exit. Inlining in
+assembly eliminates six jumps to a shared epilogue, trading code
+size for fewer branch instructions.
+
+The inlined sequence at each site:
+
+- Null both child pointers (`child[L]` and `child[R]`).
+- Load current `tree_header.top`.
+- Set `node.next = old_top` (using the `StackNode.next` overlay at
+  offset 0).
+- Set `tree_header.top = node`.
+- `exit`.
+
+## Child replacement — assembly vs Rust
+
+The assembly uses a single `remove_simple_2_child_l` block for
+both the L-only child path (simple case 2) and the R-only child
+path reached via `remove_check_child_r` (simple case 3). Both
+paths load the child pointer into `r4` before jumping to the
+shared block, regardless of direction. In assembly, explicit
+register management makes a unified block natural.
+
+The Rust intentionally uses two `remove_simple_2_child_replace!`
+call sites rather than a unified block. Each call site handles a
+different direction (L-child vs R-child path), and the compiler
+optimizes each expansion independently. This produces tighter
+code than a single shared block because the compiler can
+specialize each path.
+
+The two approaches achieve equivalent results:
+
+- Assembly: unified block with child pointer in `r4`,
+  direction-agnostic.
+- Rust: separate macro expansions, compiler-optimized per path.
+
 ## Assembly implementation notes
 
 The remove instruction label is added after the insert instruction

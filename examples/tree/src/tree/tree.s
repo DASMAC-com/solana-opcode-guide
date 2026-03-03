@@ -948,15 +948,30 @@ remove_simple_2_child_l:                                                   # r4 
     ldxdw r6, [r5 + TREE_NODE_CHILD_R_OFF]                                 # r6 = parent.child[R];
     jne r3, r6, remove_simple_2_dir_l
     stxdw [r5 + TREE_NODE_CHILD_R_OFF], r4                                 # parent.child[R] = child;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
 
 remove_simple_2_dir_l:
     stxdw [r5 + TREE_NODE_CHILD_L_OFF], r4                                 # parent.child[L] = child;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
 
 remove_simple_2_root:
     stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r4                                 # tree.root = child;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
 # ANCHOR_END: remove-simple-2
 
 # ANCHOR: remove-simple-3
@@ -966,7 +981,12 @@ remove_check_simple_3_4:                                                   # r3 
     ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # r5 = parent;
     jne r5, NULL, remove_check_simple_4
     stdw [r1 + IB_TREE_DATA_ROOT_OFF], NULL                                # tree.root = null;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
 # ANCHOR_END: remove-simple-3
 
 # ANCHOR: remove-simple-4
@@ -978,25 +998,33 @@ remove_check_simple_4:                                                     # r5 
     ldxdw r4, [r5 + TREE_NODE_CHILD_R_OFF]                                 # r4 = parent.child[R];
     jne r3, r4, remove_simple_4_dir_l
     stdw [r5 + TREE_NODE_CHILD_R_OFF], NULL                                # parent.child[R] = null;
-    ja remove_recycle
-
-remove_simple_4_dir_l:
-    stdw [r5 + TREE_NODE_CHILD_L_OFF], NULL                                # parent.child[L] = null;
-    ja remove_recycle
-# ANCHOR_END: remove-simple-4
-
-remove_complex:
-    # TODO: complex case (black non-root leaf).
-
-remove_recycle:
-    # Recycle node to free stack.
-    # ---------------------------------------------------------------------
     stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
     stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
     ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
     stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
     stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
     exit
+
+remove_simple_4_dir_l:
+    stdw [r5 + TREE_NODE_CHILD_L_OFF], NULL                                # parent.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
+# ANCHOR_END: remove-simple-4
+
+remove_complex:
+    # TODO: complex case (black non-root leaf).
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
+
+    # remove_recycle: (inlined at each site above)
 
 e_instruction_data:
     mov64 r0, E_INSTRUCTION_DATA

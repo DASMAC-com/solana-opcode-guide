@@ -12,12 +12,27 @@ remove_simple_2_child_l:                                                   # r4 
     ldxdw r6, [r5 + TREE_NODE_CHILD_R_OFF]                                 # r6 = parent.child[R];
     jne r3, r6, remove_simple_2_dir_l
     stxdw [r5 + TREE_NODE_CHILD_R_OFF], r4                                 # parent.child[R] = child;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
 
 remove_simple_2_dir_l:
     stxdw [r5 + TREE_NODE_CHILD_L_OFF], r4                                 # parent.child[L] = child;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
 
 remove_simple_2_root:
     stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r4                                 # tree.root = child;
-    ja remove_recycle
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
