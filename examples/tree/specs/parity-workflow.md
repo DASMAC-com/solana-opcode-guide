@@ -120,3 +120,21 @@ Stop when one of these conditions holds:
 - The Rust overhead is within acceptable bounds for the use
   case, or further optimization would require restructuring
   that degrades code clarity without meaningful CU improvement.
+
+## CU overhead analysis
+
+Before optimizing, run the CU overhead analysis workflow to
+identify WHERE overhead comes from and prioritize targets. See
+`cu-overhead-analysis.md` for the full methodology.
+
+The analysis pipeline feeds into the optimization loop:
+
+- **Analysis** identifies overhead sources and classifies them
+  (redundant branches, macro duplication, register spills,
+  etc.).
+- **Optimization targets** are ranked by reducible CUs and
+  handed to Engineering.
+- **This parity workflow** drives the iterative optimization
+  cycle on each target.
+- **Analysis re-measures** after each optimization to confirm
+  overhead reduction.
