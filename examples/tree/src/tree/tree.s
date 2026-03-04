@@ -1017,6 +1017,7 @@ remove_simple_4_dir_l:
 
 # ANCHOR: remove-complex
 remove_complex:
+    mov64 r2, r3                                                           # r2 = deleted node (save for recycle);
     ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # r5 = parent;
     ldxdw r4, [r5 + TREE_NODE_CHILD_L_OFF]                                 # r4 = parent.child[L];
     jne r3, r4, remove_complex_dir_r                                       # if node != parent.child[L] goto remove_complex_dir_r
@@ -1075,23 +1076,23 @@ remove_complex_loop_dir_r_case_2:
     ja remove_complex_loop_dir_r                                           # goto remove_complex_loop_dir_r
 remove_complex_case_5_dir_r:
     # rotate_subtree(tree, sibling, 1-dir)
-    stxb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                          # sibling.color = red;
-    stxb [r8 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                          # close_nephew.color = black;
+    stb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # sibling.color = red;
+    stb [r8 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # close_nephew.color = black;
     mov64 r7, r6                                                           # distant_nephew = sibling;
     mov64 r6, r8                                                           # sibling = close_nephew;
 remove_complex_case_6_dir_r:
     # rotate_subtree(tree, parent, dir)
     ldxb r4, [r5 + TREE_NODE_COLOR_OFF]                                    # r4 = parent.color;
     stxb [r6 + TREE_NODE_COLOR_OFF], r4                                    # sibling.color = parent.color;
-    stxb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                          # parent.color = black;
-    stxb [r7 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                          # distant_nephew.color = black;
+    stb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
+    stb [r7 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # distant_nephew.color = black;
     ja remove_complex_recycle_node
 remove_complex_loop_dir_r_sibling_red:
     # Rebalance for red sibling case.
     # ---------------------------------------------------------------------
     # rotate_subtree(tree, parent, dir)
-    stxb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                          # parent.color = red;
-    stxb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                          # sibling.color = black;
+    stb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # parent.color = red;
+    stb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # sibling.color = black;
     mov64 r6, r8                                                           # sibling = close_nephew;
     ldxdw r4, [r6 + TREE_NODE_CHILD_L_OFF]                                 # r4 = sibling.child[L];
     mov64 r7, r4                                                           # distant_nephew = sibling.child[L];
@@ -1105,8 +1106,8 @@ remove_complex_loop_dir_r_sibling_red_check_case_5:
     ldxb r4, [r8 + TREE_NODE_COLOR_OFF]                                    # r4 = close_nephew.color;
     jeq r4, TREE_COLOR_R, remove_complex_case_5_dir_r                      # if close_nephew.color == red goto remove_complex_case_5_dir_r
 remove_complex_loop_dir_r_sibling_red_case_4:
-    stxb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                          # sibling.color = red;
-    stxb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                          # parent.color = black;
+    stb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # sibling.color = red;
+    stb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
     ja remove_complex_recycle_node
 
 remove_complex_loop_dir_l:
@@ -1114,11 +1115,11 @@ remove_complex_loop_dir_l:
     # Needs all the other sub labels for the same cases, but with dir reversed.
 
 remove_complex_recycle_node:
-    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
-    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    stdw [r2 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r2 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
     ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
-    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
-    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    stxdw [r2 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r2                                  # header.top = node;
     exit
 # ANCHOR_END: remove-complex
 
