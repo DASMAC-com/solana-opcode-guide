@@ -9,17 +9,23 @@ example from this guide where it is used, as well as its corresponding
 
 | Opcode hex | Opcode name   | Assembler mnemonic                 | Select example |
 | ---------- | ------------- | ---------------------------------- | -------------- |
+| [`0x05`]   | [`JA`]        | [`ja off`][`0x05`]                 | [Tree]         |
 | [`0x07`]   | [`ADD64_IMM`] | [`add64 dst, imm`][`0x07`]         | [Memo]         |
 | [`0x14`]   | [`SUB32_IMM`] | [`sub32 dst, imm`][`0x14`]         | [Fibonacci]    |
 | [`0x15`]   | [`JEQ_IMM`]   | [`jeq dst, imm, off`][`0x15`]      | [Counter]      |
 | [`0x17`]   | [`SUB64_IMM`] | [`sub64 dst, imm`][`0x17`]         | [Transfer]     |
 | [`0x18`]   | [`LD_DW_IMM`] | [`lddw dst, imm`][`0x18`]          | [Quickstart]   |
+| [`0x1d`]   | [`JEQ_REG`]   | [`jeq dst, src, off`][`0x1d`]      | [Tree]         |
 | [`0x25`]   | [`JGT_IMM`]   | [`jgt dst, imm, off`][`0x25`]      | [Fibonacci]    |
 | [`0x27`]   | [`MUL64_IMM`] | [`mul64 dst, imm`][`0x27`]         | [Counter]      |
+| [`0x2d`]   | [`JGT_REG`]   | [`jgt dst, src, off`][`0x2d`]      | [Tree]         |
 | [`0x55`]   | [`JNE_IMM`]   | [`jne dst, imm, off`][`0x55`]      | [Transfer]     |
 | [`0x57`]   | [`AND64_IMM`] | [`and64 dst, imm`][`0x57`]         | [Counter]      |
 | [`0x5d`]   | [`JNE_REG`]   | [`jne dst, src, off`][`0x5d`]      | [Memo]         |
+| [`0x61`]   | [`LD_W_REG`]  | [`ldxw dst, [src + off]`][`0x61`]  | [Tree]         |
+| [`0x62`]   | [`ST_W_IMM`]  | [`stw [dst + off], imm`][`0x62`]   | [Tree]         |
 | [`0x63`]   | [`ST_W_REG`]  | [`stxw [dst + off], src`][`0x63`]  | [Transfer]     |
+| [`0x69`]   | [`LD_H_REG`]  | [`ldxh dst, [src + off]`][`0x69`]  | [Tree]         |
 | [`0x6a`]   | [`ST_H_IMM`]  | [`sth [dst + off], imm`][`0x6a`]   | [Counter]      |
 | [`0x71`]   | [`LD_B_REG`]  | [`ldxb dst, [src + off]`][`0x71`]  | [Fibonacci]    |
 | [`0x72`]   | [`ST_B_IMM`]  | [`stb [dst + off], imm`][`0x72`]   | [Transfer]     |
@@ -29,6 +35,7 @@ example from this guide where it is used, as well as its corresponding
 | [`0x7b`]   | [`ST_DW_REG`] | [`stxdw [dst + off], src`][`0x7b`] | [Transfer]     |
 | [`0x85`]   | [`CALL_IMM`]  | [`call imm`][`0x85`]               | [Quickstart]   |
 | [`0x95`]   | [`EXIT`]      | [`exit`][`0x95`]                   | [Quickstart]   |
+| [`0xa5`]   | [`JLT_IMM`]   | [`jlt dst, imm, off`][`0xa5`]      | [Tree]         |
 | [`0xad`]   | [`JLT_REG`]   | [`jlt dst, src, off`][`0xad`]      | [Transfer]     |
 | [`0xb4`]   | [`MOV32_IMM`] | [`mov32 dst, imm`][`0xb4`]         | [Fibonacci]    |
 | [`0xb7`]   | [`MOV64_IMM`] | [`mov64 dst, imm`][`0xb7`]         | [Fibonacci]    |
@@ -44,17 +51,24 @@ example from this guide where it is used, as well as its corresponding
 [rust implementation constant name]: https://docs.rs/solana-sbpf/latest/solana_sbpf/ebpf/index.html
 [sbpf bytecode isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md
 [transfer]: ../examples/transfer
+[tree]: ../examples/tree
+[`0x05`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L274
 [`0x07`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L130
 [`0x14`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L87
 [`0x15`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L276
 [`0x17`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L132
 [`0x18`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L222
+[`0x1d`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L277
 [`0x25`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L278
 [`0x27`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L135
+[`0x2d`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L279
 [`0x55`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L284
 [`0x57`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L145
 [`0x5d`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L285
+[`0x61`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L228
+[`0x62`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L237
 [`0x63`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L246
+[`0x69`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L229
 [`0x6a`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L238
 [`0x71`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L230
 [`0x72`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L239
@@ -64,6 +78,7 @@ example from this guide where it is used, as well as its corresponding
 [`0x7b`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L249
 [`0x85`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L290
 [`0x95`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L294
+[`0xa5`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L298
 [`0xad`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L299
 [`0xb4`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L117
 [`0xb7`]: https://github.com/anza-xyz/sbpf/blob/v0.13.1/doc/bytecode.md?plain=1#L161
@@ -72,14 +87,20 @@ example from this guide where it is used, as well as its corresponding
 [`and64_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.AND64_IMM.html
 [`call_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.CALL_IMM.html
 [`exit`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.EXIT.html
+[`ja`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JA.html
 [`jeq_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JEQ_IMM.html
+[`jeq_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JEQ_REG.html
 [`jgt_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JGT_IMM.html
+[`jgt_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JGT_REG.html
+[`jlt_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JLT_IMM.html
 [`jlt_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JLT_REG.html
 [`jne_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_IMM.html
 [`jne_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.JNE_REG.html
 [`ld_b_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_B_REG.html
 [`ld_dw_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_DW_IMM.html
 [`ld_dw_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_DW_REG.html
+[`ld_h_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_H_REG.html
+[`ld_w_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.LD_W_REG.html
 [`mov32_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MOV32_IMM.html
 [`mov64_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MOV64_IMM.html
 [`mov64_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.MOV64_REG.html
@@ -89,6 +110,7 @@ example from this guide where it is used, as well as its corresponding
 [`st_dw_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_DW_IMM.html
 [`st_dw_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_DW_REG.html
 [`st_h_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_H_IMM.html
+[`st_w_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_W_IMM.html
 [`st_w_reg`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.ST_W_REG.html
 [`sub32_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.SUB32_IMM.html
 [`sub64_imm`]: https://docs.rs/solana-sbpf/0.13.1/solana_sbpf/ebpf/constant.SUB64_IMM.html
