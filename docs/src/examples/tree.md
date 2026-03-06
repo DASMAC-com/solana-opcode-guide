@@ -2,7 +2,7 @@
 
 <!-- @include: ./disclaimer.md -->
 
-## Background
+## :bulb: Background
 
 This example implements a [red-black tree][wikipedia tree page] in both
 [SBPF assembly](../index.md) and Rust. Both implementations are compared
@@ -23,7 +23,7 @@ exercise to the reader.
 Note that these data structures rely on direct addressing, which may be broken
 by [ABI v2].
 
-## Build support
+## :building_construction: Build support
 
 Constants, error codes, and C bindings are derived in a shared interface using
 macros, then automatically inserted into the assembly program file at build
@@ -53,7 +53,7 @@ time.
 
 :::
 
-## Entrypoint branching
+## :twisted_rightwards_arrows: Entrypoint branching
 
 The Rust implementation does not use [`pinocchio`] for the entrypoint. Instead,
 it uses C-style bindings with the [`SIMD-0321`] `r2` pointer. Note that the Rust
@@ -78,13 +78,13 @@ greedy [tail call optimizations][tail call].
 
 :::
 
-## Initialize
+## :rocket: Initialize
 
 The initialize operation creates a tree [PDA] for the entire program, then
 invokes a [`CreateAccount` CPI](counter#cpi-construction), with the same
 [fixed costs as in the counter example](counter#compute-unit-analysis).
 
-### Input checks
+### :shield: Input checks
 
 ::: details Implementations
 
@@ -106,7 +106,7 @@ invokes a [`CreateAccount` CPI](counter#cpi-construction), with the same
 
 <!-- markdownlint-enable MD013 -->
 
-### PDA checks
+### :mag: PDA checks
 
 ::: details Implementations
 
@@ -128,7 +128,7 @@ invokes a [`CreateAccount` CPI](counter#cpi-construction), with the same
 
 <!-- markdownlint-enable MD013 -->
 
-### Create account
+### :hammer_and_wrench: Create account
 
 The assembly implementation includes pointer walkthrough optimizations that are
 not available in Rust, since the compiler enforces
@@ -154,9 +154,9 @@ not available in Rust, since the compiler enforces
 
 <!-- markdownlint-enable MD013 -->
 
-## Insert
+## :heavy_plus_sign: Insert
 
-### Input checks
+### :shield: Input checks
 
 ::: details Implementations
 
@@ -178,7 +178,7 @@ not available in Rust, since the compiler enforces
 
 <!-- markdownlint-enable MD013 -->
 
-### Allocate
+### :package: Allocate
 
 See [`AccountView::resize_unchecked`] for reference implementation.
 
@@ -204,7 +204,7 @@ See [`AccountView::resize_unchecked`] for reference implementation.
 
 <!-- markdownlint-enable MD013 -->
 
-### Search
+### :mag_right: Search
 
 ::: details Implementations
 
@@ -226,7 +226,7 @@ See [`AccountView::resize_unchecked`] for reference implementation.
 
 <!-- markdownlint-enable MD013 -->
 
-### Insert fixup
+### :wrench: Insert fixup
 
 <!-- markdownlint-disable MD013 -->
 
@@ -290,9 +290,9 @@ See [`AccountView::resize_unchecked`] for reference implementation.
 
 <!-- markdownlint-enable MD013 -->
 
-## Remove
+## :scissors: Remove
 
-### Input checks
+### :shield: Input checks
 
 ::: details Implementations
 
@@ -314,7 +314,7 @@ See [`AccountView::resize_unchecked`] for reference implementation.
 
 <!-- markdownlint-enable MD013 -->
 
-### Search
+### :mag_right: Search
 
 ::: details Implementations
 
@@ -336,7 +336,7 @@ See [`AccountView::resize_unchecked`] for reference implementation.
 
 <!-- markdownlint-enable MD013 -->
 
-### Simple cases
+### :bookmark_tabs: Simple cases
 
 <!-- markdownlint-disable MD013 -->
 
