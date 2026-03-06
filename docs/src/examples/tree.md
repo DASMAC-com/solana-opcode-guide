@@ -10,11 +10,18 @@ side-by-side with as much implementation parity as possible, using C-style Rust
 (raw pointers, direct [syscalls](../indices/syscalls.md)) to minimize compiler
 overhead.
 
+The example implements a full insertion algorithm and simple removal algorithms
+(no rebalancing on remove). The full remove implementation is left as an
+exercise to the reader.
+
 ::: details Core data structures
 
 <<< ../../../examples/tree/artifacts/snippets/interface/tree-defs-common.txt{rs}
 
 :::
+
+Note that these data structures rely on direct addressing, which may be broken
+by [ABI v2].
 
 ## Build support
 
@@ -172,6 +179,8 @@ not available in Rust, since the compiler enforces
 <!-- markdownlint-enable MD013 -->
 
 ### Allocate
+
+See [`AccountView::resize_unchecked`] for reference implementation.
 
 ::: details Implementations
 
@@ -378,6 +387,8 @@ not available in Rust, since the compiler enforces
 
 <!-- markdownlint-enable MD013 -->
 
+[`AccountView::resize_unchecked`]: https://github.com/anza-xyz/solana-sdk/blob/bn254@v3.2.1/account-view/src/lib.rs#L363
+[abi v2]: https://github.com/solana-foundation/solana-improvement-documents/pull/177/changes#r2861798899
 [ilp]: https://en.wikipedia.org/wiki/Instruction-level_parallelism
 [pda]: https://solana.com/docs/core/pda
 [tail call]: https://en.wikipedia.org/wiki/Tail_call
