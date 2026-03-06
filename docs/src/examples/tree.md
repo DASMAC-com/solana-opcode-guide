@@ -388,11 +388,11 @@ See [`AccountView::resize_unchecked`] for reference implementation.
 
 <!-- markdownlint-enable MD013 -->
 
-[`AccountView::resize_unchecked`]: https://github.com/anza-xyz/solana-sdk/blob/bn254@v3.2.1/account-view/src/lib.rs#L363
 [abi v2]: https://github.com/solana-foundation/solana-improvement-documents/pull/177/changes#r2861798899
 [ilp]: https://en.wikipedia.org/wiki/Instruction-level_parallelism
 [pda]: https://solana.com/docs/core/pda
 [tail call]: https://en.wikipedia.org/wiki/Tail_call
 [wikipedia tree page]: https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
+[`accountview::resize_unchecked`]: https://github.com/anza-xyz/solana-sdk/blob/bn254@v3.2.1/account-view/src/lib.rs#L363
 [`pinocchio`]: https://github.com/anza-xyz/pinocchio
 [`simd-0321`]: https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0321-vm-r2-instruction-data-pointer.md
