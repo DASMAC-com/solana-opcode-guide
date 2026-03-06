@@ -1,3 +1,9 @@
+<!-- cspell:word pubkeys -->
+
+<!-- cspell:word stdlib -->
+
+<!-- cspell:word specced -->
+
 # Test framework cleanup specification
 
 ## Scope

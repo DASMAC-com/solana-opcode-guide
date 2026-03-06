@@ -1,3 +1,9 @@
+<!-- cspell:word cormen -->
+
+<!-- cspell:word mehlhorn -->
+
+<!-- cspell:word sedgewick -->
+
 # Tree invariant specification
 
 ## Scope

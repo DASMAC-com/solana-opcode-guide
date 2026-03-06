@@ -81,7 +81,13 @@ fn run_address_mismatch(
     expected_error: error_codes::error,
 ) -> CaseResult {
     let (setup, mut instruction, mut accounts) = pda_init_setup(lang);
-    flip_account_address(&mut instruction, &mut accounts, account_index, chunk_index, chunk_size);
+    flip_account_address(
+        &mut instruction,
+        &mut accounts,
+        account_index,
+        chunk_index,
+        chunk_size,
+    );
     check_error(&setup, &instruction, &accounts, expected_error)
 }
 
@@ -395,12 +401,7 @@ impl TestCase for InitCase {
                 let (setup, instruction, mut accounts) = pda_init_setup(lang);
                 accounts[AccountIndex::User as usize].1.lamports = 0;
                 // SystemError::ResultWithNegativeLamports.
-                check_result(
-                    &setup,
-                    &instruction,
-                    &accounts,
-                    ProgramError::Custom(1),
-                )
+                check_result(&setup, &instruction, &accounts, ProgramError::Custom(1))
             }
             Self::SystemProgramAddress => {
                 let (setup, mut instruction, mut accounts) = pda_init_setup(lang);

@@ -1,3 +1,5 @@
+// cspell:word inorder
+// cspell:word vaddr
 use super::*;
 use tree_interface::{input_buffer, tree, Color, StackNode, TreeHeader, TreeNode};
 

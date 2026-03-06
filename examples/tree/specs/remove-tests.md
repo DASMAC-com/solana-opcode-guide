@@ -1,3 +1,7 @@
+<!-- cspell:word reparented -->
+
+<!-- cspell:word vaddr -->
+
 # Remove-to-tree test specification
 
 ## Scope

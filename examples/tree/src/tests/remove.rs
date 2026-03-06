@@ -1,8 +1,9 @@
+// cspell:word reparented
 use super::common::*;
 use super::*;
 use tree_interface::{
-    input_buffer, InsertInstruction, Instruction as TreeInstruction,
-    InstructionHeader, RemoveInstruction, StackNode, TreeHeader, TreeNode,
+    input_buffer, InsertInstruction, Instruction as TreeInstruction, InstructionHeader,
+    RemoveInstruction, StackNode, TreeHeader, TreeNode,
 };
 
 // ---------------------------------------------------------------------------
@@ -48,9 +49,7 @@ fn remove_setup(
 }
 
 /// A minimal two-account setup for input check tests.
-fn remove_input_setup(
-    lang: ProgramLanguage,
-) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
+fn remove_input_setup(lang: ProgramLanguage) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
     let desc = TreeSpec {
         root: Some(0),
         top: None,
@@ -74,10 +73,16 @@ fn run_remove_success(
     expected: &TreeSpec,
 ) -> CaseResult {
     if let Err(e) = assert_invariants(desc) {
-        return CaseResult { cu: 0, error: Some(format!("desc invariant: {}", e)) };
+        return CaseResult {
+            cu: 0,
+            error: Some(format!("desc invariant: {}", e)),
+        };
     }
     if let Err(e) = assert_invariants(expected) {
-        return CaseResult { cu: 0, error: Some(format!("exp invariant: {}", e)) };
+        return CaseResult {
+            cu: 0,
+            error: Some(format!("exp invariant: {}", e)),
+        };
     }
     let (setup, instruction, accounts) = remove_setup(lang, desc, remove_key);
     let result = setup.mollusk.process_instruction(&instruction, &accounts);
@@ -105,13 +110,12 @@ fn run_remove_success(
 }
 
 /// Execute a remove and verify KEY_DOES_NOT_EXIST error.
-fn run_remove_not_found(
-    lang: ProgramLanguage,
-    desc: &TreeSpec,
-    remove_key: u16,
-) -> CaseResult {
+fn run_remove_not_found(lang: ProgramLanguage, desc: &TreeSpec, remove_key: u16) -> CaseResult {
     if let Err(e) = assert_invariants(desc) {
-        return CaseResult { cu: 0, error: Some(format!("desc invariant: {}", e)) };
+        return CaseResult {
+            cu: 0,
+            error: Some(format!("desc invariant: {}", e)),
+        };
     }
     let (setup, instruction, accounts) = remove_setup(lang, desc, remove_key);
     check_error(
@@ -214,7 +218,9 @@ fn run_multi_step(lang: ProgramLanguage, n_slots: usize, steps: &[MultiStepCase]
             };
         }
 
-        tree_account = result.resulting_accounts[AccountIndex::Tree as usize].1.clone();
+        tree_account = result.resulting_accounts[AccountIndex::Tree as usize]
+            .1
+            .clone();
         if let Err(e) = assert_tree_account(&tree_account.data, &step.expected) {
             let step_desc = match &step.step {
                 MultiStep::Insert { key, .. } => format!("insert key={}", key),
@@ -460,7 +466,6 @@ impl TestCase for RemoveCase {
             }
 
             // ----- Search errors -----
-
             Self::SearchEmptyTree => {
                 let desc = TreeSpec {
                     root: None,
@@ -528,10 +533,7 @@ impl TestCase for RemoveCase {
                 let exp = TreeSpec {
                     root: Some(0),
                     top: Some(1),
-                    nodes: &[
-                        node(10, B, None, None, None),
-                        node(5, R, None, None, None),
-                    ],
+                    nodes: &[node(10, B, None, None, None), node(5, R, None, None, None)],
                 };
                 run_remove_success(lang, &desc, 5, &exp)
             }
@@ -549,10 +551,7 @@ impl TestCase for RemoveCase {
                 let exp = TreeSpec {
                     root: Some(0),
                     top: Some(1),
-                    nodes: &[
-                        node(10, B, None, None, None),
-                        node(15, R, None, None, None),
-                    ],
+                    nodes: &[node(10, B, None, None, None), node(15, R, None, None, None)],
                 };
                 run_remove_success(lang, &desc, 15, &exp)
             }
@@ -570,10 +569,7 @@ impl TestCase for RemoveCase {
                 let exp = TreeSpec {
                     root: Some(1),
                     top: Some(0),
-                    nodes: &[
-                        node(10, B, None, None, None),
-                        node(15, B, None, None, None),
-                    ],
+                    nodes: &[node(10, B, None, None, None), node(15, B, None, None, None)],
                 };
                 run_remove_success(lang, &desc, 10, &exp)
             }
@@ -591,10 +587,7 @@ impl TestCase for RemoveCase {
                 let exp = TreeSpec {
                     root: Some(1),
                     top: Some(0),
-                    nodes: &[
-                        node(10, B, None, None, None),
-                        node(5, B, None, None, None),
-                    ],
+                    nodes: &[node(10, B, None, None, None), node(5, B, None, None, None)],
                 };
                 run_remove_success(lang, &desc, 10, &exp)
             }
@@ -1464,11 +1457,7 @@ pub(super) enum MultiRemoveCase {
 }
 
 impl MultiRemoveCase {
-    pub(super) const CASES: &'static [Self] = &[
-        Self::Minimal,
-        Self::FullCycle,
-        Self::Recycle,
-    ];
+    pub(super) const CASES: &'static [Self] = &[Self::Minimal, Self::FullCycle, Self::Recycle];
 }
 
 impl TestCase for MultiRemoveCase {
@@ -1482,321 +1471,333 @@ impl TestCase for MultiRemoveCase {
 
     fn run(&self, lang: ProgramLanguage) -> CaseResult {
         match self {
-            Self::Minimal => run_multi_step(lang, 3, &[
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 10, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(1),
-                        nodes: &[node(10, R, None, None, None).val(1)],
+            Self::Minimal => run_multi_step(
+                lang,
+                3,
+                &[
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 10, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(1),
+                            nodes: &[node(10, R, None, None, None).val(1)],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 5, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(2),
-                        nodes: &[
-                            node(10, B, None, Some(1), None).val(1),
-                            node(5, R, Some(0), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 5, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(2),
+                            nodes: &[
+                                node(10, B, None, Some(1), None).val(1),
+                                node(5, R, Some(0), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 15, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: None,
-                        nodes: &[
-                            node(10, B, None, Some(1), Some(2)).val(1),
-                            node(5, R, Some(0), None, None).val(1),
-                            node(15, R, Some(0), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 15, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: None,
+                            nodes: &[
+                                node(10, B, None, Some(1), Some(2)).val(1),
+                                node(5, R, Some(0), None, None).val(1),
+                                node(15, R, Some(0), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 5 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(1),
-                        nodes: &[
-                            node(10, B, None, None, Some(2)).val(1),
-                            // Freed node: key/value/color retained, children nulled,
-                            // parent (= StackNode.next) = null (stack was empty).
-                            node(5, R, None, None, None).val(1),
-                            node(15, R, Some(0), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 5 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(1),
+                            nodes: &[
+                                node(10, B, None, None, Some(2)).val(1),
+                                // Freed node: key/value/color retained, children nulled,
+                                // parent (= StackNode.next) = null (stack was empty).
+                                node(5, R, None, None, None).val(1),
+                                node(15, R, Some(0), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-            ]),
+                ],
+            ),
 
-            Self::FullCycle => run_multi_step(lang, 7, &[
-                // Insert 10,5,15,3,7,12,20.
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 10, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(1),
-                        nodes: &[node(10, R, None, None, None).val(1)],
+            Self::FullCycle => run_multi_step(
+                lang,
+                7,
+                &[
+                    // Insert 10,5,15,3,7,12,20.
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 10, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(1),
+                            nodes: &[node(10, R, None, None, None).val(1)],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 5, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(2),
-                        nodes: &[
-                            node(10, B, None, Some(1), None).val(1),
-                            node(5, R, Some(0), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 5, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(2),
+                            nodes: &[
+                                node(10, B, None, Some(1), None).val(1),
+                                node(5, R, Some(0), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 15, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(3),
-                        nodes: &[
-                            node(10, B, None, Some(1), Some(2)).val(1),
-                            node(5, R, Some(0), None, None).val(1),
-                            node(15, R, Some(0), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 15, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(3),
+                            nodes: &[
+                                node(10, B, None, Some(1), Some(2)).val(1),
+                                node(5, R, Some(0), None, None).val(1),
+                                node(15, R, Some(0), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 3, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(4),
-                        nodes: &[
-                            node(10, R, None, Some(1), Some(2)).val(1),
-                            node(5, B, Some(0), Some(3), None).val(1),
-                            node(15, B, Some(0), None, None).val(1),
-                            node(3, R, Some(1), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 3, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(4),
+                            nodes: &[
+                                node(10, R, None, Some(1), Some(2)).val(1),
+                                node(5, B, Some(0), Some(3), None).val(1),
+                                node(15, B, Some(0), None, None).val(1),
+                                node(3, R, Some(1), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 7, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(5),
-                        nodes: &[
-                            node(10, R, None, Some(1), Some(2)).val(1),
-                            node(5, B, Some(0), Some(3), Some(4)).val(1),
-                            node(15, B, Some(0), None, None).val(1),
-                            node(3, R, Some(1), None, None).val(1),
-                            node(7, R, Some(1), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 7, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(5),
+                            nodes: &[
+                                node(10, R, None, Some(1), Some(2)).val(1),
+                                node(5, B, Some(0), Some(3), Some(4)).val(1),
+                                node(15, B, Some(0), None, None).val(1),
+                                node(3, R, Some(1), None, None).val(1),
+                                node(7, R, Some(1), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 12, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(6),
-                        nodes: &[
-                            node(10, R, None, Some(1), Some(2)).val(1),
-                            node(5, B, Some(0), Some(3), Some(4)).val(1),
-                            node(15, B, Some(0), Some(5), None).val(1),
-                            node(3, R, Some(1), None, None).val(1),
-                            node(7, R, Some(1), None, None).val(1),
-                            node(12, R, Some(2), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 12, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(6),
+                            nodes: &[
+                                node(10, R, None, Some(1), Some(2)).val(1),
+                                node(5, B, Some(0), Some(3), Some(4)).val(1),
+                                node(15, B, Some(0), Some(5), None).val(1),
+                                node(3, R, Some(1), None, None).val(1),
+                                node(7, R, Some(1), None, None).val(1),
+                                node(12, R, Some(2), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 20, value: 1 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: None,
-                        nodes: &[
-                            node(10, R, None, Some(1), Some(2)).val(1),
-                            node(5, B, Some(0), Some(3), Some(4)).val(1),
-                            node(15, B, Some(0), Some(5), Some(6)).val(1),
-                            node(3, R, Some(1), None, None).val(1),
-                            node(7, R, Some(1), None, None).val(1),
-                            node(12, R, Some(2), None, None).val(1),
-                            node(20, R, Some(2), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 20, value: 1 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: None,
+                            nodes: &[
+                                node(10, R, None, Some(1), Some(2)).val(1),
+                                node(5, B, Some(0), Some(3), Some(4)).val(1),
+                                node(15, B, Some(0), Some(5), Some(6)).val(1),
+                                node(3, R, Some(1), None, None).val(1),
+                                node(7, R, Some(1), None, None).val(1),
+                                node(12, R, Some(2), None, None).val(1),
+                                node(20, R, Some(2), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                // Remove all: 3, 20, 7, 12, 5, 15, 10.
-                // Removing leaves first to simplify expected states.
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 3 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(3),
-                        nodes: &[
-                            node(10, R, None, Some(1), Some(2)).val(1),
-                            node(5, B, Some(0), None, Some(4)).val(1),
-                            node(15, B, Some(0), Some(5), Some(6)).val(1),
-                            node(3, R, None, None, None).val(1),
-                            node(7, R, Some(1), None, None).val(1),
-                            node(12, R, Some(2), None, None).val(1),
-                            node(20, R, Some(2), None, None).val(1),
-                        ],
+                    // Remove all: 3, 20, 7, 12, 5, 15, 10.
+                    // Removing leaves first to simplify expected states.
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 3 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(3),
+                            nodes: &[
+                                node(10, R, None, Some(1), Some(2)).val(1),
+                                node(5, B, Some(0), None, Some(4)).val(1),
+                                node(15, B, Some(0), Some(5), Some(6)).val(1),
+                                node(3, R, None, None, None).val(1),
+                                node(7, R, Some(1), None, None).val(1),
+                                node(12, R, Some(2), None, None).val(1),
+                                node(20, R, Some(2), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 20 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(6),
-                        nodes: &[
-                            node(10, R, None, Some(1), Some(2)).val(1),
-                            node(5, B, Some(0), None, Some(4)).val(1),
-                            node(15, B, Some(0), Some(5), None).val(1),
-                            node(3, R, None, None, None).val(1),
-                            node(7, R, Some(1), None, None).val(1),
-                            node(12, R, Some(2), None, None).val(1),
-                            node(20, R, Some(3), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 20 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(6),
+                            nodes: &[
+                                node(10, R, None, Some(1), Some(2)).val(1),
+                                node(5, B, Some(0), None, Some(4)).val(1),
+                                node(15, B, Some(0), Some(5), None).val(1),
+                                node(3, R, None, None, None).val(1),
+                                node(7, R, Some(1), None, None).val(1),
+                                node(12, R, Some(2), None, None).val(1),
+                                node(20, R, Some(3), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 7 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(4),
-                        nodes: &[
-                            node(10, R, None, Some(1), Some(2)).val(1),
-                            node(5, B, Some(0), None, None).val(1),
-                            node(15, B, Some(0), Some(5), None).val(1),
-                            node(3, R, None, None, None).val(1),
-                            node(7, R, Some(6), None, None).val(1),
-                            node(12, R, Some(2), None, None).val(1),
-                            node(20, R, Some(3), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 7 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(4),
+                            nodes: &[
+                                node(10, R, None, Some(1), Some(2)).val(1),
+                                node(5, B, Some(0), None, None).val(1),
+                                node(15, B, Some(0), Some(5), None).val(1),
+                                node(3, R, None, None, None).val(1),
+                                node(7, R, Some(6), None, None).val(1),
+                                node(12, R, Some(2), None, None).val(1),
+                                node(20, R, Some(3), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 12 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(5),
-                        nodes: &[
-                            node(10, R, None, Some(1), Some(2)).val(1),
-                            node(5, B, Some(0), None, None).val(1),
-                            node(15, B, Some(0), None, None).val(1),
-                            node(3, R, None, None, None).val(1),
-                            node(7, R, Some(6), None, None).val(1),
-                            node(12, R, Some(4), None, None).val(1),
-                            node(20, R, Some(3), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 12 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(5),
+                            nodes: &[
+                                node(10, R, None, Some(1), Some(2)).val(1),
+                                node(5, B, Some(0), None, None).val(1),
+                                node(15, B, Some(0), None, None).val(1),
+                                node(3, R, None, None, None).val(1),
+                                node(7, R, Some(6), None, None).val(1),
+                                node(12, R, Some(4), None, None).val(1),
+                                node(20, R, Some(3), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 5 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(1),
-                        nodes: &[
-                            node(10, B, None, None, Some(2)).val(1),
-                            node(5, B, Some(5), None, None).val(1),
-                            node(15, R, Some(0), None, None).val(1),
-                            node(3, R, None, None, None).val(1),
-                            node(7, R, Some(6), None, None).val(1),
-                            node(12, R, Some(4), None, None).val(1),
-                            node(20, R, Some(3), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 5 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(1),
+                            nodes: &[
+                                node(10, B, None, None, Some(2)).val(1),
+                                node(5, B, Some(5), None, None).val(1),
+                                node(15, R, Some(0), None, None).val(1),
+                                node(3, R, None, None, None).val(1),
+                                node(7, R, Some(6), None, None).val(1),
+                                node(12, R, Some(4), None, None).val(1),
+                                node(20, R, Some(3), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 15 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(2),
-                        nodes: &[
-                            node(10, B, None, None, None).val(1),
-                            node(5, B, Some(5), None, None).val(1),
-                            node(15, R, Some(1), None, None).val(1),
-                            node(3, R, None, None, None).val(1),
-                            node(7, R, Some(6), None, None).val(1),
-                            node(12, R, Some(4), None, None).val(1),
-                            node(20, R, Some(3), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 15 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(2),
+                            nodes: &[
+                                node(10, B, None, None, None).val(1),
+                                node(5, B, Some(5), None, None).val(1),
+                                node(15, R, Some(1), None, None).val(1),
+                                node(3, R, None, None, None).val(1),
+                                node(7, R, Some(6), None, None).val(1),
+                                node(12, R, Some(4), None, None).val(1),
+                                node(20, R, Some(3), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 10 },
-                    expected: TreeSpec {
-                        root: None,
-                        top: Some(0),
-                        nodes: &[
-                            node(10, B, Some(2), None, None).val(1),
-                            node(5, B, Some(5), None, None).val(1),
-                            node(15, R, Some(1), None, None).val(1),
-                            node(3, R, None, None, None).val(1),
-                            node(7, R, Some(6), None, None).val(1),
-                            node(12, R, Some(4), None, None).val(1),
-                            node(20, R, Some(3), None, None).val(1),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 10 },
+                        expected: TreeSpec {
+                            root: None,
+                            top: Some(0),
+                            nodes: &[
+                                node(10, B, Some(2), None, None).val(1),
+                                node(5, B, Some(5), None, None).val(1),
+                                node(15, R, Some(1), None, None).val(1),
+                                node(3, R, None, None, None).val(1),
+                                node(7, R, Some(6), None, None).val(1),
+                                node(12, R, Some(4), None, None).val(1),
+                                node(20, R, Some(3), None, None).val(1),
+                            ],
+                        },
                     },
-                },
-            ]),
+                ],
+            ),
 
-            Self::Recycle => run_multi_step(lang, 3, &[
-                // Insert 10,5,15.
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 10, value: 10 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(1),
-                        nodes: &[node(10, R, None, None, None)],
+            Self::Recycle => run_multi_step(
+                lang,
+                3,
+                &[
+                    // Insert 10,5,15.
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 10, value: 10 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(1),
+                            nodes: &[node(10, R, None, None, None)],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 5, value: 5 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(2),
-                        nodes: &[
-                            node(10, B, None, Some(1), None),
-                            node(5, R, Some(0), None, None),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 5, value: 5 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(2),
+                            nodes: &[
+                                node(10, B, None, Some(1), None),
+                                node(5, R, Some(0), None, None),
+                            ],
+                        },
                     },
-                },
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 15, value: 15 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: None,
-                        nodes: &[
-                            node(10, B, None, Some(1), Some(2)),
-                            node(5, R, Some(0), None, None),
-                            node(15, R, Some(0), None, None),
-                        ],
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 15, value: 15 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: None,
+                            nodes: &[
+                                node(10, B, None, Some(1), Some(2)),
+                                node(5, R, Some(0), None, None),
+                                node(15, R, Some(0), None, None),
+                            ],
+                        },
                     },
-                },
-                // Remove 5: red leaf removal, N1 freed onto stack.
-                MultiStepCase {
-                    step: MultiStep::Remove { key: 5 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: Some(1),
-                        nodes: &[
-                            node(10, B, None, None, Some(2)),
-                            node(5, R, None, None, None),
-                            node(15, R, Some(0), None, None),
-                        ],
+                    // Remove 5: red leaf removal, N1 freed onto stack.
+                    MultiStepCase {
+                        step: MultiStep::Remove { key: 5 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: Some(1),
+                            nodes: &[
+                                node(10, B, None, None, Some(2)),
+                                node(5, R, None, None, None),
+                                node(15, R, Some(0), None, None),
+                            ],
+                        },
                     },
-                },
-                // Insert 7: pops N1 from stack, reuses slot.
-                MultiStepCase {
-                    step: MultiStep::Insert { key: 7, value: 7 },
-                    expected: TreeSpec {
-                        root: Some(0),
-                        top: None,
-                        nodes: &[
-                            node(10, B, None, Some(1), Some(2)),
-                            node(7, R, Some(0), None, None),
-                            node(15, R, Some(0), None, None),
-                        ],
+                    // Insert 7: pops N1 from stack, reuses slot.
+                    MultiStepCase {
+                        step: MultiStep::Insert { key: 7, value: 7 },
+                        expected: TreeSpec {
+                            root: Some(0),
+                            top: None,
+                            nodes: &[
+                                node(10, B, None, Some(1), Some(2)),
+                                node(7, R, Some(0), None, None),
+                                node(15, R, Some(0), None, None),
+                            ],
+                        },
                     },
-                },
-            ]),
+                ],
+            ),
         }
     }
 }

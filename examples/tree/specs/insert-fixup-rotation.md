@@ -1,3 +1,7 @@
+<!-- cspell:word inlines -->
+
+<!-- cspell:word reparent -->
+
 # Insert fixup rotation specification
 
 ## Scope

@@ -215,7 +215,7 @@ constant_group! {
 #[repr(C, packed)]
 /// Tree account data header. Contains pointer to tree root and top of free node stack.
 pub struct TreeHeader {
-    /// Aboslute pointer to tree root in memory map.
+    /// Absolute pointer to tree root in memory map.
     pub root: *mut TreeNode,
     /// Absolute pointer to stack top in memory map.
     pub top: *mut StackNode,

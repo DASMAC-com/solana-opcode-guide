@@ -1,3 +1,5 @@
+<!-- cspell:word macrodup -->
+
 # CU overhead analysis
 
 Methodology for attributing CU overhead in Rust implementations

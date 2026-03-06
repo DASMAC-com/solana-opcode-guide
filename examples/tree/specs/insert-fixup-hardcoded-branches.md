@@ -238,8 +238,9 @@ operation (e.g. delete) needs them, they can be re-added.
 ## Child direction assignment
 
 The initial `let dir = if key > ... { DIR_R } else { DIR_L }`
-before the loop is replaced with `let child_dir = (key > (*parent).key) as usize` to use branchless bool-to-index. This
-matches the existing search pattern in `program.rs:616`.
+before the loop is replaced with
+`let child_dir = (key > (*parent).key) as usize` to use branchless
+bool-to-index. This matches the existing search pattern in `program.rs:616`.
 
 ## Verification
 

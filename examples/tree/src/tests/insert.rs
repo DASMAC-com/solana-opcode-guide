@@ -1,3 +1,4 @@
+// cspell:word sysprog
 use super::common::*;
 use super::*;
 use tree_interface::{
@@ -183,7 +184,6 @@ fn insert_max_data_setup(
     (setup, instruction, accounts)
 }
 
-
 // ---------------------------------------------------------------------------
 // Helpers: tree test setup and runners
 // ---------------------------------------------------------------------------
@@ -235,10 +235,16 @@ fn run_success(
     expected: &TreeSpec,
 ) -> CaseResult {
     if let Err(e) = assert_invariants(desc) {
-        return CaseResult { cu: 0, error: Some(format!("desc invariant: {}", e)) };
+        return CaseResult {
+            cu: 0,
+            error: Some(format!("desc invariant: {}", e)),
+        };
     }
     if let Err(e) = assert_invariants(expected) {
-        return CaseResult { cu: 0, error: Some(format!("exp invariant: {}", e)) };
+        return CaseResult {
+            cu: 0,
+            error: Some(format!("exp invariant: {}", e)),
+        };
     }
     let (setup, instruction, accounts) = insert_tree_setup(lang, desc, insert_key);
     let result = setup.mollusk.process_instruction(&instruction, &accounts);
@@ -268,7 +274,10 @@ fn run_success(
 /// Run an insert and check for KEY_EXISTS error.
 fn run_dup_error(lang: ProgramLanguage, desc: &TreeSpec, insert_key: u16) -> CaseResult {
     if let Err(e) = assert_invariants(desc) {
-        return CaseResult { cu: 0, error: Some(format!("desc invariant: {}", e)) };
+        return CaseResult {
+            cu: 0,
+            error: Some(format!("desc invariant: {}", e)),
+        };
     }
     let (setup, instruction, accounts) = insert_tree_setup(lang, desc, insert_key);
     check_error(
@@ -278,7 +287,6 @@ fn run_dup_error(lang: ProgramLanguage, desc: &TreeSpec, insert_key: u16) -> Cas
         error_codes::error::KEY_EXISTS,
     )
 }
-
 
 // ---------------------------------------------------------------------------
 // Test case enum
@@ -1310,7 +1318,6 @@ impl TestCase for InsertCase {
 // Multi-insert integration tests
 // ---------------------------------------------------------------------------
 
-
 struct MultiInsertStep<'a> {
     key: u16,
     expected: TreeSpec<'a>,
@@ -1321,8 +1328,7 @@ fn run_multi_insert(lang: ProgramLanguage, steps: &[MultiInsertStep]) -> CaseRes
     let (system_program_pubkey, _) = program::keyed_account_for_system_program();
 
     let user_pubkey = Pubkey::new_unique();
-    let (tree_pubkey, mut tree_account) =
-        build_empty_tree(steps.len(), &setup.program_id);
+    let (tree_pubkey, mut tree_account) = build_empty_tree(steps.len(), &setup.program_id);
 
     let mut total_cu = 0u64;
 
@@ -1330,7 +1336,10 @@ fn run_multi_insert(lang: ProgramLanguage, steps: &[MultiInsertStep]) -> CaseRes
         if let Err(e) = assert_invariants(&step.expected) {
             return CaseResult {
                 cu: 0,
-                error: Some(format!("step {} (key={}) exp invariant: {}", i, step.key, e)),
+                error: Some(format!(
+                    "step {} (key={}) exp invariant: {}",
+                    i, step.key, e
+                )),
             };
         }
 
@@ -1363,8 +1372,9 @@ fn run_multi_insert(lang: ProgramLanguage, steps: &[MultiInsertStep]) -> CaseRes
         total_cu += result.compute_units_consumed;
         match &result.program_result {
             MolluskResult::Success => {
-                tree_account =
-                    result.resulting_accounts[AccountIndex::Tree as usize].1.clone();
+                tree_account = result.resulting_accounts[AccountIndex::Tree as usize]
+                    .1
+                    .clone();
                 if let Err(e) = assert_tree_account(&tree_account.data, &step.expected) {
                     return CaseResult {
                         cu: total_cu,
@@ -1441,239 +1451,254 @@ impl TestCase for MultiInsertCase {
 }
 
 fn run_balanced_3(lang: ProgramLanguage) -> CaseResult {
-    run_multi_insert(lang, &[
-        MultiInsertStep {
-            key: 10,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(1),
-                nodes: &[node(10, R, None, None, None).val(1)],
+    run_multi_insert(
+        lang,
+        &[
+            MultiInsertStep {
+                key: 10,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(1),
+                    nodes: &[node(10, R, None, None, None).val(1)],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 5,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(2),
-                nodes: &[
-                    node(10, B, None, Some(1), None).val(1),
-                    node(5, R, Some(0), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 5,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(2),
+                    nodes: &[
+                        node(10, B, None, Some(1), None).val(1),
+                        node(5, R, Some(0), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 15,
-            expected: TreeSpec {
-                root: Some(0),
-                top: None,
-                nodes: &[
-                    node(10, B, None, Some(1), Some(2)).val(1),
-                    node(5, R, Some(0), None, None).val(1),
-                    node(15, R, Some(0), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 15,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: None,
+                    nodes: &[
+                        node(10, B, None, Some(1), Some(2)).val(1),
+                        node(5, R, Some(0), None, None).val(1),
+                        node(15, R, Some(0), None, None).val(1),
+                    ],
+                },
             },
-        },
-    ])
+        ],
+    )
 }
 
 fn run_left_skew(lang: ProgramLanguage) -> CaseResult {
-    run_multi_insert(lang, &[
-        MultiInsertStep {
-            key: 10,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(1),
-                nodes: &[node(10, R, None, None, None).val(1)],
+    run_multi_insert(
+        lang,
+        &[
+            MultiInsertStep {
+                key: 10,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(1),
+                    nodes: &[node(10, R, None, None, None).val(1)],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 5,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(2),
-                nodes: &[
-                    node(10, B, None, Some(1), None).val(1),
-                    node(5, R, Some(0), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 5,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(2),
+                    nodes: &[
+                        node(10, B, None, Some(1), None).val(1),
+                        node(5, R, Some(0), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 1,
-            expected: TreeSpec {
-                root: Some(1),
-                top: None,
-                nodes: &[
-                    node(10, R, Some(1), None, None).val(1),
-                    node(5, B, None, Some(2), Some(0)).val(1),
-                    node(1, R, Some(1), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 1,
+                expected: TreeSpec {
+                    root: Some(1),
+                    top: None,
+                    nodes: &[
+                        node(10, R, Some(1), None, None).val(1),
+                        node(5, B, None, Some(2), Some(0)).val(1),
+                        node(1, R, Some(1), None, None).val(1),
+                    ],
+                },
             },
-        },
-    ])
+        ],
+    )
 }
 
 fn run_right_skew(lang: ProgramLanguage) -> CaseResult {
-    run_multi_insert(lang, &[
-        MultiInsertStep {
-            key: 10,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(1),
-                nodes: &[node(10, R, None, None, None).val(1)],
+    run_multi_insert(
+        lang,
+        &[
+            MultiInsertStep {
+                key: 10,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(1),
+                    nodes: &[node(10, R, None, None, None).val(1)],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 15,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(2),
-                nodes: &[
-                    node(10, B, None, None, Some(1)).val(1),
-                    node(15, R, Some(0), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 15,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(2),
+                    nodes: &[
+                        node(10, B, None, None, Some(1)).val(1),
+                        node(15, R, Some(0), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 20,
-            expected: TreeSpec {
-                root: Some(1),
-                top: None,
-                nodes: &[
-                    node(10, R, Some(1), None, None).val(1),
-                    node(15, B, None, Some(0), Some(2)).val(1),
-                    node(20, R, Some(1), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 20,
+                expected: TreeSpec {
+                    root: Some(1),
+                    top: None,
+                    nodes: &[
+                        node(10, R, Some(1), None, None).val(1),
+                        node(15, B, None, Some(0), Some(2)).val(1),
+                        node(20, R, Some(1), None, None).val(1),
+                    ],
+                },
             },
-        },
-    ])
+        ],
+    )
 }
 
 fn run_zigzag(lang: ProgramLanguage) -> CaseResult {
-    run_multi_insert(lang, &[
-        MultiInsertStep {
-            key: 10,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(1),
-                nodes: &[node(10, R, None, None, None).val(1)],
+    run_multi_insert(
+        lang,
+        &[
+            MultiInsertStep {
+                key: 10,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(1),
+                    nodes: &[node(10, R, None, None, None).val(1)],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 5,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(2),
-                nodes: &[
-                    node(10, B, None, Some(1), None).val(1),
-                    node(5, R, Some(0), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 5,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(2),
+                    nodes: &[
+                        node(10, B, None, Some(1), None).val(1),
+                        node(5, R, Some(0), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 7,
-            expected: TreeSpec {
-                root: Some(2),
-                top: None,
-                nodes: &[
-                    node(10, R, Some(2), None, None).val(1),
-                    node(5, R, Some(2), None, None).val(1),
-                    node(7, B, None, Some(1), Some(0)).val(1),
-                ],
+            MultiInsertStep {
+                key: 7,
+                expected: TreeSpec {
+                    root: Some(2),
+                    top: None,
+                    nodes: &[
+                        node(10, R, Some(2), None, None).val(1),
+                        node(5, R, Some(2), None, None).val(1),
+                        node(7, B, None, Some(1), Some(0)).val(1),
+                    ],
+                },
             },
-        },
-    ])
+        ],
+    )
 }
 
 fn run_full_7(lang: ProgramLanguage) -> CaseResult {
-    run_multi_insert(lang, &[
-        MultiInsertStep {
-            key: 10,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(1),
-                nodes: &[node(10, R, None, None, None).val(1)],
+    run_multi_insert(
+        lang,
+        &[
+            MultiInsertStep {
+                key: 10,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(1),
+                    nodes: &[node(10, R, None, None, None).val(1)],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 5,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(2),
-                nodes: &[
-                    node(10, B, None, Some(1), None).val(1),
-                    node(5, R, Some(0), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 5,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(2),
+                    nodes: &[
+                        node(10, B, None, Some(1), None).val(1),
+                        node(5, R, Some(0), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 15,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(3),
-                nodes: &[
-                    node(10, B, None, Some(1), Some(2)).val(1),
-                    node(5, R, Some(0), None, None).val(1),
-                    node(15, R, Some(0), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 15,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(3),
+                    nodes: &[
+                        node(10, B, None, Some(1), Some(2)).val(1),
+                        node(5, R, Some(0), None, None).val(1),
+                        node(15, R, Some(0), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 3,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(4),
-                nodes: &[
-                    node(10, R, None, Some(1), Some(2)).val(1),
-                    node(5, B, Some(0), Some(3), None).val(1),
-                    node(15, B, Some(0), None, None).val(1),
-                    node(3, R, Some(1), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 3,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(4),
+                    nodes: &[
+                        node(10, R, None, Some(1), Some(2)).val(1),
+                        node(5, B, Some(0), Some(3), None).val(1),
+                        node(15, B, Some(0), None, None).val(1),
+                        node(3, R, Some(1), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 7,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(5),
-                nodes: &[
-                    node(10, R, None, Some(1), Some(2)).val(1),
-                    node(5, B, Some(0), Some(3), Some(4)).val(1),
-                    node(15, B, Some(0), None, None).val(1),
-                    node(3, R, Some(1), None, None).val(1),
-                    node(7, R, Some(1), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 7,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(5),
+                    nodes: &[
+                        node(10, R, None, Some(1), Some(2)).val(1),
+                        node(5, B, Some(0), Some(3), Some(4)).val(1),
+                        node(15, B, Some(0), None, None).val(1),
+                        node(3, R, Some(1), None, None).val(1),
+                        node(7, R, Some(1), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 12,
-            expected: TreeSpec {
-                root: Some(0),
-                top: Some(6),
-                nodes: &[
-                    node(10, R, None, Some(1), Some(2)).val(1),
-                    node(5, B, Some(0), Some(3), Some(4)).val(1),
-                    node(15, B, Some(0), Some(5), None).val(1),
-                    node(3, R, Some(1), None, None).val(1),
-                    node(7, R, Some(1), None, None).val(1),
-                    node(12, R, Some(2), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 12,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: Some(6),
+                    nodes: &[
+                        node(10, R, None, Some(1), Some(2)).val(1),
+                        node(5, B, Some(0), Some(3), Some(4)).val(1),
+                        node(15, B, Some(0), Some(5), None).val(1),
+                        node(3, R, Some(1), None, None).val(1),
+                        node(7, R, Some(1), None, None).val(1),
+                        node(12, R, Some(2), None, None).val(1),
+                    ],
+                },
             },
-        },
-        MultiInsertStep {
-            key: 20,
-            expected: TreeSpec {
-                root: Some(0),
-                top: None,
-                nodes: &[
-                    node(10, R, None, Some(1), Some(2)).val(1),
-                    node(5, B, Some(0), Some(3), Some(4)).val(1),
-                    node(15, B, Some(0), Some(5), Some(6)).val(1),
-                    node(3, R, Some(1), None, None).val(1),
-                    node(7, R, Some(1), None, None).val(1),
-                    node(12, R, Some(2), None, None).val(1),
-                    node(20, R, Some(2), None, None).val(1),
-                ],
+            MultiInsertStep {
+                key: 20,
+                expected: TreeSpec {
+                    root: Some(0),
+                    top: None,
+                    nodes: &[
+                        node(10, R, None, Some(1), Some(2)).val(1),
+                        node(5, B, Some(0), Some(3), Some(4)).val(1),
+                        node(15, B, Some(0), Some(5), Some(6)).val(1),
+                        node(3, R, Some(1), None, None).val(1),
+                        node(7, R, Some(1), None, None).val(1),
+                        node(12, R, Some(2), None, None).val(1),
+                        node(20, R, Some(2), None, None).val(1),
+                    ],
+                },
             },
-        },
-    ])
+        ],
+    )
 }

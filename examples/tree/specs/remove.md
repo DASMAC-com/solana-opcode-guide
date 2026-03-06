@@ -1,3 +1,9 @@
+<!-- cspell:word elim -->
+
+<!-- cspell:word inlines -->
+
+<!-- cspell:word reparent -->
+
 # Remove instruction specification
 
 ## Scope

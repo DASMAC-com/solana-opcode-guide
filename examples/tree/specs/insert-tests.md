@@ -1,3 +1,7 @@
+<!-- cspell:word reparented -->
+
+<!-- cspell:word reparenting -->
+
 # Insert-to-tree test specification
 
 ## Scope
