@@ -188,6 +188,7 @@ pub unsafe extern "C" fn entrypoint(input: *mut u8, instruction_data: *mut u8) -
 // ANCHOR_END: entrypoint-branching
 
 // ANCHOR: insert-input-checks
+#[allow(unused_assignments)]
 #[inline(always)]
 unsafe fn insert(
     input: *mut u8,
@@ -204,7 +205,7 @@ unsafe fn insert(
     );
 
     // Error if user has data.
-    let user = user_account!(input);
+    let _user = user_account!(input);
 
     // Error if tree is duplicate.
     let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
@@ -742,7 +743,7 @@ unsafe fn remove(
 #[inline(always)]
 unsafe fn initialize(
     input: *mut u8,
-    instruction_data: *mut u8,
+    _instruction_data: *mut u8,
     instruction_data_len: u64,
     n_accounts: u64,
 ) -> u64 {
@@ -755,7 +756,7 @@ unsafe fn initialize(
     );
 
     // Error if user has data.
-    let user = user_account!(input);
+    let _user = user_account!(input);
 
     // Error if tree is duplicate or has data.
     let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
@@ -896,21 +897,6 @@ unsafe fn initialize(
 #[inline(always)]
 unsafe fn direction(node: *const TreeNode) -> usize {
     (node == (*(*node).parent).child[tree::DIR_R]) as usize
-}
-
-#[inline(always)]
-unsafe fn search(tree_header: *const TreeHeader, key: u16) -> *mut TreeNode {
-    let mut node = (*tree_header).root;
-    loop {
-        if node.is_null() {
-            break;
-        }
-        if (*node).key == key {
-            break;
-        }
-        node = (*node).child[(key > (*node).key) as usize];
-    }
-    node
 }
 
 /// Rotate the subtree rooted at `subtree` in the given direction, returning new root of subtree.

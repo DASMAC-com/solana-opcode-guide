@@ -1,5 +1,4 @@
 use core::mem::size_of;
-use error_codes::error;
 use macros::{array_fields, constant_group, error_codes};
 use pinocchio::{
     account::{RuntimeAccount as RuntimeAccountHeader, MAX_PERMITTED_DATA_INCREASE},
