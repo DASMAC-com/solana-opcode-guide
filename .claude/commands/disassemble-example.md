@@ -1,3 +1,5 @@
+# Disassemble example
+
 Quick compile and disassemble cycle for a specific example program.
 
 Run the following commands sequentially from the example directory at
@@ -9,13 +11,13 @@ Run the following commands sequentially from the example directory at
 rm -f ../target/deploy/${ARGUMENTS//-/_}.so
 ```
 
-2. Build for the disassembly architecture:
+1. Build for the disassembly architecture:
 
 ```sh
 cargo build-sbf --arch v2 --tools-version 1.52
 ```
 
-3. Disassemble and write output:
+1. Disassemble and write output:
 
 ```sh
 sbpf disassemble ../target/deploy/${ARGUMENTS//-/_}.so \

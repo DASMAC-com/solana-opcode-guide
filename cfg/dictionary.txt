@@ -16,6 +16,7 @@ lamports
 lddw
 ldxb
 ldxdw
+ldxh
 ldxw
 markdownlint
 mathjax

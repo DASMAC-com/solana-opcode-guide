@@ -1,3 +1,5 @@
+# Test example
+
 Quick build and test cycle for a specific example program.
 
 Run the following commands sequentially from the example directory at
