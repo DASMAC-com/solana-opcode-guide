@@ -23,7 +23,7 @@ fn insert_instruction_data() -> InsertInstruction {
 fn insert_setup(
     program_language: ProgramLanguage,
 ) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
-    let mut setup = setup_test_with_rent(program_language);
+    let setup = setup_test_with_rent(program_language);
     let (system_program_pubkey, system_program_account) =
         program::keyed_account_for_system_program();
     let (rent_sysvar_pubkey, rent_sysvar_account) =
@@ -137,7 +137,7 @@ fn insert_max_data_setup(
 ) -> (TestSetup, Instruction, Vec<(Pubkey, Account)>) {
     const MAX_PERMITTED_DATA_LENGTH: usize = 10 * 1024 * 1024;
 
-    let mut setup = setup_test_with_rent(program_language);
+    let setup = setup_test_with_rent(program_language);
     let (system_program_pubkey, system_program_account) =
         program::keyed_account_for_system_program();
     let (rent_sysvar_pubkey, rent_sysvar_account) =

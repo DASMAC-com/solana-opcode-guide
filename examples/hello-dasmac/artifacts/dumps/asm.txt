@@ -43,7 +43,7 @@ There are 3 program headers, starting at offset 64
 
 Program Headers
   Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
-  LOAD           0x0000e8 0x00000000000000e8 0x00000000000000e8 0x00003e 0x00003e R E 0x1000
+  LOAD           0x0000e8 0x00000000000000e8 0x00000000000000e8 0x000040 0x000040 R E 0x1000
   LOAD           0x0001d8 0x00000000000001d8 0x00000000000001d8 0x000080 0x000080 R   0x1000
   DYNAMIC        0x000128 0x0000000000000128 0x0000000000000128 0x0000b0 0x0000b0 RW  0x8
 

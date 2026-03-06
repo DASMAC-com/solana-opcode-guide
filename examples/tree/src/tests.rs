@@ -2,6 +2,7 @@ mod common;
 mod entrypoint;
 mod init;
 mod insert;
+#[allow(dead_code, unused_imports)]
 mod remove;
 
 use mollusk_svm::program;

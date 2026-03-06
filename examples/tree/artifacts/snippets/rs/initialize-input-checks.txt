@@ -1,7 +1,7 @@
 #[inline(always)]
 unsafe fn initialize(
     input: *mut u8,
-    instruction_data: *mut u8,
+    _instruction_data: *mut u8,
     instruction_data_len: u64,
     n_accounts: u64,
 ) -> u64 {
@@ -14,7 +14,7 @@ unsafe fn initialize(
     );
 
     // Error if user has data.
-    let user = user_account!(input);
+    let _user = user_account!(input);
 
     // Error if tree is duplicate or has data.
     let tree = account_non_dup!(input, input_buffer::TREE_ACCOUNT_OFF, error::TREE_DUPLICATE);
