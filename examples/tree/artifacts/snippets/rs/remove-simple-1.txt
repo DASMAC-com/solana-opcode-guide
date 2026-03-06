@@ -1,0 +1,18 @@
+    if !(*node).child[tree::DIR_L].is_null() {
+        if !(*node).child[tree::DIR_R].is_null() {
+            // Simple case 1: successor swap.
+            let mut successor = (*node).child[tree::DIR_R];
+            loop {
+                let left = (*successor).child[tree::DIR_L];
+                if left.is_null() {
+                    break;
+                }
+                successor = left;
+            }
+            // Copy successor's key/value to the found node as a u32
+            // pair. The successor's fields are left as-is (insert
+            // overwrites both when reusing the node from the stack).
+            let node_kv = addr_of_mut!((*node).key).cast::<u32>();
+            let successor_kv = addr_of!((*successor).key).cast::<u32>();
+            *node_kv = *successor_kv;
+            node = successor;

@@ -1,0 +1,38 @@
+remove_check_child_r:                                                      # r3 = node
+    ldxdw r4, [r3 + TREE_NODE_CHILD_R_OFF]                                 # r4 = node.child[R];
+    jeq r4, NULL, remove_check_simple_3_4
+
+remove_simple_2_child_l:                                                   # r4 = child
+    # Simple case 2: replace node with child, recolor child black.
+    # ---------------------------------------------------------------------
+    ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # r5 = parent;
+    stxdw [r4 + TREE_NODE_PARENT_OFF], r5                                  # child.parent = parent;
+    stb [r4 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # child.color = black;
+    jeq r5, NULL, remove_simple_2_root
+    ldxdw r6, [r5 + TREE_NODE_CHILD_R_OFF]                                 # r6 = parent.child[R];
+    jne r3, r6, remove_simple_2_dir_l
+    stxdw [r5 + TREE_NODE_CHILD_R_OFF], r4                                 # parent.child[R] = child;
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
+
+remove_simple_2_dir_l:
+    stxdw [r5 + TREE_NODE_CHILD_L_OFF], r4                                 # parent.child[L] = child;
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit
+
+remove_simple_2_root:
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r4                                 # tree.root = child;
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit

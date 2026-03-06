@@ -1,0 +1,12 @@
+remove_check_simple_3_4:                                                   # r3 = node
+    # Simple case 3: root leaf — clear root.
+    # ---------------------------------------------------------------------
+    ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # r5 = parent;
+    jne r5, NULL, remove_check_simple_4
+    stdw [r1 + IB_TREE_DATA_ROOT_OFF], NULL                                # tree.root = null;
+    stdw [r3 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r3 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r3 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r3                                  # header.top = node;
+    exit

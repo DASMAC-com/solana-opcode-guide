@@ -1,0 +1,4 @@
+#[test]
+fn test_remove_search() {
+    print_comparison_table(remove::RemoveCase::SEARCH_CASES);
+}

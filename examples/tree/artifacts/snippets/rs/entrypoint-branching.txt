@@ -1,0 +1,18 @@
+no_allocator!();
+nostd_panic_handler!();
+
+#[no_mangle]
+pub unsafe extern "C" fn entrypoint(input: *mut u8, instruction_data: *mut u8) -> u64 {
+    let instruction_data_len = ldxdw(instruction_data, -(size_of::<u64>() as i16));
+    let n_accounts = ldxdw(input, input_buffer::N_ACCOUNTS_OFF);
+    let instruction_discriminator = ldxb(instruction_data, instruction::DISCRIMINATOR_OFF);
+    if likely(instruction_discriminator == instruction::DISCRIMINATOR_INSERT) {
+        insert(input, instruction_data, instruction_data_len, n_accounts)
+    } else if likely(instruction_discriminator == instruction::DISCRIMINATOR_REMOVE) {
+        remove(input, instruction_data, instruction_data_len, n_accounts)
+    } else if likely(instruction_discriminator == instruction::DISCRIMINATOR_INITIALIZE) {
+        initialize(input, instruction_data, instruction_data_len, n_accounts)
+    } else {
+        error::INSTRUCTION_DISCRIMINATOR.into()
+    }
+}

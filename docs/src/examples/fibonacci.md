@@ -4,7 +4,7 @@
 
 <!-- @include: ./disclaimer.md -->
 
-## :1234: Fibonacci sequence background
+## :1234: Background
 
 The [Fibonacci sequence] is a classic mathematical sequence where each number is
 the sum of the two preceding ones, typically starting with $F(0) = 0$ and

@@ -1,0 +1,17 @@
+.globl entrypoint
+
+entrypoint:
+    # Read instruction data length and discriminator.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r2 - SIZE_OF_U64] # Get instruction data length.
+    ldxdw r8, [r1 + IB_N_ACCOUNTS_OFF] # Get n input buffer accounts.
+    ldxb r7, [r2 + OFFSET_ZERO] # Get discriminator.
+
+    # Jump to branch for given discriminator.
+    # ---------------------------------------------------------------------
+    jeq r7, INSN_DISCRIMINATOR_INSERT, insert
+    jeq r7, INSN_DISCRIMINATOR_REMOVE, remove
+    jeq r7, INSN_DISCRIMINATOR_INITIALIZE, initialize
+    # Error if invalid discriminator provided.
+    mov64 r0, E_INSTRUCTION_DISCRIMINATOR
+    exit

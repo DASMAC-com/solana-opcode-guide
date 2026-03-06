@@ -4,7 +4,13 @@
 
 <!-- @include: ./disclaimer.md -->
 
-## :world_map: Memory map background
+## :desktop_computer: Background
+
+This program logs arbitrary message data passed via instruction data. It accepts
+no accounts and simply writes the provided bytes to the program log using the
+[`sol_log_`] syscall. If any accounts are passed, the program returns an error.
+
+## :world_map: Memory map layout
 
 The [SBPF instruction set architecture] defines 12 registers, including
 10 general-purpose registers `r0` through `r9`. At the start of instruction

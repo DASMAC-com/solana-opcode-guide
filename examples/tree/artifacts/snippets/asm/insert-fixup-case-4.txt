@@ -1,0 +1,7 @@
+insert_fixup_check_case_4:
+    # Check case 4.
+    # ---------------------------------------------------------------------
+    ldxdw r3, [r2 + TREE_NODE_PARENT_OFF]                                  # r3 = grandparent;
+    jne r3, NULL, insert_fixup_check_case_5_6
+    stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
+    exit

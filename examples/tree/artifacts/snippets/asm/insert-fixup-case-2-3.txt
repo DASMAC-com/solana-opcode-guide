@@ -1,0 +1,13 @@
+insert_fixup_case_2:
+                                                                           # r2 := parent
+                                                                           # r3 := grandparent
+                                                                           # r7 := uncle
+    # Case 2/3.                                                            # r9 := node
+    # ---------------------------------------------------------------------
+    stb [r2 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
+    stb [r7 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # uncle.color = black;
+    stb [r3 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # grandparent.color = red;
+    mov64 r9, r3                                                           # node = grandparent;
+    ldxdw r2, [r9 + TREE_NODE_PARENT_OFF]                                  # parent = node.parent;
+    jne r2, NULL, insert_fixup_main
+    exit # Case 3.

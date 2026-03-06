@@ -1,0 +1,239 @@
+# Error codes.
+# ------------
+.equ E_N_ACCOUNTS, 1 # An invalid number of accounts were passed.
+.equ E_USER_DATA_LEN, 2 # The user account has invalid data length.
+.equ E_TREE_DATA_LEN, 3 # The tree account has invalid data length.
+# The System Program account has invalid data length.
+.equ E_SYSTEM_PROGRAM_DATA_LEN, 4
+.equ E_TREE_DUPLICATE, 5 # The tree account is a duplicate.
+# The System Program account is a duplicate.
+.equ E_SYSTEM_PROGRAM_DUPLICATE, 6
+.equ E_RENT_DUPLICATE, 7 # The rent sysvar account is a duplicate.
+.equ E_RENT_ADDRESS, 8 # The rent sysvar account has invalid data length.
+# Instruction data provided during initialization instruction.
+.equ E_INSTRUCTION_DATA, 9
+# The passed PDA does not match the expected address.
+.equ E_PDA_MISMATCH, 10
+.equ E_INSTRUCTION_DISCRIMINATOR, 11 # Invalid instruction discriminator.
+.equ E_INSTRUCTION_DATA_LEN, 12 # Invalid instruction data length.
+# Not enough accounts passed for insertion allocation.
+.equ E_N_ACCOUNTS_INSERT_ALLOCATION, 13
+.equ E_KEY_EXISTS, 14 # Key already exists in tree during insertion.
+.equ E_KEY_DOES_NOT_EXIST, 15 # Key does not exist in tree during removal.
+
+# Type sizes.
+# -----------
+.equ SIZE_OF_U8, 1 # Size of u8.
+.equ SIZE_OF_U64, 8 # Size of u64.
+.equ SIZE_OF_ADDRESS, 32 # Size of Address.
+.equ SIZE_OF_U128, 16 # Size of u128.
+.equ SIZE_OF_TREE_HEADER, 24 # Size of TreeHeader.
+.equ SIZE_OF_INITIALIZE_INSTRUCTION, 1 # Size of InitializeInstruction.
+.equ SIZE_OF_INSERT_INSTRUCTION, 5 # Size of InsertInstruction.
+.equ SIZE_OF_REMOVE_INSTRUCTION, 3 # Size of RemoveInstruction.
+.equ SIZE_OF_TREE_NODE, 29 # Size of TreeNode.
+
+# Data layout constants.
+# ----------------------
+.equ DATA_LEN_ZERO, 0 # Data length of zero.
+.equ BPF_ALIGN_OF_U128, 8 # Data alignment during runtime.
+.equ OFFSET_ZERO, 0 # No offset.
+.equ NULL, 0 # Null pointer.
+.equ DATA_LEN_AND_MASK, -8 # And mask for data length alignment.
+.equ MAX_DATA_PAD, 7 # Maximum possible data length padding.
+.equ BOOL_TRUE, 1 # Boolean true value.
+
+# Pubkey chunking offsets.
+# ------------------------
+.equ PUBKEY_CHUNK_OFF_0, 0 # Offset for the first 8 bytes.
+.equ PUBKEY_CHUNK_OFF_1, 8 # Offset for the second 8 bytes.
+.equ PUBKEY_CHUNK_OFF_2, 16 # Offset for the third 8 bytes.
+.equ PUBKEY_CHUNK_OFF_3, 24 # Offset for the fourth 8 bytes.
+
+# Input buffer layout.
+# --------------------
+.equ IB_N_ACCOUNTS_OFF, 0 # Number of accounts field.
+.equ IB_USER_ACCOUNT_OFF, 8 # User runtime account.
+.equ IB_USER_LAMPORTS_OFF, 80 # User Lamports field.
+.equ IB_USER_DATA_OFF, 96 # User data field.
+.equ IB_USER_OWNER_OFF, 48 # User owner field.
+.equ IB_TREE_LAMPORTS_OFF, 10416 # Tree Lamports field.
+.equ IB_TREE_DATA_OFF, 10432 # Tree data field.
+.equ IB_TREE_OWNER_OFF, 10384 # Tree owner field.
+.equ IB_TREE_ACCOUNT_OFF, 10344 # Tree runtime account header.
+.equ IB_TREE_ADDRESS_OFF, 10352 # Tree address field.
+# System Program runtime account header.
+.equ IB_SYSTEM_PROGRAM_ACCOUNT_OFF, 20680
+.equ IB_RENT_ACCOUNT_OFF, 31032 # Rent sysvar account header.
+.equ IB_RENT_DATA_OFF, 31120 # Rent sysvar account data.
+# Expected number of accounts for general instructions.
+.equ IB_N_ACCOUNTS_GENERAL, 2
+# Expected number of accounts for tree initialization.
+.equ IB_N_ACCOUNTS_INIT, 4
+# Expected data length of system program account.
+.equ IB_SYSTEM_PROGRAM_DATA_LEN, 14
+.equ IB_RENT_DATA_LEN, 17 # Expected data length of rent sysvar account.
+.equ IB_USER_ADDRESS_OFF, 16 # User address field.
+.equ IB_USER_DATA_LEN_OFF, 88 # User data length field.
+.equ IB_NON_DUP_MARKER, 255 # Non-duplicate marker value.
+.equ IB_TREE_NON_DUP_MARKER_OFF, 10344 # Tree non-duplicate marker field.
+.equ IB_TREE_ADDRESS_OFF_0, 10352 # Tree address field (chunk index 0).
+.equ IB_TREE_ADDRESS_OFF_1, 10360 # Tree address field (chunk index 1).
+.equ IB_TREE_ADDRESS_OFF_2, 10368 # Tree address field (chunk index 2).
+.equ IB_TREE_ADDRESS_OFF_3, 10376 # Tree address field (chunk index 3).
+.equ IB_TREE_DATA_LEN_OFF, 10424 # Tree data length field.
+# System Program non-duplicate marker field.
+.equ IB_SYSTEM_PROGRAM_NON_DUP_MARKER_OFF, 20680
+# System Program data length field.
+.equ IB_SYSTEM_PROGRAM_DATA_LEN_OFF, 20760
+# Rent account non-duplicate marker field.
+.equ IB_RENT_NON_DUP_MARKER_OFF, 31032
+.equ IB_RENT_ADDRESS_OFF_0, 31040 # Rent address field (chunk index 0).
+.equ IB_RENT_ADDRESS_OFF_1, 31048 # Rent address field (chunk index 1).
+.equ IB_RENT_ADDRESS_OFF_2, 31056 # Rent address field (chunk index 2).
+.equ IB_RENT_ADDRESS_OFF_3, 31064 # Rent address field (chunk index 3).
+.equ IB_RENT_ID_CHUNK_0, 5862609301215225606 # Rent sysvar ID (chunk 0).
+.equ IB_RENT_ID_CHUNK_0_LO, 399877894 # Rent sysvar ID (chunk 0 lo).
+.equ IB_RENT_ID_CHUNK_0_HI, 1364995097 # Rent sysvar ID (chunk 0 hi).
+.equ IB_RENT_ID_CHUNK_1, 9219231539345853473 # Rent sysvar ID (chunk 1).
+.equ IB_RENT_ID_CHUNK_1_LO, 1288277025 # Rent sysvar ID (chunk 1 lo).
+.equ IB_RENT_ID_CHUNK_1_HI, 2146519613 # Rent sysvar ID (chunk 1 hi).
+.equ IB_RENT_ID_CHUNK_2, 4971307250928769624 # Rent sysvar ID (chunk 2).
+.equ IB_RENT_ID_CHUNK_2_LO, 149871192 # Rent sysvar ID (chunk 2 lo).
+.equ IB_RENT_ID_CHUNK_2_HI, 1157472667 # Rent sysvar ID (chunk 2 hi).
+.equ IB_RENT_ID_CHUNK_3, 2329533411 # Rent sysvar ID (chunk 3).
+.equ IB_RENT_ID_CHUNK_3_LO, -1965433885 # Rent sysvar ID (chunk 3 lo).
+.equ IB_RENT_ID_CHUNK_3_HI, 0 # Rent sysvar ID (chunk 3 hi).
+# Program ID field for initialize instruction.
+.equ IB_INIT_PROGRAM_ID_OFF_IMM, 41401
+.equ IB_TREE_DATA_TOP_OFF, 10440 # Tree top pointer field within tree data.
+# Tree next pointer field within tree data.
+.equ IB_TREE_DATA_NEXT_OFF, 10448
+# Tree root pointer field within tree data.
+.equ IB_TREE_DATA_ROOT_OFF, 10432
+# Relative offset from user data field to tree pubkey field.
+.equ IB_USER_DATA_TO_TREE_ADDRESS_REL_OFF_IMM, 10256
+
+# Offsets for instruction processing.
+# -----------------------------------
+.equ INSN_DISCRIMINATOR_OFF, 0 # Offset to instruction discriminator byte.
+# Initialize instruction discriminator.
+.equ INSN_DISCRIMINATOR_INITIALIZE, 0
+.equ INSN_DISCRIMINATOR_INSERT, 1 # Insert instruction discriminator.
+.equ INSN_DISCRIMINATOR_REMOVE, 2 # Remove instruction discriminator.
+.equ INSN_INSERT_KEY_OFF, 1 # Key field in insert instruction.
+.equ INSN_INSERT_VALUE_OFF, 3 # Value field in insert instruction.
+.equ INSN_REMOVE_KEY_OFF, 1 # Key field in remove instruction.
+
+# Init stack frame layout.
+# ------------------------
+.equ SF_INIT_BUMP_SEED_OFF, -352 # Bump seed.
+.equ SF_INIT_SIGNER_SEED_ADDR_OFF, -96 # Bump signer seed address field.
+.equ SF_INIT_SIGNER_SEED_LEN_OFF, -88 # Bump signer seed length field.
+.equ SF_INIT_PDA_OFF, -80 # PDA address field.
+# Discriminator field in CPI instruction data.
+.equ SF_INIT_CREATE_ACCOUNT_DISCRIMINATOR_UOFF, -351
+# Lamports field in CreateAccount instruction data.
+.equ SF_INIT_CREATE_ACCOUNT_LAMPORTS_UOFF, -347
+# Space address field in CreateAccount instruction data.
+.equ SF_INIT_CREATE_ACCOUNT_SPACE_UOFF, -339
+# Owner field in CreateAccount instruction data (chunk index 0).
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_0, -331
+# Owner field in CreateAccount instruction data (chunk index 1).
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_1, -323
+# Owner field in CreateAccount instruction data (chunk index 2).
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_2, -315
+# Owner field in CreateAccount instruction data (chunk index 3).
+.equ SF_INIT_CREATE_ACCOUNT_OWNER_UOFF_3, -307
+.equ SF_INIT_SIGNERS_SEEDS_ADDR_OFF, -112 # Signers seeds address field.
+.equ SF_INIT_SIGNERS_SEEDS_LEN_OFF, -104 # Signers seeds length field.
+.equ SF_INIT_SYSTEM_PROGRAM_ADDRESS_OFF, -32 # System Program address.
+.equ SF_INIT_INSN_PROGRAM_ID_OFF, -296 # SolInstruction program_id field.
+.equ SF_INIT_INSN_ACCOUNTS_OFF, -288 # SolInstruction accounts field.
+.equ SF_INIT_INSN_ACCOUNT_LEN_OFF, -280 # SolInstruction account_len field.
+.equ SF_INIT_INSN_DATA_OFF, -272 # SolInstruction data field.
+.equ SF_INIT_INSN_DATA_LEN_OFF, -264 # SolInstruction data_len field.
+# SolAccountMeta is_writable field for user account.
+.equ SF_INIT_USER_META_IS_WRITABLE_OFF, -248
+# SolAccountMeta is_writable field for tree account.
+.equ SF_INIT_TREE_META_IS_WRITABLE_OFF, -232
+# SolAccountInfo is_signer field for user account.
+.equ SF_INIT_USER_INFO_IS_SIGNER_OFF, -176
+# SolAccountMeta pubkey field for user account.
+.equ SF_INIT_USER_META_PUBKEY_OFF, -256
+# SolAccountInfo pubkey field for user account.
+.equ SF_INIT_USER_INFO_PUBKEY_OFF, -224
+# SolAccountInfo owner field for user account.
+.equ SF_INIT_USER_INFO_OWNER_OFF, -192
+# SolAccountInfo lamports field for user account.
+.equ SF_INIT_USER_INFO_LAMPORTS_OFF, -216
+# SolAccountInfo data_len field for user account.
+.equ SF_INIT_USER_INFO_DATA_OFF, -200
+# SolAccountInfo data_len for tree account.
+.equ SF_INIT_TREE_INFO_DATA_LEN_OFF, -152
+# SolAccountInfo is_signer field for tree account.
+.equ SF_INIT_TREE_INFO_IS_SIGNER_OFF, -120
+# SolAccountInfo is_writable field for tree account.
+.equ SF_INIT_TREE_INFO_IS_WRITABLE_UOFF, -119
+# SolAccountMeta pubkey field for tree account.
+.equ SF_INIT_TREE_META_PUBKEY_OFF, -240
+# SolAccountInfo pubkey field for tree account.
+.equ SF_INIT_TREE_INFO_PUBKEY_OFF, -168
+# SolAccountInfo owner field for tree account.
+.equ SF_INIT_TREE_INFO_OWNER_OFF, -136
+# SolAccountInfo lamports field for tree account.
+.equ SF_INIT_TREE_INFO_LAMPORTS_OFF, -160
+# SolAccountInfo data_len field for tree account.
+.equ SF_INIT_TREE_INFO_DATA_OFF, -144
+# Relative offset from PDA on stack to System Program ID.
+.equ SF_INIT_PDA_TO_SYSTEM_PROGRAM_ID_REL_OFF_IMM, 48
+# Relative offset from System Program ID to first SolAccountMeta.
+.equ SF_INIT_SYSTEM_PROGRAM_ID_TO_ACCT_METAS_REL_OFF_IMM, -224
+# Relative offset from SolAccountMeta array to instruction data.
+.equ SF_INIT_ACCT_METAS_TO_INSN_DATA_REL_OFF_IMM, -95
+# Relative offset from instruction data to signer seeds.
+.equ SF_INIT_INSN_DATA_TO_SIGNER_SEEDS_REL_OFF_IMM, 255
+# Relative offset from signer seeds to signers seeds.
+.equ SF_INIT_SIGNER_SEEDS_TO_SIGNERS_SEEDS_REL_OFF_IMM, -16
+.equ SF_INIT_ACCT_INFOS_OFF, -224 # Account infos array.
+
+# CPI-specific constants.
+# -----------------------
+.equ CPI_N_ACCOUNTS, 2 # User and tree accounts.
+# The tree account is a PDA for CreateAccount CPI.
+.equ CPI_N_PDA_SIGNERS, 1
+# Number of seeds for CreateAccount PDA signer (bump only).
+.equ CPI_N_SEEDS_CREATE_ACCOUNT, 1
+# PDA signers for Transfer CPI (none — user is already a signer).
+.equ CPI_N_PDA_SIGNERS_TRANSFER, 0
+.equ CPI_N_SEEDS_TRY_FIND_PDA, 0 # Number of seeds for PDA generation.
+.equ CPI_TREE_DATA_LEN, 24 # Tree account data length.
+# Account data scalar for base rent calculation.
+.equ CPI_ACCOUNT_DATA_SCALAR, 152
+# CreateAccount discriminator for CPI.
+.equ CPI_CREATE_ACCOUNT_DISCRIMINATOR, 0
+# Length of CreateAccount instruction data.
+.equ CPI_CREATE_ACCOUNT_INSN_DATA_LEN, 52
+.equ CPI_TRANSFER_DISCRIMINATOR, 2 # Transfer discriminator for CPI.
+.equ CPI_TRANSFER_INSN_DATA_LEN, 12 # Length of Transfer instruction data.
+.equ CPI_WRITABLE_SIGNER, 0x0101 # Mask for writable signer.
+.equ CPI_USER_ACCOUNT_INDEX, 0 # Account index for user account in CPI.
+.equ CPI_TREE_ACCOUNT_INDEX, 1 # Account index for tree account in CPI.
+.equ CPI_RENT_EPOCH_NULL, 0 # Null rent epoch.
+
+# Tree constants.
+# ---------------
+.equ TREE_N_CHILDREN, 2 # Max number of children per node.
+.equ TREE_DIR_L, 0 # Left direction.
+.equ TREE_DIR_R, 1 # Right direction.
+.equ TREE_COLOR_B, 0 # Black color.
+.equ TREE_COLOR_R, 1 # Red color.
+.equ TREE_HEADER_TOP_OFF, 8 # Stack top field in header.
+.equ TREE_HEADER_NEXT_OFF, 16 # Next node field in header.
+.equ TREE_DISCRIMINATOR_INSERT, 1 # Discriminator for insert instruction.
+.equ TREE_NODE_KEY_OFF, 24 # Node key field.
+.equ TREE_NODE_VALUE_OFF, 26 # Node value field.
+.equ TREE_NODE_CHILD_L_OFF, 8 # Node left child field.
+.equ TREE_NODE_CHILD_R_OFF, 16 # Node right child field.
+.equ TREE_NODE_PARENT_OFF, 0 # Node parent field.
+.equ TREE_NODE_COLOR_OFF, 28 # Color field.

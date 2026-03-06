@@ -3,6 +3,7 @@ cargo-manifest.workspace = true
 pinocchio.workspace = true
 pinocchio-system.workspace = true
 regex.workspace = true
+tree-interface.workspace = true
 
 [dev-dependencies]
 fib-rs.workspace = true

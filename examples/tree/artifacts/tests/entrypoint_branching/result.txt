@@ -1,0 +1,10 @@
+| Test case | ASM (CUs) | Rust (CUs) | Overhead | Overhead % |
+|-----------|-----------|------------|----------|------------|
+| Invalid instruction discriminator | 8 | 11 | +3 | +37.5% |
+test tests::test_entrypoint_branching ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 8 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xb
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program DASMAC... consumed 11 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0xb

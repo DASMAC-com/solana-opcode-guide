@@ -1,0 +1,105 @@
+remove_complex:
+    mov64 r2, r3                                                           # r2 = deleted node (save for recycle);
+    ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # r5 = parent;
+    ldxdw r4, [r5 + TREE_NODE_CHILD_L_OFF]                                 # r4 = parent.child[L];
+    jne r3, r4, remove_complex_dir_r                                       # if node != parent.child[L] goto remove_complex_dir_r
+remove_complex_dir_l:
+    # Prepare to loop for when node direction is left.
+    # ---------------------------------------------------------------------
+    stdw [r5 + TREE_NODE_CHILD_L_OFF], NULL                                # parent.child[L] = null;
+    ja remove_complex_loop_dir_l                                           # goto remove_complex_loop_dir_l
+remove_complex_dir_r:
+    # Prepare to loop for when node direction is right.
+    # ---------------------------------------------------------------------
+    stdw [r5 + TREE_NODE_CHILD_R_OFF], NULL                                # parent.child[R] = null;
+remove_complex_loop_dir_r:
+    # Rebalance loop for when node direction is right.
+    # ---------------------------------------------------------------------
+    ldxdw r6, [r5 + TREE_NODE_CHILD_L_OFF]                                 # r6 = sibling = parent.child[L];
+    ldxdw r7, [r6 + TREE_NODE_CHILD_L_OFF]                                 # r7 = distant_nephew = sibling.child[L];
+    ldxdw r8, [r6 + TREE_NODE_CHILD_R_OFF]                                 # r8 = close_nephew = sibling.child[R];
+    # Check for red sibling.
+    # ---------------------------------------------------------------------
+    ldxb r9, [r6 + TREE_NODE_COLOR_OFF]                                    # r9 = sibling.color;
+    jeq r9, TREE_COLOR_R, remove_complex_loop_dir_r_sibling_red            # if sibling.color == red goto remove_complex_loop_dir_r_sibling_red
+    # Check for red distant nephew.
+    # ---------------------------------------------------------------------
+    jeq r7, NULL, remove_complex_loop_dir_r_check_case_5                   # if distant_nephew == null goto remove_complex_loop_dir_r_check_case_5
+    ldxb r9, [r7 + TREE_NODE_COLOR_OFF]                                    # r9 = distant_nephew.color;
+    jeq r9, TREE_COLOR_R, remove_complex_case_6_dir_r                      # if distant_nephew.color == red goto remove_complex_case_6_dir_r
+remove_complex_loop_dir_r_check_case_5:
+    # Check for red close nephew.
+    # ---------------------------------------------------------------------
+    jeq r8, NULL, remove_complex_loop_dir_r_check_case_1                   # if close_nephew == null goto remove_complex_loop_dir_r_check_case_1
+    ldxb r9, [r8 + TREE_NODE_COLOR_OFF]                                    # r9 = close_nephew.color;
+    jeq r9, TREE_COLOR_R, remove_complex_case_5_dir_r                      # if close_nephew.color == red goto remove_complex_case_5_dir_r
+remove_complex_loop_dir_r_check_case_1:
+    # Check for no parent.
+    # ---------------------------------------------------------------------
+    jeq r5, NULL, remove_complex_recycle_node                              # if parent == null goto remove_complex_recycle_node;
+    # Check for red parent.
+    # ---------------------------------------------------------------------
+    ldxb r9, [r5 + TREE_NODE_COLOR_OFF]                                    # r9 = parent.color;
+    jne r9, TREE_COLOR_R, remove_complex_loop_dir_r_case_2                 # if parent.color != red goto remove_complex_loop_dir_r_case_2
+    stb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # sibling.color = red;
+    stb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
+    ja remove_complex_recycle_node                                         # goto remove_complex_recycle_node;
+remove_complex_loop_dir_r_case_2:
+    # Fall through to case 2 at end of loop.
+    # ---------------------------------------------------------------------
+    stb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # sibling.color = red;
+    mov64 r3, r5                                                           # node = parent;
+    ldxdw r5, [r3 + TREE_NODE_PARENT_OFF]                                  # parent = node.parent;
+    # Check if parent exists, and if so, get direction for next loop.
+    # ---------------------------------------------------------------------
+    jeq r5, NULL, remove_complex_case_5_dir_r                              # if parent == null goto remove_complex_case_5_dir_r
+    ldxdw r4, [r5 + TREE_NODE_CHILD_L_OFF]                                 # r4 = parent.child[L]
+    jeq r3, r4, remove_complex_loop_dir_l                                  # if node == parent.child[L] goto remove_complex_loop_dir_l
+    ja remove_complex_loop_dir_r                                           # goto remove_complex_loop_dir_r
+remove_complex_case_5_dir_r:
+    # rotate_subtree(tree, sibling, 1-dir)
+    stb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # sibling.color = red;
+    stb [r8 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # close_nephew.color = black;
+    mov64 r7, r6                                                           # distant_nephew = sibling;
+    mov64 r6, r8                                                           # sibling = close_nephew;
+remove_complex_case_6_dir_r:
+    # rotate_subtree(tree, parent, dir)
+    ldxb r4, [r5 + TREE_NODE_COLOR_OFF]                                    # r4 = parent.color;
+    stxb [r6 + TREE_NODE_COLOR_OFF], r4                                    # sibling.color = parent.color;
+    stb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
+    stb [r7 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # distant_nephew.color = black;
+    ja remove_complex_recycle_node
+remove_complex_loop_dir_r_sibling_red:
+    # Rebalance for red sibling case.
+    # ---------------------------------------------------------------------
+    # rotate_subtree(tree, parent, dir)
+    stb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # parent.color = red;
+    stb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # sibling.color = black;
+    mov64 r6, r8                                                           # sibling = close_nephew;
+    ldxdw r4, [r6 + TREE_NODE_CHILD_L_OFF]                                 # r4 = sibling.child[L];
+    mov64 r7, r4                                                           # distant_nephew = sibling.child[L];
+    jeq r7, NULL, remove_complex_loop_dir_r_sibling_red_check_case_5       # if distant_nephew == null goto remove_complex_loop_dir_r_sibling_red_check_case_5
+    ldxb r4, [r7 + TREE_NODE_COLOR_OFF]                                    # r4 = distant_nephew.color;
+    jeq r4, TREE_COLOR_R, remove_complex_case_6_dir_r                      # if distant_nephew.color == red goto remove_complex_case_6_dir_r
+remove_complex_loop_dir_r_sibling_red_check_case_5:
+    ldxdw r4, [r6 + TREE_NODE_CHILD_R_OFF]                                 # r4 = sibling.child[R];
+    mov64 r8, r4                                                           # close_nephew = sibling.child[R];
+    jeq r8, NULL, remove_complex_loop_dir_r_sibling_red_case_4             # if close_nephew == null goto remove_complex_loop_dir_r_sibling_red_case_4
+    ldxb r4, [r8 + TREE_NODE_COLOR_OFF]                                    # r4 = close_nephew.color;
+    jeq r4, TREE_COLOR_R, remove_complex_case_5_dir_r                      # if close_nephew.color == red goto remove_complex_case_5_dir_r
+remove_complex_loop_dir_r_sibling_red_case_4:
+    stb [r6 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # sibling.color = red;
+    stb [r5 + TREE_NODE_COLOR_OFF], TREE_COLOR_B                           # parent.color = black;
+    ja remove_complex_recycle_node
+
+remove_complex_loop_dir_l:
+    # Mirror of remove_complex_loop_r.
+    # Needs all the other sub labels for the same cases, but with dir reversed.
+
+remove_complex_recycle_node:
+    stdw [r2 + TREE_NODE_CHILD_L_OFF], NULL                                # node.child[L] = null;
+    stdw [r2 + TREE_NODE_CHILD_R_OFF], NULL                                # node.child[R] = null;
+    ldxdw r4, [r1 + IB_TREE_DATA_TOP_OFF]                                  # r4 = header.top;
+    stxdw [r2 + TREE_NODE_PARENT_OFF], r4                                  # node.next = top;
+    stxdw [r1 + IB_TREE_DATA_TOP_OFF], r2                                  # header.top = node;
+    exit

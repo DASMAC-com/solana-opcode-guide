@@ -1,0 +1,18 @@
+insert:
+    # Error if invalid instruction data length.
+    # ---------------------------------------------------------------------
+    jne r9, SIZE_OF_INSERT_INSTRUCTION, e_instruction_data_len
+
+    # Error if too few accounts.
+    # ---------------------------------------------------------------------
+    jlt r8, IB_N_ACCOUNTS_GENERAL, e_n_accounts
+
+    # Error if user has data.
+    # ---------------------------------------------------------------------
+    ldxdw r9, [r1 + IB_USER_DATA_LEN_OFF]
+    jne r9, DATA_LEN_ZERO, e_user_data_len
+
+    # Error if tree is duplicate.
+    # ---------------------------------------------------------------------
+    ldxb r9, [r1 + IB_TREE_NON_DUP_MARKER_OFF]
+    jne r9, IB_NON_DUP_MARKER, e_tree_duplicate

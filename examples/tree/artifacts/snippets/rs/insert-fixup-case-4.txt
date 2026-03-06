@@ -1,0 +1,6 @@
+        let grandparent = (*parent).parent;
+        if grandparent.is_null() {
+            // Case 4.
+            (*parent).color = Color::Black;
+            return SUCCESS;
+        }

@@ -1,0 +1,41 @@
+insert_search:                                                             # r9 = node
+    ldxh r4, [r2 + INSN_INSERT_KEY_OFF]                                    # r4 = insn.key;
+    ldxdw r3, [r1 + IB_TREE_DATA_ROOT_OFF]                                 # r3 = cursor = root;
+    jeq r3, NULL, insert_root
+
+insert_search_loop:
+    mov64 r2, r3                                                           # r2 = parent = cursor;
+    ldxh r5, [r3 + TREE_NODE_KEY_OFF]                                      # r5 = cursor.key;
+    jlt r4, r5, insert_search_branch_l
+    jgt r4, r5, insert_search_branch_r
+    mov64 r0, E_KEY_EXISTS # Error if key already exists.
+    exit
+
+insert_root:
+    # Root is null: new node becomes root.
+    # ---------------------------------------------------------------------
+    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
+    mov64 r2, NULL                                                         # r2 = parent = null;
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = null;
+    stxdw [r1 + IB_TREE_DATA_ROOT_OFF], r9                                 # root = node;
+    exit
+
+insert_search_branch_l:
+    ldxdw r3, [r2 + TREE_NODE_CHILD_L_OFF]                                 # r3 = parent.child[L];
+    jne r3, NULL, insert_search_loop
+    # Null child: insert node as left child of parent.
+    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = parent;
+    stxdw [r2 + TREE_NODE_CHILD_L_OFF], r9                                 # parent.child[L] = node;
+    # Inline case 1: if parent is black, tree is valid.
+    ldxb r6, [r2 + TREE_NODE_COLOR_OFF]                                    # r6 = parent.color;
+    jne r6, TREE_COLOR_B, insert_fixup_check_case_4
+    exit
+
+insert_search_branch_r:
+    ldxdw r3, [r2 + TREE_NODE_CHILD_R_OFF]                                 # r3 = parent.child[R];
+    jne r3, NULL, insert_search_loop
+    # Null child: insert node as right child of parent.
+    stb [r9 + TREE_NODE_COLOR_OFF], TREE_COLOR_R                           # node.color = red;
+    stxdw [r9 + TREE_NODE_PARENT_OFF], r2                                  # node.parent = parent;
+    stxdw [r2 + TREE_NODE_CHILD_R_OFF], r9                                 # parent.child[R] = node;

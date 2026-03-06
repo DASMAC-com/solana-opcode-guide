@@ -1,0 +1,36 @@
+| Test case | Fixed CU costs | ASM (net CUs) | Rust (net CUs) | Overhead | Overhead % |
+|-----------|----------------|---------------|----------------|----------|------------|
+| System Program is wrong address | 2446 | 108 | 142 | +34 | +31.5% |
+| User has insufficient Lamports | 2596 | 108 | 142 | +34 | +31.5% |
+| CreateAccount happy path | 2596 | 112 | 148 | +36 | +32.1% |
+test tests::test_initialize_create_account ... ok
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Unknown program 11111111111111111111111111111111
+[ ... DEBUG ... ] Program DASMAC... consumed 2554 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: An account required by the instruction is missing
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Unknown program 11111111111111111111111111111111
+[ ... DEBUG ... ] Program DASMAC... consumed 2588 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: An account required by the instruction is missing
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Transfer: insufficient lamports 0, need 528960
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... consumed 2704 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Transfer: insufficient lamports 0, need 528960
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... consumed 2738 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... failed: custom program error: 0x1
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 2708 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success
+[ ... DEBUG ... ] Program DASMAC... invoke [1]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 invoke [2]
+[ ... DEBUG ... ] Program 11111111111111111111111111111111 success
+[ ... DEBUG ... ] Program DASMAC... consumed 2744 of 1400000 compute units
+[ ... DEBUG ... ] Program DASMAC... success

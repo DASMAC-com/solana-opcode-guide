@@ -1,0 +1,84 @@
+    let mut parent = (*node).parent;
+    let mut dir = direction(node);
+    (*parent).child[dir] = null_mut();
+    let removed_node = node;
+
+    let mut sibling: *mut TreeNode;
+    let mut close_nephew: *mut TreeNode;
+    let mut distant_nephew: *mut TreeNode;
+    // 0 = done (cases 1/2/4), 5 = case 5+6, 6 = case 6 only.
+    let mut exit_case: u32 = 0;
+
+    loop {
+        sibling = (*parent).child[1 - dir];
+        distant_nephew = (*sibling).child[1 - dir];
+        close_nephew = (*sibling).child[dir];
+
+        if (*sibling).color == Color::Red {
+            // Case 3.
+            rotate_subtree(tree_header, parent, dir);
+            (*parent).color = Color::Red;
+            (*sibling).color = Color::Black;
+            sibling = close_nephew;
+
+            distant_nephew = (*sibling).child[1 - dir];
+            if !distant_nephew.is_null() && (*distant_nephew).color == Color::Red {
+                exit_case = 6;
+                break;
+            }
+            close_nephew = (*sibling).child[dir];
+            if !close_nephew.is_null() && (*close_nephew).color == Color::Red {
+                exit_case = 5;
+                break;
+            }
+
+            // Case 4.
+            (*sibling).color = Color::Red;
+            (*parent).color = Color::Black;
+            break;
+        }
+
+        if !distant_nephew.is_null() && (*distant_nephew).color == Color::Red {
+            exit_case = 6;
+            break;
+        }
+
+        if !close_nephew.is_null() && (*close_nephew).color == Color::Red {
+            exit_case = 5;
+            break;
+        }
+
+        if (*parent).color == Color::Red {
+            // Case 4.
+            (*sibling).color = Color::Red;
+            (*parent).color = Color::Black;
+            break;
+        }
+
+        // Case 2.
+        (*sibling).color = Color::Red;
+        node = parent;
+        parent = (*node).parent;
+        if parent.is_null() {
+            break;
+        }
+        dir = direction(node);
+    }
+
+    // Case 5 falls through to case 6.
+    if exit_case == 5 {
+        rotate_subtree(tree_header, sibling, 1 - dir);
+        (*sibling).color = Color::Red;
+        (*close_nephew).color = Color::Black;
+        distant_nephew = sibling;
+        sibling = close_nephew;
+    }
+
+    if exit_case >= 5 {
+        rotate_subtree(tree_header, parent, dir);
+        (*sibling).color = read_unaligned(addr_of!((*parent).color));
+        (*parent).color = Color::Black;
+        (*distant_nephew).color = Color::Black;
+    }
+
+    remove_recycle_node!(removed_node, tree_header);

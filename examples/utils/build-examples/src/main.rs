@@ -450,6 +450,11 @@ fn run_and_save_test_snippets(path: &Path, package_name: &str) {
     let tests = discover_tests(&tests_path);
     let tests_dir = path.join("artifacts/tests");
 
+    // Clear existing test artifacts before regenerating.
+    if tests_dir.exists() {
+        fs::remove_dir_all(&tests_dir).expect("failed to clear test artifacts directory");
+    }
+
     for (test_name, test_code) in tests {
         // Verify test name starts with "test_".
         assert!(

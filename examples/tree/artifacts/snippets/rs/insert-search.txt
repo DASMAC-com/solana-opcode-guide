@@ -1,0 +1,41 @@
+    let key = ldxh(instruction_data, instruction::INSERT_KEY_OFF);
+    let mut cursor = (*tree_header).root;
+
+    // Root is null: new node becomes root.
+    if cursor.is_null() {
+        (*node).color = Color::Red;
+        (*node).parent = null_mut();
+        (*tree_header).root = node;
+        return SUCCESS;
+    }
+
+    let mut parent: *mut TreeNode;
+    loop {
+        parent = cursor;
+        let cursor_key = (*cursor).key;
+        if likely(key > cursor_key) {
+            cursor = (*parent).child[tree::DIR_R];
+            if cursor.is_null() {
+                (*node).color = Color::Red;
+                (*node).parent = parent;
+                (*parent).child[tree::DIR_R] = node;
+                if (*parent).color == Color::Black {
+                    return SUCCESS;
+                }
+                break;
+            }
+        } else if likely(key < cursor_key) {
+            cursor = (*parent).child[tree::DIR_L];
+            if cursor.is_null() {
+                (*node).color = Color::Red;
+                (*node).parent = parent;
+                (*parent).child[tree::DIR_L] = node;
+                if (*parent).color == Color::Black {
+                    return SUCCESS;
+                }
+                break;
+            }
+        } else {
+            return error::KEY_EXISTS.into();
+        }
+    }

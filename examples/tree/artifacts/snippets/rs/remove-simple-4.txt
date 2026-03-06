@@ -1,0 +1,9 @@
+    } else if (*node).color == Color::Red {
+        // Simple case 4: red leaf.
+        let parent = (*node).parent;
+        if node == (*parent).child[tree::DIR_R] {
+            (*parent).child[tree::DIR_R] = null_mut();
+        } else {
+            (*parent).child[tree::DIR_L] = null_mut();
+        }
+        remove_recycle_node!(node, tree_header);

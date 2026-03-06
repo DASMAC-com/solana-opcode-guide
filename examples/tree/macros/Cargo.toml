@@ -1,0 +1,13 @@
+[dependencies]
+convert_case.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true
+
+[lib]
+proc-macro = true
+
+[package]
+edition = "2021"
+name = "macros"
+version = "0.1.0"
