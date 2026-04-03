@@ -32,7 +32,13 @@ export default {
           "Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)",
       },
     ],
-    ["meta", { property: "og:image", content: "https://opcodes.dasmac.com/dasmac-banner.png" }],
+    [
+      "meta",
+      {
+        property: "og:image",
+        content: "https://opcodes.dasmac.com/dasmac-banner.png",
+      },
+    ],
     ["meta", { name: "twitter:card", content: "summary_large_image" }],
     ["meta", { name: "twitter:title", content: "Solana Opcode Guide" }],
     [
@@ -43,7 +49,13 @@ export default {
           "Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)",
       },
     ],
-    ["meta", { name: "twitter:image", content: "https://opcodes.dasmac.com/dasmac-banner.png" }],
+    [
+      "meta",
+      {
+        name: "twitter:image",
+        content: "https://opcodes.dasmac.com/dasmac-banner.png",
+      },
+    ],
   ],
   srcDir: "src",
   markdown: {
