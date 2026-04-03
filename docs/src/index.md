@@ -3,6 +3,7 @@
 <!-- markdownlint-disable MD013 -->
 
 > [!important] Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)
+> [DASMAC.com]
 
 <!-- markdownlint-enable MD013 -->
 
@@ -51,6 +52,7 @@ incrementally learn more advanced [SBPF][isa] concepts. See also the
 [indices](indices/) for additional reference material, including a full list
 of [SBPF opcodes][isa] and [Solana syscalls] used in the examples.
 
+[dasmac.com]: https://dasmac.com
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [anchor]: https://www.anchor-lang.com/docs
 [bytecode]: https://en.wikipedia.org/wiki/Bytecode
