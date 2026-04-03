@@ -52,10 +52,10 @@ incrementally learn more advanced [SBPF][isa] concepts. See also the
 [indices](indices/) for additional reference material, including a full list
 of [SBPF opcodes][isa] and [Solana syscalls] used in the examples.
 
-[dasmac.com]: https://dasmac.com
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [anchor]: https://www.anchor-lang.com/docs
 [bytecode]: https://en.wikipedia.org/wiki/Bytecode
+[dasmac.com]: https://dasmac.com
 [ebpf]: https://www.rfc-editor.org/rfc/rfc9669
 [elf]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 [isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
