@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD036 -->
 
-*Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)*
+*Courtesy of Distributed Atomic State Machine Algorithms Corporation ([DASMAC])*
 
 <!-- markdownlint-enable MD036 -->
 
@@ -38,6 +38,7 @@ The Solana Opcode Guide is built with [VitePress] and can be viewed at
    pre-commit run --config cfg/pre-commit/quick-lint.yml --all-files
    ```
 
+[dasmac]: https://dasmac.com
 [localhost:5173]: http://localhost:5173
 [opcodes.dasmac.com]: https://opcodes.dasmac.com
 [vitepress]: https://vitepress.dev/

@@ -3,6 +3,7 @@
 <!-- markdownlint-disable MD013 -->
 
 > [!important] Courtesy of Distributed Atomic State Machine Algorithms Corporation (DASMAC)
+> [DASMAC.com]
 
 <!-- markdownlint-enable MD013 -->
 
@@ -54,6 +55,7 @@ of [SBPF opcodes][isa] and [Solana syscalls] used in the examples.
 ["hello, world!" program]: https://en.wikipedia.org/wiki/%22Hello,_World!%22_program
 [anchor]: https://www.anchor-lang.com/docs
 [bytecode]: https://en.wikipedia.org/wiki/Bytecode
+[dasmac.com]: https://dasmac.com
 [ebpf]: https://www.rfc-editor.org/rfc/rfc9669
 [elf]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 [isa]: https://github.com/anza-xyz/sbpf/blob/v0.13.0/doc/bytecode.md
